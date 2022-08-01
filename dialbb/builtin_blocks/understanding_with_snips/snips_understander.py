@@ -105,7 +105,7 @@ class Understander(AbstractBlock):
 
     def _snip_slot_value_to_dialbb_slot_value(self, value: str) -> str:
         if self._language == 'ja':
-            result = value.replace(r'\s', '')  # TODO use expressions in the excel file
+            result = value.replace(' ', '')  # TODO use expressions in the excel file
         else:
             result = value
         return result
