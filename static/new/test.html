@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8">
+    <title>DialBB Chat Interface</title>
+  </head>
+  <body>
+    <h1>DialBB Application Chat Interface</h1>
+    <p>User ID</p>
+    <p>
+      <input type="text" id="user_id" value="user1" size=70/>
+      <input type="submit" value="start dialogue" onClick="post_init()"/>
+    </p>
+    <p>User utterance</p>
+    <p>
+        <input type="text" id="user_utterance" size=70/>
+        <input type="submit" value="send" onClick="post_user_utterance()"/>
+    </p>
+    <ul id="chat"></ul>
+    <script src="assets/functions-for-test.js"></script>
+  </body>
+</html>

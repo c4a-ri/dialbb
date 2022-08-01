@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "request",
+  "description": "dialogue request sent to dialbb server",
+  "type": "object",
+  "required": [
+    "user_utterance",
+    "user_id",
+    "session_id"
+  ],
+  "properties": {
+    "user_utterance": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "session_id": {
+      "type": "string"
+    },
+    "aux_data": {
+      "type": "object"
+    }
+  }
+}

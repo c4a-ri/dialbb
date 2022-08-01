@@ -1,0 +1,33 @@
+# 状態遷移ネットワークベースの日本語サンプルアプリのコンフィギュレーションファイル
+
+language: ja   # 言語を指定
+
+blocks:  # ブロックのリスト
+  - name: canonicalizer  # ブロック名
+    # ブロックのクラス
+    block_class: preprocess.utterance_canonicalizer.UtteranceCanonicalizer 
+    input: # ブロックへの入力
+      input_text: user_utterance
+    output: # ブロックからの出力
+      output_text: canonicalized_user_utterance
+  - name: understander
+    block_class: understanding_with_snips.snips_understander.Understander
+    input:
+      input_text: canonicalized_user_utterance
+    output: 
+      nlu_result: nlu_result
+    knowledge_file: sample-knowledge-ja.xlsx  # 知識記述ファイル
+  - name: manager
+    block_class: stn_management.stn_manager.Manager
+    knowledge_file: sample-knowledge-ja.xlsx # 知識記述ファイル
+    function_definitions: scenario_functions  # 知識記述の中で用いる関数の定義ファイル
+    input:
+      sentence: canonicalized_user_utterance
+      nlu_result: nlu_result
+      user_id: user_id
+      session_id: session_id
+    output:
+      output_text: system_utterance
+      #aux_data: aux_data
+      final: final
+    

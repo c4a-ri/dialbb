@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="ja" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DialBB API ドキュメント &mdash; DialBBドキュメント v0.1 ドキュメント</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/translations.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="索引" href="genindex.html" />
+    <link rel="search" title="検索" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> DialBBドキュメント
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="intro.html">はじめに</a></li>
+<li class="toctree-l1"><a class="reference internal" href="concept.html">DialBBの概要</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">インストールとサンプルアプリの実行の仕方</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">コーディングなしで対話アプリケーションを作る方法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="framework.html">フレームワーク仕様</a></li>
+<li class="toctree-l1"><a class="reference internal" href="builtin_blocks.html">組み込みブロックの仕様</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">DialBBドキュメント</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>DialBB API ドキュメント</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/api.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="dialbb-api">
+<h1>DialBB API ドキュメント<a class="headerlink" href="#dialbb-api" title="Permalink to this heading"></a></h1>
+<p>DialBBのアプリケーションはWeb APIとクラスAPIの両方を用いて利用することができます．</p>
+<section id="web-api">
+<h2>Web API 仕様<a class="headerlink" href="#web-api" title="Permalink to this heading"></a></h2>
+<section id="id1">
+<h3>サーバの起動<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h3>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ python run_server.py &lt;config file&gt;
+</pre></div>
+</div>
+</section>
+<section id="id2">
+<h3>セッションの開始時<a class="headerlink" href="#id2" title="Permalink to this heading"></a></h3>
+<ul>
+<li><p>URI</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">http</span><span class="p">:</span><span class="o">//&lt;</span><span class="n">server</span><span class="o">&gt;</span><span class="p">:</span><span class="mi">8080</span><span class="o">/</span><span class="n">init</span>
+</pre></div>
+</div>
+</li>
+<li><p>リクエストヘッダ</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Content</span><span class="o">-</span><span class="n">Type</span><span class="p">:</span> <span class="n">application</span><span class="o">/</span><span class="n">json</span>
+</pre></div>
+</div>
+</li>
+<li><p>リクエストボディ</p>
+<p>以下の形のjson</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>```json
+{
+&quot;user_id&quot;: &lt;ユーザID&gt;,
+&quot;aux_data&quot;: &lt;補助データ&gt;
+}
+```
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">user_id</span></code>は必須．<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>は任意．</p></li>
+<li><p>&lt;ユーザID&gt;はユーザに関するユニークなID. 同じユーザが何度も対話する際に，
+以前の対話の内容をアプリが覚えておくために用います．</p></li>
+<li><p>&lt;補助データ&gt;は，クライアントの状態をアプリに送信するために用います．
+フォーマットは任意のJSONオブジェクトで，アプリ毎に決めます．</p></li>
+</ul>
+</li>
+<li><p>レスポンス</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span>{
+&quot;session_id&quot;:&lt;セッションID: 文字列&gt;,
+&quot;system_utterance&quot;,&lt;システム発話文字列: 文字列&gt;, 
+&quot;user_id&quot;:&lt;ユーザID: 文字列&gt;, 
+&quot;final&quot;: &lt;対話終了フラグ: ブール値&gt; 
+&quot;aux_data&quot;:&lt;補助データ: オブジェクト&gt;
+}
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>&lt;セッションID&gt;は，対話のセッションのIDです．このURIにPOSTする度に新しいセッションIDが生成されます．</p></li>
+<li><p>&lt;システム発話文字列&gt;は，システムの最初の発話（プロンプト）です．</p></li>
+<li><p>&lt;ユーザID&gt;は，リクエストで送られたユーザのIDです．</p></li>
+<li><p>&lt;対話終了フラグ&gt;は，対話が終了したかどうかを表すブール値です．</p></li>
+<li><p>&lt;補助データ&gt;は，対話アプリがクライアントに送信するデータです．サーバの状態などを送信するのに使います．</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="id3">
+<h3>セッション開始後の対話<a class="headerlink" href="#id3" title="Permalink to this heading"></a></h3>
+<ul>
+<li><p>URI</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">http</span><span class="p">:</span><span class="o">//&lt;</span><span class="n">server</span><span class="o">&gt;</span><span class="p">:</span><span class="mi">8080</span><span class="o">/</span><span class="n">dialogue</span>
+</pre></div>
+</div>
+</li>
+<li><p>リクエストヘッダ</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Content</span><span class="o">-</span><span class="n">Type</span><span class="p">:</span> <span class="n">application</span><span class="o">/</span><span class="n">json</span>
+</pre></div>
+</div>
+</li>
+<li><p>リクエストボディ</p>
+<p>以下の形のJSONです．</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span>{&quot;user_id&quot;: &lt;ユーザID&gt;,
+&quot;session_id&quot;: &lt;セッションID&gt;,
+&quot;user_utterance&quot;: &lt;ユーザ発話文字列&gt;,
+&quot;aux_data&quot;:&lt;補助データ&gt;}
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">user_id</span></code>, <code class="docutils literal notranslate"><span class="pre">session_id</span></code>, <code class="docutils literal notranslate"><span class="pre">user_utterance</span></code>は必須．<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>は任意です．</p></li>
+<li><p>&lt;セッションID&gt;は，サーバから送られたセッションIDです．</p></li>
+<li><p>&lt;ユーザ発話文字列&gt;は，ユーザが入力した発話文字列です．</p></li>
+</ul>
+</li>
+<li><p>レスポンス</p>
+<p>セッションの開始時のレスポンスと同じです．</p>
+</li>
+</ul>
+</section>
+</section>
+<section id="api">
+<h2>クラスAPI<a class="headerlink" href="#api" title="Permalink to this heading"></a></h2>
+<section id="id4">
+<h3>利用方法<a class="headerlink" href="#id4" title="Permalink to this heading"></a></h3>
+<p>環境変数を以下のように設定します．</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">PYTHONPATH</span><span class="o">=</span>&lt;DialBBのディレクトリ&gt;:<span class="nv">$PYTHONPATH</span>
+</pre></div>
+</div>
+<p>pythonを立ち上げるか，DialBBを呼び出すアプリケーションの中で，以下のようにDialogueProcessorのインスタンスを作成し，processメソッドを呼び出します．</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">dialbb.main</span> <span class="kn">import</span> <span class="n">DialogueProcessor</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dialogue_processor</span> <span class="o">=</span> <span class="n">DialogueProcessor</span><span class="p">(</span><span class="o">&lt;</span><span class="n">configurationファイル</span><span class="o">&gt;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">response</span> <span class="o">=</span> <span class="n">dialogue_processor</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="o">&lt;</span><span class="n">リクエスト</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">initial</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="c1"># 対話の開始時</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">response</span> <span class="o">=</span> <span class="n">dialogue_processor</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="o">&lt;</span><span class="n">リクエスト</span><span class="o">&gt;</span><span class="p">)</span> <span class="c1"># それ以降</span>
+</pre></div>
+</div>
+<p>リクエストとresponse（レスポンス）はJSON形式で，Web APIのリクエスト，レスポンスと同じです．</p>
+</section>
+</section>
+<section id="id5">
+<h2>デバッグモード＆ロギング<a class="headerlink" href="#id5" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p>サーバモードとも起動時の環境変数 <code class="docutils literal notranslate"><span class="pre">DEBUG</span></code>の値が<code class="docutils literal notranslate"><span class="pre">yes</span></code> （大文字小文字は問わない）の時，デバッグモードで動作する．</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright C4A Research Institute, Inc.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

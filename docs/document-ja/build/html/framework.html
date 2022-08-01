@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="ja" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>5. フレームワーク仕様 &mdash; DialBBドキュメント v0.1 ドキュメント</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/translations.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="索引" href="genindex.html" />
+    <link rel="search" title="検索" href="search.html" />
+    <link rel="next" title="6. 組み込みブロックの仕様" href="builtin_blocks.html" />
+    <link rel="prev" title="4. 日本語サンプルアプリケーションの説明" href="sample_app.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> DialBBドキュメント
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">1. はじめに</a></li>
+<li class="toctree-l1"><a class="reference internal" href="concept.html">2. DialBBの概要</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">3. インストールとサンプルアプリの実行の仕方</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample_app.html">4. 日本語サンプルアプリケーションの説明</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">5. フレームワーク仕様</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id2">5.1. 概要</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id3">5.2. 入出力</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#webapi">5.2.1. WebAPI</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id4">5.2.1.1. サーバの起動</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id5">5.2.1.2. セッションの開始時</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id6">5.2.1.3. セッション開始後の対話</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#api">5.2.2. クラスAPI</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration">5.3. configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id7">5.4. ブロックの自作方法</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id8">5.4.1. 実装すべきメソッド</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id9">5.4.2. 利用できる変数</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id10">5.4.3. 利用できるメソッド</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id11">5.5. デバッグモード</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="builtin_blocks.html">6. 組み込みブロックの仕様</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">DialBBドキュメント</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><span class="section-number">5. </span>フレームワーク仕様</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/framework.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="framework">
+<span id="id1"></span><h1><span class="section-number">5. </span>フレームワーク仕様<a class="headerlink" href="#framework" title="Permalink to this heading"></a></h1>
+<p>ここではフレームワークとしてのDialBBの仕様を説明します．Pythonプログラ
+ミングの知識がある読者を想定しています．</p>
+<section id="id2">
+<h2><span class="section-number">5.1. </span>概要<a class="headerlink" href="#id2" title="Permalink to this heading"></a></h2>
+<p>DialBBのメインモジュールは，メソッド呼び出しまたはWeb API経由で，ユーザ発話をJSON形式で受けとり，システム発話をJSON形式で返します．</p>
+<p>メインモジュールは，ブロックと呼ぶいくつかのサブモジュールを順に呼び出すことによって動作します．各ブロックはJSON形式(pythonのdictのデータ)を受け取り，JSON形式のデータを返します．</p>
+<p>各ブロックのクラスや入出力仕様はアプリケーション毎のコンフィギュレーションファイルで規定します．</p>
+</section>
+<section id="id3">
+<h2><span class="section-number">5.2. </span>入出力<a class="headerlink" href="#id3" title="Permalink to this heading"></a></h2>
+<section id="webapi">
+<h3><span class="section-number">5.2.1. </span>WebAPI<a class="headerlink" href="#webapi" title="Permalink to this heading"></a></h3>
+<section id="id4">
+<h4><span class="section-number">5.2.1.1. </span>サーバの起動<a class="headerlink" href="#id4" title="Permalink to this heading"></a></h4>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ python run_server.py &lt;config file&gt;
+</pre></div>
+</div>
+</section>
+<section id="id5">
+<h4><span class="section-number">5.2.1.2. </span>セッションの開始時<a class="headerlink" href="#id5" title="Permalink to this heading"></a></h4>
+<ul>
+<li><p>URI</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">http</span><span class="p">:</span><span class="o">//&lt;</span><span class="n">server</span><span class="o">&gt;</span><span class="p">:</span><span class="mi">8080</span><span class="o">/</span><span class="n">init</span>
+</pre></div>
+</div>
+</li>
+<li><p>リクエストヘッダ</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Content</span><span class="o">-</span><span class="n">Type</span><span class="p">:</span> <span class="n">application</span><span class="o">/</span><span class="n">json</span>
+</pre></div>
+</div>
+</li>
+<li><p>リクエストボディ</p>
+<p>以下の形のJSONです．</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span>{
+  &quot;user_id&quot;: &lt;ユーザID: 文字列&gt;,
+  &quot;aux_data&quot;: &lt;補助データ: データ型は任意&gt;
+}
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">user_id</span></code>は必須で，<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>は任意です．</p></li>
+<li><p>&lt;ユーザID&gt;はユーザに関するユニークなIDです. 同じユーザが何度も対話する際に，以前の対話の内容をアプリが覚えておくために用います．</p></li>
+<li><p>&lt;補助データ&gt;は，クライアントの状態をアプリに送信するために用います．フォーマットは任意のJSONオブジェクトで，アプリ毎に決めます．</p></li>
+</ul>
+</li>
+<li><p>レスポンス</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span>{
+  &quot;session_id&quot;:&lt;セッションID: 文字列&gt;,
+  &quot;system_utterance&quot;: &lt;システム発話文字列: 文字列&gt;, 
+  &quot;user_id&quot;:&lt;ユーザID: 文字列&gt;, 
+  &quot;final&quot;: &lt;対話終了フラグ: ブール値&gt; 
+  &quot;aux_data&quot;:&lt;補助データ: データ型は任意&gt;
+}
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>&lt;セッションID&gt;は，対話のセッションのIDです．このURIにPOSTする度に新しいセッションIDが生成されます．</p></li>
+<li><p>&lt;システム発話文字列&gt;は，システムの最初の発話（プロンプト）です．</p></li>
+<li><p>&lt;ユーザID&gt;は，リクエストで送られたユーザのIDです．</p></li>
+<li><p>&lt;対話終了フラグ&gt;は，対話が終了したかどうかを表すブール値です．</p></li>
+<li><p>&lt;補助データ&gt;は，対話アプリがクライアントに送信するデータです．サーバの状態などを送信するのに使います．</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="id6">
+<h4><span class="section-number">5.2.1.3. </span>セッション開始後の対話<a class="headerlink" href="#id6" title="Permalink to this heading"></a></h4>
+<ul>
+<li><p>URI</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">http</span><span class="p">:</span><span class="o">//&lt;</span><span class="n">server</span><span class="o">&gt;</span><span class="p">:</span><span class="mi">8080</span><span class="o">/</span><span class="n">dialogue</span>
+</pre></div>
+</div>
+</li>
+<li><p>リクエストヘッダ</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Content</span><span class="o">-</span><span class="n">Type</span><span class="p">:</span> <span class="n">application</span><span class="o">/</span><span class="n">json</span>
+</pre></div>
+</div>
+</li>
+<li><p>リクエストボディ</p>
+<p>以下の形のJSONです．</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span>{&quot;user_id&quot;: &lt;ユーザID: 文字列&gt;,
+ &quot;session_id&quot;: &lt;セッションID: 文字列&gt;,
+ &quot;user_utterance&quot;: &lt;ユーザ発話文字列: 文字列&gt;,
+ &quot;aux_data&quot;:&lt;補助データ: データ型は任意&gt;}
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">user_id</span></code>, <code class="docutils literal notranslate"><span class="pre">session_id</span></code>, <code class="docutils literal notranslate"><span class="pre">user_utterance</span></code>は必須．<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>は任意です．</p></li>
+<li><p>&lt;セッションID&gt;は，サーバから送られたセッションIDです．</p></li>
+<li><p>&lt;ユーザ発話文字列&gt;は，ユーザが入力した発話文字列です．</p></li>
+</ul>
+</li>
+<li><p>レスポンス</p>
+<p>セッションの開始時のレスポンスと同じです．</p>
+</li>
+</ul>
+</section>
+</section>
+<section id="api">
+<h3><span class="section-number">5.2.2. </span>クラスAPI<a class="headerlink" href="#api" title="Permalink to this heading"></a></h3>
+<p>クラスAPIを用いる場合，<code class="docutils literal notranslate"><span class="pre">dialbb.main.DialogueProcessor</span></code>クラスのオブジェクトを作成することで，DialBBのアプリケーションを作成します．</p>
+<p>これは以下の手順で行います．</p>
+<ul>
+<li><p>以下のように，環境変数PYTHONPATHにDialBBのディレクトリを追加します．</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">PYTHONPATH</span><span class="o">=</span>&lt;DialBBのディレクトリ&gt;:<span class="nv">$PYTHONPATH</span>
+</pre></div>
+</div>
+</li>
+<li><p>pythonを立ち上げるか，DialBBを呼び出すアプリケーションの中で，以下の
+ように<code class="docutils literal notranslate"><span class="pre">DialogueProcessor</span></code>のインスタンスを作成し，<code class="docutils literal notranslate"><span class="pre">process</span></code>メソッドを呼び
+出します．</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">dialbb.main</span> <span class="kn">import</span> <span class="n">DialogueProcessor</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dialogue_processor</span> <span class="o">=</span> <span class="n">DialogueProcessor</span><span class="p">(</span><span class="o">&lt;</span><span class="n">configurationファイル</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">追加のconfiguration</span><span class="o">&gt;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">response</span> <span class="o">=</span> <span class="n">dialogue_processor</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="o">&lt;</span><span class="n">リクエスト</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">initial</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="c1"># 対話の開始時</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">response</span> <span class="o">=</span> <span class="n">dialogue_processor</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="o">&lt;</span><span class="n">リクエスト</span><span class="o">&gt;</span><span class="p">)</span> <span class="c1"># それ以降</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">&lt;追加のconfiguration&gt;</span></code>は，以下のような辞書形式のデータで，keyは文字列でなければなりません．</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;&lt;key1&gt;&quot;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">value1</span><span class="o">&gt;</span><span class="p">,</span>
+    <span class="s2">&quot;&lt;key2&gt;&quot;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">value2</span><span class="o">&gt;</span>
+<span class="o">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>これは，configurationファイルから読み込んだデータに追加して用いられます．もし，configurationファイルと追加のconfigurationで同じkeyが用いられていた場合，追加のconfigurationの値が用いられます．</p>
+<p>&lt;リクエスト&gt;と<code class="docutils literal notranslate"><span class="pre">response</span></code>（レスポンス）は辞書型のデータで，Web APIのリクエスト，レスポンスと同じです．</p>
+</li>
+</ul>
+</section>
+</section>
+<section id="configuration">
+<h2><span class="section-number">5.3. </span>configuration<a class="headerlink" href="#configuration" title="Permalink to this heading"></a></h2>
+<p>configurationは辞書形式のデータで，yamlファイルで与えることを前提としています．</p>
+<p>configurationに必ず必要なのはblocks要素のみです．blocks要素は，各ブロックがどのようなものかを規定するもの（これをblock configurationと呼びます）のリストで，以下のような形をしています．</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">blocks</span>
+  <span class="o">-</span> <span class="o">&lt;</span><span class="n">block</span> <span class="n">configuration</span><span class="o">&gt;</span>
+  <span class="o">-</span> <span class="o">&lt;</span><span class="n">block</span> <span class="n">configuration</span><span class="o">&gt;</span>
+  <span class="o">...</span>
+  <span class="o">-</span> <span class="o">&lt;</span><span class="n">block</span> <span class="n">configuration</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>各block configurationの必須要素は以下です．</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">name</span></code></p>
+<p>ブロックの名前．ログで用いられます．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">block_class</span></code></p>
+<p>ブロックのクラス名です．組み込みクラスの場合は<code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks</span></code>からの相対パスで記述します．開発者の自作ブロックの場合は，モジュールが検索されるパスからの相対パスで記述します．configurationファイルのあるディレクトリは，モジュールが検索されるパス（<code class="docutils literal notranslate"><span class="pre">sys.path</span></code>の要素）に自動的に登録されます．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">input</span></code></p>
+<p>メインモジュールからブロックへの入力を規定します．辞書型のデータで，keyがブロック内での参照に用いられ，valueがpayload（メインモジュールで保持されるデータ）での参照に用いられます．例えば，</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">input</span><span class="p">:</span><span class="w"> </span>
+<span class="w">  </span><span class="nt">sentence</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">canonicalized_user_utterance</span><span class="w"></span>
+</pre></div>
+</div>
+<p>のように指定されていたとすると，ブロック内で<code class="docutils literal notranslate"><span class="pre">input['sentence']</span></code>で参照できるものは，メインモジュールの<code class="docutils literal notranslate"><span class="pre">payload['canonicalized_user_utterance']</span></code>です．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">output</span></code></p>
+<p>ブロックからメインモジュールへの出力を規定します．<code class="docutils literal notranslate"><span class="pre">input</span></code>同様，辞書型のデータで，keyがブロック内での参照に用いられ，valueがpayloadでの参照に用いられます．</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">output</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="nt">output_text</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">system_utterance</span><span class="w"></span>
+</pre></div>
+</div>
+</li>
+</ul>
+<p>​       の場合，ブロックからの出力を<code class="docutils literal notranslate"><span class="pre">output</span></code>とすると，</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>	<span class="n">payload</span><span class="p">[</span><span class="s1">&#39;system_utterance&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="s1">&#39;output_text&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>​       の処理が行われます．<code class="docutils literal notranslate"><span class="pre">payload</span></code>がすでに<code class="docutils literal notranslate"><span class="pre">system_utterance</span></code>をキーとして持っていた場合は，その値は上書きされます．</p>
+</section>
+<section id="id7">
+<h2><span class="section-number">5.4. </span>ブロックの自作方法<a class="headerlink" href="#id7" title="Permalink to this heading"></a></h2>
+<p>開発者は自分でブロックを作成することができます．</p>
+<p>ブロックのクラスは<code class="docutils literal notranslate"><span class="pre">diabb.abstract_block.AbstractBlock</span></code>の子クラスでないといけません．</p>
+<section id="id8">
+<h3><span class="section-number">5.4.1. </span>実装すべきメソッド<a class="headerlink" href="#id8" title="Permalink to this heading"></a></h3>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">__init__(self,</span> <span class="pre">*args)</span></code></p>
+<p>コンストラクタです．</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+
+     <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+     <span class="o">&lt;</span><span class="n">このブロック独自の処理</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">process(self,</span> <span class="pre">input:</span> <span class="pre">Dict[str,</span> <span class="pre">Any],</span> <span class="pre">initial:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False)</span> <span class="pre">-&gt;</span> <span class="pre">Dict[str,</span> <span class="pre">Any]</span></code></p>
+<p>入力inputを処理し，出力を返します．inputはメインモジュールから渡される辞書型データです．
+入力，出力とメインモジュールのpayloadの関係はconfigurationで規定されます．
+<code class="docutils literal notranslate"><span class="pre">initial</span></code>が<code class="docutils literal notranslate"><span class="pre">True</span></code>の時は対話開始時の処理を行います．（ユーザ発話は空文字列です．）</p>
+</li>
+</ul>
+</section>
+<section id="id9">
+<h3><span class="section-number">5.4.2. </span>利用できる変数<a class="headerlink" href="#id9" title="Permalink to this heading"></a></h3>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">self.config</span></code></p>
+<p>configurationの内容を辞書型データにしたものです．
+これを参照することで，独自に付け加えた要素を読みこむことが可能です．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">self.block_config</span></code></p>
+<p>block configurationの内容を辞書型データにしたものです．
+これを参照することで，独自に付け加えた要素を読みこむことが可能です．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">self.name</span></code></p>
+<p>ブロックの名前です．(string)</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">self.config_dir</span></code></p>
+<p>configurationファイルのあるディレクトリです．</p>
+</li>
+</ul>
+</section>
+<section id="id10">
+<h3><span class="section-number">5.4.3. </span>利用できるメソッド<a class="headerlink" href="#id10" title="Permalink to this heading"></a></h3>
+<p>以下のログメソッドが利用できます．</p>
+<ul>
+<li><p>log_debug(self, message: str, session_id: str = &quot;unknown&quot;)</p>
+<p>標準エラー出力にdebugレベルのログを出力します．
+<code class="docutils literal notranslate"><span class="pre">session_id</span></code>にセッションIDを指定するとログに含めることができます．</p>
+</li>
+<li><p>log_info(self, message: str, session_id: str = &quot;unknown&quot;)</p>
+<p>標準エラー出力にinfoレベルのログを出力します．</p>
+</li>
+<li><p>log_warning(self, message: str, session_id: str = &quot;unknown&quot;)</p>
+<p>標準エラー出力にwarningレベルのログを出力します．</p>
+</li>
+<li><p>log_error(self, message: str, session_id: str = &quot;unknown&quot;)</p>
+<p>標準エラー出力にerrorレベルのログを出力します．</p>
+</li>
+</ul>
+</section>
+</section>
+<section id="id11">
+<h2><span class="section-number">5.5. </span>デバッグモード<a class="headerlink" href="#id11" title="Permalink to this heading"></a></h2>
+<p>Python起動時の環境変数 <code class="docutils literal notranslate"><span class="pre">DIALBB_DEBUG</span></code>の値が<code class="docutils literal notranslate"><span class="pre">yes</span></code> （大文字小文字は問わない）の時，デバッグモードで動作します．この時，<code class="docutils literal notranslate"><span class="pre">dialbb.main.DEBUG</span></code>の値が<code class="docutils literal notranslate"><span class="pre">True</span></code>になります．アプリ開発者が作成するブロックの中でも以下のこの値を参照することができます．</p>
+<p><code class="docutils literal notranslate"><span class="pre">dialbb.main.DEBUG</span></code>が<code class="docutils literal notranslate"><span class="pre">True</span></code>の場合，ログレベルはdebugに設定され，その他の場合はinfoに設定されます．</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="sample_app.html" class="btn btn-neutral float-left" title="4. 日本語サンプルアプリケーションの説明" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="builtin_blocks.html" class="btn btn-neutral float-right" title="6. 組み込みブロックの仕様" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright C4A Research Institute, Inc.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

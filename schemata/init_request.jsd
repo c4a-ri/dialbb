@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "request",
+  "description": "initial request sent to dialbb server",
+  "type": "object",
+  "required": [
+    "user_id"
+  ],
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "aux_data": {
+      "type": "object"
+    }
+  }
+}

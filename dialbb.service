@@ -1,0 +1,15 @@
+[Unit]
+Description=pyenv dialbb develop
+After=network.target
+
+
+[Service]
+Type=simple
+Restart=always
+WorkingDirectory=/home/ubuntu/dialbb-develop
+ExecStart=/home/ubuntu/.pyenv/bin/pyenv exec python run_server.py --config sample_apps/parrot/config.yml
+User=ubuntu
+Group=ubuntu
+
+[Install]
+WantedBy=multi-user.target
