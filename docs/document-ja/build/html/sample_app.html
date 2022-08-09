@@ -90,11 +90,11 @@
            <div itemprop="articleBody">
              
   <section id="id1">
-<h1><span class="section-number">4. </span>日本語サンプルアプリケーションの説明<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h1>
+<h1><span class="section-number">4. </span>日本語サンプルアプリケーションの説明<a class="headerlink" href="#id1" title="この見出しへのパーマリンク"></a></h1>
 <p>本節では，<code class="docutils literal notranslate"><span class="pre">sample_apps/network_ja</span></code>にあるサンプルアプリケーションを通して，DialBBアプリケーションの構成を説明します．</p>
 <p><code class="docutils literal notranslate"><span class="pre">sample_apps/network_ja</span></code>ディレクトリ（フォルダ）をコピーして編集することで，違うアプリケーションを作ることができます．どこにコピーしても構いません．</p>
 <section id="id2">
-<h2><span class="section-number">4.1. </span>ファイル構成<a class="headerlink" href="#id2" title="Permalink to this heading"></a></h2>
+<h2><span class="section-number">4.1. </span>ファイル構成<a class="headerlink" href="#id2" title="この見出しへのパーマリンク"></a></h2>
 <p>sample_apps/network_jaには以下のファイルが含まれています．</p>
 <table class="colwidths-auto docutils align-default">
 <thead>
@@ -119,9 +119,9 @@
 </table>
 </section>
 <section id="id3">
-<h2><span class="section-number">4.2. </span>システム構成とコンフィギュレーション<a class="headerlink" href="#id3" title="Permalink to this heading"></a></h2>
+<h2><span class="section-number">4.2. </span>システム構成とコンフィギュレーション<a class="headerlink" href="#id3" title="この見出しへのパーマリンク"></a></h2>
 <section id="id4">
-<h3><span class="section-number">4.2.1. </span>入出力<a class="headerlink" href="#id4" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">4.2.1. </span>入出力<a class="headerlink" href="#id4" title="この見出しへのパーマリンク"></a></h3>
 <ul>
 <li><p>ここではDialBBのアプリケーションの入出力のデータ構造を説明します．なお，ブラウザから接続して使う場合，これらのデータ構造を意識する必要はありません．</p></li>
 <li><p>各ターン（一回の発話のやりとりのこと）での入力は以下のような辞書形式のデータです．</p>
@@ -160,7 +160,7 @@
 </ul>
 </section>
 <section id="id5">
-<h3><span class="section-number">4.2.2. </span>ブロック<a class="headerlink" href="#id5" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">4.2.2. </span>ブロック<a class="headerlink" href="#id5" title="この見出しへのパーマリンク"></a></h3>
 <p>本アプリケーションでは，以下の3つの組み込みブロックを利用しています．</p>
 <ul class="simple">
 <li><p>Utterance canonicalizer: ユーザ入力文の正規化（大文字→小文字，全角⇒半角の変換など）を行います．</p></li>
@@ -174,7 +174,7 @@
 <p><img alt="sample-arch" src="_images/sample-arch.jpg" /></p>
 </section>
 <section id="id6">
-<h3><span class="section-number">4.2.3. </span>コンフィギュレーション<a class="headerlink" href="#id6" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">4.2.3. </span>コンフィギュレーション<a class="headerlink" href="#id6" title="この見出しへのパーマリンク"></a></h3>
 <p>本アプリケーションのコンフィギュレーションファイルは以下のようなyamlファイルです．</p>
 <div class="highlight-yml notranslate"><div class="highlight"><pre><span></span>language: ja   # 言語を指定
 
@@ -215,9 +215,9 @@ blocks:  # ブロックのリスト
 </section>
 </section>
 <section id="id7">
-<h2><span class="section-number">4.3. </span>言語理解<a class="headerlink" href="#id7" title="Permalink to this heading"></a></h2>
+<h2><span class="section-number">4.3. </span>言語理解<a class="headerlink" href="#id7" title="この見出しへのパーマリンク"></a></h2>
 <section id="id8">
-<h3><span class="section-number">4.3.1. </span>言語理解結果<a class="headerlink" href="#id8" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">4.3.1. </span>言語理解結果<a class="headerlink" href="#id8" title="この見出しへのパーマリンク"></a></h3>
 <p>言語理解ブロックは，入力発話を解析し，タイプとスロットを抽出します．</p>
 <p>例えば，「好きなのは醤油」の言語理解結果は次のようになります．</p>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;特定のラーメンが好き&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;slots&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;favarite_ramen&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;醤油ラーメン&quot;</span><span class="p">}}}</span><span class="w"></span>
@@ -226,7 +226,7 @@ blocks:  # ブロックのリスト
 <p><code class="docutils literal notranslate"><span class="pre">&quot;特定のラーメンが好き&quot;</span></code>がタイプで，<code class="docutils literal notranslate"><span class="pre">&quot;favarite_ramen&quot;</span></code>スロットの値が<code class="docutils literal notranslate"><span class="pre">&quot;醤油ラーメン&quot;</span></code>です．複数のスロットを持つような発話もあり得ます．</p>
 </section>
 <section id="id9">
-<h3><span class="section-number">4.3.2. </span>言語理解知識<a class="headerlink" href="#id9" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">4.3.2. </span>言語理解知識<a class="headerlink" href="#id9" title="この見出しへのパーマリンク"></a></h3>
 <p>言語理解用の知識は，<code class="docutils literal notranslate"><span class="pre">sample-knowledge-ja.xlsx</span></code>に書かれています．</p>
 <p>言語理解知識は，以下の４つのシートからなります．</p>
 <table class="colwidths-auto docutils align-default">
@@ -253,13 +253,13 @@ blocks:  # ブロックのリスト
 <p>これらの詳細は「<a class="reference internal" href="builtin_blocks.html#nlu-knowledge"><span class="std std-ref">言語理解知識</span></a>」を参照してください．</p>
 </section>
 <section id="snips">
-<h3><span class="section-number">4.3.3. </span>SNIPS用の訓練データ<a class="headerlink" href="#snips" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">4.3.3. </span>SNIPS用の訓練データ<a class="headerlink" href="#snips" title="この見出しへのパーマリンク"></a></h3>
 <p>アプリを立ち上げると上記の知識はSNIPS用の訓練データに変換され，モデルが作られます．</p>
 <p>SNIPS用の訓練データはアプリのディレクトリの<code class="docutils literal notranslate"><span class="pre">_training_data.json</span></code>です．このファイルを見ることで，うまく変換されているかどうかを確認できます．</p>
 </section>
 </section>
 <section id="id10">
-<h2><span class="section-number">4.4. </span>対話管理<a class="headerlink" href="#id10" title="Permalink to this heading"></a></h2>
+<h2><span class="section-number">4.4. </span>対話管理<a class="headerlink" href="#id10" title="この見出しへのパーマリンク"></a></h2>
 <p>対話管理知識（シナリオ）は，<code class="docutils literal notranslate"><span class="pre">sample-knowledge-ja.xlsx</span></code>ファイルの<code class="docutils literal notranslate"><span class="pre">scenario</span></code>シートです．
 このシートの書き方の詳細は「<a class="reference internal" href="builtin_blocks.html#scenario"><span class="std std-ref">対話管理の知識記述</span></a>」を参照してください．</p>
 <p>Graphvizがインストールされていれば，アプリケーションを起動したとき，シナリオファイルから生成した状態遷移ネットワークの画像ファイルを出力します．以下が本アプリケーションの状態遷移ネットワークです．</p>
