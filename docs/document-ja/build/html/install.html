@@ -90,21 +90,21 @@
            <div itemprop="articleBody">
              
   <section id="id1">
-<h1><span class="section-number">3. </span>インストールとサンプルアプリの実行の仕方<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h1>
+<h1><span class="section-number">3. </span>インストールとサンプルアプリの実行の仕方<a class="headerlink" href="#id1" title="この見出しへのパーマリンク"></a></h1>
 <p>本章では，DialBBをインストールしてサンプルアプリケーションを実行する方法について説明します．もし以下の作業を行うことが難しければ，詳しい人に聞いてください．</p>
 <section id="id2">
-<h2><span class="section-number">3.1. </span>実行環境<a class="headerlink" href="#id2" title="Permalink to this heading"></a></h2>
+<h2><span class="section-number">3.1. </span>実行環境<a class="headerlink" href="#id2" title="この見出しへのパーマリンク"></a></h2>
 <p>Ubuntu 20.04およびWindows 10上のpython 3.8.10, python3.7.9で動作確認を行っていますが，MacOSや，バージョン3.9以上のPythonでも動作すると考えられます．</p>
 </section>
 <section id="dialbb">
-<h2><span class="section-number">3.2. </span>DialBBのインストール<a class="headerlink" href="#dialbb" title="Permalink to this heading"></a></h2>
+<h2><span class="section-number">3.2. </span>DialBBのインストール<a class="headerlink" href="#dialbb" title="この見出しへのパーマリンク"></a></h2>
 <p>githubのソースコードをcloneします．</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ git clone git@github.com:c4a-ri/dialbb.git
 </pre></div>
 </div>
 </section>
 <section id="pytyhon-library">
-<h2><span class="section-number">3.3. </span>pytyhon libraryのインストール<a class="headerlink" href="#pytyhon-library" title="Permalink to this heading"></a></h2>
+<h2><span class="section-number">3.3. </span>pytyhon libraryのインストール<a class="headerlink" href="#pytyhon-library" title="この見出しへのパーマリンク"></a></h2>
 <p>cloneしたディレクトリに移動し，以下を実行してください．</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ <span class="nb">cd</span> dialbb
 $ pip install -r requirements.txt （python <span class="m">3</span>.8の場合）
@@ -128,18 +128,18 @@ $ python -m snips_nlu download ja
 </ul>
 </section>
 <section id="graphviz">
-<h2><span class="section-number">3.4. </span>graphvizのインストール<a class="headerlink" href="#graphviz" title="Permalink to this heading"></a></h2>
+<h2><span class="section-number">3.4. </span>graphvizのインストール<a class="headerlink" href="#graphviz" title="この見出しへのパーマリンク"></a></h2>
 <p><a class="reference external" href="https://graphviz.org/download/">Graphvizのサイト</a>などを参考にgraphvizをインストールします．
 ただ，Graphvizがなくてもアプリケーションを動作させることは可能です．</p>
 </section>
 <section id="id3">
-<h2><span class="section-number">3.5. </span>オウム返しサンプルアプリのサーバの起動<a class="headerlink" href="#id3" title="Permalink to this heading"></a></h2>
+<h2><span class="section-number">3.5. </span>オウム返しサンプルアプリのサーバの起動<a class="headerlink" href="#id3" title="この見出しへのパーマリンク"></a></h2>
 <p>ただオウム返しを行うアプリです．日本語アプリのみです．</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ python run_server.py sample_apps/parrot/config.yml
 </pre></div>
 </div>
 <section id="id4">
-<h3><span class="section-number">3.5.1. </span>動作確認<a class="headerlink" href="#id4" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">3.5.1. </span>動作確認<a class="headerlink" href="#id4" title="この見出しへのパーマリンク"></a></h3>
 <p>別のターミナルから以下を実行してください．</p>
 <ul>
 <li><p>最初のアクセス</p>
@@ -173,10 +173,10 @@ $ python -m snips_nlu download ja
 </section>
 </section>
 <section id="id5">
-<h2><span class="section-number">3.6. </span>ビルトインブロックを用いたサンプルアプリ<a class="headerlink" href="#id5" title="Permalink to this heading"></a></h2>
+<h2><span class="section-number">3.6. </span>ビルトインブロックを用いたサンプルアプリ<a class="headerlink" href="#id5" title="この見出しへのパーマリンク"></a></h2>
 <p>DialBBには，あらかじめ作成してあるブロック（ビルトインブロック）を用いたサンプルアプリがあります．</p>
 <section id="id6">
-<h3><span class="section-number">3.6.1. </span>起動<a class="headerlink" href="#id6" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">3.6.1. </span>起動<a class="headerlink" href="#id6" title="この見出しへのパーマリンク"></a></h3>
 <p>以下のコマンドで起動します</p>
 <ul>
 <li><p>英語アプリ</p>
@@ -192,7 +192,7 @@ $ python -m snips_nlu download ja
 </ul>
 </section>
 <section id="id7">
-<h3><span class="section-number">3.6.2. </span>動作確認<a class="headerlink" href="#id7" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">3.6.2. </span>動作確認<a class="headerlink" href="#id7" title="この見出しへのパーマリンク"></a></h3>
 <p>上記でアプリを起動したサーバのホスト名かIPアドレスを<hostname>としたとき，ブラウザから以下のURLに接続すると対話画面が現れますので，そこで対話してみてください．</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">http</span><span class="p">:</span><span class="o">//&lt;</span><span class="n">hostname</span><span class="o">&gt;</span><span class="p">:</span><span class="mi">8080</span> 
 </pre></div>
@@ -203,7 +203,7 @@ $ python -m snips_nlu download ja
 </div>
 </section>
 <section id="id8">
-<h3><span class="section-number">3.6.3. </span>テストセットを用いた動作確認<a class="headerlink" href="#id8" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">3.6.3. </span>テストセットを用いた動作確認<a class="headerlink" href="#id8" title="この見出しへのパーマリンク"></a></h3>
 <p>以下のコマンドで，ユーザ発話を順に処理して対話するテストを行うことができます．</p>
 <ul class="simple">
 <li><p>英語</p></li>

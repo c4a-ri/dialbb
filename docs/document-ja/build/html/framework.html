@@ -95,27 +95,27 @@
            <div itemprop="articleBody">
              
   <section id="framework">
-<span id="id1"></span><h1><span class="section-number">5. </span>フレームワーク仕様<a class="headerlink" href="#framework" title="Permalink to this heading"></a></h1>
+<span id="id1"></span><h1><span class="section-number">5. </span>フレームワーク仕様<a class="headerlink" href="#framework" title="この見出しへのパーマリンク"></a></h1>
 <p>ここではフレームワークとしてのDialBBの仕様を説明します．Pythonプログラ
 ミングの知識がある読者を想定しています．</p>
 <section id="id2">
-<h2><span class="section-number">5.1. </span>概要<a class="headerlink" href="#id2" title="Permalink to this heading"></a></h2>
+<h2><span class="section-number">5.1. </span>概要<a class="headerlink" href="#id2" title="この見出しへのパーマリンク"></a></h2>
 <p>DialBBのメインモジュールは，メソッド呼び出しまたはWeb API経由で，ユーザ発話をJSON形式で受けとり，システム発話をJSON形式で返します．</p>
 <p>メインモジュールは，ブロックと呼ぶいくつかのサブモジュールを順に呼び出すことによって動作します．各ブロックはJSON形式(pythonのdictのデータ)を受け取り，JSON形式のデータを返します．</p>
 <p>各ブロックのクラスや入出力仕様はアプリケーション毎のコンフィギュレーションファイルで規定します．</p>
 </section>
 <section id="id3">
-<h2><span class="section-number">5.2. </span>入出力<a class="headerlink" href="#id3" title="Permalink to this heading"></a></h2>
+<h2><span class="section-number">5.2. </span>入出力<a class="headerlink" href="#id3" title="この見出しへのパーマリンク"></a></h2>
 <section id="webapi">
-<h3><span class="section-number">5.2.1. </span>WebAPI<a class="headerlink" href="#webapi" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">5.2.1. </span>WebAPI<a class="headerlink" href="#webapi" title="この見出しへのパーマリンク"></a></h3>
 <section id="id4">
-<h4><span class="section-number">5.2.1.1. </span>サーバの起動<a class="headerlink" href="#id4" title="Permalink to this heading"></a></h4>
+<h4><span class="section-number">5.2.1.1. </span>サーバの起動<a class="headerlink" href="#id4" title="この見出しへのパーマリンク"></a></h4>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ python run_server.py &lt;config file&gt;
 </pre></div>
 </div>
 </section>
 <section id="id5">
-<h4><span class="section-number">5.2.1.2. </span>セッションの開始時<a class="headerlink" href="#id5" title="Permalink to this heading"></a></h4>
+<h4><span class="section-number">5.2.1.2. </span>セッションの開始時<a class="headerlink" href="#id5" title="この見出しへのパーマリンク"></a></h4>
 <ul>
 <li><p>URI</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">http</span><span class="p">:</span><span class="o">//&lt;</span><span class="n">server</span><span class="o">&gt;</span><span class="p">:</span><span class="mi">8080</span><span class="o">/</span><span class="n">init</span>
@@ -162,7 +162,7 @@
 </ul>
 </section>
 <section id="id6">
-<h4><span class="section-number">5.2.1.3. </span>セッション開始後の対話<a class="headerlink" href="#id6" title="Permalink to this heading"></a></h4>
+<h4><span class="section-number">5.2.1.3. </span>セッション開始後の対話<a class="headerlink" href="#id6" title="この見出しへのパーマリンク"></a></h4>
 <ul>
 <li><p>URI</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">http</span><span class="p">:</span><span class="o">//&lt;</span><span class="n">server</span><span class="o">&gt;</span><span class="p">:</span><span class="mi">8080</span><span class="o">/</span><span class="n">dialogue</span>
@@ -195,7 +195,7 @@
 </section>
 </section>
 <section id="api">
-<h3><span class="section-number">5.2.2. </span>クラスAPI<a class="headerlink" href="#api" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">5.2.2. </span>クラスAPI<a class="headerlink" href="#api" title="この見出しへのパーマリンク"></a></h3>
 <p>クラスAPIを用いる場合，<code class="docutils literal notranslate"><span class="pre">dialbb.main.DialogueProcessor</span></code>クラスのオブジェクトを作成することで，DialBBのアプリケーションを作成します．</p>
 <p>これは以下の手順で行います．</p>
 <ul>
@@ -228,7 +228,7 @@
 </section>
 </section>
 <section id="configuration">
-<h2><span class="section-number">5.3. </span>configuration<a class="headerlink" href="#configuration" title="Permalink to this heading"></a></h2>
+<h2><span class="section-number">5.3. </span>configuration<a class="headerlink" href="#configuration" title="この見出しへのパーマリンク"></a></h2>
 <p>configurationは辞書形式のデータで，yamlファイルで与えることを前提としています．</p>
 <p>configurationに必ず必要なのはblocks要素のみです．blocks要素は，各ブロックがどのようなものかを規定するもの（これをblock configurationと呼びます）のリストで，以下のような形をしています．</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">blocks</span>
@@ -269,11 +269,11 @@
 <p>​       の処理が行われます．<code class="docutils literal notranslate"><span class="pre">payload</span></code>がすでに<code class="docutils literal notranslate"><span class="pre">system_utterance</span></code>をキーとして持っていた場合は，その値は上書きされます．</p>
 </section>
 <section id="id7">
-<h2><span class="section-number">5.4. </span>ブロックの自作方法<a class="headerlink" href="#id7" title="Permalink to this heading"></a></h2>
+<h2><span class="section-number">5.4. </span>ブロックの自作方法<a class="headerlink" href="#id7" title="この見出しへのパーマリンク"></a></h2>
 <p>開発者は自分でブロックを作成することができます．</p>
 <p>ブロックのクラスは<code class="docutils literal notranslate"><span class="pre">diabb.abstract_block.AbstractBlock</span></code>の子クラスでないといけません．</p>
 <section id="id8">
-<h3><span class="section-number">5.4.1. </span>実装すべきメソッド<a class="headerlink" href="#id8" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">5.4.1. </span>実装すべきメソッド<a class="headerlink" href="#id8" title="この見出しへのパーマリンク"></a></h3>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">__init__(self,</span> <span class="pre">*args)</span></code></p>
 <p>コンストラクタです．</p>
@@ -293,7 +293,7 @@
 </ul>
 </section>
 <section id="id9">
-<h3><span class="section-number">5.4.2. </span>利用できる変数<a class="headerlink" href="#id9" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">5.4.2. </span>利用できる変数<a class="headerlink" href="#id9" title="この見出しへのパーマリンク"></a></h3>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">self.config</span></code></p>
 <p>configurationの内容を辞書型データにしたものです．
@@ -312,7 +312,7 @@
 </ul>
 </section>
 <section id="id10">
-<h3><span class="section-number">5.4.3. </span>利用できるメソッド<a class="headerlink" href="#id10" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">5.4.3. </span>利用できるメソッド<a class="headerlink" href="#id10" title="この見出しへのパーマリンク"></a></h3>
 <p>以下のログメソッドが利用できます．</p>
 <ul>
 <li><p>log_debug(self, message: str, session_id: str = &quot;unknown&quot;)</p>
@@ -332,7 +332,7 @@
 </section>
 </section>
 <section id="id11">
-<h2><span class="section-number">5.5. </span>デバッグモード<a class="headerlink" href="#id11" title="Permalink to this heading"></a></h2>
+<h2><span class="section-number">5.5. </span>デバッグモード<a class="headerlink" href="#id11" title="この見出しへのパーマリンク"></a></h2>
 <p>Python起動時の環境変数 <code class="docutils literal notranslate"><span class="pre">DIALBB_DEBUG</span></code>の値が<code class="docutils literal notranslate"><span class="pre">yes</span></code> （大文字小文字は問わない）の時，デバッグモードで動作します．この時，<code class="docutils literal notranslate"><span class="pre">dialbb.main.DEBUG</span></code>の値が<code class="docutils literal notranslate"><span class="pre">True</span></code>になります．アプリ開発者が作成するブロックの中でも以下のこの値を参照することができます．</p>
 <p><code class="docutils literal notranslate"><span class="pre">dialbb.main.DEBUG</span></code>が<code class="docutils literal notranslate"><span class="pre">True</span></code>の場合，ログレベルはdebugに設定され，その他の場合はinfoに設定されます．</p>
 </section>

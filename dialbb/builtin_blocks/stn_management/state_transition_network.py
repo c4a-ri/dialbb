@@ -128,6 +128,12 @@ class State:
         return result
 
     def add_system_utterance(self, utterance: str) -> None:
+        """
+        add one system utterance to the system utterance list for this state
+        :param utterance: utterance to add
+        """
+        utterance = utterance.replace("｛","{")  # zenkaku braces to hankaku
+        utterance = utterance.replace("｝","}")
         self._system_utterances.append(utterance)
 
     def add_transition(self, user_utterance_type: str, conditions_str: str,
