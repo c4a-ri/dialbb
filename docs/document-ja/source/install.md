@@ -4,14 +4,16 @@
 
 ## 実行環境
 
-Ubuntu 20.04およびWindows 10上のpython 3.8.10, python3.7.9で動作確認を行っていますが，MacOSや，バージョン3.9以上のPythonでも動作すると考えられます．
+Ubuntu 20.04およびWindows 10上のpython 3.8.10, python3.7.9で動作確認を行っていますが，バージョン3.9以上のPythonでも動作すると考えられます．
+
+MacOSの場合、RustとCythonのインストールが別途必要になります。（今後詳述予定）
 
 ## DialBBのインストール
 
 githubのソースコードをcloneします．
 
 ```sh
-$ git clone git@github.com:c4a-ri/dialbb.git
+$ https://github.com/c4a-ri/dialbb.git
 ```
 
 ## pytyhon libraryのインストール
