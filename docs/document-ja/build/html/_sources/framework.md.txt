@@ -143,6 +143,7 @@ $ python run_server.py <config file>
   <リクエスト>と`response`（レスポンス）は辞書型のデータで，Web APIのリクエスト，レスポンスと同じです．
 
 
+(configuration)=
 ## configuration
 
 configurationは辞書形式のデータで，yamlファイルで与えることを前提としています．

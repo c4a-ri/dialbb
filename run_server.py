@@ -15,10 +15,11 @@ from flask import Flask, request, jsonify, render_template
 import argparse
 
 DIALBB_HOME = os.path.dirname(__file__)
-sys.path.append(DIALBB_HOME)
+sys.path.append(DIALBB_HOME)  # TODO avoid this as this violates PEP8
 
 # import mimetypes
-# mimetypes.add_type('application/javascript', '.js')
+# mimetypes.add_type('application/javascript',
+# '.js')
 # mimetypes.add_type('text/css', '.css')
 
 from dialbb.main import DialogueProcessor
@@ -38,7 +39,7 @@ with open(dialogue_request_schema_file) as fp:
 
 app = Flask(__name__, template_folder=os.path.join(DIALBB_HOME, 'static/new'),
             static_folder=os.path.join(DIALBB_HOME, 'static/new/assets'))
-#app = Flask(__name__, template_folder=os.path.join(DIALBB_HOME, 'static/new'))
+# app = Flask(__name__, template_folder=os.path.join(DIALBB_HOME, 'static/new'))
 
 app.config['JSON_AS_ASCII'] = False
 

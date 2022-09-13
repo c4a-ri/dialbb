@@ -45,20 +45,16 @@
 <li class="toctree-l1"><a class="reference internal" href="concept.html">2. DialBBの概要</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">3. インストールとサンプルアプリの実行の仕方</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">4. 日本語サンプルアプリケーションの説明</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#id2">4.1. ファイル構成</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id3">4.2. システム構成とコンフィギュレーション</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id4">4.2.1. 入出力</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id5">4.2.2. ブロック</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id6">4.2.3. コンフィギュレーション</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#id7">4.3. 言語理解</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id8">4.3.1. 言語理解結果</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id9">4.3.2. 言語理解知識</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id2">4.1. システム構成</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id3">4.2. アプリケーションを構成するファイル</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id4">4.3. 言語理解ブロック</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id5">4.3.1. 言語理解結果</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id6">4.3.2. 言語理解知識</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#snips">4.3.3. SNIPS用の訓練データ</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#id10">4.4. 対話管理</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id7">4.4. 対話管理</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id8">4.5. コンフィギュレーションの変更</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="framework.html">5. フレームワーク仕様</a></li>
@@ -90,11 +86,23 @@
            <div itemprop="articleBody">
              
   <section id="id1">
-<h1><span class="section-number">4. </span>日本語サンプルアプリケーションの説明<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h1>
-<p>本節では，<code class="docutils literal notranslate"><span class="pre">sample_apps/network_ja</span></code>にあるサンプルアプリケーションを通して，DialBBアプリケーションの構成を説明します．</p>
-<p><code class="docutils literal notranslate"><span class="pre">sample_apps/network_ja</span></code>ディレクトリ（フォルダ）をコピーして編集することで，違うアプリケーションを作ることができます．どこにコピーしても構いません．</p>
+<h1><span class="section-number">4. </span>日本語サンプルアプリケーションの説明<a class="headerlink" href="#id1" title="この見出しへのパーマリンク"></a></h1>
+<p>本節では，日本語サンプルアプリケーションを通して，DialBBアプリケーションの構成を説明します．</p>
 <section id="id2">
-<h2><span class="section-number">4.1. </span>ファイル構成<a class="headerlink" href="#id2" title="Permalink to this heading"></a></h2>
+<h2><span class="section-number">4.1. </span>システム構成<a class="headerlink" href="#id2" title="この見出しへのパーマリンク"></a></h2>
+<p>本アプリケーションは以下のようなシステム構成をしています．</p>
+<p><img alt="sample-arch" src="_images/sample-arch.jpg" /></p>
+<p>本アプリケーションでは，以下の3つの組み込みブロックを利用しています．</p>
+<ul class="simple">
+<li><p>Utterance canonicalizer: 正規化ブロック．ユーザ入力文の正規化（大文字→小文字，全角⇒半角の変換など）を行います．</p></li>
+<li><p>SNIPS understander: 言語理解ブロック．<a class="reference external" href="https://snips-nlu.readthedocs.io/en/latest/">SNIPS_NLU</a>を利用して，ユーザ発話タイプ（インテントとも呼びます）の決定とスロットの抽出を行います．</p></li>
+<li><p>STN manager: 対話管理ブロック．状態遷移ネットワーク(State-Transition Network)を用いて対話管理を行います．</p></li>
+</ul>
+<p>組み込みブロックとは，DialBBにあらかじめ含まれているブロックです．これらの組み込みブロックの詳細は，<span class="xref std std-ref">builtin_blocks</span>で説明します．</p>
+</section>
+<section id="id3">
+<h2><span class="section-number">4.2. </span>アプリケーションを構成するファイル<a class="headerlink" href="#id3" title="この見出しへのパーマリンク"></a></h2>
+<p>本アプリケーションを構成するファイルは<code class="docutils literal notranslate"><span class="pre">sample_apps/network_ja</span></code>ディレクトリ（フォルダ）にあります。ここにあるファイルを変更することで、どのようにすればアプリケーションを変更することができるかを知ることができます。ファイルを大幅に変更すれば全く異なる対話システムも作ることができます。</p>
 <p>sample_apps/network_jaには以下のファイルが含まれています．</p>
 <table class="colwidths-auto docutils align-default">
 <thead>
@@ -104,10 +112,10 @@
 </thead>
 <tbody>
 <tr class="row-even"><td><p>config.yml</p></td>
-<td><p>アプリケーションを規定するconfigurationファイル</p></td>
+<td><p>アプリケーションを規定するconfigurationファイルです。どのようなブロックを使うかや、各ブロックが読み込むファイルなどが指定されています。このファイルのフォーマットは<a class="reference internal" href="framework.html#configuration"><span class="std std-ref">configuration</span></a>で詳細に説明します。</p></td>
 </tr>
 <tr class="row-odd"><td><p>sample-knowledge-ja.xlsx</p></td>
-<td><p>言語理解ブロック，対話管理ブロックで用いる知識を記述したもの</p></td>
+<td><p>言語理解ブロック，対話管理ブロックで用いる知識を記述したものです。</p></td>
 </tr>
 <tr class="row-even"><td><p>scenario_functions.py</p></td>
 <td><p>対話管理ブロックで用いるプログラム</p></td>
@@ -118,115 +126,19 @@
 </tbody>
 </table>
 </section>
-<section id="id3">
-<h2><span class="section-number">4.2. </span>システム構成とコンフィギュレーション<a class="headerlink" href="#id3" title="Permalink to this heading"></a></h2>
 <section id="id4">
-<h3><span class="section-number">4.2.1. </span>入出力<a class="headerlink" href="#id4" title="Permalink to this heading"></a></h3>
-<ul>
-<li><p>ここではDialBBのアプリケーションの入出力のデータ構造を説明します．なお，ブラウザから接続して使う場合，これらのデータ構造を意識する必要はありません．</p></li>
-<li><p>各ターン（一回の発話のやりとりのこと）での入力は以下のような辞書形式のデータです．</p>
-<ul>
-<li><p>対話開始時</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span>{
-  &quot;user_id&quot;: &lt;ユーザID: 文字列&gt;,
-  &quot;aux_data&quot;: &lt;補助データ：データ型は任意&gt;
-}
-</pre></div>
-</div>
-</li>
-<li><p>対話開始後</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span>{
-   &quot;user_id&quot;: &lt;ユーザID：文字列&gt;,
-   &quot;session_id&quot;: &lt;セッションID：文字列&gt;,
-   &quot;user_utterance&quot;: &lt;ユーザ発話：文字列&gt;,
-   &quot;aux_data&quot;:&lt;補助データ：データ型は任意&gt;
-}
-</pre></div>
-</div>
-</li>
-</ul>
-</li>
-<li><p>各ターンでの出力は以下のような辞書形式のデータです．</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span>{
-  &quot;session_id&quot;:&lt;セッションID: 文字列&gt;,
-  &quot;system_utterance&quot;,&lt;システム発話文字列: 文字列&gt;, 
-  &quot;user_id&quot;:&lt;ユーザID: 文字列&gt;, 
-  &quot;final&quot;: &lt;対話終了フラグ: ブール値&gt; 
-  &quot;aux_data&quot;: &lt;補助データ: オブジェクト&gt;
-}
-</pre></div>
-</div>
-</li>
-</ul>
-</section>
+<h2><span class="section-number">4.3. </span>言語理解ブロック<a class="headerlink" href="#id4" title="この見出しへのパーマリンク"></a></h2>
 <section id="id5">
-<h3><span class="section-number">4.2.2. </span>ブロック<a class="headerlink" href="#id5" title="Permalink to this heading"></a></h3>
-<p>本アプリケーションでは，以下の3つの組み込みブロックを利用しています．</p>
-<ul class="simple">
-<li><p>Utterance canonicalizer: ユーザ入力文の正規化（大文字→小文字，全角⇒半角の変換など）を行います．</p></li>
-<li><p>SNIPS understander: 言語理解を行います．
-<a class="reference external" href="https://snips-nlu.readthedocs.io/en/latest/">SNIPS_NLU</a>を利用して，ユーザ発話タイプ（インテントとも呼びます）の決定とスロットの抽出を行います．</p></li>
-<li><p>STN manager: 状態遷移ネットワーク(State-Transition Network)を用いて対話管理を行います．</p></li>
-</ul>
-<p>組み込みブロックとは，DialBBにあらかじめ含まれているブロックです．
-これらの組み込みブロックの詳細は，<span class="xref std std-ref">builtin_blocks</span>で説明しています．</p>
-<p>本アプリケーションは以下のようなシステム構成をしています．</p>
-<p><img alt="sample-arch" src="_images/sample-arch.jpg" /></p>
-</section>
-<section id="id6">
-<h3><span class="section-number">4.2.3. </span>コンフィギュレーション<a class="headerlink" href="#id6" title="Permalink to this heading"></a></h3>
-<p>本アプリケーションのコンフィギュレーションファイルは以下のようなyamlファイルです．</p>
-<div class="highlight-yml notranslate"><div class="highlight"><pre><span></span>language: ja   # 言語を指定
-
-blocks:  # ブロックのリスト
-  - name: canonicalizer  # ブロック名
-    # ブロックのクラス
-    block_class: preprocess.utterance_canonicalizer.UtteranceCanonicalizer 
-    input: # ブロックへの入力
-      input_text: user_utterance
-    output: # ブロックからの出力
-      output_text: canonicalized_user_utterance
-  - name: understander
-    block_class: understanding_with_snips.snips_understander.Understander
-    input:
-      input_text: canonicalized_user_utterance
-    output: 
-      nlu_result: nlu_result
-    knowledge_file: sample-knowledge-ja.xlsx  # 知識記述ファイル
-  - name: manager
-    block_class: stn_management.stn_manager.Manager
-    knowledge_file: sample-knowledge-ja.xlsx # 知識記述ファイル
-    function_definitions: scenario_functions  # 知識記述の中で用いる関数の定義ファイル
-    input:
-      sentence: canonicalized_user_utterance
-      nlu_result: nlu_result
-      user_id: user_id
-      session_id: session_id
-    output:
-      output_text: system_utterance
-      final: final
-</pre></div>
-</div>
-<p><code class="docutils literal notranslate"><span class="pre">blocks</span></code>要素は各ブロックのコンフィギュレーションのリストです．この順に処理が行われます．</p>
-<p><code class="docutils literal notranslate"><span class="pre">name</span></code>はブロックの名前で，ロギングなどに使われます．</p>
-<p><code class="docutils literal notranslate"><span class="pre">block_class</span></code>はブロックのクラス名です．このアプリケーションではあらかじめ用意してあるクラスのみを使います．</p>
-<p><code class="docutils literal notranslate"><span class="pre">input</span></code>と<code class="docutils literal notranslate"><span class="pre">output</span></code>は，ブロックへの入出力を規定します．‘：‘の左側がブロック内で参照するためのキーで，右側がpayloadでのキーです．例えば，<code class="docutils literal notranslate"><span class="pre">canonicalizer</span></code>ブロックの出力の<code class="docutils literal notranslate"><span class="pre">output_text</span></code>要素がpayloadの<code class="docutils literal notranslate"><span class="pre">canonicalized_user_utterance</span></code>要素の値になり，これが，<code class="docutils literal notranslate"><span class="pre">understander</span></code>ブロックへの入力の<code class="docutils literal notranslate"><span class="pre">input_text</span></code>要素になります．</p>
-<p>これらの要素に加え，各ブロックのコンフィギュレーションでは，ブロック独自の要素を持つことができます．例えば，<code class="docutils literal notranslate"><span class="pre">understander</span></code>や<code class="docutils literal notranslate"><span class="pre">manager</span></code>には<code class="docutils literal notranslate"><span class="pre">knowledge_file</span></code>要素が，<code class="docutils literal notranslate"><span class="pre">manager</span></code>には<code class="docutils literal notranslate"><span class="pre">function_definition</span></code>要素があります．これらをどう使うかは，ブロックのクラス定義の中で決められています．</p>
-</section>
-</section>
-<section id="id7">
-<h2><span class="section-number">4.3. </span>言語理解<a class="headerlink" href="#id7" title="Permalink to this heading"></a></h2>
-<section id="id8">
-<h3><span class="section-number">4.3.1. </span>言語理解結果<a class="headerlink" href="#id8" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">4.3.1. </span>言語理解結果<a class="headerlink" href="#id5" title="この見出しへのパーマリンク"></a></h3>
 <p>言語理解ブロックは，入力発話を解析し，タイプとスロットを抽出します．</p>
 <p>例えば，「好きなのは醤油」の言語理解結果は次のようになります．</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;特定のラーメンが好き&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;slots&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;favarite_ramen&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;醤油ラーメン&quot;</span><span class="p">}}}</span><span class="w"></span>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;特定のラーメンが好き&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;slots&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;favarite_ramen&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;醤油ラーメン&quot;</span><span class="p">}}</span><span class="w"></span>
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">&quot;特定のラーメンが好き&quot;</span></code>がタイプで，<code class="docutils literal notranslate"><span class="pre">&quot;favarite_ramen&quot;</span></code>スロットの値が<code class="docutils literal notranslate"><span class="pre">&quot;醤油ラーメン&quot;</span></code>です．複数のスロットを持つような発話もあり得ます．</p>
 </section>
-<section id="id9">
-<h3><span class="section-number">4.3.2. </span>言語理解知識<a class="headerlink" href="#id9" title="Permalink to this heading"></a></h3>
+<section id="id6">
+<h3><span class="section-number">4.3.2. </span>言語理解知識<a class="headerlink" href="#id6" title="この見出しへのパーマリンク"></a></h3>
 <p>言語理解用の知識は，<code class="docutils literal notranslate"><span class="pre">sample-knowledge-ja.xlsx</span></code>に書かれています．</p>
 <p>言語理解知識は，以下の４つのシートからなります．</p>
 <table class="colwidths-auto docutils align-default">
@@ -253,19 +165,22 @@ blocks:  # ブロックのリスト
 <p>これらの詳細は「<a class="reference internal" href="builtin_blocks.html#nlu-knowledge"><span class="std std-ref">言語理解知識</span></a>」を参照してください．</p>
 </section>
 <section id="snips">
-<h3><span class="section-number">4.3.3. </span>SNIPS用の訓練データ<a class="headerlink" href="#snips" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">4.3.3. </span>SNIPS用の訓練データ<a class="headerlink" href="#snips" title="この見出しへのパーマリンク"></a></h3>
 <p>アプリを立ち上げると上記の知識はSNIPS用の訓練データに変換され，モデルが作られます．</p>
 <p>SNIPS用の訓練データはアプリのディレクトリの<code class="docutils literal notranslate"><span class="pre">_training_data.json</span></code>です．このファイルを見ることで，うまく変換されているかどうかを確認できます．</p>
 </section>
 </section>
-<section id="id10">
-<h2><span class="section-number">4.4. </span>対話管理<a class="headerlink" href="#id10" title="Permalink to this heading"></a></h2>
+<section id="id7">
+<h2><span class="section-number">4.4. </span>対話管理<a class="headerlink" href="#id7" title="この見出しへのパーマリンク"></a></h2>
 <p>対話管理知識（シナリオ）は，<code class="docutils literal notranslate"><span class="pre">sample-knowledge-ja.xlsx</span></code>ファイルの<code class="docutils literal notranslate"><span class="pre">scenario</span></code>シートです．
 このシートの書き方の詳細は「<a class="reference internal" href="builtin_blocks.html#scenario"><span class="std std-ref">対話管理の知識記述</span></a>」を参照してください．</p>
 <p>Graphvizがインストールされていれば，アプリケーションを起動したとき，シナリオファイルから生成した状態遷移ネットワークの画像ファイルを出力します．以下が本アプリケーションの状態遷移ネットワークです．</p>
 <p><img alt="sample-ja-stn-graph" src="_images/sample-ja-stn-graph.jpg" /></p>
 <p>シナリオファイルで用いている遷移の条件や遷移後に実行する関数のうち，組み込み関数でないものが
 <code class="docutils literal notranslate"><span class="pre">scenario_functions.py</span></code>で定義されています．</p>
+</section>
+<section id="id8">
+<h2><span class="section-number">4.5. </span>コンフィギュレーションの変更<a class="headerlink" href="#id8" title="この見出しへのパーマリンク"></a></h2>
 </section>
 </section>
 

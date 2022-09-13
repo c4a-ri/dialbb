@@ -47,11 +47,11 @@ $ python run_server.py <config file>
 
     ```json
     {
-    "session_id":<セッションID: 文字列>,
-    "system_utterance",<システム発話文字列: 文字列>, 
-    "user_id":<ユーザID: 文字列>, 
-    "final": <対話終了フラグ: ブール値> 
-    "aux_data":<補助データ: オブジェクト>
+     "session_id":<セッションID: 文字列>,
+     "system_utterance": <システム発話文字列: 文字列>, 
+     "user_id":<ユーザID: 文字列>, 
+     "final": <対話終了フラグ: ブール値> 
+     "aux_data":<補助データ: オブジェクト>
     }
     ```
 
@@ -79,10 +79,12 @@ $ python run_server.py <config file>
   以下の形のJSONです．
 
   ```json
-  {"user_id": <ユーザID>,
-  "session_id": <セッションID>,
-  "user_utterance": <ユーザ発話文字列>,
-  "aux_data":<補助データ>}
+  {
+    "user_id": <ユーザID>,
+    "session_id": <セッションID>,
+    "user_utterance": <ユーザ発話文字列>,
+    "aux_data":<補助データ>
+  }
   ```
   - `user_id`, `session_id`, `user_utterance`は必須．`aux_data`は任意です．
   - <セッションID>は，サーバから送られたセッションIDです．

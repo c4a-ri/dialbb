@@ -13,6 +13,7 @@ from typing import List, Any, Dict
 import sys
 import os
 import importlib
+import re
 
 from dialbb.builtin_blocks.stn_management.state_transition_network \
     import StateTransitionNetwork, State, Transition, Argument, Condition, Action, \
@@ -20,6 +21,7 @@ from dialbb.builtin_blocks.stn_management.state_transition_network \
 from dialbb.builtin_blocks.stn_management.stn_creator import create_stn
 from dialbb.abstract_block import AbstractBlock
 from dialbb.main import ANY_FLAG, DEBUG, CONFIG_KEY_FLAGS_TO_USE, KEY_SESSION_ID, CONFIG_DIR
+
 
 KEY_CURRENT_STATE_NAME: str = "_current_state_name"
 KEY_CONFIG: str = "_config"
@@ -32,6 +34,7 @@ SHEET_NAME_SCENARIO: str = "scenario"
 
 BUILTIN_FUNCTION_MODULE: str = "dialbb.builtin_blocks.stn_management.builtin_scenario_functions"
 
+var_in_system_utterance_pattern = re.compile(r'\{([^\}]+)\}')
 
 class STNError(Exception):
     pass
@@ -138,10 +141,16 @@ class Manager(AbstractBlock):
         :param text: system utterance with variables
         :return: system utterance whose variables are substituted by their values
         """
-
         result = text
-        for frame_variable, value in self._dialogue_context[session_id].items():
-            result = result.replace("{" + frame_variable + "}", str(value))
+        for match in var_in_system_utterance_pattern.finditer(result):
+            variable = match.group(1)
+            if variable in self._dialogue_context[session_id].keys():
+                result = result.replace("{" + variable + "}",
+                                        self._dialogue_context[session_id][variable])
+            else:
+                self.log_error(f'variable {variable} in system utterance "{text}" is not found in the dialogue context.')
+                if DEBUG:
+                    raise Exception()
         return result
 
     def _transition(self, previous_state_name: str, nlu_result: Dict[str, Any], aux_data: Dict[str, Any],
