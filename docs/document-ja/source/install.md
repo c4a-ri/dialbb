@@ -13,7 +13,7 @@ MacOSの場合、RustとCythonのインストールが別途必要になりま�
 githubのソースコードをcloneします．
 
 ```sh
-$ https://github.com/c4a-ri/dialbb.git
+$ git clone https://github.com/c4a-ri/dialbb.git
 ```
 
 ## pytyhon libraryのインストール
@@ -87,9 +87,9 @@ $ python run_server.py sample_apps/parrot/config.yml
    "user_id":"user1"}
   ```
 
-## ビルトインブロックを用いたサンプルアプリ
+## 組み込みブロックを用いたサンプルアプリの起動
 
-DialBBには，あらかじめ作成してあるブロック（ビルトインブロック）を用いたサンプルアプリがあります．
+DialBBには，あらかじめ作成してあるブロック（組み込みブロック）を用いたサンプルアプリがあります．
 
 ### 起動
 
