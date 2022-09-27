@@ -66,14 +66,15 @@ class Manager(AbstractBlock):
             sys.exit(1)
         spreadsheet = os.path.join(self.config_dir, spreadsheet)
         sheet_name = self.block_config.get(CONFIG_KEY_SCENARIO_SHEET, SHEET_NAME_SCENARIO)
-        flags = self.block_config.get(CONFIG_KEY_FLAGS_TO_USE, [ANY_FLAG])
-        self._network: StateTransitionNetwork = create_stn(spreadsheet, sheet_name, flags)
+        flags_to_use = self.block_config.get(CONFIG_KEY_FLAGS_TO_USE, [ANY_FLAG])
+        self._network: StateTransitionNetwork = create_stn(spreadsheet, sheet_name, flags_to_use)
 
         # check network
         self._network.check_network()
 
         # generate a graph file from the network
         dot_file: str = os.path.join(CONFIG_DIR, "_stn_graph.dot")
+
         jpg_file: str = os.path.join(CONFIG_DIR, "_stn_graph.jpg")
         self._network.output_graph(dot_file)
         print(f"converting dot file to jpeg: {dot_file}.")

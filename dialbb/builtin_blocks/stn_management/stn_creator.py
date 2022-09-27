@@ -26,8 +26,8 @@ COLUMN_CONDITIONS: str = "conditions"
 COLUMN_ACTIONS: str = "actions"
 COLUMN_DESTINATION: str = "next state"
 
-def create_stn(spreadsheet: str, scenario_sheet: str, flags: List[str]) -> StateTransitionNetwork:
 
+def create_stn(spreadsheet: str, scenario_sheet: str, flags_to_use: List[str]) -> StateTransitionNetwork:
     df: DataFrame = pd.read_excel(spreadsheet, sheet_name=scenario_sheet)  # 全てのシートを読み込む
     df.fillna('', inplace=True)
 
@@ -43,11 +43,9 @@ def create_stn(spreadsheet: str, scenario_sheet: str, flags: List[str]) -> State
     stn: StateTransitionNetwork = StateTransitionNetwork()
 
     for index, row in df.iterrows():
-        if row[COLUMN_FLAG] not in flags and ANY_FLAG not in flags:
-            continue
         current_state_name = row[COLUMN_STATE]
         if current_state_name == "":
-            warn_during_building(f"'state' column is empty at row {str(index+1)}.")
+            warn_during_building(f"'state' column is empty at row {str(index + 1)}.")
             continue
         current_state: State = stn.get_state_from_state_name(current_state_name)
         if current_state is None:
@@ -55,21 +53,12 @@ def create_stn(spreadsheet: str, scenario_sheet: str, flags: List[str]) -> State
         system_utterance = row[COLUMN_SYSTEM_UTTERANCE]
         if system_utterance != "":
             current_state.add_system_utterance(system_utterance)
+        if row[COLUMN_FLAG] not in flags_to_use and ANY_FLAG not in flags_to_use:
+            continue  # ignore transition if the flag is not in "flags to use"
         if row[COLUMN_DESTINATION]:
             current_state.add_transition(row[COLUMN_USER_UTTERANCE_TYPE], row[COLUMN_CONDITIONS],
-            row[COLUMN_ACTIONS], row[COLUMN_DESTINATION])
+                                         row[COLUMN_ACTIONS], row[COLUMN_DESTINATION])
         elif row[COLUMN_USER_UTTERANCE_TYPE] or row[COLUMN_CONDITIONS] or row[COLUMN_ACTIONS]:
-            warn_during_building(f"empty destination with non-empty conditions or actions at row {str(index+1)}")
+            warn_during_building(f"empty destination with non-empty conditions or actions at row {str(index + 1)}")
 
     return stn
-
-
-
-
-
-
-
-
-
-
-
