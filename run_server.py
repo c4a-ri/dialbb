@@ -104,7 +104,7 @@ if __name__ == '__main__':
     dialogue_processor = DialogueProcessor(config_file)
     logger = get_logger("server")
     logger.propagate = False
-    app.run(host="0.0.0.0", port=8080)
+    app.run(host="0.0.0.0", port=args.port)
 
 
 
