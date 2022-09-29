@@ -175,6 +175,8 @@ def convert_nlu_knowledge(spreadsheet_file: str, utterances_sheet: str,
         sys.exit(1)
     intent2utterances: Dict[str, List[str]] = {}
     for index, row in utterances_df.iterrows():
+        if row[COLUMN_FLAG] not in flags and ANY_FLAG not in flags:
+            continue
         intent: str = row['type']
         if intent in intent2utterances.keys():
             intent2utterances[intent].append(row['utterance'])
@@ -204,13 +206,14 @@ def get_utterance_fragments_en(utterance: str, canonicalizer: Canonicalizer,
     fragments: List[Dict[str, Any]] = []
     utterance = normalize_tagged_utterance_en(utterance, canonicalizer)
     index: int = 0
-    for m in tagged_utterance_pattern.finditer(utterance): # regular expression matching
+    for m in tagged_utterance_pattern.finditer(utterance):  # regular expression matching
         if m.start() > index:
-            fragments.append({"text": utterance[index:m.start()]})  # non slot part
+            fragments.append({"text": utterance[index:m.start()]})  # non-slot part
         slot_name = m.group(2)
         entity = slot2entity.get(slot_name)
         if entity is None:
             warn_during_building(f"Error: slot {slot_name} is not defined in the slot sheet.")
+            return None
         fragments.append({"text": m.group(1), "slot_name": slot_name, "entity": entity})
         index = m.end()
     if index < len(utterance):
@@ -220,7 +223,7 @@ def get_utterance_fragments_en(utterance: str, canonicalizer: Canonicalizer,
 
 def get_utterance_fragments_ja(utterance: str, canonicalizer: Canonicalizer,
                             tokenizer: AbstractTokenizer,
-                            slot2entity: Dict[str, str] ) -> List[Dict[str, Any]]:
+                            slot2entity: Dict[str, str]) -> List[Dict[str, Any]]:
     fragments: List[Dict[str, Any]] = []
     utterance:str = normalize_tagged_utterance_ja(utterance, canonicalizer)
     utterance_without_tags: str = tagged_utterance_pattern.sub(r'\1',utterance)
@@ -258,6 +261,9 @@ def get_utterance_fragments_ja(utterance: str, canonicalizer: Canonicalizer,
             in_slot_name = True
         elif utterance[i] == ']':
             slot_name: str = slot_tags[slot_tag_index]["slot_name"]
+            if slot_name not in slot2entity:
+                warn_during_building(f"slot '{slot_name}' is not defined in the entities sheet.")
+                return None
             fragments.append({"text": fragment_text, "slot_name": slot_name, "entity": slot2entity[slot_name]})
             in_slot_name = False
             slot_tag_index += 1
