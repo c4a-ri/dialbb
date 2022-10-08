@@ -27,8 +27,8 @@ COLUMN_ACTIONS: str = "actions"
 COLUMN_DESTINATION: str = "next state"
 
 
-def create_stn(spreadsheet: str, scenario_sheet: str, flags_to_use: List[str]) -> StateTransitionNetwork:
-    df: DataFrame = pd.read_excel(spreadsheet, sheet_name=scenario_sheet)  # 全てのシートを読み込む
+def create_stn(df: DataFrame, flags_to_use: List[str]) -> StateTransitionNetwork:
+
     df.fillna('', inplace=True)
 
     # check column names
@@ -36,7 +36,7 @@ def create_stn(spreadsheet: str, scenario_sheet: str, flags_to_use: List[str]) -
     for required_column in [COLUMN_STATE, COLUMN_FLAG, COLUMN_SYSTEM_UTTERANCE, COLUMN_USER_UTTERANCE_TYPE,
                             COLUMN_CONDITIONS, COLUMN_ACTIONS, COLUMN_DESTINATION]:
         if required_column not in columns:
-            print(f"Column '{required_column}' is missing in sheet '{scenario_sheet}' in '{spreadsheet}'. "
+            print(f"Column '{required_column}' is missing in the scenario sheet. "
                   + "There might be extra whitespaces.", file=sys.stderr)
             sys.exit(1)
 

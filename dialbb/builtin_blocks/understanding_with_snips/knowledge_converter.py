@@ -43,26 +43,22 @@ def check_columns(required_columns: List[str], df: DataFrame, sheet: str) -> boo
     columns = df.columns.values.tolist()
     for required_column in required_columns:
         if required_column not in columns:
-            print(f"Column '{required_column}' is missing in sheet '{sheet}'. "
-                  + "There might be extra whitespaces.", file=sys.stderr)
-            sys.exit(1)
+            abort_during_building(f"Column '{required_column}' is missing in sheet '{sheet}'. "
+                                  + "There might be extra whitespaces.")
     return True
 
 
-def convert_nlu_knowledge(spreadsheet_file: str, utterances_sheet: str,
-                          slots_sheet: str, entities_sheet: str,
-                          dictionary_sheet: str, flags: List[str],
-                          language='en') -> Dict[str, Any]:
+def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, entities_df: DataFrame,
+                          dictionary_df: DataFrame, flags: List[str], language='en') -> Dict[str, Any]:
     """
-    convert nlu knowledge in the spread sheet into snips knowledge format
-    :param spreadsheet_file:
-    :param utterances_sheet:
-    :param slots_sheet:
-    :param entities_sheet:
-    :param dictionary_sheet:
+
+    :param utterances_df:
+    :param slots_df:
+    :param entities_df:
+    :param dictionary_df:
     :param flags:
     :param language:
-    :return: SNIPS format (in Jason)
+    :return:
     """
 
     print(f"converting nlu knowledge.")
@@ -76,24 +72,11 @@ def convert_nlu_knowledge(spreadsheet_file: str, utterances_sheet: str,
     entity_definitions: Dict[str, Any] = {}
     slot2entity: Dict[str, str] = {}  # from slots sheet
 
-    print(f"reading spreadsheet: {spreadsheet_file}", file=sys.stderr)
-    try:
-        df_all: Dict[str, DataFrame] = pd.read_excel(spreadsheet_file, sheet_name=None)  # 全てのシートを読み込む
-    except Exception as e:
-        abort_during_building(f"failed to read spreadsheet: {spreadsheet_file}. {str(e)}")
-
-    # reading slots sheet
-    slots_df = df_all.get(slots_sheet)
-
     # when there is no slot sheet
     if slots_df is None:  # no slots sheet
-        warn_during_building(f"Warning: no slots sheet '{slots_sheet}'. Dummy entity definition is used instead.")
-        entity_definitions = {"city": {"data": [{"value": "london"}],
-                                       "use_synonyms": True,
-                                       "automatically_extensible": True,
-                                       "matching_strictness": 1.0}}
+        print(f"Warning: no slots sheet. Dummy entity definition is used instead.")
     else:
-        check_columns([COLUMN_FLAG, COLUMN_SLOT, COLUMN_ENTITY], slots_df, slots_sheet)
+        check_columns([COLUMN_FLAG, COLUMN_SLOT, COLUMN_ENTITY], slots_df, "slots")
         for index, row in slots_df.iterrows():
             if row[COLUMN_FLAG] not in flags and ANY_FLAG not in flags:
                 continue
@@ -101,12 +84,8 @@ def convert_nlu_knowledge(spreadsheet_file: str, utterances_sheet: str,
             slot2entity[slot] = row[COLUMN_ENTITY]
 
         # reading entities sheet
-        entities_df = df_all.get(entities_sheet)
-        if entities_df is None:
-            print(f"no entities sheet '{entities_sheet}'", file=sys.stderr)
-            sys.exit(1)
         check_columns([COLUMN_FLAG, COLUMN_ENTITY, COLUMN_USE_SYNONYMS,
-                       COLUMN_AUTOMATICALLY_EXTENSIBLE, COLUMN_MATCHING_STRICTNESS], entities_df, entities_sheet)
+                       COLUMN_AUTOMATICALLY_EXTENSIBLE, COLUMN_MATCHING_STRICTNESS], entities_df, "entities")
         entity_descs: Dict[str, Dict[str, Any]] = {}  # <entity: str> -> {"use_synonyms": <bool>,
                                                       #                   "automatically_extensible": <bool>,
                                                       #                   "matching_strictness": <float>}
@@ -123,29 +102,26 @@ def convert_nlu_knowledge(spreadsheet_file: str, utterances_sheet: str,
             else:
                 automatically_extensible = False
             matching_strictness = row[COLUMN_MATCHING_STRICTNESS]
-            if type(matching_strictness) not in [float, int]:
-                print(f"matching strictness must be a number: {str(matching_strictness)}", file=sys.stderr)
-                sys.exit(1)
+            try:
+                matching_strictness = float(matching_strictness)
+            except Exception as e:
+                abort_during_building(f"matching strictness must be a number: {str(matching_strictness)}")
             entity_descs[entity] = {"use_synonyms": use_synonyms,
-                                                "automatically_extensible": automatically_extensible,
-                                                "matching_strictness": matching_strictness}
+                                    "automatically_extensible": automatically_extensible,
+                                    "matching_strictness": matching_strictness}
 
         # reading dictionary sheet
-        dictionary_df: DataFrame = df_all.get(dictionary_sheet)
-        if dictionary_df is None:
-            print(f"no dictionary sheet '{dictionary_sheet}'", file=sys.stderr)
-            sys.exit(1)
         dictionary_df.fillna('', inplace=True)  # change empty cells to empty strings
-        check_columns([COLUMN_FLAG, COLUMN_ENTITY, COLUMN_VALUE, COLUMN_SYNONYMS], dictionary_df, dictionary_sheet)
+        check_columns([COLUMN_FLAG, COLUMN_ENTITY, COLUMN_VALUE, COLUMN_SYNONYMS], dictionary_df, "dictionary")
         for index, row in dictionary_df.iterrows():
             if row[COLUMN_FLAG] not in flags and ANY_FLAG not in flags:
                 continue
             synonyms_string: str = row[COLUMN_SYNONYMS]
-            normalized_synonyms: List[str] = [normalize(synonym.strip(), canonicalizer, language)
+            normalized_synonyms: List[str] = [normalize(synonym.strip(), canonicalizer, tokenizer, language)
                                               for synonym in
                                               re.split('[,，、]', synonyms_string)]  # convert synonym cell to a list
             entity = row[COLUMN_ENTITY]
-            normalized_value: str = normalize(row['value'], canonicalizer, language)  # dictionary entry
+            normalized_value: str = normalize(row['value'], canonicalizer, tokenizer, language)  # dictionary entry
             if entity in entity_definitions.keys():
                 entity_definitions[entity]['data'].append({"value": normalized_value, "synonyms": normalized_synonyms})
             else:
@@ -168,11 +144,13 @@ def convert_nlu_knowledge(spreadsheet_file: str, utterances_sheet: str,
             if entity not in entity_definitions:
                 entity_definitions[entity] = {}
 
+    if entity_definitions == {}:  # if no slots & entity information is provided
+        entity_definitions = {"city": {"data": [{"value": "london"}],  # dummy is needed for SNIPS
+                                       "use_synonyms": True,
+                                       "automatically_extensible": True,
+                                       "matching_strictness": 1.0}}
+
     # read utterances sheet
-    utterances_df: DataFrame = df_all.get(utterances_sheet)
-    if utterances_df is None:
-        print(f"no utterance sheet: {utterances_sheet}.", file=sys.stderr)
-        sys.exit(1)
     intent2utterances: Dict[str, List[str]] = {}
     for index, row in utterances_df.iterrows():
         if row[COLUMN_FLAG] not in flags and ANY_FLAG not in flags:
