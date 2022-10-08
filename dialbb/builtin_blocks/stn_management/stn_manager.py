@@ -14,6 +14,10 @@ import sys
 import os
 import importlib
 import re
+import pandas as pd
+from pandas import DataFrame
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 
 from dialbb.builtin_blocks.stn_management.state_transition_network \
     import StateTransitionNetwork, State, Transition, Argument, Condition, Action, \
@@ -21,20 +25,23 @@ from dialbb.builtin_blocks.stn_management.state_transition_network \
 from dialbb.builtin_blocks.stn_management.stn_creator import create_stn
 from dialbb.abstract_block import AbstractBlock
 from dialbb.main import ANY_FLAG, DEBUG, CONFIG_KEY_FLAGS_TO_USE, KEY_SESSION_ID, CONFIG_DIR
-
+from dialbb.util.error_handlers import abort_during_building
 
 KEY_CURRENT_STATE_NAME: str = "_current_state_name"
 KEY_CONFIG: str = "_config"
 KEY_BLOCK_CONFIG: str = "_block_config"
 
+CONFIG_KEY_KNOWLEDGE_GOOGLE_SHEET: str = "knowledge_google_sheet"  # google sheet info
+CONFIG_KEY_SHEET_ID: str = "sheet_id"  # google sheet id
+CONFIG_KEY_KEY_FILE: str = "key_file"  # key file for Google sheets API
 CONFIG_KEY_SCENARIO_SHEET: str = "scenario_sheet"
 CONFIG_KEY_KNOWLEDGE_FILE: str = "knowledge_file"
-
 SHEET_NAME_SCENARIO: str = "scenario"
 
 BUILTIN_FUNCTION_MODULE: str = "dialbb.builtin_blocks.stn_management.builtin_scenario_functions"
+SCOPES = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
 
-var_in_system_utterance_pattern = re.compile(r'\{([^\}]+)\}')
+var_in_system_utterance_pattern = re.compile(r'\{([^\}]+)\}')  # {<variable name>}
 
 class STNError(Exception):
     pass
@@ -60,14 +67,18 @@ class Manager(AbstractBlock):
         self._dialogue_context: Dict[str, Dict[str, Any]] = {}  # session id -> {key -> value}
 
         # create network
-        spreadsheet = self.block_config.get(CONFIG_KEY_KNOWLEDGE_FILE)
-        if not spreadsheet:
-            self._logger.error(f"knowledge_file is not specified for the block {self.name}.")
-            sys.exit(1)
-        spreadsheet = os.path.join(self.config_dir, spreadsheet)
         sheet_name = self.block_config.get(CONFIG_KEY_SCENARIO_SHEET, SHEET_NAME_SCENARIO)
+        google_sheet_config: Dict[str, str] = self.block_config.get(CONFIG_KEY_KNOWLEDGE_GOOGLE_SHEET)
+        if google_sheet_config:
+            scenario_df = self.get_df_from_gs(google_sheet_config, sheet_name)
+        else:
+            excel_file = self.block_config.get(CONFIG_KEY_KNOWLEDGE_FILE)
+            if not excel_file:
+                abort_during_building(
+                    f"Neither knowledge file nor google sheet info is not specified for the block {self.name}.")
+            scenario_df = self.get_dfs_from_excel(excel_file, sheet_name)
         flags_to_use = self.block_config.get(CONFIG_KEY_FLAGS_TO_USE, [ANY_FLAG])
-        self._network: StateTransitionNetwork = create_stn(spreadsheet, sheet_name, flags_to_use)
+        self._network: StateTransitionNetwork = create_stn(scenario_df, flags_to_use)
 
         # check network
         self._network.check_network()
@@ -84,6 +95,32 @@ class Manager(AbstractBlock):
             ret: int = os.system(f"dot -Tjpg {dot_file} > {jpg_file}")
         if ret != 0:
             print(f"converting failed. graphviz may not be installed.")
+
+    def get_df_from_gs(self, google_sheet_config: Dict[str, str], scenario_sheet: str):
+        try:
+            google_sheet_id: str = google_sheet_config.get(CONFIG_KEY_SHEET_ID)
+            key_file: str = google_sheet_config.get(CONFIG_KEY_KEY_FILE)
+            key_file = os.path.join(self.config_dir, key_file)
+            credentials = ServiceAccountCredentials.from_json_keyfile_name(key_file, SCOPES)
+            gc = gspread.authorize(credentials)
+            workbook = gc.open_by_key(google_sheet_id)
+            scenario_worksheet = workbook.worksheet(scenario_sheet)
+            scenario_data = scenario_worksheet.get_all_values()
+            df: DataFrame = pd.DataFrame(scenario_data[1:], columns=scenario_data[0])
+            return df
+        except Exception as e:
+            abort_during_building(f"failed to read google spreadsheet. {str(e)}")
+
+    def get_dfs_from_excel(self, excel_file: str, scenario_sheet: str):
+
+        excel_file_path = os.path.join(self.config_dir, excel_file)
+        print(f"reading excel file: {excel_file_path}", file=sys.stderr)
+        try:
+            df_all: Dict[str, DataFrame] = pd.read_excel(excel_file_path, sheet_name=None)  # read all sheets
+        except Exception as e:
+            abort_during_building(f"failed to read excel file: {excel_file_path}. {str(e)}")
+        # reading slots sheet
+        return df_all.get(scenario_sheet)
 
     def process(self, input: Dict[str, Any], initial: bool = False) -> Dict[str, Any]:
         """
