@@ -43,6 +43,8 @@ def create_stn(df: DataFrame, flags_to_use: List[str]) -> StateTransitionNetwork
     stn: StateTransitionNetwork = StateTransitionNetwork()
 
     for index, row in df.iterrows():
+        if row[COLUMN_FLAG] not in flags_to_use and ANY_FLAG not in flags_to_use:
+            continue  # ignore the row
         current_state_name = row[COLUMN_STATE]
         if current_state_name == "":
             warn_during_building(f"'state' column is empty at row {str(index + 1)}.")
@@ -53,8 +55,6 @@ def create_stn(df: DataFrame, flags_to_use: List[str]) -> StateTransitionNetwork
         system_utterance = row[COLUMN_SYSTEM_UTTERANCE]
         if system_utterance != "":
             current_state.add_system_utterance(system_utterance)
-        if row[COLUMN_FLAG] not in flags_to_use and ANY_FLAG not in flags_to_use:
-            continue  # ignore transition if the flag is not in "flags to use"
         if row[COLUMN_DESTINATION]:
             current_state.add_transition(row[COLUMN_USER_UTTERANCE_TYPE], row[COLUMN_CONDITIONS],
                                          row[COLUMN_ACTIONS], row[COLUMN_DESTINATION])
