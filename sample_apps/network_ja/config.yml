@@ -21,6 +21,7 @@ blocks:  # ブロックのリスト
     block_class: stn_management.stn_manager.Manager
     knowledge_file: sample-knowledge-ja.xlsx # 知識記述ファイル
     function_definitions: scenario_functions  # 知識記述の中で用いる関数の定義ファイル
+    scenario_graph: yes
     input:
       sentence: canonicalized_user_utterance
       nlu_result: nlu_result
@@ -30,4 +31,5 @@ blocks:  # ブロックのリスト
       output_text: system_utterance
       #aux_data: aux_data
       final: final
+    
     

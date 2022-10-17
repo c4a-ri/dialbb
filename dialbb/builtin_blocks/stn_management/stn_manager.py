@@ -19,6 +19,7 @@ from pandas import DataFrame
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
+from dialbb.builtin_blocks.stn_management.scenario_graph import create_scenario_graph
 from dialbb.builtin_blocks.stn_management.state_transition_network \
     import StateTransitionNetwork, State, Transition, Argument, Condition, Action, \
     INITIAL_STATE_NAME, FINAL_STATE_PREFIX, ERROR_STATE_NAME
@@ -36,6 +37,7 @@ CONFIG_KEY_SHEET_ID: str = "sheet_id"  # google sheet id
 CONFIG_KEY_KEY_FILE: str = "key_file"  # key file for Google sheets API
 CONFIG_KEY_SCENARIO_SHEET: str = "scenario_sheet"
 CONFIG_KEY_KNOWLEDGE_FILE: str = "knowledge_file"
+CONFIG_KEY_SCENARIO_GRAPH: str = "scenario_graph"
 SHEET_NAME_SCENARIO: str = "scenario"
 
 BUILTIN_FUNCTION_MODULE: str = "dialbb.builtin_blocks.stn_management.builtin_scenario_functions"
@@ -77,8 +79,11 @@ class Manager(AbstractBlock):
                 abort_during_building(
                     f"Neither knowledge file nor google sheet info is not specified for the block {self.name}.")
             scenario_df = self.get_dfs_from_excel(excel_file, sheet_name)
+        scenario_df.fillna('', inplace=True)
         flags_to_use = self.block_config.get(CONFIG_KEY_FLAGS_TO_USE, [ANY_FLAG])
         self._network: StateTransitionNetwork = create_stn(scenario_df, flags_to_use)
+        if self.block_config.get(CONFIG_KEY_SCENARIO_GRAPH, False):
+            create_scenario_graph(scenario_df, CONFIG_DIR) # create graph for scenario writers
 
         # check network
         self._network.check_network()
