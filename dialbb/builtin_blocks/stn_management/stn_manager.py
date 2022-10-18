@@ -343,7 +343,7 @@ class Manager(AbstractBlock):
                 else:
                     action_function = function
                     break
-            if not action_function:
+            if not action_function:  # action function is not defined
                 self.log_error(f"action function can't find: {command_name}", session_id=session_id)
             else:
                 argument_names: List[str] = ["arg" + str(i) for i in range(action.get_num_arguments())]
