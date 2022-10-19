@@ -50,6 +50,7 @@ def check_columns(required_columns: List[str], df: DataFrame, sheet: str) -> boo
 
 def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, entities_df: DataFrame,
                           dictionary_df: DataFrame, flags: List[str], function_modules: List[ModuleType],
+                          config: Dict[str, Any], block_config: Dict[str, Any],
                           language='en') -> Dict[str, Any]:
     """
 
@@ -95,7 +96,9 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, entitie
                     function = getattr(function_module, function_name, None)
                     function_found = True
                     if function:
-                        dictionary: List[Dict[str, Union[str, List[str]]]] = eval("func()", {}, {"func": function})
+                        dictionary: List[Dict[str, Union[str, List[str]]]] \
+                            = eval("func(config, block_config)", {}, # execute dictionary function
+                                   {"func": function, "config": config, "block_config": block_config})
                         entity_definitions[entity] = {'data':  []}
                         for entry in dictionary:
                             normalized_value = normalize(entry['value'], canonicalizer, tokenizer)

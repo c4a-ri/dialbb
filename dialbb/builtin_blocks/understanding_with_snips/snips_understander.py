@@ -82,7 +82,8 @@ class Understander(AbstractBlock):
                 function_modules.append(importlib.import_module(function_definition_module))  # developer specified
 
         nlu_knowledge_json = convert_nlu_knowledge(utterances_df, slots_df, entities_df, dictionary_df,
-                                                   flags_to_use, function_modules, language=self._language)
+                                                   flags_to_use, function_modules, self.config, self.block_config,
+                                                   language=self._language)
         # training fileを書き出す
         with open(os.path.join(self.config_dir, "_training_data.json"), "w", encoding='utf-8') as fp:
             fp.write(json.dumps(nlu_knowledge_json, indent=2, ensure_ascii=False))
