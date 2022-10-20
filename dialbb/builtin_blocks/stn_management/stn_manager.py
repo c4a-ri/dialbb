@@ -39,6 +39,7 @@ CONFIG_KEY_SCENARIO_SHEET: str = "scenario_sheet"
 CONFIG_KEY_KNOWLEDGE_FILE: str = "knowledge_file"
 CONFIG_KEY_SCENARIO_GRAPH: str = "scenario_graph"
 SHEET_NAME_SCENARIO: str = "scenario"
+EMPTY_NLU_RESULT: Dict[str, Any] = {"type": "", "slots": {}}
 
 BUILTIN_FUNCTION_MODULE: str = "dialbb.builtin_blocks.stn_management.builtin_scenario_functions"
 SCOPES = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
@@ -136,7 +137,7 @@ class Manager(AbstractBlock):
 
         session_id: str = input['session_id']
         user_id: str = input['user_id']
-        nlu_result: Dict[str, Any] = input.get('nlu_result', {})
+        nlu_result: Dict[str, Any] = input.get('nlu_result', EMPTY_NLU_RESULT)
         aux_data: Dict[str, Any] = input.get('aux_data', {})
 
         self.log_debug("input: " + str(input), session_id=session_id)
@@ -148,6 +149,12 @@ class Manager(AbstractBlock):
 
         try:
             if initial:
+                # perform actions in the prep state
+                prep_state: State = self._network.get_prep_state()
+                prep_actions: List[Action] = prep_state.get_transitions()[0].get_actions()
+                if prep_actions:
+                    self._perform_actions(prep_actions, EMPTY_NLU_RESULT, aux_data, user_id, session_id)
+                # move to initial state
                 current_state_name = INITIAL_STATE_NAME
                 self._dialogue_context[session_id][KEY_CURRENT_STATE_NAME] = current_state_name
             else:

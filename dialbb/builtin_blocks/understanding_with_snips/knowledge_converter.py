@@ -91,6 +91,7 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, entitie
             else:  # entity defined by a dictionary function
                 function_name: str = entity.replace("dialbb/", "")
                 entity: str = function_name  # entity and function name is the same
+                slot2entity[slot] = entity
                 function_found = False
                 for function_module in function_modules:
                     function = getattr(function_module, function_name, None)
