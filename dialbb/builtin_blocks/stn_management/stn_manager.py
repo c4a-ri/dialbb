@@ -19,6 +19,7 @@ from pandas import DataFrame
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
+from dialbb.builtin_blocks.stn_management.scenario_graph import create_scenario_graph
 from dialbb.builtin_blocks.stn_management.state_transition_network \
     import StateTransitionNetwork, State, Transition, Argument, Condition, Action, \
     INITIAL_STATE_NAME, FINAL_STATE_PREFIX, ERROR_STATE_NAME
@@ -36,7 +37,9 @@ CONFIG_KEY_SHEET_ID: str = "sheet_id"  # google sheet id
 CONFIG_KEY_KEY_FILE: str = "key_file"  # key file for Google sheets API
 CONFIG_KEY_SCENARIO_SHEET: str = "scenario_sheet"
 CONFIG_KEY_KNOWLEDGE_FILE: str = "knowledge_file"
+CONFIG_KEY_SCENARIO_GRAPH: str = "scenario_graph"
 SHEET_NAME_SCENARIO: str = "scenario"
+EMPTY_NLU_RESULT: Dict[str, Any] = {"type": "", "slots": {}}
 
 BUILTIN_FUNCTION_MODULE: str = "dialbb.builtin_blocks.stn_management.builtin_scenario_functions"
 SCOPES = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
@@ -77,8 +80,11 @@ class Manager(AbstractBlock):
                 abort_during_building(
                     f"Neither knowledge file nor google sheet info is not specified for the block {self.name}.")
             scenario_df = self.get_dfs_from_excel(excel_file, sheet_name)
+        scenario_df.fillna('', inplace=True)
         flags_to_use = self.block_config.get(CONFIG_KEY_FLAGS_TO_USE, [ANY_FLAG])
         self._network: StateTransitionNetwork = create_stn(scenario_df, flags_to_use)
+        if self.block_config.get(CONFIG_KEY_SCENARIO_GRAPH, False):
+            create_scenario_graph(scenario_df, CONFIG_DIR) # create graph for scenario writers
 
         # check network
         self._network.check_network()
@@ -131,7 +137,7 @@ class Manager(AbstractBlock):
 
         session_id: str = input['session_id']
         user_id: str = input['user_id']
-        nlu_result: Dict[str, Any] = input.get('nlu_result', {})
+        nlu_result: Dict[str, Any] = input.get('nlu_result', EMPTY_NLU_RESULT)
         aux_data: Dict[str, Any] = input.get('aux_data', {})
 
         self.log_debug("input: " + str(input), session_id=session_id)
@@ -143,6 +149,12 @@ class Manager(AbstractBlock):
 
         try:
             if initial:
+                # perform actions in the prep state
+                prep_state: State = self._network.get_prep_state()
+                prep_actions: List[Action] = prep_state.get_transitions()[0].get_actions()
+                if prep_actions:
+                    self._perform_actions(prep_actions, EMPTY_NLU_RESULT, aux_data, user_id, session_id)
+                # move to initial state
                 current_state_name = INITIAL_STATE_NAME
                 self._dialogue_context[session_id][KEY_CURRENT_STATE_NAME] = current_state_name
             else:
@@ -338,7 +350,7 @@ class Manager(AbstractBlock):
                 else:
                     action_function = function
                     break
-            if not action_function:
+            if not action_function:  # action function is not defined
                 self.log_error(f"action function can't find: {command_name}", session_id=session_id)
             else:
                 argument_names: List[str] = ["arg" + str(i) for i in range(action.get_num_arguments())]

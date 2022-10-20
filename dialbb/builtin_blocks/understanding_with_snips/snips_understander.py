@@ -8,6 +8,9 @@ __version__ = '0.1'
 __author__ = 'Mikio Nakano'
 __copyright__ = 'C4A Research Institute, Inc.'
 
+import importlib
+from types import ModuleType
+
 import pandas as pd
 from pandas import DataFrame
 from dialbb.builtin_blocks.understanding_with_snips.knowledge_converter import convert_nlu_knowledge
@@ -71,8 +74,16 @@ class Understander(AbstractBlock):
             utterances_df, slots_df, entities_df, dictionary_df \
                 = self.get_dfs_from_excel(excel_file, utterances_sheet, slots_sheet, entities_sheet, dictionary_sheet)
 
+        function_modules: List[ModuleType] = []  # dictionary function modules
+        function_definitions: str = self.block_config.get("function_definitions")  # module name(s) in config
+        if function_definitions:
+            for function_definition in function_definitions.split(':'):
+                function_definition_module: str = function_definition.strip()
+                function_modules.append(importlib.import_module(function_definition_module))  # developer specified
+
         nlu_knowledge_json = convert_nlu_knowledge(utterances_df, slots_df, entities_df, dictionary_df,
-                                                   flags_to_use, language=self._language)
+                                                   flags_to_use, function_modules, self.config, self.block_config,
+                                                   language=self._language)
         # training fileを書き出す
         with open(os.path.join(self.config_dir, "_training_data.json"), "w", encoding='utf-8') as fp:
             fp.write(json.dumps(nlu_knowledge_json, indent=2, ensure_ascii=False))

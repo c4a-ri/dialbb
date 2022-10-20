@@ -8,8 +8,8 @@ __version__ = '0.1'
 __author__ = 'Mikio Nakano'
 __copyright__ = 'C4A Research Institute, Inc.'
 
-import pandas as pd
-from typing import Dict, List, Any
+from types import ModuleType
+from typing import Dict, List, Any, Union
 import sys
 import re
 from pandas import DataFrame
@@ -20,7 +20,7 @@ from re import Pattern
 
 from dialbb.builtin_blocks.util.sudachi_tokenizer import SudachiTokenizer, Token
 from dialbb.util.error_handlers import abort_during_building, warn_during_building
-from dialbb.main import ANY_FLAG, DEBUG
+from dialbb.main import ANY_FLAG
 
 COLUMN_FLAG: str = "flag"
 COLUMN_TYPE: str = "type"
@@ -49,7 +49,9 @@ def check_columns(required_columns: List[str], df: DataFrame, sheet: str) -> boo
 
 
 def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, entities_df: DataFrame,
-                          dictionary_df: DataFrame, flags: List[str], language='en') -> Dict[str, Any]:
+                          dictionary_df: DataFrame, flags: List[str], function_modules: List[ModuleType],
+                          config: Dict[str, Any], block_config: Dict[str, Any],
+                          language='en') -> Dict[str, Any]:
     """
 
     :param utterances_df:
@@ -57,6 +59,7 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, entitie
     :param entities_df:
     :param dictionary_df:
     :param flags:
+    :param function_modules:
     :param language:
     :return:
     """
@@ -76,12 +79,37 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, entitie
     if slots_df is None:  # no slots sheet
         print(f"Warning: no slots sheet. Dummy entity definition is used instead.")
     else:
+        slots_df.fillna('', inplace=True)
         check_columns([COLUMN_FLAG, COLUMN_SLOT, COLUMN_ENTITY], slots_df, "slots")
         for index, row in slots_df.iterrows():
             if row[COLUMN_FLAG] not in flags and ANY_FLAG not in flags:
                 continue
-            slot = row[COLUMN_SLOT]
-            slot2entity[slot] = row[COLUMN_ENTITY]
+            slot: str = row[COLUMN_SLOT].strip()
+            entity: str = row[COLUMN_ENTITY].strip()
+            if not entity.startswith("dialbb/"):  # dictionary function
+                slot2entity[slot] = entity
+            else:  # entity defined by a dictionary function
+                function_name: str = entity.replace("dialbb/", "")
+                entity: str = function_name  # entity and function name is the same
+                slot2entity[slot] = entity
+                function_found = False
+                for function_module in function_modules:
+                    function = getattr(function_module, function_name, None)
+                    function_found = True
+                    if function:
+                        dictionary: List[Dict[str, Union[str, List[str]]]] \
+                            = eval("func(config, block_config)", {}, # execute dictionary function
+                                   {"func": function, "config": config, "block_config": block_config})
+                        entity_definitions[entity] = {'data':  []}
+                        for entry in dictionary:
+                            normalized_value = normalize(entry['value'], canonicalizer, tokenizer)
+                            normalized_synonyms = [normalize(synonym, canonicalizer, tokenizer)
+                                                   for synonym in entry.get('synonyms',[])]
+                            entity_definitions[entity]['data'].append({"value": normalized_value,
+                                                                       "synonyms": normalized_synonyms})
+                        break
+                if not function_found:
+                    abort_during_building(f"dictionary function {function_name} is not found.")
 
         # reading entities sheet
         check_columns([COLUMN_FLAG, COLUMN_ENTITY, COLUMN_USE_SYNONYMS,
@@ -89,45 +117,54 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, entitie
         entity_descs: Dict[str, Dict[str, Any]] = {}  # <entity: str> -> {"use_synonyms": <bool>,
                                                       #                   "automatically_extensible": <bool>,
                                                       #                   "matching_strictness": <float>}
-        for index, row in entities_df.iterrows():
-            entity: str = row[COLUMN_ENTITY]
-            if row[COLUMN_FLAG] not in flags and ANY_FLAG not in flags:
-                continue
-            if row[COLUMN_USE_SYNONYMS] == "yes":
-                use_synonyms: bool = True
-            else:
-                use_synonyms = False
-            if row[COLUMN_AUTOMATICALLY_EXTENSIBLE] == "yes":
-                automatically_extensible: bool = True
-            else:
-                automatically_extensible = False
-            matching_strictness = row[COLUMN_MATCHING_STRICTNESS]
-            try:
-                matching_strictness = float(matching_strictness)
-            except Exception as e:
-                abort_during_building(f"matching strictness must be a number: {str(matching_strictness)}")
-            entity_descs[entity] = {"use_synonyms": use_synonyms,
-                                    "automatically_extensible": automatically_extensible,
-                                    "matching_strictness": matching_strictness}
+        if entities_df is None:  # no entities sheet
+            print(f"Warning: no entities sheet.")
+        else:
+            entities_df.fillna('', inplace=True)
+            for index, row in entities_df.iterrows():
+                entity: str = row[COLUMN_ENTITY].strip()
+                if row[COLUMN_FLAG] not in flags and ANY_FLAG not in flags:
+                    continue
+                if row[COLUMN_USE_SYNONYMS].strip() == "yes":
+                    use_synonyms: bool = True
+                else:
+                    use_synonyms = False
+                if row[COLUMN_AUTOMATICALLY_EXTENSIBLE].strip() == "yes":
+                    automatically_extensible: bool = True
+                else:
+                    automatically_extensible = False
+                matching_strictness = row[COLUMN_MATCHING_STRICTNESS]
+                try:
+                    matching_strictness = float(matching_strictness)
+                except Exception as e:
+                    abort_during_building(f"matching strictness must be a number: {str(matching_strictness)}")
+                if entity.startswith("dialbb/"):
+                    entity = entity.replace("dialbb/", "")
+                entity_descs[entity] = {"use_synonyms": use_synonyms,
+                                        "automatically_extensible": automatically_extensible,
+                                        "matching_strictness": matching_strictness}
 
         # reading dictionary sheet
-        dictionary_df.fillna('', inplace=True)  # change empty cells to empty strings
-        check_columns([COLUMN_FLAG, COLUMN_ENTITY, COLUMN_VALUE, COLUMN_SYNONYMS], dictionary_df, "dictionary")
-        for index, row in dictionary_df.iterrows():
-            if row[COLUMN_FLAG] not in flags and ANY_FLAG not in flags:
-                continue
-            synonyms_string: str = row[COLUMN_SYNONYMS]
-            normalized_synonyms: List[str] = [normalize(synonym.strip(), canonicalizer, tokenizer, language)
-                                              for synonym in
-                                              re.split('[,，、]', synonyms_string)]  # convert synonym cell to a list
-            entity = row[COLUMN_ENTITY]
-            normalized_value: str = normalize(row['value'], canonicalizer, tokenizer, language)  # dictionary entry
-            if entity in entity_definitions.keys():
-                entity_definitions[entity]['data'].append({"value": normalized_value, "synonyms": normalized_synonyms})
-            else:
-                entity_definitions[entity] = {'data': [{"value": normalized_value, "synonyms": normalized_synonyms}]}
+        if dictionary_df is None:  # no dictionary sheet
+            print(f"Warning: no dictionary sheet.")
+        else:
+            dictionary_df.fillna('', inplace=True)  # change empty cells to empty strings
+            check_columns([COLUMN_FLAG, COLUMN_ENTITY, COLUMN_VALUE, COLUMN_SYNONYMS], dictionary_df, "dictionary")
+            for index, row in dictionary_df.iterrows():
+                if row[COLUMN_FLAG] not in flags and ANY_FLAG not in flags:
+                    continue
+                synonyms_string: str = row[COLUMN_SYNONYMS]
+                normalized_synonyms: List[str] = [normalize(synonym.strip(), canonicalizer, tokenizer, language)
+                                                  for synonym in
+                                                  re.split('[,，、]', synonyms_string)]  # convert synonym cell to a list
+                entity = row[COLUMN_ENTITY].strip()
+                normalized_value: str = normalize(row['value'], canonicalizer, tokenizer, language)  # dictionary entry
+                if entity in entity_definitions.keys():
+                    entity_definitions[entity]['data'].append({"value": normalized_value, "synonyms": normalized_synonyms})
+                else:
+                    entity_definitions[entity] = {'data': [{"value": normalized_value, "synonyms": normalized_synonyms}]}
 
-        # integrate information in entity sheetの into dictionary
+        # integrate information in entity sheet into dictionary
         for entity in entity_definitions.keys():
             entity_definition = entity_definitions[entity]
             if entity in entity_descs.keys():
@@ -153,13 +190,13 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, entitie
     # read utterances sheet
     intent2utterances: Dict[str, List[str]] = {}
     for index, row in utterances_df.iterrows():
-        if row[COLUMN_FLAG] not in flags and ANY_FLAG not in flags:
+        if row[COLUMN_FLAG].strip() not in flags and ANY_FLAG not in flags:
             continue
-        intent: str = row['type']
+        intent: str = row[COLUMN_TYPE]
         if intent in intent2utterances.keys():
-            intent2utterances[intent].append(row['utterance'])
+            intent2utterances[intent].append(row[COLUMN_UTTERANCE].strip())
         else:
-            intent2utterances[intent] = [row['utterance']]
+            intent2utterances[intent] = [row[COLUMN_UTTERANCE].strip()]
 
     for intent in intent2utterances.keys():
         utterance_descs: List[Dict[str, Any]] = []  # [{"data": [...]}, {"data": [...]}, ...]

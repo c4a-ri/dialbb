@@ -13,8 +13,7 @@ from dialbb.util.globals import DEBUG
 
 import sys
 import logging
-from logging import getLogger, Formatter, StreamHandler, FileHandler
-import os
+from logging import getLogger, Formatter, StreamHandler
 
 
 def get_logger(name):

@@ -22,8 +22,14 @@ class AbstractBlock:
         self._logger = get_logger(self.name)
 
     def process(self, input: Dict[str, Any], initial: bool = False) -> Dict[str, Any]:
+        """
+        does this block's duty
+        :param input: input data to this block
+        :param initial: whether this is the first call of the dialogue session
+        :return: output  output data from this block
+        """
 
-        raise NotImplementedError
+        raise NotImplementedError  # needs implementation
 
     def log_debug(self, message: str, session_id: str = "unknown") -> None:
         self._logger.debug(f"session: {session_id}, {message}")

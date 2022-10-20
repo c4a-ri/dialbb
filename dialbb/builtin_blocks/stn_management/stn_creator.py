@@ -10,7 +10,6 @@ __copyright__ = 'C4A Research Institute, Inc.'
 
 import sys
 
-import pandas as pd
 from pandas import DataFrame
 from typing import List
 
@@ -21,6 +20,7 @@ from dialbb.util.error_handlers import abort_during_building, warn_during_buildi
 COLUMN_FLAG: str = "flag"
 COLUMN_STATE: str = "state"
 COLUMN_SYSTEM_UTTERANCE: str = "system utterance"
+COLUMN_USER_UTTERANCE_EXAMPLE = "user utterance example"
 COLUMN_USER_UTTERANCE_TYPE: str = "user utterance type"
 COLUMN_CONDITIONS: str = "conditions"
 COLUMN_ACTIONS: str = "actions"
@@ -29,7 +29,6 @@ COLUMN_DESTINATION: str = "next state"
 
 def create_stn(df: DataFrame, flags_to_use: List[str]) -> StateTransitionNetwork:
 
-    df.fillna('', inplace=True)
 
     # check column names
     columns = df.columns.values.tolist()
