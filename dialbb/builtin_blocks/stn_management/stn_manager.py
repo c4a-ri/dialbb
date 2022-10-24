@@ -31,6 +31,7 @@ from dialbb.util.error_handlers import abort_during_building
 KEY_CURRENT_STATE_NAME: str = "_current_state_name"
 KEY_CONFIG: str = "_config"
 KEY_BLOCK_CONFIG: str = "_block_config"
+KEY_CAUSE: str = "_cause"
 
 CONFIG_KEY_KNOWLEDGE_GOOGLE_SHEET: str = "knowledge_google_sheet"  # google sheet info
 CONFIG_KEY_SHEET_ID: str = "sheet_id"  # google sheet id
@@ -142,6 +143,7 @@ class Manager(AbstractBlock):
 
         self.log_debug("input: " + str(input), session_id=session_id)
 
+
         if initial:
             self._dialogue_context[session_id] = {}  # initialize dialogue frame
             self._dialogue_context[session_id][KEY_CONFIG] = copy.deepcopy(self.config)
@@ -158,6 +160,7 @@ class Manager(AbstractBlock):
                 current_state_name = INITIAL_STATE_NAME
                 self._dialogue_context[session_id][KEY_CURRENT_STATE_NAME] = current_state_name
             else:
+                self.log_debug("dialogue_context: " + str(self._dialogue_context[session_id]), session_id=session_id)
                 previous_state_name: str = self._dialogue_context[session_id][KEY_CURRENT_STATE_NAME]
                 if previous_state_name is None:
                     self.log_error(f"can't find previous state for session.", session_id=session_id)
@@ -171,6 +174,7 @@ class Manager(AbstractBlock):
             current_state: State = self._network.get_state_from_state_name(current_state_name)
             if not current_state:
                 self.log_error(f"can't find state to move.", session_id=session_id)
+                self._dialogue_context[session_id][KEY_CAUSE] = f"can't find state to move: {current_state_name}"
                 current_state_name = ERROR_STATE_NAME
                 current_state = self._network.get_state_from_state_name(current_state_name)
             output_text = current_state.get_one_system_utterance()
@@ -183,6 +187,7 @@ class Manager(AbstractBlock):
             output = {"output_text": "Internal error occurred.", "final": True}
 
         self.log_debug("output: " + str(output), session_id=session_id)
+        self.log_debug("updated dialogue_context: " + str(self._dialogue_context[session_id]), session_id=session_id)
         return output
 
     def _substitute_variables(self, text: str, session_id: str) -> str:
@@ -211,11 +216,17 @@ class Manager(AbstractBlock):
         :return: id of the destination state to move to
         """
         if self._network.is_final_state_or_error_state(previous_state_name):
-            self.log_warning("no available transitions found from state: " + previous_state_name,
+            self.log_error("no available transitions found from state: " + previous_state_name,
                              session_id=session_id)
+            self._dialogue_context[session_id][KEY_CAUSE] = f"no available transitions found from state: " \
+                                                            + previous_state_name
             return ERROR_STATE_NAME
         previous_state: State = self._network.get_state_from_state_name(previous_state_name)
         if not previous_state:
+            self.log_error("can't find previous state: " + previous_state_name,
+                             session_id=session_id)
+            self._dialogue_context[session_id][KEY_CAUSE] = f"can't find previous state: " \
+                                                            + previous_state_name
             return ERROR_STATE_NAME
         self.log_debug("trying to find transition from state: " + previous_state_name)
         for transition in previous_state.get_transitions():
@@ -224,8 +235,10 @@ class Manager(AbstractBlock):
                 self._perform_actions(transition.get_actions(), nlu_result, aux_data, user_id, session_id)
                 self.log_debug("moving to state: " + destination_state_name, session_id=session_id)
                 return destination_state_name
-        self.log_warning("no available transitions found from state: " + previous_state_name,
+        self.log_error("no available transitions found from state: " + previous_state_name,
                          session_id=session_id)
+        self._dialogue_context[session_id][KEY_CAUSE] = f"no available transitions found from state: " \
+                                                        + previous_state_name
         return ERROR_STATE_NAME
 
     def _check_one_condition(self, condition: Condition, nlu_result: Dict[str, Any], aux_data: Dict[str, Any],
