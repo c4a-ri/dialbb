@@ -271,6 +271,23 @@ class StateTransitionNetwork:
             elif prep_state.get_system_utterances():
                 warn_during_building(f"#prep state must not have system utterances.")
 
+        # check if each destination is a valid state
+        all_destinations: List[State] = []
+        for state in self._states:
+            for transition in state.get_transitions():
+                destination_name: str = transition.get_destination()
+                destination_state = self._state_names2states.get(destination_name)
+                if not destination_state:
+                    warn_during_building(f"destination {destination_name} is not a valid state.")
+                elif destination_state not in all_destinations:
+                    all_destinations.append(destination_state)
+        # check if each state is a destination at least one transition
+        for state in self._states:
+            if state.get_name() in (PREP_STATE_NAME, INITIAL_STATE_NAME, ERROR_STATE_NAME):
+                continue
+            if state not in all_destinations:
+                warn_during_building(f"state {state.get_name()} is not a destination of any transitions.")
+
         # todo check if functions are defined
         # todo check if set command has two args and its first argument is a variable
         return result
@@ -286,8 +303,10 @@ class StateTransitionNetwork:
         for state in self._states:
             result += f'  "{state.get_name()}" [shape = circle];\n'
         result += "\n"
+        n_trans: int = 0
         for state in self._states:
             for transition in state.get_transitions():
+                n_trans += 1
                 label = ""
                 uutype: str = transition.get_user_utterance_type()
                 if uutype:
@@ -310,6 +329,13 @@ class StateTransitionNetwork:
 
         with open(filename, "w", encoding='utf-8') as fp:
             fp.write(result)
+
+        print(f"state transition network has {len(self._states)} states.")
+        print(f"state transition network has {n_trans} transitions.")
+
+
+
+
 
     def get_prep_state(self) -> State:
         """

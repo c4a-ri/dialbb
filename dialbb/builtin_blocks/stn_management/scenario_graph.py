@@ -61,6 +61,7 @@ def create_scenario_graph(scenario_df: DataFrame, config_dir: str, language: str
     result = "digraph scenario_graph {\n"
     result += '  rankdir="TB"\n'
     result += "\n"
+    print(f"natural language scenario has {int(len(states_dict.keys()))} states.")
     for state_name, state in states_dict.items():
         su_list = ""
         for su in state.system_utterances:
@@ -73,14 +74,17 @@ def create_scenario_graph(scenario_df: DataFrame, config_dir: str, language: str
             i += 10
         result += f'  "{state_name}" [shape = circle, label="<{state_name}>\\n{su_label}"];\n'
     result += "\n"
+    n_trans: int = 0 # number of transitions in NL scenario
     for state_name, state in states_dict.items():
         for transition in state.transitions:
+            n_trans += 1
             uu: str = transition.user_utterance_example
             if uu:
                 result += f'  "{state_name}" -> "{transition.next_state}" [label = "{uu}" ] ;\n'
             else:
                 result += f'  "{state_name}" -> "{transition.next_state}" ;\n'
     result += "}"
+    print(f"natural language scenario has {int(n_trans)} transitions.")
 
     with open(dot_file, "w", encoding='utf-8') as fp:
         fp.write(result)
