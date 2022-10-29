@@ -139,6 +139,7 @@ class Manager(AbstractBlock):
 
     def process(self, input: Dict[str, Any], initial: bool = False) -> Dict[str, Any]:
         """
+        process input from dialbb main process and output results to it
         :param input: key: "sentence"
         :param initial: True if this is the first utterance of the dialogue
         :return: key: "nlu_result"
