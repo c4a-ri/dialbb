@@ -189,6 +189,8 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, entitie
 
     # read utterances sheet
     intent2utterances: Dict[str, List[str]] = {}
+
+    utterances_df.fillna('', inplace=True)
     for index, row in utterances_df.iterrows():
         if row[COLUMN_FLAG].strip() not in flags and ANY_FLAG not in flags:
             continue
