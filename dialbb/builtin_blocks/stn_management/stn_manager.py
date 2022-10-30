@@ -88,7 +88,8 @@ class Manager(AbstractBlock):
             create_scenario_graph(scenario_df, CONFIG_DIR) # create graph for scenario writers
 
         # check network
-        self._network.check_network()
+        if DEBUG:
+            self._network.check_network()
 
         # generate a graph file from the network
         dot_file: str = os.path.join(CONFIG_DIR, "_stn_graph.dot")
@@ -103,7 +104,14 @@ class Manager(AbstractBlock):
         if ret != 0:
             print(f"converting failed. graphviz may not be installed.")
 
-    def get_df_from_gs(self, google_sheet_config: Dict[str, str], scenario_sheet: str):
+    def get_df_from_gs(self, google_sheet_config: Dict[str, str], scenario_sheet: str) -> DataFrame:
+        """
+        get scenario dataframe from google sheet
+        :param google_sheet_config: configuration for accessing google sheet
+        :param scenario_sheet: the name of scenario tab
+        :return: pandas DataFrame of scenario
+        """
+
         try:
             google_sheet_id: str = google_sheet_config.get(CONFIG_KEY_SHEET_ID)
             key_file: str = google_sheet_config.get(CONFIG_KEY_KEY_FILE)
@@ -118,7 +126,7 @@ class Manager(AbstractBlock):
         except Exception as e:
             abort_during_building(f"failed to read google spreadsheet. {str(e)}")
 
-    def get_dfs_from_excel(self, excel_file: str, scenario_sheet: str):
+    def get_dfs_from_excel(self, excel_file: str, scenario_sheet: str) -> DataFrame:
 
         excel_file_path = os.path.join(self.config_dir, excel_file)
         print(f"reading excel file: {excel_file_path}", file=sys.stderr)
@@ -131,6 +139,7 @@ class Manager(AbstractBlock):
 
     def process(self, input: Dict[str, Any], initial: bool = False) -> Dict[str, Any]:
         """
+        process input from dialbb main process and output results to it
         :param input: key: "sentence"
         :param initial: True if this is the first utterance of the dialogue
         :return: key: "nlu_result"
