@@ -20,15 +20,18 @@ DialBBのメインモジュールは，メソッド呼び出しまたはWeb API�
 #### サーバの起動
 
 ```sh
-$ python run_server.py <config file>
+$ python run_server.py [--port <port>] <config file>
 ```
 
-#### セッションの開始時
+`port`（ポート番号）のデフォルトは8080．
+
+
+#### クライアントからの接続（セッションの開始時）
 
 - URI
 
   ```
-  http://<server>:8080/init
+  http://<server>:<port>/init
   ```
 
 - リクエストヘッダ
@@ -72,12 +75,12 @@ $ python run_server.py <config file>
   - <対話終了フラグ>は，対話が終了したかどうかを表すブール値です．
   - <補助データ>は，対話アプリがクライアントに送信するデータです．サーバの状態などを送信するのに使います．
 
-#### セッション開始後の対話
+#### クライアントからの接続（セッション開始後）
 
 
 - URI
   ```
-  http://<server>:8080/dialogue
+  http://<server>:<port>/dialogue
   ```
 
 - リクエストヘッダ
