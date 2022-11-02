@@ -131,3 +131,18 @@ dmypy.json
 /docs/document-ja/build/doctrees
 /docs/document-ja/build/latex
 
+# pycharm
+.idea/
+
+# emacs
+\#*
+*~
+.\#*
+
+# mac
+.DS_Store
+
+# dialbb temp files
+_*
+
+

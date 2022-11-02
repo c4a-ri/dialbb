@@ -109,7 +109,7 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, entitie
                                                                        "synonyms": normalized_synonyms})
                         break
                 if not function_found:
-                    abort_during_building(f"dictionary function {function_name} is not found.")
+                    abort_during_building(f'dictionary function "{function_name}" is not found.')
 
         # reading entities sheet
         check_columns([COLUMN_FLAG, COLUMN_ENTITY, COLUMN_USE_SYNONYMS,

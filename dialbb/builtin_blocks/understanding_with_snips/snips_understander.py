@@ -149,6 +149,7 @@ class Understander(AbstractBlock):
         if initial:
             intent = ""
             slots: Dict[str, str] = {}
+            sentence = ""
         else:
             sentence = input[KEY_INPUT_TEXT]
             input_to_nlu: str = sentence
@@ -168,7 +169,7 @@ class Understander(AbstractBlock):
                     slots[snips_slot["slotName"]] \
                         = self._snip_slot_value_to_dialbb_slot_value(snips_slot["value"])
 
-        nlu_result = {"type": intent, "slots": slots}
+        nlu_result = {"type": intent, "slots": slots, "sentence": sentence}
         output = {KEY_NLU_RESULT: nlu_result}
         self.log_debug("output: " + str(output), session_id=session_id)
 
