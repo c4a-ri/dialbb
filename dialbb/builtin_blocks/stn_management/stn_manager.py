@@ -14,27 +14,38 @@ import sys
 import os
 import importlib
 import re
+import pandas as pd
+from pandas import DataFrame
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 
+from dialbb.builtin_blocks.stn_management.scenario_graph import create_scenario_graph
 from dialbb.builtin_blocks.stn_management.state_transition_network \
     import StateTransitionNetwork, State, Transition, Argument, Condition, Action, \
     INITIAL_STATE_NAME, FINAL_STATE_PREFIX, ERROR_STATE_NAME
 from dialbb.builtin_blocks.stn_management.stn_creator import create_stn
 from dialbb.abstract_block import AbstractBlock
 from dialbb.main import ANY_FLAG, DEBUG, CONFIG_KEY_FLAGS_TO_USE, KEY_SESSION_ID, CONFIG_DIR
-
+from dialbb.util.error_handlers import abort_during_building
 
 KEY_CURRENT_STATE_NAME: str = "_current_state_name"
 KEY_CONFIG: str = "_config"
 KEY_BLOCK_CONFIG: str = "_block_config"
+KEY_CAUSE: str = "_cause"
 
+CONFIG_KEY_KNOWLEDGE_GOOGLE_SHEET: str = "knowledge_google_sheet"  # google sheet info
+CONFIG_KEY_SHEET_ID: str = "sheet_id"  # google sheet id
+CONFIG_KEY_KEY_FILE: str = "key_file"  # key file for Google sheets API
 CONFIG_KEY_SCENARIO_SHEET: str = "scenario_sheet"
 CONFIG_KEY_KNOWLEDGE_FILE: str = "knowledge_file"
-
+CONFIG_KEY_SCENARIO_GRAPH: str = "scenario_graph"
 SHEET_NAME_SCENARIO: str = "scenario"
+EMPTY_NLU_RESULT: Dict[str, Any] = {"type": "", "slots": {}}
 
 BUILTIN_FUNCTION_MODULE: str = "dialbb.builtin_blocks.stn_management.builtin_scenario_functions"
+SCOPES = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
 
-var_in_system_utterance_pattern = re.compile(r'\{([^\}]+)\}')
+var_in_system_utterance_pattern = re.compile(r'\{([^\}]+)\}')  # {<variable name>}
 
 class STNError(Exception):
     pass
@@ -60,20 +71,29 @@ class Manager(AbstractBlock):
         self._dialogue_context: Dict[str, Dict[str, Any]] = {}  # session id -> {key -> value}
 
         # create network
-        spreadsheet = self.block_config.get(CONFIG_KEY_KNOWLEDGE_FILE)
-        if not spreadsheet:
-            self._logger.error(f"knowledge_file is not specified for the block {self.name}.")
-            sys.exit(1)
-        spreadsheet = os.path.join(self.config_dir, spreadsheet)
         sheet_name = self.block_config.get(CONFIG_KEY_SCENARIO_SHEET, SHEET_NAME_SCENARIO)
-        flags = self.block_config.get(CONFIG_KEY_FLAGS_TO_USE, [ANY_FLAG])
-        self._network: StateTransitionNetwork = create_stn(spreadsheet, sheet_name, flags)
+        google_sheet_config: Dict[str, str] = self.block_config.get(CONFIG_KEY_KNOWLEDGE_GOOGLE_SHEET)
+        if google_sheet_config:
+            scenario_df = self.get_df_from_gs(google_sheet_config, sheet_name)
+        else:
+            excel_file = self.block_config.get(CONFIG_KEY_KNOWLEDGE_FILE)
+            if not excel_file:
+                abort_during_building(
+                    f"Neither knowledge file nor google sheet info is not specified for the block {self.name}.")
+            scenario_df = self.get_dfs_from_excel(excel_file, sheet_name)
+        scenario_df.fillna('', inplace=True)
+        flags_to_use = self.block_config.get(CONFIG_KEY_FLAGS_TO_USE, [ANY_FLAG])
+        self._network: StateTransitionNetwork = create_stn(scenario_df, flags_to_use)
+        if self.block_config.get(CONFIG_KEY_SCENARIO_GRAPH, False):
+            create_scenario_graph(scenario_df, CONFIG_DIR) # create graph for scenario writers
 
         # check network
-        self._network.check_network()
+        if DEBUG:
+            self._network.check_network()
 
         # generate a graph file from the network
         dot_file: str = os.path.join(CONFIG_DIR, "_stn_graph.dot")
+
         jpg_file: str = os.path.join(CONFIG_DIR, "_stn_graph.jpg")
         self._network.output_graph(dot_file)
         print(f"converting dot file to jpeg: {dot_file}.")
@@ -84,8 +104,42 @@ class Manager(AbstractBlock):
         if ret != 0:
             print(f"converting failed. graphviz may not be installed.")
 
+    def get_df_from_gs(self, google_sheet_config: Dict[str, str], scenario_sheet: str) -> DataFrame:
+        """
+        get scenario dataframe from google sheet
+        :param google_sheet_config: configuration for accessing google sheet
+        :param scenario_sheet: the name of scenario tab
+        :return: pandas DataFrame of scenario
+        """
+
+        try:
+            google_sheet_id: str = google_sheet_config.get(CONFIG_KEY_SHEET_ID)
+            key_file: str = google_sheet_config.get(CONFIG_KEY_KEY_FILE)
+            key_file = os.path.join(self.config_dir, key_file)
+            credentials = ServiceAccountCredentials.from_json_keyfile_name(key_file, SCOPES)
+            gc = gspread.authorize(credentials)
+            workbook = gc.open_by_key(google_sheet_id)
+            scenario_worksheet = workbook.worksheet(scenario_sheet)
+            scenario_data = scenario_worksheet.get_all_values()
+            df: DataFrame = pd.DataFrame(scenario_data[1:], columns=scenario_data[0])
+            return df
+        except Exception as e:
+            abort_during_building(f"failed to read google spreadsheet. {str(e)}")
+
+    def get_dfs_from_excel(self, excel_file: str, scenario_sheet: str) -> DataFrame:
+
+        excel_file_path = os.path.join(self.config_dir, excel_file)
+        print(f"reading excel file: {excel_file_path}", file=sys.stderr)
+        try:
+            df_all: Dict[str, DataFrame] = pd.read_excel(excel_file_path, sheet_name=None)  # read all sheets
+        except Exception as e:
+            abort_during_building(f"failed to read excel file: {excel_file_path}. {str(e)}")
+        # reading slots sheet
+        return df_all.get(scenario_sheet)
+
     def process(self, input: Dict[str, Any], initial: bool = False) -> Dict[str, Any]:
         """
+        process input from dialbb main process and output results to it
         :param input: key: "sentence"
         :param initial: True if this is the first utterance of the dialogue
         :return: key: "nlu_result"
@@ -93,10 +147,11 @@ class Manager(AbstractBlock):
 
         session_id: str = input['session_id']
         user_id: str = input['user_id']
-        nlu_result: Dict[str, Any] = input.get('nlu_result', {})
+        nlu_result: Dict[str, Any] = input.get('nlu_result', EMPTY_NLU_RESULT)
         aux_data: Dict[str, Any] = input.get('aux_data', {})
 
         self.log_debug("input: " + str(input), session_id=session_id)
+
 
         if initial:
             self._dialogue_context[session_id] = {}  # initialize dialogue frame
@@ -105,9 +160,16 @@ class Manager(AbstractBlock):
 
         try:
             if initial:
+                # perform actions in the prep state
+                prep_state: State = self._network.get_prep_state()
+                prep_actions: List[Action] = prep_state.get_transitions()[0].get_actions()
+                if prep_actions:
+                    self._perform_actions(prep_actions, EMPTY_NLU_RESULT, aux_data, user_id, session_id)
+                # move to initial state
                 current_state_name = INITIAL_STATE_NAME
                 self._dialogue_context[session_id][KEY_CURRENT_STATE_NAME] = current_state_name
             else:
+                self.log_debug("dialogue_context: " + str(self._dialogue_context[session_id]), session_id=session_id)
                 previous_state_name: str = self._dialogue_context[session_id][KEY_CURRENT_STATE_NAME]
                 if previous_state_name is None:
                     self.log_error(f"can't find previous state for session.", session_id=session_id)
@@ -121,6 +183,7 @@ class Manager(AbstractBlock):
             current_state: State = self._network.get_state_from_state_name(current_state_name)
             if not current_state:
                 self.log_error(f"can't find state to move.", session_id=session_id)
+                self._dialogue_context[session_id][KEY_CAUSE] = f"can't find state to move: {current_state_name}"
                 current_state_name = ERROR_STATE_NAME
                 current_state = self._network.get_state_from_state_name(current_state_name)
             output_text = current_state.get_one_system_utterance()
@@ -133,6 +196,7 @@ class Manager(AbstractBlock):
             output = {"output_text": "Internal error occurred.", "final": True}
 
         self.log_debug("output: " + str(output), session_id=session_id)
+        self.log_debug("updated dialogue_context: " + str(self._dialogue_context[session_id]), session_id=session_id)
         return output
 
     def _substitute_variables(self, text: str, session_id: str) -> str:
@@ -161,11 +225,17 @@ class Manager(AbstractBlock):
         :return: id of the destination state to move to
         """
         if self._network.is_final_state_or_error_state(previous_state_name):
-            self.log_warning("no available transitions found from state: " + previous_state_name,
+            self.log_error("no available transitions found from state: " + previous_state_name,
                              session_id=session_id)
+            self._dialogue_context[session_id][KEY_CAUSE] = f"no available transitions found from state: " \
+                                                            + previous_state_name
             return ERROR_STATE_NAME
         previous_state: State = self._network.get_state_from_state_name(previous_state_name)
         if not previous_state:
+            self.log_error("can't find previous state: " + previous_state_name,
+                             session_id=session_id)
+            self._dialogue_context[session_id][KEY_CAUSE] = f"can't find previous state: " \
+                                                            + previous_state_name
             return ERROR_STATE_NAME
         self.log_debug("trying to find transition from state: " + previous_state_name)
         for transition in previous_state.get_transitions():
@@ -174,8 +244,10 @@ class Manager(AbstractBlock):
                 self._perform_actions(transition.get_actions(), nlu_result, aux_data, user_id, session_id)
                 self.log_debug("moving to state: " + destination_state_name, session_id=session_id)
                 return destination_state_name
-        self.log_warning("no available transitions found from state: " + previous_state_name,
+        self.log_error("no available transitions found from state: " + previous_state_name,
                          session_id=session_id)
+        self._dialogue_context[session_id][KEY_CAUSE] = f"no available transitions found from state: " \
+                                                        + previous_state_name
         return ERROR_STATE_NAME
 
     def _check_one_condition(self, condition: Condition, nlu_result: Dict[str, Any], aux_data: Dict[str, Any],
@@ -300,7 +372,7 @@ class Manager(AbstractBlock):
                 else:
                     action_function = function
                     break
-            if not action_function:
+            if not action_function:  # action function is not defined
                 self.log_error(f"action function can't find: {command_name}", session_id=session_id)
             else:
                 argument_names: List[str] = ["arg" + str(i) for i in range(action.get_num_arguments())]

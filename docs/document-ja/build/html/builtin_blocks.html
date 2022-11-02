@@ -312,6 +312,7 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">nlu_result</span></code>:言語理解結果（辞書型）</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">user_id</span></code>:ユーザID（文字列）</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">session_id</span></code>セッションID（文字列）</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aux_data</span></code>補助データ（辞書型）</p></li>
 </ul>
 </li>
 <li><p>出力</p>
@@ -394,7 +395,7 @@
 </section>
 <section id="id6">
 <h3><span class="section-number">6.3.3. </span>条件とアクション<a class="headerlink" href="#id6" title="この見出しへのパーマリンク"></a></h3>
-<p>STN Managerは，対話のセッションごとに文脈情報を保持しています．文脈情報は変数とその値の組の集合で，値はどのようなデータ構造でも構いません．</p>
+<p>STN Managerは，対話のセッションごとに文脈情報を保持しています．文脈情報は変数とその値の組の集合（pythonの辞書型データ）で，値はどのようなデータ構造でも構いません．</p>
 <p>条件やアクションの関数は文脈情報にアクセスします．</p>
 <section id="id7">
 <h4><span class="section-number">6.3.3.1. </span>関数の引数<a class="headerlink" href="#id7" title="この見出しへのパーマリンク"></a></h4>
@@ -409,7 +410,7 @@
 <tbody>
 <tr class="row-even"><td><p>特殊変数</p></td>
 <td><p>#で始まる文字列</p></td>
-<td><p>言語理解をもとにセットされる変数の値<br />#&lt;スロット名&gt;: 直前のユーザ発話のスロット値．スロット値が空の場合は空文字列になる．<br />#sentence: 直前のユーザ発話（正規化したもの）<br />#user_id: ユーザID（文字列）</p></td>
+<td><p>言語理解をもとにセットされる変数の値<br />#&lt;スロット名&gt;: 直前のユーザ発話のスロット値．スロット値が空の場合は空文字列になる．<br />#&lt;補助データのキー&gt;: 入力のaux_dataの中のこのキーの値．例えば#emotionの場合、aux_data['emotion']の値。このキーがない場合は、空文字列になる。<br />#sentence: 直前のユーザ発話（正規化したもの）<br />#user_id: ユーザID（文字列）</p></td>
 </tr>
 <tr class="row-odd"><td><p>変数</p></td>
 <td><p>*で始まる文字列</p></td>
@@ -417,7 +418,7 @@
 </tr>
 <tr class="row-even"><td><p>変数参照</p></td>
 <td><p>&amp;で始まる文字列</p></td>
-<td><p>&amp;&lt;変数名&gt;: 文脈情報での変数の名前．関数定義内で文脈情報を参照するために用いる．</p></td>
+<td><p>&amp;&lt;変数名&gt;: 文脈情報での変数の名前．関数定義内で文脈情報の変数名を利用するときに用いる．</p></td>
 </tr>
 <tr class="row-odd"><td><p>定数</p></td>
 <td><p>&quot;&quot;で囲んだ文字列</p></td>
@@ -462,15 +463,15 @@
 <td><p>xが文字列としてyを含まない場合Trueを返す</p></td>
 <td><p>_not_contains(#sentence, &quot;はい&quot;) : ユーザ発話が「はい」を含めばTrueを返す</p></td>
 </tr>
-<tr class="row-even"><td><p>_member(x, y)</p></td>
+<tr class="row-even"><td><p>_member_of(x, y)</p></td>
 <td><p>condition</p></td>
 <td><p>文字列yを':'で分割してできたリストに文字列xが含まれていればTrueを返す</p></td>
-<td><p>_member(#food, &quot;ラーメン:チャーハン:餃子&quot;)</p></td>
+<td><p>_member_of(#food, &quot;ラーメン:チャーハン:餃子&quot;)</p></td>
 </tr>
 <tr class="row-odd"><td><p>_not_member_of(x, y)</p></td>
 <td><p>condition</p></td>
 <td><p>文字列yを':'で分割してできたリストに文字列xが含まれていなければTrueを返す</p></td>
-<td><p>_member(*favorite_food, &quot;ラーメン:チャーハン:餃子&quot;)</p></td>
+<td><p>_not_member_of(*favorite_food, &quot;ラーメン:チャーハン:餃子&quot;)</p></td>
 </tr>
 <tr class="row-even"><td><p>_set(x, y)</p></td>
 <td><p>action</p></td>

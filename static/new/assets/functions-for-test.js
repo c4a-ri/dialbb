@@ -55,4 +55,14 @@ function post_user_utterance() {
 	    .then(response => response.json())
 	    .then(response_json => add_system_utterance_to_chat(response_json))
         .catch(console.error);
+	document.getElementById('user_utterance').value = "";
+
 }
+
+var input = document.getElementById("user_utterance");
+input.addEventListener("keypress", function(event) {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    document.getElementById("submit_button").click();
+  }
+});

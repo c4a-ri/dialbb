@@ -15,7 +15,7 @@ from flask import Flask, request, jsonify, render_template
 import argparse
 
 DIALBB_HOME = os.path.dirname(__file__)
-sys.path.append(DIALBB_HOME)  # TODO avoid this as this violates PEP8
+sys.path.append(DIALBB_HOME)  # TODO avoid this not to violate PEP8 E402
 
 # import mimetypes
 # mimetypes.add_type('application/javascript',
@@ -42,6 +42,7 @@ app = Flask(__name__, template_folder=os.path.join(DIALBB_HOME, 'static/new'),
 # app = Flask(__name__, template_folder=os.path.join(DIALBB_HOME, 'static/new'))
 
 app.config['JSON_AS_ASCII'] = False
+app.logger.propagate = False
 
 logger = None
 
@@ -102,4 +103,19 @@ if __name__ == '__main__':
     config_file: str = args.config
     dialogue_processor = DialogueProcessor(config_file)
     logger = get_logger("server")
-    app.run(host="0.0.0.0", port=8080)
+    logger.propagate = False
+    app.run(host="0.0.0.0", port=args.port)
+
+
+
+
+
+
+
+
+
+
+
+
+
+

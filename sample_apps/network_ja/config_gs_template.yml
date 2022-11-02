@@ -16,13 +16,18 @@ blocks:  # ブロックのリスト
       input_text: canonicalized_user_utterance
     output: 
       nlu_result: nlu_result
-    knowledge_file: sample-knowledge-ja.xlsx  # 知識記述ファイル
-    function_definitions: dictionary_functions  # 知識記述の中で用いる関数の定義ファイル
+    knowledge_google_sheet:
+      sheet_id: <google sheetのID>
+          # https://docs.google.com/spreadsheets/d/.../edit#gid=0 の ...の部分
+      key_file: <google sheets APIのキーファイル>
+    # knowledge_file: sample-knowledge-ja.xlsx  # 知識記述ファイル
   - name: manager
     block_class: stn_management.stn_manager.Manager
-    knowledge_file: sample-knowledge-ja.xlsx # 知識記述ファイル
+    knowledge_google_sheet:
+      sheet_id: <google sheetのID>
+      key_file: <google sheets APIのキーファイル>
+    #knowledge_file: sample-knowledge-ja.xlsx # 知識記述ファイル
     function_definitions: scenario_functions  # 知識記述の中で用いる関数の定義ファイル
-    scenario_graph: yes
     input:
       sentence: canonicalized_user_utterance
       nlu_result: nlu_result
@@ -32,5 +37,4 @@ blocks:  # ブロックのリスト
       output_text: system_utterance
       #aux_data: aux_data
       final: final
-    
     

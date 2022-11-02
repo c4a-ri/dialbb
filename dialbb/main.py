@@ -66,7 +66,7 @@ class DialogueProcessor:
         global CONFIG_DIR
         CONFIG_DIR = os.path.dirname(config_file)
         sys.path.append(CONFIG_DIR)
-        sys.path.append(os.path.join(os.path.dirname(__file__), "builtin_blocks")) # add to PYTHONPATH
+        sys.path.append(os.path.join(os.path.dirname(__file__), "builtin_blocks"))  # add to PYTHONPATH
 
         # create dialbb dialogue processor
         print("creating dialbb dialogue processor.")

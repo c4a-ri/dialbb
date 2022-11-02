@@ -16,6 +16,7 @@ CONSTANT: str = "constant"
 SPECIAL_VARIABLE: str = "special_variable"
 VARIABLE: str = "variable"
 ADDRESS: str = "address"
+PREP_STATE_NAME = "#prep"
 INITIAL_STATE_NAME = "#initial"
 FINAL_STATE_PREFIX = "#final"
 ERROR_STATE_NAME = "#error"
@@ -141,16 +142,14 @@ class State:
         new_transition = Transition(user_utterance_type, conditions_str, actions_str, destination)
         self._transitions.append(new_transition)
 
-    def get_transitions(self):
+    def get_transitions(self) -> List:
         return self._transitions
 
-    @property
-    def get_system_utterances(self):
+    def get_system_utterances(self) -> List[str]:
         return self._system_utterances
 
 
 function_call_pattern = re.compile("([^(]+)\(([^)]*)\)")  # matches function patter such as "func(..)"
-
 
 class Transition:
 
@@ -238,8 +237,8 @@ class StateTransitionNetwork:
         result: bool = True
         # make sure that special states have system utterances
         for state in self._states:
-            if not state.get_system_utterances:
-                warn_during_building(f"Special state '{state.get_name()}' has no system utterances.")
+            if state.get_name() != PREP_STATE_NAME and not state.get_system_utterances():
+                warn_during_building(f"state '{state.get_name()}' has no system utterances.")
                 result = False
             if state == self._error_state or state in self._final_states:
                 continue
@@ -259,6 +258,35 @@ class StateTransitionNetwork:
                             has_default_transition = True
                     if not has_default_transition:
                         warn_during_building(f"state '{state_name}' has no default transition.")
+        prep_state: State = self._state_names2states.get(PREP_STATE_NAME)
+        if prep_state:
+            if len(prep_state.get_transitions()) != 1:
+                warn_during_building(f"#prep state must have one transition.")
+            elif prep_state.get_transitions()[0].get_destination() != INITIAL_STATE_NAME:
+                warn_during_building(f"the destination of the #prep state's transition must be #initial.")
+            elif prep_state.get_transitions()[0].get_user_utterance_type():
+                warn_during_building(f"#prep state's transition must not have user utterance type.")
+            elif prep_state.get_transitions()[0].get_conditions():
+                warn_during_building(f"#prep state's transition must not have conditions.")
+            elif prep_state.get_system_utterances():
+                warn_during_building(f"#prep state must not have system utterances.")
+
+        # check if each destination is a valid state
+        all_destinations: List[State] = []
+        for state in self._states:
+            for transition in state.get_transitions():
+                destination_name: str = transition.get_destination()
+                destination_state = self._state_names2states.get(destination_name)
+                if not destination_state:
+                    warn_during_building(f"destination {destination_name} is not a valid state.")
+                elif destination_state not in all_destinations:
+                    all_destinations.append(destination_state)
+        # check if each state is a destination at least one transition
+        for state in self._states:
+            if state.get_name() in (PREP_STATE_NAME, INITIAL_STATE_NAME, ERROR_STATE_NAME):
+                continue
+            if state not in all_destinations:
+                warn_during_building(f"state {state.get_name()} is not a destination of any transitions.")
 
         # todo check if functions are defined
         # todo check if set command has two args and its first argument is a variable
@@ -275,8 +303,10 @@ class StateTransitionNetwork:
         for state in self._states:
             result += f'  "{state.get_name()}" [shape = circle];\n'
         result += "\n"
+        n_trans: int = 0
         for state in self._states:
             for transition in state.get_transitions():
+                n_trans += 1
                 label = ""
                 uutype: str = transition.get_user_utterance_type()
                 if uutype:
@@ -299,6 +329,20 @@ class StateTransitionNetwork:
 
         with open(filename, "w", encoding='utf-8') as fp:
             fp.write(result)
+
+        print(f"state transition network has {len(self._states)} states.")
+        print(f"state transition network has {n_trans} transitions.")
+
+
+
+
+
+    def get_prep_state(self) -> State:
+        """
+        :return:  prep state or None if there's no prep state
+        """
+        return self._state_names2states.get(PREP_STATE_NAME)
+
 
 
 
