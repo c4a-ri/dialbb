@@ -3,6 +3,7 @@
 #
 # scenario_graph.py
 #   create graph for scenario writer (not based on system)
+#   シナリオグラフを作成する（動くシステムとは別）
 
 __version__ = '0.1'
 __author__ = 'Mikio Nakano'
@@ -32,14 +33,16 @@ class StateForGraph:
 
 def create_scenario_graph(scenario_df: DataFrame, config_dir: str, language: str='ja') -> None:
     """
-    create scenario graph file from scenario dataframe
+    Create scenario graph file from scenario dataframe. Does not check "flag" column
+    シナリオDataFrameからシナリオグラフファイルを作成. flagカラムのチェックは行わない
     :param scenario_df: scenario dataframe
     :param config_dir: configuration dir
+    :pram language: language ('ja' or 'en')
     :return: None
     """
 
-    dot_file: str = os.path.join(config_dir, "_scenario_graph.dot")
-    jpg_file: str = os.path.join(config_dir, "_scenario_graph.jpg")
+    dot_file: str = os.path.join(config_dir, "_scenario_graph.dot")  # scenario graph dot file for graphviz
+    jpg_file: str = os.path.join(config_dir, "_scenario_graph.jpg")  # scenario graph JPEG file
     states_dict: Dict[str, StateForGraph] = {}
 
     for index, row in scenario_df.iterrows():
@@ -90,7 +93,8 @@ def create_scenario_graph(scenario_df: DataFrame, config_dir: str, language: str
         fp.write(result)
     print(f"converting dot file to jpeg: {dot_file}.")
     if language == 'ja':
-        ret: int = os.system(f'dot -Tjpg -Nfontname="MS Gothic" -Efontname="MS Gothic" -Gfontname="MS Gothic" {dot_file} > {jpg_file}')
+        ret: int = os.system(f'dot -Tjpg -Nfontname="MS Gothic" -Efontname="MS Gothic" ' +
+                             f' -Gfontname="MS Gothic" {dot_file} > {jpg_file}')
     else:
         ret: int = os.system(f"dot -Tjpg {dot_file} > {jpg_file}")
     if ret != 0:

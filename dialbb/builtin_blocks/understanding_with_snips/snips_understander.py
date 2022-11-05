@@ -135,23 +135,23 @@ class Understander(AbstractBlock):
         return df_all.get(utterances_sheet), df_all.get(slots_sheet), \
                df_all.get(entities_sheet), df_all.get(dictionary_sheet)
 
-    def process(self, input: Dict[str, Any], initial=False) -> Dict[str, Any]:
+    def process(self, input: Dict[str, Any], session_id: str) -> Dict[str, Any]:
         """
-        understand input sentenc usig SNIPS
+        understand input sentence using SNIPS
         :param e.g. {"sentence": "I love egg salad sandwiches"}
-        :param initial: whether processing the first utterance of the session
+        :param session_id
         :return: e.g., {"nlu_result {"type": "tell_favorite_sandwiches", "slots": {"sandwich": "egg salad sandwich"}}}
         """
 
         session_id: str = input.get(KEY_SESSION_ID, "undecided")
         self.log_debug("input: " + str(input), session_id=session_id)
 
-        if initial:
+        sentence = input[KEY_INPUT_TEXT]
+        if sentence == "":
             intent = ""
             slots: Dict[str, str] = {}
             sentence = ""
         else:
-            sentence = input[KEY_INPUT_TEXT]
             input_to_nlu: str = sentence
             if self._language == 'ja':
                 tokens: List[Token] = self._tokenizer.tokenize(sentence)

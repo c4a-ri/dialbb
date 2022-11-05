@@ -3,6 +3,7 @@
 #
 # abstract_block.py
 #   abstract building block
+#   ブロックの抽象クラス
 #
 
 __version__ = '0.1'
@@ -21,16 +22,17 @@ class AbstractBlock:
         self.name = self.block_config.get("name", None)
         self._logger = get_logger(self.name)
 
-    def process(self, input: Dict[str, Any], initial: bool = False) -> Dict[str, Any]:
+    def process(self, input_data: Dict[str, Any], session_id: str) -> Dict[str, Any]:
         """
-        does this block's duty
-        :param input: input data to this block
-        :param initial: whether this is the first call of the dialogue session
-        :return: output  output data from this block
+        todo
+        :param input_data:
+        :param session_id:
+        :return:
         """
 
         raise NotImplementedError  # needs implementation
 
+    # log functions  log関数
     def log_debug(self, message: str, session_id: str = "unknown") -> None:
         self._logger.debug(f"session: {session_id}, {message}")
 

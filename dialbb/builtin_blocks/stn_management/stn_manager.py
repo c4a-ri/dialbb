@@ -3,6 +3,7 @@
 #
 # stn_manager.py
 #   perform state transition-based dialogue management
+#   状態遷移ネットワークを用いた対話管理
 
 __version__ = '0.1'
 __author__ = 'Mikio Nakano'
@@ -22,7 +23,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 from dialbb.builtin_blocks.stn_management.scenario_graph import create_scenario_graph
 from dialbb.builtin_blocks.stn_management.state_transition_network \
     import StateTransitionNetwork, State, Transition, Argument, Condition, Action, \
-    INITIAL_STATE_NAME, FINAL_STATE_PREFIX, ERROR_STATE_NAME
+    INITIAL_STATE_NAME, ERROR_STATE_NAME
 from dialbb.builtin_blocks.stn_management.stn_creator import create_stn
 from dialbb.abstract_block import AbstractBlock
 from dialbb.main import ANY_FLAG, DEBUG, CONFIG_KEY_FLAGS_TO_USE, KEY_SESSION_ID, CONFIG_DIR
@@ -40,9 +41,12 @@ CONFIG_KEY_SCENARIO_SHEET: str = "scenario_sheet"
 CONFIG_KEY_KNOWLEDGE_FILE: str = "knowledge_file"
 CONFIG_KEY_SCENARIO_GRAPH: str = "scenario_graph"
 SHEET_NAME_SCENARIO: str = "scenario"
-EMPTY_NLU_RESULT: Dict[str, Any] = {"type": "", "slots": {}}
 
+# builtin function module
+# 組み込み関数
 BUILTIN_FUNCTION_MODULE: str = "dialbb.builtin_blocks.stn_management.builtin_scenario_functions"
+
+# for using google spreadsheet
 SCOPES = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
 
 var_in_system_utterance_pattern = re.compile(r'\{([^\}]+)\}')  # {<variable name>}
@@ -137,34 +141,30 @@ class Manager(AbstractBlock):
         # reading slots sheet
         return df_all.get(scenario_sheet)
 
-    def process(self, input: Dict[str, Any], initial: bool = False) -> Dict[str, Any]:
+    def process(self, input: Dict[str, Any], session_id: str) -> Dict[str, Any]:
         """
         process input from dialbb main process and output results to it
         :param input: key: "sentence"
-        :param initial: True if this is the first utterance of the dialogue
+        :param session_id
         :return: key: "nlu_result"
         """
 
-        session_id: str = input['session_id']
         user_id: str = input['user_id']
-        nlu_result: Dict[str, Any] = input.get('nlu_result', EMPTY_NLU_RESULT)
+        nlu_result: Dict[str, Any] = input.get('nlu_result', {"type": "", "slots": {}})
         aux_data: Dict[str, Any] = input.get('aux_data', {})
 
         self.log_debug("input: " + str(input), session_id=session_id)
 
-
-        if initial:
-            self._dialogue_context[session_id] = {}  # initialize dialogue frame
-            self._dialogue_context[session_id][KEY_CONFIG] = copy.deepcopy(self.config)
-            self._dialogue_context[session_id][KEY_BLOCK_CONFIG] = copy.deepcopy(self.block_config)
-
         try:
-            if initial:
+            if not self._dialogue_context.get(session_id):
+                self._dialogue_context[session_id] = {}
+                self._dialogue_context[session_id][KEY_CONFIG] = copy.deepcopy(self.config)
+                self._dialogue_context[session_id][KEY_BLOCK_CONFIG] = copy.deepcopy(self.block_config)
                 # perform actions in the prep state
                 prep_state: State = self._network.get_prep_state()
                 prep_actions: List[Action] = prep_state.get_transitions()[0].get_actions()
                 if prep_actions:
-                    self._perform_actions(prep_actions, EMPTY_NLU_RESULT, aux_data, user_id, session_id)
+                    self._perform_actions(prep_actions, nlu_result, aux_data, user_id, session_id)
                 # move to initial state
                 current_state_name = INITIAL_STATE_NAME
                 self._dialogue_context[session_id][KEY_CURRENT_STATE_NAME] = current_state_name
@@ -256,7 +256,7 @@ class Manager(AbstractBlock):
         check if a condition is satisfied
         """
         self.log_debug(f"checking condition: {str(condition)}", session_id=session_id)
-        function_name: str = condition.get_action_function()
+        function_name: str = condition.get_function()
         condition_function = None
         for function_module in self._function_modules:
             function = getattr(function_module, function_name, None)

@@ -3,6 +3,7 @@
 #
 # state_transition_network.py
 #   classes for representing state transition networks
+#   状態遷移ネットワークを表現するクラス群
 
 __version__ = '0.1'
 __author__ = 'Mikio Nakano'
@@ -24,18 +25,24 @@ BUILTIN_FUNCTION_PREFIX = "builtin"
 
 
 class Argument:
+    """
+    Argument of scenario functions
+    シナリオ関数の引数を表すクラス
+    """
 
     def __init__(self, argument_string: str):
-        if argument_string[0] in ('#', '＃'):  # special variable. e.g., slot value #place or #sentence (whole sentence)
+
+
+        if argument_string[0] in ('#', '＃'): # special variable 特殊変数
             self._type = SPECIAL_VARIABLE
             self._name = argument_string[1:]
-        elif argument_string[0] in ('*', '＊'):  # variable value e.g., *aaa
+        elif argument_string[0] in ('*', '＊'):  # variable value e.g., *aaa 変数の値
             self._type = VARIABLE
             self._name = argument_string[1:]
-        elif argument_string[0] in ('"', '“') and argument_string[-1] in ('"', '”'):  # constant string e.g., "aaaa"
+        elif argument_string[0] in ('"', '“') and argument_string[-1] in ('"', '”'):  # constant string 定数文字列
             self._type = CONSTANT
             self._name = argument_string[1:-1]
-        elif argument_string[0] in ('&', '＆'):  # variable name
+        elif argument_string[0] in ('&', '＆'):  # variable name 変数名
             self._type = ADDRESS
             self._name = argument_string[1:]  # remove '&'
         else:
@@ -45,27 +52,52 @@ class Argument:
         return f"Argument: type={self._type}, name={self._name}"
 
     def is_special_variable(self) -> bool:
+        """
+        returns True if this is a special variable
+        特殊変数ならTrueを返す
+        """
         return self._type == SPECIAL_VARIABLE
 
     def is_variable(self) -> bool:
+        """
+        returns True if this is a variable
+        変数ならTrueを返す
+        """
         return self._type == VARIABLE
 
     def is_constant(self) -> bool:
+        """
+        returns True if this is a constant
+        定数文字列ならTrueを返す
+        """
         return self._type == CONSTANT
 
     def is_address(self) -> bool:
+        """
+        returns True if this is a variable name
+        変数名ならTrueを返す
+        """
         return self._type == ADDRESS
 
     def get_name(self) -> str:
+        """
+        returns name of this argument
+        名前を返す
+        :return: name
+        """
         return self._name
 
 
 class Condition:
+    """
+    a condition for state transition
+    状態遷移の条件を表すクラス
+    """
 
     def __init__(self, condition_function: str, arguments: List[Argument], string_representation: str):
 
         self._condition_function = condition_function
-        if condition_function[0] == '_':  # builtin function
+        if condition_function[0] == '_':  # builtin function 組み込み関数
             self._condition_function = BUILTIN_FUNCTION_PREFIX + self._condition_function
         self._arguments: List[Argument] = arguments
         self._num_arguments = len(arguments)
@@ -74,17 +106,36 @@ class Condition:
     def __str__(self) -> str:
         return self._string_representation
 
-    def get_action_function(self) -> str:
+    def get_function(self) -> str:
+        """
+        returns the name of the function of this condition
+        この条件の関数の名前を返す
+        :return: the function name
+        """
         return self._condition_function
 
     def get_arguments(self) -> List[Argument]:
+        """
+        returns the list of arguments of this condition
+        この条件の引数のリスト返す
+        :return: the list of Argument objects
+        """
         return self._arguments
 
     def get_num_arguments(self) -> int:
+        """
+        returns the number of arguments of this condition
+        この条件の引数の数
+        :return: the number arguments
+        """
         return self._num_arguments
 
 
 class Action:
+    """
+    a condition for state transition
+    状態遷移の条件を表すクラス
+    """
 
     def __init__(self, command_name: str, arguments: List[Argument], string_representation: str):
         self._command_name: str = command_name
@@ -98,60 +149,35 @@ class Action:
         return self._string_representation
 
     def get_command_name(self) -> str:
+        """
+        returns the name of command
+        コマンドの名前を返す
+        :return: command name string
+        """
         return self._command_name
 
     def get_arguments(self) -> List[Argument]:
+        """
+        returns the argument list
+        引数のリストを返す
+        :return: list of Argument objects
+        """
         return self._arguments
 
     def get_num_arguments(self) -> int:
+        """
+        returns the number of arguments
+        引数の数を返す
+        :return: the number of arguments
+        """
         return self._num_arguments
 
 
-class State:
-    """
-    state in state-transition network
-    """
-
-    def __init__(self, name: str):
-        self._name: str = name
-        self._transitions: List[Transition] = []
-        self._system_utterances: List[str] = []
-        self._system_utterance_generation_count = 0
-
-    def get_name(self):
-        return self._name
-
-    def get_one_system_utterance(self) -> str:
-        num_of_candidates: int = len(self._system_utterances)
-        result: str = self._system_utterances[self._system_utterance_generation_count
-                                              % num_of_candidates]
-        self._system_utterance_generation_count += 1
-        return result
-
-    def add_system_utterance(self, utterance: str) -> None:
-        """
-        add one system utterance to the system utterance list for this state
-        :param utterance: utterance to add
-        """
-        utterance = utterance.replace("｛","{")  # zenkaku braces to hankaku
-        utterance = utterance.replace("｝","}")
-        self._system_utterances.append(utterance)
-
-    def add_transition(self, user_utterance_type: str, conditions_str: str,
-                       actions_str: str, destination: str) -> None:
-        new_transition = Transition(user_utterance_type, conditions_str, actions_str, destination)
-        self._transitions.append(new_transition)
-
-    def get_transitions(self) -> List:
-        return self._transitions
-
-    def get_system_utterances(self) -> List[str]:
-        return self._system_utterances
-
-
-function_call_pattern = re.compile("([^(]+)\(([^)]*)\)")  # matches function patter such as "func(..)"
-
 class Transition:
+    """
+    Class for representing transition
+    遷移を表すクラス
+    """
 
     def __init__(self, user_utterance_type: str, conditions_str: str, actions_str: str, destination: str):
         self._user_utterance_type: str = user_utterance_type.strip()
@@ -198,6 +224,80 @@ class Transition:
     def get_destination(self) -> str:
         return self._destination
 
+
+class State:
+    """
+    state in state-transition network
+    状態遷移ネットワークの状態を表すクラス
+    """
+
+    def __init__(self, name: str):
+        self._name: str = name
+        self._transitions: List[Transition] = []
+        self._system_utterances: List[str] = []
+
+        # The number of times system utterances for this state are generated (not managed for each dialogue session)
+        # この状態のシステム発話を生成した回数（session毎に管理していない）
+        self._system_utterance_generation_count = 0
+
+    def get_name(self):
+        """
+        returns the name of this state
+        この状態の名前を返す
+        :return: state name string
+        """
+        return self._name
+
+    def get_one_system_utterance(self) -> str:
+        """
+        Returns one system utterance for this state from the candidates.
+        When the state has multiple candidates, returns on in turn
+        この状態で話すシステム発話を一つ返す
+        複数のシステム発話候補がある場合，呼ばれる度にリストの順番に返す
+        :return: system utterance string
+        """
+        num_of_candidates: int = len(self._system_utterances)
+        result: str = self._system_utterances[self._system_utterance_generation_count
+                                              % num_of_candidates]
+        self._system_utterance_generation_count += 1
+        return result
+
+    def add_system_utterance(self, utterance: str) -> None:
+        """
+        register one system utterance to the system utterance list for this state
+        システム発話をこの状態に登録
+        :param utterance: utterance to add
+        """
+        utterance = utterance.replace("｛","{")  # zenkaku braces to hankaku
+        utterance = utterance.replace("｝","}")
+        self._system_utterances.append(utterance)
+
+    def add_transition(self, user_utterance_type: str, conditions_str: str,
+                       actions_str: str, destination: str) -> None:
+        """
+        register a transition to this sate
+        遷移をこの状態に登録
+        :param user_utterance_type: user utterance type ユーザ発話タイプ
+        :param conditions_str: conditions in string 条件のリスト（文字列）
+        :param actions_str: actions in string アクションのリスト（文字列）
+        :param destination: destination state name 遷移する状態の名前
+        """
+        new_transition = Transition(user_utterance_type, conditions_str, actions_str, destination)
+        self._transitions.append(new_transition)
+
+    def get_transitions(self) -> List[Transition]:
+        """
+
+        :return:
+        :rtype:
+        """
+        return self._transitions
+
+    def get_system_utterances(self) -> List[str]:
+        return self._system_utterances
+
+
+function_call_pattern = re.compile("([^(]+)\(([^)]*)\)")  # matches function patter such as "func(..)"
 
 class StateTransitionNetwork:
 

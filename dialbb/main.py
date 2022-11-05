@@ -48,11 +48,12 @@ class DialogueProcessor:
     def __init__(self, config_file: str, additional_config: Dict[str, Any] = None):
         """
         creates a DialBB application
+        DialBBのアプリケーションを作成
         :param config_file: config file for the application
         :param additional_config: additional configuration
         """
 
-        # read config file
+        # read config file configファイルの読み込み
         print(f"reading application config file.")
         try:
             with open(config_file, encoding='utf-8') as file:
@@ -63,12 +64,14 @@ class DialogueProcessor:
             config.update(additional_config)
 
         # add directory of config file to PYTHONPATH
+        # configファイルのディレクトリをPYTHONPATHに入れる
         global CONFIG_DIR
         CONFIG_DIR = os.path.dirname(config_file)
         sys.path.append(CONFIG_DIR)
-        sys.path.append(os.path.join(os.path.dirname(__file__), "builtin_blocks"))  # add to PYTHONPATH
+        sys.path.append(os.path.join(os.path.dirname(__file__), "builtin_blocks"))
 
         # create dialbb dialogue processor
+        # DialBBの対話処理器を作成
         print("creating dialbb dialogue processor.")
         self._blocks: List[Block] = []
         self._block_configs = config.get("blocks")
@@ -84,8 +87,7 @@ class DialogueProcessor:
                 raise Exception(f"{block_config[KEY_BLOCK_CLASS]} is not a subclass of AbstractBlock.")
             block = Block(block_object=block_object, block_config=block_config)
             self._blocks.append(block)
-
-        # todo 最初のblockのinputと最後のblockのoutputが仕様通りかをチェック
+        # todo check the formats of input of the first block and output of the last block
 
         self._logger = get_logger("main")
 
@@ -111,8 +113,8 @@ class DialogueProcessor:
                 if key_in_payload not in payload:
                     self._logger.warning(f"key '{key_in_payload}' is not in the payload.")
                 input_to_block[key_in_input] = payload.get(key_in_payload, None)
-                input_to_block[KEY_SESSION_ID] = payload[KEY_SESSION_ID]
-            output_from_block = block.block_object.process(input_to_block, initial=initial)
+                session_id = payload[KEY_SESSION_ID]
+            output_from_block = block.block_object.process(input_to_block, session_id=session_id)
             for key_in_output, key_in_payload in block.block_config['output'].items():
                 if key_in_output not in output_from_block:
                     self._logger.warning(f"key '{key_in_output}' is not in the output from the block.")
