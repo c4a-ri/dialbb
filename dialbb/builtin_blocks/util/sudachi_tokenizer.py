@@ -18,17 +18,19 @@ from dialbb.builtin_blocks.util.abstract_tokenizer import AbstractTokenizer, Tok
 class SudachiTokenizer(AbstractTokenizer):
     """
     tokenizer that uses Sudachi
+    Sudachiを用いたTokenizer
     """
 
     def __init__(self, normalize=False):
         super().__init__()
-        self._tokenizer = dictionary.Dictionary().create()
-        self._mode = tokenizer.Tokenizer.SplitMode.C
-        self.normalize = normalize
+        self._tokenizer = dictionary.Dictionary().create()  # tokenizer object
+        self._mode = tokenizer.Tokenizer.SplitMode.C  # sudachi tokenization mode
+        self.normalize = normalize  # whether normalizing
 
     def tokenize(self, input_text: str) -> List[Token]:
         """
-        tokenize input with Sudachi
+        tokenizes and normalizes input with Sudachi. Normalizes  if self.normalize is True
+        Sudachiを用いて単語分割（self.normalizeがTrueの時はSudachi正規化による表示ゆれ吸収も）を行う
         :param input_text: text to tokenize
         :return: list of token information
         """

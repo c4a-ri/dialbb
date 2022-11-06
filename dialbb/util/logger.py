@@ -10,18 +10,22 @@ __copyright__ = 'C4A Research Institute, Inc.'
 
 
 from dialbb.util.globals import DEBUG
-
-import sys
 import logging
-from logging import getLogger, Formatter, StreamHandler
+import sys
 
 
-def get_logger(name):
+def get_logger(name) -> logging.Logger:
+    """
+    returns logger
+    loggerを返す
+    :param name: モジュール名
+    :return: logger
+    """
 
     # create and add handler
-    handler = StreamHandler(stream=sys.stderr)
-    handler.setFormatter(Formatter('%(asctime)s %(name)s:%(lineno)s %(funcName)s [%(levelname)s]: %(message)s'))
-    logger = getLogger(name)
+    handler = logging.StreamHandler(stream=sys.stderr)
+    handler.setFormatter(logging.Formatter('%(asctime)s %(name)s:%(lineno)s %(funcName)s [%(levelname)s]: %(message)s'))
+    logger = logging.getLogger(name)
     logger.addHandler(handler)
 
     # set loglevel
