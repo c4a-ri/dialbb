@@ -57,7 +57,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#api">5.2.2. クラスAPI</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#configuration">5.3. configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration">5.3. コンフィギュレーション</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#id8">5.4. ブロックの自作方法</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#id9">5.4.1. 実装すべきメソッド</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#id10">5.4.2. 利用できる変数</a></li>
@@ -96,8 +96,7 @@
              
   <section id="framework">
 <span id="id1"></span><h1><span class="section-number">5. </span>フレームワーク仕様<a class="headerlink" href="#framework" title="この見出しへのパーマリンク"></a></h1>
-<p>ここではフレームワークとしてのDialBBの仕様を説明します．Pythonプログラ
-ミングの知識がある読者を想定しています．</p>
+<p>ここではフレームワークとしてのDialBBの仕様を説明します．Pythonプログラミングの知識がある読者を想定しています．</p>
 <section id="id2">
 <h2><span class="section-number">5.1. </span>概要<a class="headerlink" href="#id2" title="この見出しへのパーマリンク"></a></h2>
 <p>DialBBのメインモジュールは，メソッド呼び出しまたはWeb API経由で，ユーザ発話をJSON形式で受けとり，システム発話をJSON形式で返します．</p>
@@ -113,7 +112,7 @@
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ python run_server.py <span class="o">[</span>--port &lt;port&gt;<span class="o">]</span> &lt;config file&gt;
 </pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">port</span></code>（ポート番号）のデフォルトは8080．</p>
+<p><code class="docutils literal notranslate"><span class="pre">port</span></code>（ポート番号）のデフォルトは8080です．</p>
 </section>
 <section id="id5">
 <h4><span class="section-number">5.2.1.2. </span>クライアントからの接続（セッションの開始時）<a class="headerlink" href="#id5" title="この見出しへのパーマリンク"></a></h4>
@@ -205,9 +204,7 @@
 </pre></div>
 </div>
 </li>
-<li><p>pythonを立ち上げるか，DialBBを呼び出すアプリケーションの中で，以下の
-ように<code class="docutils literal notranslate"><span class="pre">DialogueProcessor</span></code>のインスタンスを作成し，<code class="docutils literal notranslate"><span class="pre">process</span></code>メソッドを呼び
-出します．</p>
+<li><p>pythonを立ち上げるか，DialBBを呼び出すアプリケーションの中で，以下のように<code class="docutils literal notranslate"><span class="pre">DialogueProcessor</span></code>のインスタンスを作成し，<code class="docutils literal notranslate"><span class="pre">process</span></code>メソッドを呼び出します．</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">dialbb.main</span> <span class="kn">import</span> <span class="n">DialogueProcessor</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dialogue_processor</span> <span class="o">=</span> <span class="n">DialogueProcessor</span><span class="p">(</span><span class="o">&lt;</span><span class="n">configurationファイル</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">追加のconfiguration</span><span class="o">&gt;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">response</span> <span class="o">=</span> <span class="n">dialogue_processor</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="o">&lt;</span><span class="n">リクエスト</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">initial</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="c1"># 対話の開始時</span>
@@ -217,9 +214,9 @@
 <p><code class="docutils literal notranslate"><span class="pre">&lt;追加のconfiguration&gt;</span></code>は，以下のような辞書形式のデータで，keyは文字列でなければなりません．</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
   <span class="s2">&quot;&lt;key1&gt;&quot;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">value1</span><span class="o">&gt;</span><span class="p">,</span>
-    <span class="s2">&quot;&lt;key2&gt;&quot;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">value2</span><span class="o">&gt;</span>
-<span class="o">...</span>
-<span class="p">}</span>
+  <span class="s2">&quot;&lt;key2&gt;&quot;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">value2</span><span class="o">&gt;</span>
+  <span class="o">...</span>
+  <span class="p">}</span>
 </pre></div>
 </div>
 <p>これは，configurationファイルから読み込んだデータに追加して用いられます．もし，configurationファイルと追加のconfigurationで同じkeyが用いられていた場合，追加のconfigurationの値が用いられます．</p>
@@ -229,9 +226,9 @@
 </section>
 </section>
 <section id="configuration">
-<span id="id7"></span><h2><span class="section-number">5.3. </span>configuration<a class="headerlink" href="#configuration" title="この見出しへのパーマリンク"></a></h2>
-<p>configurationは辞書形式のデータで，yamlファイルで与えることを前提としています．</p>
-<p>configurationに必ず必要なのはblocks要素のみです．blocks要素は，各ブロックがどのようなものかを規定するもの（これをblock configurationと呼びます）のリストで，以下のような形をしています．</p>
+<span id="id7"></span><h2><span class="section-number">5.3. </span>コンフィギュレーション<a class="headerlink" href="#configuration" title="この見出しへのパーマリンク"></a></h2>
+<p>コンフィギュレーションは辞書形式のデータで，yamlファイルで与えることを前提としています．</p>
+<p>コンフィギュレーションに必ず必要なのはblocks要素のみです．blocks要素は，各ブロックがどのようなものかを規定するもの（これをブロックコンフィギュレーションと呼びます）のリストで，以下のような形をしています．</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">blocks</span>
   <span class="o">-</span> <span class="o">&lt;</span><span class="n">block</span> <span class="n">configuration</span><span class="o">&gt;</span>
   <span class="o">-</span> <span class="o">&lt;</span><span class="n">block</span> <span class="n">configuration</span><span class="o">&gt;</span>
@@ -239,13 +236,13 @@
   <span class="o">-</span> <span class="o">&lt;</span><span class="n">block</span> <span class="n">configuration</span><span class="o">&gt;</span>
 </pre></div>
 </div>
-<p>各block configurationの必須要素は以下です．</p>
+<p>各ブロックコンフィギュレーションの必須要素は以下です．</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">name</span></code></p>
 <p>ブロックの名前．ログで用いられます．</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">block_class</span></code></p>
-<p>ブロックのクラス名です．組み込みクラスの場合は<code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks</span></code>からの相対パスで記述します．開発者の自作ブロックの場合は，モジュールが検索されるパスからの相対パスで記述します．configurationファイルのあるディレクトリは，モジュールが検索されるパス（<code class="docutils literal notranslate"><span class="pre">sys.path</span></code>の要素）に自動的に登録されます．</p>
+<p>ブロックのクラス名です．組み込みクラスの場合は<code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks</span></code>からの相対パスで記述します．開発者の自作ブロックの場合は，モジュールが検索されるパスからの相対パスで記述します．コンフィギュレーションファイルのあるディレクトリは，モジュールが検索されるパス（<code class="docutils literal notranslate"><span class="pre">sys.path</span></code>の要素）に自動的に登録されます．</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">input</span></code></p>
 <p>メインモジュールからブロックへの入力を規定します．辞書型のデータで，keyがブロック内での参照に用いられ，valueがpayload（メインモジュールで保持されるデータ）での参照に用いられます．例えば，</p>
@@ -277,19 +274,18 @@
 <h3><span class="section-number">5.4.1. </span>実装すべきメソッド<a class="headerlink" href="#id9" title="この見出しへのパーマリンク"></a></h3>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">__init__(self,</span> <span class="pre">*args)</span></code></p>
-<p>コンストラクタです．</p>
+<p>コンストラクタです．以下のように定義します．</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
-
+ 
      <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
-
+ 
      <span class="o">&lt;</span><span class="n">このブロック独自の処理</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">process(self,</span> <span class="pre">input:</span> <span class="pre">Dict[str,</span> <span class="pre">Any],</span> <span class="pre">initial:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False)</span> <span class="pre">-&gt;</span> <span class="pre">Dict[str,</span> <span class="pre">Any]</span></code></p>
-<p>入力inputを処理し，出力を返します．inputはメインモジュールから渡される辞書型データです．
-入力，出力とメインモジュールのpayloadの関係はconfigurationで規定されます．
-<code class="docutils literal notranslate"><span class="pre">initial</span></code>が<code class="docutils literal notranslate"><span class="pre">True</span></code>の時は対話開始時の処理を行います．（ユーザ発話は空文字列です．）</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">process(self,</span> <span class="pre">input:</span> <span class="pre">Dict[str,</span> <span class="pre">Any],</span> <span class="pre">session_id:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">False)</span> <span class="pre">-&gt;</span> <span class="pre">Dict[str,</span> <span class="pre">Any]</span></code></p>
+<p>入力inputを処理し，出力を返します．入力，出力とメインモジュールのpayloadの関係はコンフィギュレーションで規定されます．（「<a class="reference internal" href="#configuration"><span class="std std-ref">コンフィギュレーション</span></a>」を参照）
+<code class="docutils literal notranslate"><span class="pre">session_id</span></code>はメインモジュールから渡される文字列で，対話のセッション毎にユニークなものです．</p>
 </li>
 </ul>
 </section>
@@ -297,24 +293,22 @@
 <h3><span class="section-number">5.4.2. </span>利用できる変数<a class="headerlink" href="#id10" title="この見出しへのパーマリンク"></a></h3>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">self.config</span></code></p>
-<p>configurationの内容を辞書型データにしたものです．
-これを参照することで，独自に付け加えた要素を読みこむことが可能です．</p>
+<p>configurationの内容を辞書型データにしたものです．これを参照することで，独自に付け加えた要素を読みこむことが可能です．</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">self.block_config</span></code></p>
-<p>block configurationの内容を辞書型データにしたものです．
-これを参照することで，独自に付け加えた要素を読みこむことが可能です．</p>
+<p>block configurationの内容を辞書型データにしたものです．これを参照することで，独自に付け加えた要素を読みこむことが可能です．</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">self.name</span></code></p>
-<p>ブロックの名前です．(string)</p>
+<p>ブロックの名前です．(文字列)</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">self.config_dir</span></code></p>
-<p>configurationファイルのあるディレクトリです．</p>
+<p>configurationファイルのあるディレクトリです．アプリケーションディレクトリと呼ぶこともあります．</p>
 </li>
 </ul>
 </section>
 <section id="id11">
 <h3><span class="section-number">5.4.3. </span>利用できるメソッド<a class="headerlink" href="#id11" title="この見出しへのパーマリンク"></a></h3>
-<p>以下のログメソッドが利用できます．</p>
+<p>以下のロギングメソッドが利用できます．</p>
 <ul>
 <li><p>log_debug(self, message: str, session_id: str = &quot;unknown&quot;)</p>
 <p>標準エラー出力にdebugレベルのログを出力します．
@@ -334,8 +328,8 @@
 </section>
 <section id="id12">
 <h2><span class="section-number">5.5. </span>デバッグモード<a class="headerlink" href="#id12" title="この見出しへのパーマリンク"></a></h2>
-<p>Python起動時の環境変数 <code class="docutils literal notranslate"><span class="pre">DIALBB_DEBUG</span></code>の値が<code class="docutils literal notranslate"><span class="pre">yes</span></code> （大文字小文字は問わない）の時，デバッグモードで動作します．この時，<code class="docutils literal notranslate"><span class="pre">dialbb.main.DEBUG</span></code>の値が<code class="docutils literal notranslate"><span class="pre">True</span></code>になります．アプリ開発者が作成するブロックの中でも以下のこの値を参照することができます．</p>
-<p><code class="docutils literal notranslate"><span class="pre">dialbb.main.DEBUG</span></code>が<code class="docutils literal notranslate"><span class="pre">True</span></code>の場合，ログレベルはdebugに設定され，その他の場合はinfoに設定されます．</p>
+<p>Python起動時の環境変数 <code class="docutils literal notranslate"><span class="pre">DIALBB_DEBUG</span></code>の値が<code class="docutils literal notranslate"><span class="pre">yes</span></code> （大文字小文字は問わない）の時，デバッグモードで動作します．この時，<code class="docutils literal notranslate"><span class="pre">dialbb.main.DEBUG</span></code>の値が<code class="docutils literal notranslate"><span class="pre">True</span></code>になります．アプリ開発者が作成するブロックの中でもこの値を参照することができます．</p>
+<p><code class="docutils literal notranslate"><span class="pre">dialbb.main.DEBUG</span></code>が<code class="docutils literal notranslate"><span class="pre">True</span></code>の場合，ロギングレベルはdebugに設定され，その他の場合はinfoに設定されます．</p>
 </section>
 </section>
 

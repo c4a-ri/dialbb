@@ -53,7 +53,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#snips">4.3.3. SNIPS用の訓練データ</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#id7">4.4. 対話管理</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id7">4.4. 対話管理ブロック</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="framework.html">5. フレームワーク仕様</a></li>
@@ -93,7 +93,7 @@
 <p><img alt="sample-arch" src="_images/sample-arch.jpg" /></p>
 <p>本アプリケーションでは，以下の3つの組み込みブロックを利用しています．</p>
 <ul class="simple">
-<li><p>Utterance canonicalizer: 正規化ブロック．ユーザ入力文の正規化（大文字→小文字，全角⇒半角の変換など）を行います．</p></li>
+<li><p>Utterance canonicalizer: 正規化ブロック．ユーザ入力文の正規化（大文字→小文字，全角⇒半角の変換，Unicode正規化など）を行います．</p></li>
 <li><p>SNIPS understander: 言語理解ブロック．<a class="reference external" href="https://snips-nlu.readthedocs.io/en/latest/">SNIPS_NLU</a>を利用して，ユーザ発話タイプ（インテントとも呼びます）の決定とスロットの抽出を行います．</p></li>
 <li><p>STN manager: 対話管理ブロック．状態遷移ネットワーク(State-Transition Network)を用いて対話管理を行います．</p></li>
 </ul>
@@ -101,7 +101,7 @@
 </section>
 <section id="id3">
 <h2><span class="section-number">4.2. </span>アプリケーションを構成するファイル<a class="headerlink" href="#id3" title="この見出しへのパーマリンク"></a></h2>
-<p>本アプリケーションを構成するファイルは<code class="docutils literal notranslate"><span class="pre">sample_apps/network_ja</span></code>ディレクトリ（フォルダ）にあります。ここにあるファイルを変更することで、どのようにすればアプリケーションを変更することができるかを知ることができます。ファイルを大幅に変更すれば全く異なる対話システムも作ることができます。</p>
+<p>本アプリケーションを構成するファイルは<code class="docutils literal notranslate"><span class="pre">sample_apps/network_ja</span></code>ディレクトリ（フォルダ）にあります．ここにあるファイルを変更することで，どのようにすればアプリケーションを変更することができるかを知ることができます．ファイルを大幅に変更すれば全く異なる対話システムも作ることができます．</p>
 <p>sample_apps/network_jaには以下のファイルが含まれています．</p>
 <table class="colwidths-auto docutils align-default">
 <thead>
@@ -111,16 +111,22 @@
 </thead>
 <tbody>
 <tr class="row-even"><td><p>config.yml</p></td>
-<td><p>アプリケーションを規定するconfigurationファイルです。どのようなブロックを使うかや、各ブロックが読み込むファイルなどが指定されています。このファイルのフォーマットは<a class="reference internal" href="framework.html#configuration"><span class="std std-ref">configuration</span></a>で詳細に説明します。</p></td>
+<td><p>アプリケーションを規定するconfigurationファイルです．<br />どのようなブロックを使うかや，各ブロックが読み込むファイル<br />などが指定されています．<br />このファイルのフォーマットは<a class="reference internal" href="framework.html#configuration"><span class="std std-ref">コンフィギュレーション</span></a>で詳細に説明します．</p></td>
 </tr>
-<tr class="row-odd"><td><p>sample-knowledge-ja.xlsx</p></td>
-<td><p>言語理解ブロック，対話管理ブロックで用いる知識を記述したものです。</p></td>
+<tr class="row-odd"><td><p>config_gs_template.yml</p></td>
+<td><p>config.ymlは言語理解と対話管理の知識をExcelで書いたものを使うようになっていますが，Excelの代わりにGoogle Spreadsheetを用いる場合のconfigurationファイルのテンプレートです．config_gs.ymlにコピーし，Google Spreadsheetにアクセスするための情報を加えることで使用できます．</p></td>
 </tr>
-<tr class="row-even"><td><p>scenario_functions.py</p></td>
-<td><p>対話管理ブロックで用いるプログラム</p></td>
+<tr class="row-even"><td><p>sample-knowledge-ja.xlsx</p></td>
+<td><p>言語理解ブロック，対話管理ブロックで用いる知識を記述したものです．</p></td>
+</tr>
+<tr class="row-odd"><td><p>scenario_functions.py</p></td>
+<td><p>対話管理ブロックで用いるプログラムです．</p></td>
+</tr>
+<tr class="row-even"><td><p>dictionary_functions.py</p></td>
+<td><p>言語理解用の辞書をExcel記述ではなく，関数によって定義する場合の例が含まれています．</p></td>
 </tr>
 <tr class="row-odd"><td><p>test_inputs.json</p></td>
-<td><p>システムテストで使うデータ</p></td>
+<td><p>システムテストで使うデータです．</p></td>
 </tr>
 </tbody>
 </table>
@@ -170,7 +176,7 @@
 </section>
 </section>
 <section id="id7">
-<h2><span class="section-number">4.4. </span>対話管理<a class="headerlink" href="#id7" title="この見出しへのパーマリンク"></a></h2>
+<h2><span class="section-number">4.4. </span>対話管理ブロック<a class="headerlink" href="#id7" title="この見出しへのパーマリンク"></a></h2>
 <p>対話管理知識（シナリオ）は，<code class="docutils literal notranslate"><span class="pre">sample-knowledge-ja.xlsx</span></code>ファイルの<code class="docutils literal notranslate"><span class="pre">scenario</span></code>シートです．
 このシートの書き方の詳細は「<a class="reference internal" href="builtin_blocks.html#scenario"><span class="std std-ref">対話管理の知識記述</span></a>」を参照してください．</p>
 <p>Graphvizがインストールされていれば，アプリケーションを起動したとき，シナリオファイルから生成した状態遷移ネットワークの画像ファイルを出力します．以下が本アプリケーションの状態遷移ネットワークです．</p>
