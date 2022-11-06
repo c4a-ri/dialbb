@@ -1,8 +1,7 @@
 (framework)=
 # フレームワーク仕様
 
-ここではフレームワークとしてのDialBBの仕様を説明します．Pythonプログラ
-ミングの知識がある読者を想定しています．
+ここではフレームワークとしてのDialBBの仕様を説明します．Pythonプログラミングの知識がある読者を想定しています．
 
 ## 概要
 
@@ -23,7 +22,7 @@ DialBBのメインモジュールは，メソッド呼び出しまたはWeb API�
 $ python run_server.py [--port <port>] <config file>
 ```
 
-`port`（ポート番号）のデフォルトは8080．
+`port`（ポート番号）のデフォルトは8080です．
 
 
 #### クライアントからの接続（セッションの開始時）
@@ -121,25 +120,23 @@ $ python run_server.py [--port <port>] <config file>
   export PYTHONPATH=<DialBBのディレクトリ>:$PYTHONPATH
   ```
 
-- pythonを立ち上げるか，DialBBを呼び出すアプリケーションの中で，以下の
-  ように`DialogueProcessor`のインスタンスを作成し，`process`メソッドを呼び
-  出します．
-
+- pythonを立ち上げるか，DialBBを呼び出すアプリケーションの中で，以下のように`DialogueProcessor`のインスタンスを作成し，`process`メソッドを呼び出します．
+  
   ```python
   >>> from dialbb.main import DialogueProcessor
   >>> dialogue_processor = DialogueProcessor(<configurationファイル> <追加のconfiguration>)
   >>> response = dialogue_processor.process(<リクエスト>, initial=True) # 対話の開始時
   >>> response = dialogue_processor.process(<リクエスト>) # それ以降
   ```
-
-  `<追加のconfiguration>`は，以下のような辞書形式のデータで，keyは文字列でなければなりません．
   
+  `<追加のconfiguration>`は，以下のような辞書形式のデータで，keyは文字列でなければなりません．
+
   ```
   {
     "<key1>": <value1>,
-	  "<key2>": <value2>
-  ...
-  }
+    "<key2>": <value2>
+    ...
+	}
   ```
   これは，configurationファイルから読み込んだデータに追加して用いられます．もし，configurationファイルと追加のconfigurationで同じkeyが用いられていた場合，追加のconfigurationの値が用いられます．
   
@@ -147,11 +144,11 @@ $ python run_server.py [--port <port>] <config file>
 
 
 (configuration)=
-## configuration
+## コンフィギュレーション
 
-configurationは辞書形式のデータで，yamlファイルで与えることを前提としています．
+コンフィギュレーションは辞書形式のデータで，yamlファイルで与えることを前提としています．
 
-configurationに必ず必要なのはblocks要素のみです．blocks要素は，各ブロックがどのようなものかを規定するもの（これをblock configurationと呼びます）のリストで，以下のような形をしています．
+コンフィギュレーションに必ず必要なのはblocks要素のみです．blocks要素は，各ブロックがどのようなものかを規定するもの（これをブロックコンフィギュレーションと呼びます）のリストで，以下のような形をしています．
 
 ```
 blocks
@@ -161,7 +158,7 @@ blocks
   - <block configuration>
 ```
 
-各block configurationの必須要素は以下です．
+各ブロックコンフィギュレーションの必須要素は以下です．
 
 - `name` 
 
@@ -169,7 +166,7 @@ blocks
 
 - `block_class`
 
-  ブロックのクラス名です．組み込みクラスの場合は`dialbb.builtin_blocks`からの相対パスで記述します．開発者の自作ブロックの場合は，モジュールが検索されるパスからの相対パスで記述します．configurationファイルのあるディレクトリは，モジュールが検索されるパス（`sys.path`の要素）に自動的に登録されます．
+  ブロックのクラス名です．組み込みクラスの場合は`dialbb.builtin_blocks`からの相対パスで記述します．開発者の自作ブロックの場合は，モジュールが検索されるパスからの相対パスで記述します．コンフィギュレーションファイルのあるディレクトリは，モジュールが検索されるパス（`sys.path`の要素）に自動的に登録されます．
 
 - `input`
 
@@ -208,47 +205,44 @@ blocks
 ### 実装すべきメソッド
 
 - `__init__(self, *args)`
-   
-   コンストラクタです．
+  
+   コンストラクタです．以下のように定義します．
 
    ```
    def __init__(self, *args):
-
+    
         super().__init__(*args)
-
+    
         <このブロック独自の処理>
    ```
 
-- `process(self, input: Dict[str, Any], initial: bool = False) -> Dict[str, Any]`
+- `process(self, input: Dict[str, Any], session_id: str = False) -> Dict[str, Any]`
 
-  入力inputを処理し，出力を返します．inputはメインモジュールから渡される辞書型データです．
-  入力，出力とメインモジュールのpayloadの関係はconfigurationで規定されます．
-  `initial`が`True`の時は対話開始時の処理を行います．（ユーザ発話は空文字列です．）
+  入力inputを処理し，出力を返します．入力，出力とメインモジュールのpayloadの関係はコンフィギュレーションで規定されます．（「{ref}`configuration`」を参照）
+  `session_id`はメインモジュールから渡される文字列で，対話のセッション毎にユニークなものです．
 
 
 ### 利用できる変数
 
 - `self.config` 
 
-   configurationの内容を辞書型データにしたものです．
-   これを参照することで，独自に付け加えた要素を読みこむことが可能です．
-
+   configurationの内容を辞書型データにしたものです．これを参照することで，独自に付け加えた要素を読みこむことが可能です．
+   
 - `self.block_config`
 
-   block configurationの内容を辞書型データにしたものです．
-   これを参照することで，独自に付け加えた要素を読みこむことが可能です．
-
+   block configurationの内容を辞書型データにしたものです．これを参照することで，独自に付け加えた要素を読みこむことが可能です．
+   
 - `self.name`
 
-   ブロックの名前です．(string)
+   ブロックの名前です．(文字列)
 
 - `self.config_dir`
 
-   configurationファイルのあるディレクトリです．
+   configurationファイルのあるディレクトリです．アプリケーションディレクトリと呼ぶこともあります．
 
 ### 利用できるメソッド
 
-以下のログメソッドが利用できます．
+以下のロギングメソッドが利用できます．
 
 - log_debug(self, message: str, session_id: str = "unknown")
 
@@ -270,6 +264,6 @@ blocks
 
 ## デバッグモード
 
-Python起動時の環境変数 `DIALBB_DEBUG`の値が`yes` （大文字小文字は問わない）の時，デバッグモードで動作します．この時，`dialbb.main.DEBUG`の値が`True`になります．アプリ開発者が作成するブロックの中でも以下のこの値を参照することができます．
+Python起動時の環境変数 `DIALBB_DEBUG`の値が`yes` （大文字小文字は問わない）の時，デバッグモードで動作します．この時，`dialbb.main.DEBUG`の値が`True`になります．アプリ開発者が作成するブロックの中でもこの値を参照することができます．
 
-`dialbb.main.DEBUG`が`True`の場合，ログレベルはdebugに設定され，その他の場合はinfoに設定されます．
+`dialbb.main.DEBUG`が`True`の場合，ロギングレベルはdebugに設定され，その他の場合はinfoに設定されます．

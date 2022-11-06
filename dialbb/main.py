@@ -101,25 +101,39 @@ class DialogueProcessor:
     def get_config(cls):
         return cls.config
 
-    def process(self, request: Dict[str, Any], initial: bool = False):
+    def process(self, request: Dict[str, Any], initial: bool = False) -> Dict[str, Any]:
+        """
+        main process of DialBB application
+        DialBBのメインプロセス．詳細はドキュメント参照
+        :param request: request for each dialogue turn (including user utterance)
+                        各ターンでのリクエスト (ユーザ発話を含む）
+        :param initial: whether this is the first turn
+                        最初のターンかどうか
+        :return: response including system utterance
+                 レスポンス　（システム発話を含む）
+        """
 
         payload: Dict[str, Any] = request
 
-        if initial:
+        if initial:  # first turn
             global session_count
             session_count += 1
+            # create session id string
             session_id = "dialbb_session" + str(session_count)  # todo generate random session name
             payload[KEY_SESSION_ID] = session_id
             payload['user_utterance'] = ""
-
+        else:
+            session_id = payload[KEY_SESSION_ID]  # session id received from the client
         self._logger.debug(f"payload: " + str(payload))
-        for block in self._blocks:  # each block processes request
+
+        # blocks process payload
+        for block in self._blocks:
             input_to_block = {}
             for key_in_input, key_in_payload in block.block_config['input'].items():
                 if key_in_payload not in payload:
                     self._logger.warning(f"key '{key_in_payload}' is not in the payload.")
                 input_to_block[key_in_input] = payload.get(key_in_payload, None)
-                session_id = payload[KEY_SESSION_ID]
+            # call each block's process method
             output_from_block = block.block_object.process(input_to_block, session_id=session_id)
             for key_in_output, key_in_payload in block.block_config['output'].items():
                 if key_in_output not in output_from_block:

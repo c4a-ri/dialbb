@@ -18,6 +18,9 @@ blocks:  # ブロックのリスト
       nlu_result: nlu_result
     knowledge_file: sample-knowledge-ja.xlsx  # 知識記述ファイル
     function_definitions: dictionary_functions  # 知識記述の中で用いる関数の定義ファイル
+    flags_to_use:
+      - Y
+      - T
   - name: manager
     block_class: stn_management.stn_manager.Manager
     knowledge_file: sample-knowledge-ja.xlsx # 知識記述ファイル
@@ -32,5 +35,8 @@ blocks:  # ブロックのリスト
       output_text: system_utterance
       #aux_data: aux_data
       final: final
+    flags_to_use:
+      - Y
+      - T
     
     
