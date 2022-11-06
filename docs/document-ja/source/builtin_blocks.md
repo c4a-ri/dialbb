@@ -131,7 +131,6 @@ SNIPSの訓練データはアプリのディレクトリの`_training_data.json`
   - `sentence`: 正規化後のユーザ発話（文字列）
   - `nlu_result`:言語理解結果（辞書型）
   - `user_id`:ユーザID（文字列）
-  - `session_id`セッションID（文字列）
   - `aux_data`補助データ（辞書型）
 - 出力
   - `output_text`: システム発話（文字列）

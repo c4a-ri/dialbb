@@ -3,6 +3,7 @@
 #
 # test.py
 #   automatically testing app
+#   自動テスト用スクリプト
 
 __version__ = '0.1'
 __author__ = 'Mikio Nakano'
@@ -16,6 +17,7 @@ import sys
 import os
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
+
 from dialbb.main import DialogueProcessor
 
 USER_ID = "user1"
@@ -25,15 +27,16 @@ if __name__ == '__main__':
     # read arguments
     parser = argparse.ArgumentParser()
     parser.add_argument("config", help="config yaml file")
-    parser.add_argument("inputs", help="test input json file")
+    parser.add_argument("inputs", help="test input json file")  # test input file
     args = parser.parse_args()
 
     with open(args.inputs, encoding='utf-8') as file:
         test_inputs: Dict[str, Any] = json.load(file)
 
-    config_file:str = args.config
+    config_file: str = args.config
     dialogue_processor = DialogueProcessor(config_file)
 
+    # reads each user utterance from test input file and processes it
     for test_utterances in test_inputs.get('test_inputs', []):
         request = {"user_id": USER_ID}
         print("request: " + str(request))

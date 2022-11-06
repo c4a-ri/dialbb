@@ -32,7 +32,6 @@ class Argument:
 
     def __init__(self, argument_string: str):
 
-
         if argument_string[0] in ('#', '＃'): # special variable 特殊変数
             self._type = SPECIAL_VARIABLE
             self._name = argument_string[1:]
@@ -94,14 +93,14 @@ class Condition:
     状態遷移の条件を表すクラス
     """
 
-    def __init__(self, condition_function: str, arguments: List[Argument], string_representation: str):
+    def __init__(self, function_name: str, arguments: List[Argument], string_representation: str):
 
-        self._condition_function = condition_function
-        if condition_function[0] == '_':  # builtin function 組み込み関数
+        self._condition_function = function_name
+        if function_name[0] == '_':  # builtin function 組み込み関数
+            # add builtin function prefix
             self._condition_function = BUILTIN_FUNCTION_PREFIX + self._condition_function
-        self._arguments: List[Argument] = arguments
-        self._num_arguments = len(arguments)
-        self._string_representation: str = string_representation
+        self._arguments: List[Argument] = arguments  # list of arguments 引数のリスト
+        self._string_representation: str = string_representation  # representation used in loggging etc. log等での表記
 
     def __str__(self) -> str:
         return self._string_representation
@@ -122,14 +121,6 @@ class Condition:
         """
         return self._arguments
 
-    def get_num_arguments(self) -> int:
-        """
-        returns the number of arguments of this condition
-        この条件の引数の数
-        :return: the number arguments
-        """
-        return self._num_arguments
-
 
 class Action:
     """
@@ -137,18 +128,17 @@ class Action:
     状態遷移の条件を表すクラス
     """
 
-    def __init__(self, command_name: str, arguments: List[Argument], string_representation: str):
-        self._command_name: str = command_name
-        if command_name[0] == '_':  # builtin function
+    def __init__(self, function_name: str, arguments: List[Argument], string_representation: str):
+        self._command_name: str = function_name  # function name コマンド関数名
+        if function_name[0] == '_':  # builtin function
             self._command_name = BUILTIN_FUNCTION_PREFIX + self._command_name
-        self._arguments: List[Argument] = arguments
-        self._num_arguments = len(arguments)
-        self._string_representation = string_representation
+        self._arguments: List[Argument] = arguments  # list of arguments 引数のリスト
+        self._string_representation = string_representation  # representation used in logging log等での表記
 
     def __str__(self):
         return self._string_representation
 
-    def get_command_name(self) -> str:
+    def get_function_name(self) -> str:
         """
         returns the name of command
         コマンドの名前を返す
@@ -163,14 +153,6 @@ class Action:
         :return: list of Argument objects
         """
         return self._arguments
-
-    def get_num_arguments(self) -> int:
-        """
-        returns the number of arguments
-        引数の数を返す
-        :return: the number of arguments
-        """
-        return self._num_arguments
 
 
 class Transition:
@@ -213,15 +195,34 @@ class Transition:
         self._destination: str = destination
 
     def get_user_utterance_type(self) -> str:
+        """
+        returns the user utterance type for this transition
+        この遷移のユーザ発話タイプを返す
+        :return: user utterance type string
+        """
         return self._user_utterance_type
 
     def get_conditions(self) -> List[Condition]:
+        """
+        returns the list of conditions for this transition
+        この遷移のconditionのリストを返す
+        :return: the list of conditions (Condition objects)
+        """
         return self._conditions
 
     def get_actions(self) -> List[Action]:
+        """
+        returns the list of actions for this transition
+        この遷移のactionのリストを返す
+        :return: the list of actions (Action objects)
+        """
         return self._actions
 
     def get_destination(self) -> str:
+        """
+        returns the destination state of this transition
+        :return: the name of the destination state
+        """
         return self._destination
 
 
@@ -232,9 +233,9 @@ class State:
     """
 
     def __init__(self, name: str):
-        self._name: str = name
-        self._transitions: List[Transition] = []
-        self._system_utterances: List[str] = []
+        self._name: str = name  # state name 状態名
+        self._transitions: List[Transition] = []  # transition list 状態のリスト
+        self._system_utterances: List[str] = []  # system utterance list システム発話のリスト
 
         # The number of times system utterances for this state are generated (not managed for each dialogue session)
         # この状態のシステム発話を生成した回数（session毎に管理していない）
@@ -269,7 +270,7 @@ class State:
         :param utterance: utterance to add
         """
         utterance = utterance.replace("｛","{")  # zenkaku braces to hankaku
-        utterance = utterance.replace("｝","}")
+        utterance = utterance.replace("｝","}")  # 全角の中括弧を半角に
         self._system_utterances.append(utterance)
 
     def add_transition(self, user_utterance_type: str, conditions_str: str,
@@ -287,40 +288,70 @@ class State:
 
     def get_transitions(self) -> List[Transition]:
         """
-
-        :return:
-        :rtype:
+        returns the transitions for this state
+        この状態の遷移のリストを返す
+        :return: the list of transitions (Transition objects)
         """
         return self._transitions
 
     def get_system_utterances(self) -> List[str]:
+        """
+        returns the list of system utterance candidates for this state
+        この状態で発話されるシステム発話の候補を返す
+        :return: the list of system utterance strings
+        """
         return self._system_utterances
 
 
-function_call_pattern = re.compile("([^(]+)\(([^)]*)\)")  # matches function patter such as "func(..)"
+function_call_pattern = re.compile("([^(]+)\(([^)]*)\)") # matches function patter such as "func(..)"
+
 
 class StateTransitionNetwork:
+    """
+    class for representing a state transition network
+    状態遷移ネットワークのクラス
+    """
 
     def __init__(self):
-        self._initial_state = State(INITIAL_STATE_NAME)
-        self._error_state = State(ERROR_STATE_NAME)
-        self._states = [self._initial_state, self._error_state]
-        self._final_states = []
+        self._initial_state = State(INITIAL_STATE_NAME)  # initial state 初期状態
+        self._error_state = State(ERROR_STATE_NAME)  # error state エラー状態
+        self._states = [self._initial_state, self._error_state]  # state list 状態のリスト
+        self._final_states = []  # list of final states 最終状態のリスト
+
+        # mapping from state names to states 状態名から状態へのマッピング
         self._state_names2states: Dict[str, State] = {INITIAL_STATE_NAME: self._initial_state,
                                                       ERROR_STATE_NAME: self._error_state}
 
     def get_state_from_state_name(self, state_name: str) -> State:
+        """
+        returns the State object having the state_name as the name
+        この名前を持つStateオブジェクトを返す
+        :param state_name: state name string
+        :return: State object having the name
+        """
         return self._state_names2states.get(state_name, None)
 
     def create_new_state(self, state_name: str) -> State:
+        """
+        creates and returns a new State object having the name
+        この名前のStateオブジェクトを作って返す
+        :param state_name: state name string
+        :return: the created State object
+        """
         state: State = State(state_name)
         self._states.append(state)
-        if state_name.startswith(FINAL_STATE_PREFIX):
+        if state_name.startswith(FINAL_STATE_PREFIX):  # if it's a final state, register it to the final state list
             self._final_states.append(state)
         self._state_names2states[state_name] = state
         return state
 
     def is_final_state_or_error_state(self, state_name: str) -> bool:
+        """
+        if the state having this name is a final state or the error state
+        この名前の状態が最終状態かエラー状態か
+        :param state_name: 状態名の文字列
+        :return: True if it's the case 最終状態かエラー状態ならTrueを返す
+        """
         state: State = self._state_names2states[state_name]
         if state is self._error_state:
             return True
@@ -329,10 +360,19 @@ class StateTransitionNetwork:
         else:
             return False
 
+    def get_prep_state(self) -> State:
+        """
+        returns prep state
+        prep stateを返す
+        :return:  prep state (State object) or None if there's no prep state
+        """
+        return self._state_names2states.get(PREP_STATE_NAME)
+
     def check_network(self) -> bool:
         """
-        check if network is valid
-        :return: True is valid, False otherwise
+        checks if network is valid
+        このネットワークが正しいか調べる
+        :return: True is valid, False otherwise 正しければTrueを返す
         """
         result: bool = True
         # make sure that special states have system utterances
@@ -353,7 +393,8 @@ class StateTransitionNetwork:
                     has_default_transition: bool = False
                     for transition in transitions:
                         if has_default_transition:
-                            warn_during_building(f"state '{state_name}' has an extra transitions after default transition.")
+                            warn_during_building(f"state '{state_name}' " +
+                                                 " has an extra transitions after default transition.")
                         if not transition.get_user_utterance_type() and not transition.get_conditions():
                             has_default_transition = True
                     if not has_default_transition:
@@ -394,7 +435,8 @@ class StateTransitionNetwork:
 
     def output_graph(self, filename: str) -> None:
         """
-        output graphviz dot file
+        output graphviz dot file for this network
+        このネットワークのgraphvizのdot fileを作成する
         :param filename: filename of the dot file
         """
         result = "digraph state_transition_network {\n"
@@ -432,16 +474,6 @@ class StateTransitionNetwork:
 
         print(f"state transition network has {len(self._states)} states.")
         print(f"state transition network has {n_trans} transitions.")
-
-
-
-
-
-    def get_prep_state(self) -> State:
-        """
-        :return:  prep state or None if there's no prep state
-        """
-        return self._state_names2states.get(PREP_STATE_NAME)
 
 
 

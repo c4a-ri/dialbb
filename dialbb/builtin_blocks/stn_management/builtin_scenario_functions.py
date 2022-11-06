@@ -14,7 +14,7 @@ from typing import Dict, Any
 
 def builtin_set(variable: str, value: str, context: Dict[str, Any]) -> None:
     """
-    set a value to a variable in the dialogue context
+    sets a value to a variable in the dialogue context
     対話文脈の変数に値をセットする
     :param variable: name of variable to set 値をセットする対話文脈の変数の名前
     :param value: value to set セットする値
@@ -26,7 +26,7 @@ def builtin_set(variable: str, value: str, context: Dict[str, Any]) -> None:
 
 def builtin_eq(x: str, y: str, context: Dict[str, Any]) -> bool:
     """
-    check if two values are equal
+    checks if two values are equal
     値が同じかどうか調べる
     :param x: 値1
     :param y: 値2
@@ -38,7 +38,7 @@ def builtin_eq(x: str, y: str, context: Dict[str, Any]) -> bool:
 
 def builtin_ne(x: str, y: str, context: Dict[str, Any]) -> bool:
     """
-    check if two values are equal
+    checks if two values are equal
     値が違うかどうか調べる
     :param x: 値1
     :param y: 値2
@@ -50,7 +50,7 @@ def builtin_ne(x: str, y: str, context: Dict[str, Any]) -> bool:
 
 def builtin_contains(x: str, y: str, context: Dict[str, Any]) -> bool:
     """
-    check if string x contains string y
+    checks if string x contains string y
     文字列xが文字列yを含むかどうか調べる
     :param x: 値1
     :param y: 値2
@@ -74,7 +74,7 @@ def builtin_not_contains(x: str, y: str, context: Dict[str, Any]) -> bool:
 
 def builtin_member_of(x: str, y: str, context: Dict[str, Any]) -> bool:
     """
-    check if string x is a member of y (list of string concatenated with colons)
+    checks if string x is a member of y (list of string concatenated with colons)
     文字列xが文字列のリストyのメンバかどうか調べる。(yは文字列をコロンで連結したもの）
     :param x: 値1
     :param y: 値2 e.g. "apple:orange:pineapple"
@@ -86,7 +86,7 @@ def builtin_member_of(x: str, y: str, context: Dict[str, Any]) -> bool:
 
 def builtin_not_member_of(x: str, y: str, context: Dict[str, Any]) -> bool:
     """
-    check if string x is not a member of y (list of string concatenated with colons)
+    checks if string x is not a member of y (list of string concatenated with colons)
     文字列xが文字列のリストyのメンバでないときTrueを返す。(yは文字列をコロンで連結したもの）
     :param x: 値1
     :param y: 値2 e.g. "apple:orange:pineapple"

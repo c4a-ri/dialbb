@@ -3,6 +3,7 @@
 #
 # knowledge_converter.py
 #   convert nlu knowledge to SNIPS training data format
+#   言語理解知識をSNIPSの訓練データ形式に変換する
 
 __version__ = '0.1'
 __author__ = 'Mikio Nakano'
@@ -38,8 +39,14 @@ tagged_utterance_pattern: Pattern = re.compile(r"\(([^)]+)\)\s*\[([^]]+)]")
 
 def check_columns(required_columns: List[str], df: DataFrame, sheet: str) -> bool:
     """
-    check if required columns exit in the sheet of the dataframe
+    checks if required columns exit in the sheet of the dataframe
+    DataFrameに必須のカラムがあるか調べる
+    :param required_columns: list of required column names
+    :param df: DataFrame
+    :param sheet: sheet name to be used in error messages
+    :return: True if the check passes
     """
+
     columns = df.columns.values.tolist()
     for required_column in required_columns:
         if required_column not in columns:
@@ -53,15 +60,17 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, entitie
                           config: Dict[str, Any], block_config: Dict[str, Any],
                           language='en') -> Dict[str, Any]:
     """
-
-    :param utterances_df:
-    :param slots_df:
-    :param entities_df:
-    :param dictionary_df:
-    :param flags:
-    :param function_modules:
-    :param language:
-    :return:
+    converts nlu knowledge into SNIPS training data
+    :param utterances_df: utterances sheet dataframe
+    :param slots_df: slots sheet dataframe
+    :param entities_df: entities sheet dataframe
+    :param dictionary_df: dictionary sheet dataframe
+    :param flags: list of flags to use
+    :param function_modules: list of dictionary function modules
+    :param config: application configuration
+    :param block_config: block configuration
+    :param language: language of this app ('en' or 'ja')
+    :return: SNIPS training data (to be saved as a JSON file)
     """
 
     print(f"converting nlu knowledge.")
@@ -160,9 +169,11 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, entitie
                 entity = row[COLUMN_ENTITY].strip()
                 normalized_value: str = normalize(row['value'], canonicalizer, tokenizer, language)  # dictionary entry
                 if entity in entity_definitions.keys():
-                    entity_definitions[entity]['data'].append({"value": normalized_value, "synonyms": normalized_synonyms})
+                    entity_definitions[entity]['data'].append({"value": normalized_value,
+                                                               "synonyms": normalized_synonyms})
                 else:
-                    entity_definitions[entity] = {'data': [{"value": normalized_value, "synonyms": normalized_synonyms}]}
+                    entity_definitions[entity] = {'data': [{"value": normalized_value,
+                                                            "synonyms": normalized_synonyms}]}
 
         # integrate information in entity sheet into dictionary
         for entity in entity_definitions.keys():
@@ -200,6 +211,7 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, entitie
         else:
             intent2utterances[intent] = [row[COLUMN_UTTERANCE].strip()]
 
+    # create intent definitions
     for intent in intent2utterances.keys():
         utterance_descs: List[Dict[str, Any]] = []  # [{"data": [...]}, {"data": [...]}, ...]
         for utterance in intent2utterances[intent]:
@@ -216,12 +228,20 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, entitie
     return result
 
 
-# divide slot parts and other parts
 def get_utterance_fragments_en(utterance: str, canonicalizer: Canonicalizer,
                             tokenizer: AbstractTokenizer,
-                            slot2entity: Dict[str, str], language='en') -> List[Dict[str, Any]]:
+                            slot2entity: Dict[str, str]) -> List[Dict[str, Any]]:
+    """
+    divides slot parts and other parts of the input utterance string
+    入力発話文字列のスロット部分とそうでない部分を分ける
+    :param utterance: input utterance string
+    :param canonicalizer: canonicalizer object
+    :param tokenizer: tokenizer object
+    :param slot2entity: mapping from slots to entities
+    :return: list of fragments or empty list if an error occurs
+    """
     fragments: List[Dict[str, Any]] = []
-    utterance = normalize_tagged_utterance_en(utterance, canonicalizer)
+    utterance = canonicalize_tagged_utterance_en(utterance, canonicalizer)
     index: int = 0
     for m in tagged_utterance_pattern.finditer(utterance):  # regular expression matching
         if m.start() > index:
@@ -230,7 +250,7 @@ def get_utterance_fragments_en(utterance: str, canonicalizer: Canonicalizer,
         entity = slot2entity.get(slot_name)
         if entity is None:
             warn_during_building(f"Error: slot {slot_name} is not defined in the slot sheet.")
-            return None
+            return []
         fragments.append({"text": m.group(1), "slot_name": slot_name, "entity": entity})
         index = m.end()
     if index < len(utterance):
@@ -241,8 +261,18 @@ def get_utterance_fragments_en(utterance: str, canonicalizer: Canonicalizer,
 def get_utterance_fragments_ja(utterance: str, canonicalizer: Canonicalizer,
                             tokenizer: AbstractTokenizer,
                             slot2entity: Dict[str, str]) -> List[Dict[str, Any]]:
+    """
+    divides slot parts and other parts of the input utterance string
+    入力発話文字列のスロット部分とそうでない部分を分ける
+    :param utterance: input utterance string
+    :param canonicalizer: canonicalizer object
+    :param tokenizer: tokenizer object
+    :param slot2entity: mapping from slots to entities
+    :return: list of fragments or empty list if an error occurs
+    """
+
     fragments: List[Dict[str, Any]] = []
-    utterance:str = normalize_tagged_utterance_ja(utterance, canonicalizer)
+    utterance:str = canonicalize_tagged_utterance_ja(utterance, canonicalizer)
     utterance_without_tags: str = tagged_utterance_pattern.sub(r'\1',utterance)
     tokens: List[Token] = tokenizer.tokenize(utterance_without_tags)  # tokenization
     # if DEBUG:
@@ -262,11 +292,10 @@ def get_utterance_fragments_ja(utterance: str, canonicalizer: Canonicalizer,
     in_slot_name: bool = False
     in_token: bool = False
     while i < len(utterance):
-        #print(f"i={str(i)}, j={str(j)}, fragment_text={fragment_text}, fragments={str(fragments)}")
         if utterance[i] == '(':
             if in_token:
                 print(f"slot tag boundaries and token boundaries do not match near '{utterance[i+1]}':" + utterance)
-                return None
+                return []
             if fragment_text:
                 fragments.append({"text": fragment_text+" "})
                 fragment_text = ""
@@ -304,14 +333,27 @@ def get_utterance_fragments_ja(utterance: str, canonicalizer: Canonicalizer,
     return fragments
 
 
-def normalize_tagged_utterance_en(input_text: str, canonicalizer: Canonicalizer) -> str:
+def canonicalize_tagged_utterance_en(input_text: str, canonicalizer: Canonicalizer) -> str:
+    """
+    canonicalizes English utterance with slot tags
+    :param input_text: utterance string with slot tags
+    :param canonicalizer: canonicalizer object
+    :return: canonicalized utterance string with slot tags
+    """
     # add spaces before and after slots
     result: str = re.sub(r"\(", " (", input_text)
     result = re.sub("]", "] ", result)
     result = canonicalizer.canonicalize(result)
     return result
 
-def normalize_tagged_utterance_ja(input_text: str, canonicalizer: Canonicalizer) -> str:
+
+def canonicalize_tagged_utterance_ja(input_text: str, canonicalizer: Canonicalizer) -> str:
+    """
+    canonicalizes Japanese utterance with slot tags
+    :param input_text: utterance string with slot tags
+    :param canonicalizer: canonicalizer object
+    :return: canonicalized utterance string with slot tags
+    """
     # delete spaces before and after slots
     result: str = re.sub(r"\s+\(", "(", input_text)
     result: str = re.sub(r"\)\s+", ")", input_text)
@@ -321,7 +363,17 @@ def normalize_tagged_utterance_ja(input_text: str, canonicalizer: Canonicalizer)
     return result
 
 
-def normalize(input_text: str, canonicalizer: Canonicalizer, tokenizer: AbstractTokenizer, language: str = "en") -> str:
+def normalize(input_text: str, canonicalizer: Canonicalizer,
+              tokenizer: AbstractTokenizer, language: str = "ja") -> str:
+    """
+    canonicalizes and tokenizes input string
+    :param input_text: input string
+    :param canonicalizer: Canonicalizer object
+    :param tokenizer: Tokenizer object
+    :param language: language ('ja' or 'en')
+    :return: canonicalized and tokenized input string
+    """
+
     if language == "en":
         return canonicalizer.canonicalize(input_text)
     elif language == "ja":

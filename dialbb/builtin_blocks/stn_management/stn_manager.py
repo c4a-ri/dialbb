@@ -26,7 +26,7 @@ from dialbb.builtin_blocks.stn_management.state_transition_network \
     INITIAL_STATE_NAME, ERROR_STATE_NAME
 from dialbb.builtin_blocks.stn_management.stn_creator import create_stn
 from dialbb.abstract_block import AbstractBlock
-from dialbb.main import ANY_FLAG, DEBUG, CONFIG_KEY_FLAGS_TO_USE, KEY_SESSION_ID, CONFIG_DIR
+from dialbb.main import ANY_FLAG, DEBUG, CONFIG_KEY_FLAGS_TO_USE, CONFIG_DIR
 from dialbb.util.error_handlers import abort_during_building
 
 KEY_CURRENT_STATE_NAME: str = "_current_state_name"
@@ -56,14 +56,18 @@ class STNError(Exception):
 
 
 class Manager(AbstractBlock):
+    """
+    dialogue management block using state transition network
+    状態遷移ネットワークを用いた対話管理ブロック
+    """
 
     def __init__(self, *args):
 
         super().__init__(*args)
 
-        self._language = self.config.get('language', 'en')
+        self._language = self.config.get('language', 'ja')
         # import scenario function definitions
-        self._function_modules: List[Any] = []  # list of modules
+        self._function_modules: List[Any] = []  # list of modules シナリオ関数のモジュールのリスト
         function_definitions: str = self.block_config.get("function_definitions")  # module name(s) in config
         if function_definitions:
             for function_definition in function_definitions.split(':'):
@@ -72,7 +76,10 @@ class Manager(AbstractBlock):
                 self._function_modules.append(imported_module)
         imported_module = importlib.import_module(BUILTIN_FUNCTION_MODULE)  # builtin
         self._function_modules.append(imported_module)
-        self._dialogue_context: Dict[str, Dict[str, Any]] = {}  # session id -> {key -> value}
+
+        # dialogue context for each dialogue session  session id -> {key -> value}
+        # セッション毎の対話文脈
+        self._dialogue_context: Dict[str, Dict[str, Any]] = {}
 
         # create network
         sheet_name = self.block_config.get(CONFIG_KEY_SCENARIO_SHEET, SHEET_NAME_SCENARIO)
@@ -102,7 +109,8 @@ class Manager(AbstractBlock):
         self._network.output_graph(dot_file)
         print(f"converting dot file to jpeg: {dot_file}.")
         if self._language == 'ja':
-            ret: int = os.system(f'dot -Tjpg -Nfontname="MS Gothic" -Efontname="MS Gothic" -Gfontname="MS Gothic" {dot_file} > {jpg_file}')
+            ret: int = os.system(f'dot -Tjpg -Nfontname="MS Gothic" -Efontname="MS Gothic" '
+                                 + f'-Gfontname="MS Gothic" {dot_file} > {jpg_file}')
         else:
             ret: int = os.system(f"dot -Tjpg {dot_file} > {jpg_file}")
         if ret != 0:
@@ -110,7 +118,8 @@ class Manager(AbstractBlock):
 
     def get_df_from_gs(self, google_sheet_config: Dict[str, str], scenario_sheet: str) -> DataFrame:
         """
-        get scenario dataframe from google sheet
+        gets scenario dataframe from google sheet
+        シナリオDataFrameをGoogle Sheetから取得
         :param google_sheet_config: configuration for accessing google sheet
         :param scenario_sheet: the name of scenario tab
         :return: pandas DataFrame of scenario
@@ -131,6 +140,13 @@ class Manager(AbstractBlock):
             abort_during_building(f"failed to read google spreadsheet. {str(e)}")
 
     def get_dfs_from_excel(self, excel_file: str, scenario_sheet: str) -> DataFrame:
+        """
+        obtains scenario dataframe from an Excel file
+        シナリオDataFrameをExcelファイルから取得
+        :param excel_file: Excel file
+        :param scenario_sheet: scenario sheet name シナリオシート名
+        :return: scenario dataframe
+        """
 
         excel_file_path = os.path.join(self.config_dir, excel_file)
         print(f"reading excel file: {excel_file_path}", file=sys.stderr)
@@ -141,19 +157,28 @@ class Manager(AbstractBlock):
         # reading slots sheet
         return df_all.get(scenario_sheet)
 
-    def process(self, input: Dict[str, Any], session_id: str) -> Dict[str, Any]:
+    def process(self, input_data: Dict[str, Any], session_id: str) -> Dict[str, Any]:
         """
-        process input from dialbb main process and output results to it
-        :param input: key: "sentence"
-        :param session_id
-        :return: key: "nlu_result"
+        processes input from dialbb main process and output results to it
+        メインプロセスからの入力を受け取って処理結果を返す
+        :param input_data: dictionary having the following keys:
+                  sentence: canonicalized user utterance string
+                  nlu_result: NLU result (dictionary)
+                  user id: user id string
+                  aux_data: auxiliary data (optional)
+        :param session_id: session id string
+        :return: dictionary having the following keys
+                   output_text: system utterance
+                   final: boolean value indicating if the dialogue finished
+                   aux_data: dictionary of the form {"state": <current state name>"}
         """
 
-        user_id: str = input['user_id']
-        nlu_result: Dict[str, Any] = input.get('nlu_result', {"type": "", "slots": {}})
-        aux_data: Dict[str, Any] = input.get('aux_data', {})
+        user_id: str = input_data['user_id']
+        nlu_result: Dict[str, Any] = input_data.get('nlu_result', {"type": "", "slots": {}})
+        aux_data: Dict[str, Any] = input_data.get('aux_data', {})
+        sentence = input_data.get("sentence", "")
 
-        self.log_debug("input: " + str(input), session_id=session_id)
+        self.log_debug("input: " + str(input_data), session_id=session_id)
 
         try:
             if not self._dialogue_context.get(session_id):
@@ -164,7 +189,7 @@ class Manager(AbstractBlock):
                 prep_state: State = self._network.get_prep_state()
                 prep_actions: List[Action] = prep_state.get_transitions()[0].get_actions()
                 if prep_actions:
-                    self._perform_actions(prep_actions, nlu_result, aux_data, user_id, session_id)
+                    self._perform_actions(prep_actions, nlu_result, aux_data, user_id, session_id, sentence)
                 # move to initial state
                 current_state_name = INITIAL_STATE_NAME
                 self._dialogue_context[session_id][KEY_CURRENT_STATE_NAME] = current_state_name
@@ -178,7 +203,7 @@ class Manager(AbstractBlock):
                     else:
                         raise STNError()
                 current_state_name: str = self._transition(previous_state_name, nlu_result, aux_data,
-                                                           user_id, session_id)
+                                                           user_id, session_id, sentence)
                 self._dialogue_context[session_id][KEY_CURRENT_STATE_NAME] = current_state_name
             current_state: State = self._network.get_state_from_state_name(current_state_name)
             if not current_state:
@@ -201,7 +226,7 @@ class Manager(AbstractBlock):
 
     def _substitute_variables(self, text: str, session_id: str) -> str:
         """
-        replace variables (in dialogue frame) in the input text with their values
+        replaces variables (in dialogue frame) in the input text with their values
         :param text: system utterance with variables
         :return: system utterance whose variables are substituted by their values
         """
@@ -218,15 +243,20 @@ class Manager(AbstractBlock):
         return result
 
     def _transition(self, previous_state_name: str, nlu_result: Dict[str, Any], aux_data: Dict[str, Any],
-                    user_id: str, session_id:str) -> str:
+                    user_id: str, session_id: str, sentence: str) -> str:
         """
-        find a transition whose conditions are satisfied and move to the destination state
-        :param previous_state_name:
-        :return: id of the destination state to move to
+        finds a transition whose conditions are satisfied, performs its actions, and moves to the destination state
+        条件が満たされる遷移を見つけてそのアクションを実行し、次の状態に遷移する
+        :param previous_state_name: state before transition 遷移前の状態
+        :param nlu_result: nlu result
+        :param aux_data: auxiliary data received from the main process
+        :param user_id: user id string
+        :param session_id: session id string
+        :return: the name of the destination state to move to 遷移後の状態の名前
         """
         if self._network.is_final_state_or_error_state(previous_state_name):
             self.log_error("no available transitions found from state: " + previous_state_name,
-                             session_id=session_id)
+                           session_id=session_id)
             self._dialogue_context[session_id][KEY_CAUSE] = f"no available transitions found from state: " \
                                                             + previous_state_name
             return ERROR_STATE_NAME
@@ -239,9 +269,9 @@ class Manager(AbstractBlock):
             return ERROR_STATE_NAME
         self.log_debug("trying to find transition from state: " + previous_state_name)
         for transition in previous_state.get_transitions():
-            if self._check_transition(transition, nlu_result, aux_data, user_id, session_id):
+            if self._check_transition(transition, nlu_result, aux_data, user_id, session_id, sentence):
                 destination_state_name: str = transition.get_destination()
-                self._perform_actions(transition.get_actions(), nlu_result, aux_data, user_id, session_id)
+                self._perform_actions(transition.get_actions(), nlu_result, aux_data, user_id, session_id, sentence)
                 self.log_debug("moving to state: " + destination_state_name, session_id=session_id)
                 return destination_state_name
         self.log_error("no available transitions found from state: " + previous_state_name,
@@ -251,13 +281,24 @@ class Manager(AbstractBlock):
         return ERROR_STATE_NAME
 
     def _check_one_condition(self, condition: Condition, nlu_result: Dict[str, Any], aux_data: Dict[str, Any],
-                             user_id: str, session_id: str) -> bool:
+                             user_id: str, session_id: str, sentence: str) -> bool:
         """
-        check if a condition is satisfied
+        checks if the condition is satisfied
+        条件が満たされるかどうか調べる
+        :param condition:  condition to check
+        :param nlu_result: NLU result
+        :param aux_data: auxiliary data received from the main process
+        :param user_id: user id string
+        :param session_id: session id string
+        :param sentence: canonicalized user utterance string
+        :return: True if the condition is satisfied
         """
+
         self.log_debug(f"checking condition: {str(condition)}", session_id=session_id)
         function_name: str = condition.get_function()
         condition_function = None
+
+        # search function in function modules  functionをfunction moduleの中で探す
         for function_module in self._function_modules:
             function = getattr(function_module, function_name, None)
             if function is not None:  # if function is not in the module
@@ -267,22 +308,22 @@ class Manager(AbstractBlock):
             self.log_error(f"condition function {function_name} is not defined.", session_id=session_id)
             return False
         else:
-            argument_names: List[str] = ["arg" + str(i) for i in range(condition.get_num_arguments())]
+            argument_names: List[str] = ["arg" + str(i) for i in range(len(condition.get_arguments()))]
             # realize variables
             argument_values: List[Any] \
-                = [self._realize_argument(argument, nlu_result, aux_data, user_id, session_id)
+                = [self._realize_argument(argument, nlu_result, aux_data, user_id, session_id, sentence)
                    for argument in condition.get_arguments()]
             if DEBUG:
                 argument_value_strings: List[str] = [str(x) for x in argument_values]
                 self.log_debug(f"condition is realized: {function_name}({','.join(argument_value_strings)})",
                                session_id=session_id)
-            argument_names.append("context")  # add context to the arguments
+            argument_names.append("context")  # add context to the arguments 対話文脈を引数に加える
             argument_values.append(self._dialogue_context[session_id])
             args: Dict[str,str] = dict(zip(argument_names, argument_values))
             args["func"] = condition_function
             expression = "func(" + ','.join(argument_names) + ")"
             try:
-                result = eval(expression, {}, args)
+                result = eval(expression, {}, args)  # evaluate function call 関数呼び出しを評価
                 if result:
                     self.log_debug(f"condition is satisfied.", session_id=session_id)
                 else:
@@ -296,14 +337,15 @@ class Manager(AbstractBlock):
                 return False  # exception occurred. maybe # of arguments differ
 
     def _check_transition(self, transition: Transition, nlu_result: Dict[str, Any], aux_data: Dict[str, Any],
-                          user_id: str,
-                          session_id: str) -> bool:
+                          user_id: str, session_id: str, sentence: str) -> bool:
         """
-        check if transition is possible
+        checks if transition is possible
+        遷移が可能か調べる
         :param transition: Transition object to check
         :param nlu_result: NLU result of user input obtained from the understander
         :param user_id: user id
         :param session_id: session id
+        :param sentence: canonicalized user utterance string
         :return: True if transition is possible, False otherwise
         """
         uu_type: str = transition.get_user_utterance_type()
@@ -311,7 +353,7 @@ class Manager(AbstractBlock):
             self.log_debug(f"user utterance type does not match with '{uu_type}'.", session_id=session_id)
             return False
         for condition in transition.get_conditions():
-            result = self._check_one_condition(condition, nlu_result, aux_data, user_id, session_id)
+            result = self._check_one_condition(condition, nlu_result, aux_data, user_id, session_id, sentence)
             if not result:
                 self.log_debug("transition conditions are not satisfied.", session_id=session_id)
                 return False
@@ -319,12 +361,19 @@ class Manager(AbstractBlock):
         return True  # all conditions are satisfied
 
     def _realize_argument(self, argument: Argument, nlu_result: Dict[str, Any], aux_data: Dict[str, Any],
-                          user_id: str, session_id: str) -> str:
+                          user_id: str, session_id: str, sentence: str) -> str:
         """
         returns the value of an argument of a condition or an action
-        :param argument:
-        :return: value
+        引数の値を具体化して返す
+        :param argument: Argument object to realize
+        :param nlu_result: nlu result
+        :param aux_data: auxiliary data received from the main process
+        :param user_id: user id string
+        :param session_id: session id string
+        :param sentence: canonicalized user utterance string
+        :return:
         """
+
         if argument.is_constant():
             return argument.get_name()  # its name as is
         elif argument.is_address():
@@ -332,7 +381,7 @@ class Manager(AbstractBlock):
         elif argument.is_special_variable():  # realize special variable (sentence or slot name)
             slot_name: str = argument.get_name()
             if slot_name == "sentence":
-                return nlu_result["sentence"]
+                return sentence
             if slot_name == "user_id":
                 return user_id
             elif slot_name in nlu_result["slots"].keys():
@@ -354,17 +403,27 @@ class Manager(AbstractBlock):
                     return value
 
     def _perform_actions(self, actions: List[Action], nlu_result: Dict[str, Any], aux_data: Dict[str, Any],
-                         user_id: str, session_id: str) -> None:
+                         user_id: str, session_id: str, sentence: str) -> None:
         """
-        perform actions in transition
-        :param actions:
+        performs actions in transition
+        遷移のactionを実行する
+        :param actions: list of actions (Action objects) to perform
+        :param nlu_result: nlu result
+        :param aux_data: auxiliary data received from the main process
+        :param user_id: user id string
+        :param session_id: session id string
+        :param sentence: canonicalized user utterance string
         """
+
         for action in actions:
             self.log_debug(f"performing action: {str(action)}", session_id=session_id)
-            command_name: str = action.get_command_name()
+            command_name: str = action.get_function_name()
 
             # non builtin actions
             action_function = None
+
+            # search action function in function modules
+            # action functionをfunction moduleの中から探す
             for function_module in self._function_modules:
                 function = getattr(function_module, command_name, None)
                 if function is None:  # if command is not in the module
@@ -375,8 +434,9 @@ class Manager(AbstractBlock):
             if not action_function:  # action function is not defined
                 self.log_error(f"action function can't find: {command_name}", session_id=session_id)
             else:
-                argument_names: List[str] = ["arg" + str(i) for i in range(action.get_num_arguments())]
-                argument_values: List[Any] = [self._realize_argument(argument, nlu_result, aux_data, user_id, session_id)
+                argument_names: List[str] = ["arg" + str(i) for i in range(len(action.get_arguments()))]
+                argument_values: List[Any] = [self._realize_argument(argument, nlu_result, aux_data,
+                                                                     user_id, session_id, sentence)
                                               for argument in action.get_arguments()]
                 if DEBUG:
                     argument_value_strings: List[str] = [str(x) for x in argument_values]
@@ -394,4 +454,3 @@ class Manager(AbstractBlock):
                                      session_id=session_id)
                     if DEBUG:
                         raise Exception(e)
-

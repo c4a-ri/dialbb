@@ -32,16 +32,16 @@ class UtteranceCanonicalizer(AbstractBlock):
 
         super().__init__(*args)
         # default language is Japanese デフォルト言語は日本語
-        self._language = self.config.get(CONFIG_KEY_LANGUAGE, "ja")
+        self._language = self.config.get(CONFIG_KEY_LANGUAGE, "ja")  # language 言語
         # check if language is supported 言語がサポートされているかどうかをチェック
         if self._language not in supported_languages:
             self.log_error(f"{self._language} is not a supported language. Supported languages are: "
                            + str(supported_languages))
-        self._canonicalizer = Canonicalizer(self._language)
+        self._canonicalizer = Canonicalizer(self._language)  # canonicalizer
 
     def process(self, input_data: Dict[str, Any], session_id: str = "undecided") -> Dict[str, Any]:
         """
-        canonicalize input text
+        canonicalizes input text
         入力文字列を正規化
         :param input_data: {'input_text': <input text: str>}
         :param session_id: the id of the dialogue session

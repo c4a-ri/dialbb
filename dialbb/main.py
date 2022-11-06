@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 #
 # dialbb.py
-#   dialbb dialogue processor
+#   main dialogue processor
+#   メイン対話処理
 
 __version__ = '0.1'
 __author__ = 'Mikio Nakano'
@@ -33,14 +34,19 @@ CONFIG_DIR: str = ""
 
 
 @dataclasses.dataclass
-class Block:
+class BlockInfo:
+    """
+    block object and config
+    ブロックオブジェクトとconfig
+    """
     block_object: AbstractBlock
     block_config: Dict[str, Any]
 
 
 class DialogueProcessor:
     """
-    main class of DialBB
+    main class of DialBB dialogue processor
+    DialBB対話処理のメインクラス
     """
 
     config = {}
@@ -73,7 +79,7 @@ class DialogueProcessor:
         # create dialbb dialogue processor
         # DialBBの対話処理器を作成
         print("creating dialbb dialogue processor.")
-        self._blocks: List[Block] = []
+        self._blocks: List[BlockInfo] = []
         self._block_configs = config.get("blocks")
         if self._block_configs is None:
             raise Exception("no block descriptions in config.")
@@ -85,7 +91,7 @@ class DialogueProcessor:
             block_object = block_class(block_config, config, CONFIG_DIR)  # create block (instance of block class)
             if not isinstance(block_object, AbstractBlock):
                 raise Exception(f"{block_config[KEY_BLOCK_CLASS]} is not a subclass of AbstractBlock.")
-            block = Block(block_object=block_object, block_config=block_config)
+            block = BlockInfo(block_object=block_object, block_config=block_config)
             self._blocks.append(block)
         # todo check the formats of input of the first block and output of the last block
 
