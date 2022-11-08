@@ -394,7 +394,7 @@ class StateTransitionNetwork:
                     for transition in transitions:
                         if has_default_transition:
                             warn_during_building(f"state '{state_name}' " +
-                                                 " has an extra transitions after default transition.")
+                                                 " has an extra transition after default transition.")
                         if not transition.get_user_utterance_type() and not transition.get_conditions():
                             has_default_transition = True
                     if not has_default_transition:

@@ -11,6 +11,8 @@ __author__ = 'Mikio Nakano'
 __copyright__ = 'C4A Research Institute, Inc.'
 
 from typing import Dict, Any
+
+from dialbb.util.globals import DEBUG
 from dialbb.util.logger import get_logger
 
 
@@ -56,6 +58,10 @@ class AbstractBlock:
     # error level
     def log_error(self, message: str, session_id: str = "unknown") -> None:
         self._logger.error(f"session: {session_id}, {message}")
+        if DEBUG:
+            raise Exception(message)
+
+
 
 
 

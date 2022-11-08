@@ -301,10 +301,10 @@ class Manager(AbstractBlock):
         # search function in function modules  functionをfunction moduleの中で探す
         for function_module in self._function_modules:
             function = getattr(function_module, function_name, None)
-            if function is not None:  # if function is not in the module
+            if function is not None:  # if function is found
                 condition_function = function
                 break
-        if not condition_function:
+        if not condition_function:  # when condition function is not defined
             self.log_error(f"condition function {function_name} is not defined.", session_id=session_id)
             return False
         else:

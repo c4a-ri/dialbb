@@ -129,12 +129,12 @@ http://localhost:8080/test
   - 英語
 
   ```sh
-  $ python dialbb/util/test.py  sample_apps/network_en/config.yml sample_apps/network_en/test_inputs.json
+  $ python dialbb/util/test.py sample_apps/network_en/config.yml sample_apps/network_en/test_inputs.json
   ```
 
   - 日本語
 
   ```sh
-  $ python dialbb/util/test.py  sample_apps/network_ja/config.yml sample_apps/network_ja/test_inputs.json
+  $ python dialbb/util/test.py sample_apps/network_ja/config.yml sample_apps/network_ja/test_inputs.json
   ```
 
