@@ -20,7 +20,7 @@ blocks:  # ブロックのリスト
     function_definitions: dictionary_functions  # 知識記述の中で用いる関数の定義ファイル
     flags_to_use:
       - Y
-      - T2
+      - T
   - name: manager
     block_class: stn_management.stn_manager.Manager
     knowledge_file: sample-knowledge-ja.xlsx # 知識記述ファイル
