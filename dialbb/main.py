@@ -126,7 +126,7 @@ class DialogueProcessor:
             session_id = payload[KEY_SESSION_ID]  # session id received from the client
         self._logger.debug(f"payload: " + str(payload))
 
-        # blocks process payload
+        # each block process payload
         for block in self._blocks:
             input_to_block = {}
             for key_in_input, key_in_payload in block.block_config['input'].items():
@@ -141,6 +141,7 @@ class DialogueProcessor:
                 payload[key_in_payload] = output_from_block[key_in_output]
             self._logger.debug(f"payload: " + str(payload))
 
+        # create response from the payload
         response = {"system_utterance": payload.get('system_utterance', ""),
                     "session_id": payload['session_id'],
                     "user_id": payload['user_id'],

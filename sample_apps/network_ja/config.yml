@@ -30,10 +30,8 @@ blocks:  # ブロックのリスト
       sentence: canonicalized_user_utterance
       nlu_result: nlu_result
       user_id: user_id
-      session_id: session_id
     output:
       output_text: system_utterance
-      #aux_data: aux_data
       final: final
     flags_to_use:
       - Y

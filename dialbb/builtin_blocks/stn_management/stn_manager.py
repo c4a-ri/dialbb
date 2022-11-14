@@ -84,9 +84,9 @@ class Manager(AbstractBlock):
         # create network
         sheet_name = self.block_config.get(CONFIG_KEY_SCENARIO_SHEET, SHEET_NAME_SCENARIO)
         google_sheet_config: Dict[str, str] = self.block_config.get(CONFIG_KEY_KNOWLEDGE_GOOGLE_SHEET)
-        if google_sheet_config:
+        if google_sheet_config:  # google sheet
             scenario_df = self.get_df_from_gs(google_sheet_config, sheet_name)
-        else:
+        else:  # excel
             excel_file = self.block_config.get(CONFIG_KEY_KNOWLEDGE_FILE)
             if not excel_file:
                 abort_during_building(
@@ -103,10 +103,9 @@ class Manager(AbstractBlock):
             self._network.check_network()
 
         # generate a graph file from the network
-        dot_file: str = os.path.join(CONFIG_DIR, "_stn_graph.dot")
-
-        jpg_file: str = os.path.join(CONFIG_DIR, "_stn_graph.jpg")
-        self._network.output_graph(dot_file)
+        dot_file: str = os.path.join(CONFIG_DIR, "_stn_graph.dot")  # dot file to input to graphviz
+        jpg_file: str = os.path.join(CONFIG_DIR, "_stn_graph.jpg")  # output of graphviz
+        self._network.output_graph(dot_file)  # create dot file
         print(f"converting dot file to jpeg: {dot_file}.")
         if self._language == 'ja':
             ret: int = os.system(f'dot -Tjpg -Nfontname="MS Gothic" -Efontname="MS Gothic" '
@@ -263,7 +262,7 @@ class Manager(AbstractBlock):
         previous_state: State = self._network.get_state_from_state_name(previous_state_name)
         if not previous_state:
             self.log_error("can't find previous state: " + previous_state_name,
-                             session_id=session_id)
+                           session_id=session_id)
             self._dialogue_context[session_id][KEY_CAUSE] = f"can't find previous state: " \
                                                             + previous_state_name
             return ERROR_STATE_NAME
@@ -275,7 +274,7 @@ class Manager(AbstractBlock):
                 self.log_debug("moving to state: " + destination_state_name, session_id=session_id)
                 return destination_state_name
         self.log_error("no available transitions found from state: " + previous_state_name,
-                         session_id=session_id)
+                       session_id=session_id)
         self._dialogue_context[session_id][KEY_CAUSE] = f"no available transitions found from state: " \
                                                         + previous_state_name
         return ERROR_STATE_NAME
