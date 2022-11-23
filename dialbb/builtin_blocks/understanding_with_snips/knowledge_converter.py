@@ -61,6 +61,7 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, entitie
                           language='ja', sudachi_normalization=False) -> Dict[str, Any]:
     """
     converts nlu knowledge into SNIPS training data
+    言語理解知識をSNIPSの訓練データに変換する
     :param utterances_df: utterances sheet dataframe
     :param slots_df: slots sheet dataframe
     :param entities_df: entities sheet dataframe
@@ -87,22 +88,25 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, entitie
     slot_names2entity_classes: Dict[str, str] = {}  # from slots sheet
 
     # when there is no slot sheet
+    # slot sheetがない時
     if slots_df is None:  # no slots sheet
         print(f"Warning: no slots sheet. Dummy entity definition is used instead.")
     else:
+        # converting slots dataframe
+        # slots dataframeの変換
         slots_df.fillna('', inplace=True)
         check_columns([COLUMN_FLAG, COLUMN_SLOT_NAME, COLUMN_ENTITY_CLASS], slots_df, "slots")
         for index, row in slots_df.iterrows():
             if row[COLUMN_FLAG] not in flags and ANY_FLAG not in flags:
                 continue
             slot: str = row[COLUMN_SLOT_NAME].strip()
-            entity: str = row[COLUMN_ENTITY_CLASS].strip()
-            if not entity.startswith("dialbb/"):  # dictionary function
-                slot_names2entity_classes[slot] = entity
+            entity_class: str = row[COLUMN_ENTITY_CLASS].strip()
+            if not entity_class.startswith("dialbb/"):  # dictionary function
+                slot_names2entity_classes[slot] = entity_class
             else:  # entity defined by a dictionary function
-                function_name: str = entity.replace("dialbb/", "")
-                entity: str = function_name  # entity and function name is the same
-                slot_names2entity_classes[slot] = entity
+                function_name: str = entity_class.replace("dialbb/", "")
+                entity_class = function_name  # entity and function name is the same
+                slot_names2entity_classes[slot] = entity_class
                 function_found = False
                 for function_module in function_modules:
                     function = getattr(function_module, function_name, None)
@@ -111,24 +115,25 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, entitie
                         dictionary: List[Dict[str, Union[str, List[str]]]] \
                             = eval("func(config, block_config)", {}, # execute dictionary function
                                    {"func": function, "config": config, "block_config": block_config})
-                        snips_entity_definitions[entity] = {'data':  []}
+                        snips_entity_definitions[entity_class] = {'data':  []}
                         for entry in dictionary:
-                            value: str = entry['entity']
-                            normalized_value: str = normalize(value, canonicalizer, tokenizer)
+                            entity: str = entry['entity']
+                            normalized_value: str = normalize(entity, canonicalizer, tokenizer)
                             normalized_synonyms: List[str] = [normalize(synonym, canonicalizer, tokenizer)
                                                    for synonym in entry.get('synonyms',[])]
-                            if value != normalized_value:
+                            if entity != normalized_value:
                                 normalized_synonyms.append(normalized_value) # normalized entity is used as a synonym
-                            snips_entity_definitions[entity]['data'].append({"value": value,
-                                                                       "synonyms": normalized_synonyms})
+                            snips_entity_definitions[entity_class]['data'].append({"value": entity,
+                                                                                   "synonyms": normalized_synonyms})
                         break
                 if not function_found:
                     abort_during_building(f'dictionary function "{function_name}" is not found.')
 
-        # reading entities sheet
+        # converting entities dataframe
+        # entities dataframeの変換
         check_columns([COLUMN_FLAG, COLUMN_ENTITY_CLASS, COLUMN_USE_SYNONYMS,
                        COLUMN_AUTOMATICALLY_EXTENSIBLE, COLUMN_MATCHING_STRICTNESS], entities_df, "entities")
-        entity_descs: Dict[str, Dict[str, Any]] = {}  # <entity: str> -> {"use_synonyms": <bool>,
+        entity_class_descriptions: Dict[str, Dict[str, Any]] = {}  # <entity: str> -> {"use_synonyms": <bool>,
                                                       #                   "automatically_extensible": <bool>,
                                                       #                   "matching_strictness": <float>}
         if entities_df is None:  # no entities sheet
@@ -136,7 +141,7 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, entitie
         else:
             entities_df.fillna('', inplace=True)
             for index, row in entities_df.iterrows():
-                entity: str = row[COLUMN_ENTITY_CLASS].strip()
+                entity_class: str = row[COLUMN_ENTITY_CLASS].strip()
                 if row[COLUMN_FLAG] not in flags and ANY_FLAG not in flags:
                     continue
                 if row[COLUMN_USE_SYNONYMS].strip() == "yes":
@@ -152,13 +157,14 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, entitie
                     matching_strictness = float(matching_strictness)
                 except Exception as e:
                     abort_during_building(f"matching strictness must be a number: {str(matching_strictness)}")
-                if entity.startswith("dialbb/"):
-                    entity = entity.replace("dialbb/", "")
-                entity_descs[entity] = {"use_synonyms": use_synonyms,
+                if entity_class.startswith("dialbb/"):
+                    entity_class = entity_class.replace("dialbb/", "")
+                entity_class_descriptions[entity_class] = {"use_synonyms": use_synonyms,
                                         "automatically_extensible": automatically_extensible,
                                         "matching_strictness": matching_strictness}
 
-        # reading dictionary sheet
+        # converting dictionary sheet
+        # dictionary sheetの変換
         if dictionary_df is None:  # no dictionary sheet
             print(f"Warning: no dictionary sheet.")
         else:
@@ -171,62 +177,66 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, entitie
                 normalized_synonyms: List[str] = [normalize(synonym.strip(), canonicalizer, tokenizer, language)
                                                   for synonym in
                                                   re.split('[,，、]', synonyms_string)]  # convert synonym cell to a list
-                entity: str = row[COLUMN_ENTITY_CLASS].strip()
-                value: str = row[COLUMN_ENTITY]
-                normalized_value: str = normalize(value, canonicalizer, tokenizer, language)  # dictionary entry
-                if value != normalized_value:
+                entity_class: str = row[COLUMN_ENTITY_CLASS].strip()
+                entity: str = row[COLUMN_ENTITY]
+                normalized_value: str = normalize(entity, canonicalizer, tokenizer, language)  # dictionary entry
+                if entity != normalized_value:
                     normalized_synonyms.append(normalized_value)  # normalized entity is used as a synonym
-                if entity in snips_entity_definitions.keys():
-                    snips_entity_definitions[entity]['data'].append({"value": value,
-                                                               "synonyms": normalized_synonyms})
+                if entity_class in snips_entity_definitions.keys():
+                    snips_entity_definitions[entity_class]['data'].append({"value": entity,
+                                                                           "synonyms": normalized_synonyms})
                 else:
-                    snips_entity_definitions[entity] = {'data': [{"value": value,
-                                                            "synonyms": normalized_synonyms}]}
+                    snips_entity_definitions[entity_class] = {'data': [{"value": entity,
+                                                                        "synonyms": normalized_synonyms}]}
 
-        # integrate information in entity sheet into dictionary
-        for entity in snips_entity_definitions.keys():
-            entity_definition = snips_entity_definitions[entity]
-            if entity in entity_descs.keys():
-                entity_definition['use_synonyms'] = entity_descs[entity]['use_synonyms']
-                entity_definition['automatically_extensible'] = entity_descs[entity]['automatically_extensible']
-                entity_definition['matching_strictness'] = entity_descs[entity]['matching_strictness']
+        # integrate information in entities dataframe into dictionary
+        # entities dataframeの情報を辞書と統合する
+        for entity_class in snips_entity_definitions.keys():
+            entity_definition = snips_entity_definitions[entity_class]
+            if entity_class in entity_class_descriptions.keys():
+                entity_definition['use_synonyms'] = entity_class_descriptions[entity_class]['use_synonyms']
+                entity_definition['automatically_extensible'] = entity_class_descriptions[entity_class]['automatically_extensible']
+                entity_definition['matching_strictness'] = entity_class_descriptions[entity_class]['matching_strictness']
             else:
-                print(f"Error: entity '{entity}' in the dictionary sheet is not in the entity sheet.", file=sys.stderr)
+                print(f"Error: entity '{entity_class}' in the dictionary sheet is not in the entity sheet.", file=sys.stderr)
                 sys.exit(1)
 
         # add entity in the slot sheet but not in the dictionary sheet to the dictionary
         for slot in slot_names2entity_classes.keys():
-            entity = slot_names2entity_classes[slot]
-            if entity not in snips_entity_definitions:
-                snips_entity_definitions[entity] = {}
+            entity_class = slot_names2entity_classes[slot]
+            if entity_class not in snips_entity_definitions:
+                snips_entity_definitions[entity_class] = {}
 
     if snips_entity_definitions == {}:  # if no slots & entity information is provided
         snips_entity_definitions = {"city": {"data": [{"value": "london"}],  # dummy is needed for SNIPS
-                                       "use_synonyms": True,
-                                       "automatically_extensible": True,
-                                       "matching_strictness": 1.0}}
+                                             "use_synonyms": True,
+                                             "automatically_extensible": True,
+                                             "matching_strictness": 1.0}}
 
-    # read utterances sheet
-    intent2utterances: Dict[str, List[str]] = {}
+    # convert utterances sheet
+    # utterances sheetの変換
+    intents2utterances: Dict[str, List[str]] = {}
 
     utterances_df.fillna('', inplace=True)
     for index, row in utterances_df.iterrows():
         if row[COLUMN_FLAG].strip() not in flags and ANY_FLAG not in flags:
             continue
         intent: str = row[COLUMN_TYPE]
-        if intent in intent2utterances.keys():
-            intent2utterances[intent].append(row[COLUMN_UTTERANCE].strip())
+        if intent in intents2utterances.keys():
+            intents2utterances[intent].append(row[COLUMN_UTTERANCE].strip())
         else:
-            intent2utterances[intent] = [row[COLUMN_UTTERANCE].strip()]
+            intents2utterances[intent] = [row[COLUMN_UTTERANCE].strip()]
 
     # create intent definitions
-    for intent in intent2utterances.keys():
+    for intent in intents2utterances.keys():
         utterance_descs: List[Dict[str, Any]] = []  # [{"data": [...]}, {"data": [...]}, ...]
-        for utterance in intent2utterances[intent]:
+        for utterance in intents2utterances[intent]:
             if language == "en":
-                utterance_fragments = get_utterance_fragments_en(utterance, canonicalizer, tokenizer, slot_names2entity_classes)
+                utterance_fragments = get_utterance_fragments_en(utterance, canonicalizer, tokenizer,
+                                                                 slot_names2entity_classes)
             elif language == "ja":
-                utterance_fragments = get_utterance_fragments_ja(utterance, canonicalizer, tokenizer, slot_names2entity_classes)
+                utterance_fragments = get_utterance_fragments_ja(utterance, canonicalizer, tokenizer,
+                                                                 slot_names2entity_classes)
             if utterance_fragments:  # ignore if this is None
                 utterance_desc: Dict[str, Any] = {'data': utterance_fragments}
                 utterance_descs.append(utterance_desc)
@@ -237,11 +247,11 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, entitie
 
 
 def get_utterance_fragments_en(utterance: str, canonicalizer: Canonicalizer,
-                            tokenizer: AbstractTokenizer,
-                            slot2entity: Dict[str, str]) -> List[Dict[str, Any]]:
+                               tokenizer: AbstractTokenizer,
+                               slot2entity: Dict[str, str]) -> List[Dict[str, Any]]:
     """
-    divides slot parts and other parts of the input utterance string
-    入力発話文字列のスロット部分とそうでない部分を分ける
+    divides slot parts and other parts of the input utterance string (English)
+    入力発話文字列のスロット部分とそうでない部分を分ける (英語)
     :param utterance: input utterance string
     :param canonicalizer: canonicalizer object
     :param tokenizer: tokenizer object
@@ -267,11 +277,11 @@ def get_utterance_fragments_en(utterance: str, canonicalizer: Canonicalizer,
 
 
 def get_utterance_fragments_ja(utterance: str, canonicalizer: Canonicalizer,
-                            tokenizer: AbstractTokenizer,
-                            slot2entity: Dict[str, str]) -> List[Dict[str, Any]]:
+                               tokenizer: AbstractTokenizer,
+                               slot2entity: Dict[str, str]) -> List[Dict[str, Any]]:
     """
-    divides slot parts and other parts of the input utterance string
-    入力発話文字列のスロット部分とそうでない部分を分ける
+    divides slot parts and other parts of the input utterance string (Japanese)
+    入力発話文字列のスロット部分とそうでない部分を分ける （日本語）
     :param utterance: input utterance string
     :param canonicalizer: canonicalizer object
     :param tokenizer: tokenizer object
