@@ -10,7 +10,7 @@ __author__ = 'Mikio Nakano'
 __copyright__ = 'C4A Research Institute, Inc.'
 
 import copy
-from typing import List, Any, Dict
+from typing import List, Any, Dict, Union
 import sys
 import os
 import importlib
@@ -50,6 +50,7 @@ BUILTIN_FUNCTION_MODULE: str = "dialbb.builtin_blocks.stn_management.builtin_sce
 SCOPES = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
 
 var_in_system_utterance_pattern = re.compile(r'\{([^\}]+)\}')  # {<variable name>}
+
 
 class STNError(Exception):
     pass
@@ -156,6 +157,24 @@ class Manager(AbstractBlock):
         # reading slots sheet
         return df_all.get(scenario_sheet)
 
+    def _select_nlu_result(self, nlu_results: List[Dict[str,Any]], previous_state_name: str):
+        """
+        selects nlu result among n-best results that matches one of the transitions.
+        if none matches, returns the top result.
+        N-best言語理解結果から遷移にマッチするものを選ぶ。どれもマッチしなければトップのものを返す。
+        :param nlu_results: n-best nlu_results
+        :param previous_state_name: the name of the previous state
+        :return: selected nlu result
+        """
+        previous_state: State = self._network.get_state_from_state_name(previous_state_name)
+        for nlu_result in nlu_results:
+            uu_type = nlu_result.get("type", "unknown")
+            for transition in previous_state.get_transitions():
+                if transition.get_user_utterance_type() == uu_type:
+                    return nlu_result
+        result = nlu_results[0]  # top one
+        return result
+
     def process(self, input_data: Dict[str, Any], session_id: str) -> Dict[str, Any]:
         """
         processes input from dialbb main process and output results to it
@@ -173,7 +192,7 @@ class Manager(AbstractBlock):
         """
 
         user_id: str = input_data['user_id']
-        nlu_result: Dict[str, Any] = input_data.get('nlu_result', {"type": "", "slots": {}})
+        nlu_result: Union[Dict[str, Any], List[Dict[str, Any]]] = input_data.get('nlu_result', {"type": "", "slots": {}})
         aux_data: Dict[str, Any] = input_data.get('aux_data', {})
         sentence = input_data.get("sentence", "")
 
@@ -201,6 +220,10 @@ class Manager(AbstractBlock):
                         raise Exception()
                     else:
                         raise STNError()
+                if type(nlu_result) == list:
+                    nlu_result = self._select_nlu_result(nlu_result, previous_state_name)
+                    self.log_info(f"nlu result selected: {str(nlu_result)}", session_id=session_id)
+
                 current_state_name: str = self._transition(previous_state_name, nlu_result, aux_data,
                                                            user_id, session_id, sentence)
                 self._dialogue_context[session_id][KEY_CURRENT_STATE_NAME] = current_state_name
