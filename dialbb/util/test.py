@@ -28,6 +28,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("config", help="config yaml file")
     parser.add_argument("inputs", help="test input json file")  # test input file
+    parser.add_argument("--output", help="output json file", required=False)  # output file (same format with test file)
     args = parser.parse_args()
 
     with open(args.inputs, encoding='utf-8') as file:
@@ -36,21 +37,33 @@ if __name__ == '__main__':
     config_file: str = args.config
     dialogue_processor = DialogueProcessor(config_file)
 
+    log_lines = []
     # reads each user utterance from test input file and processes it
     for test_utterances in test_inputs.get('test_inputs', []):
+        log_lines.append("----init")
         request = {"user_id": USER_ID}
         print("request: " + str(request))
         result = dialogue_processor.process(request, initial=True)
         print("response: " + str(result))
         print("SYS> " + result['system_utterance'])
+        log_lines.append("System: " + result['system_utterance'])
         session_id = result['session_id']
         for input_utterance in test_utterances.get("user_utterances", []):
             print("USR> " + input_utterance)
+            log_lines.append("User: " + input_utterance)
             request = {"user_id": USER_ID, "session_id": session_id,
                        "user_utterance": input_utterance}
             print("request: " + str(request))
             result = dialogue_processor.process(request, initial=False)
             print("response: " + str(result))
             print("SYS> " + result['system_utterance'])
+            log_lines.append("System: " + result['system_utterance'])
             if result['final']:
                 break
+
+    if args.output:
+        with open(args.output, mode='w', encoding='utf-8') as fp:
+            for log_line in log_lines:
+                print(log_line, file=fp)
+
+

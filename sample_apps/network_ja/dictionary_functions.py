@@ -20,13 +20,13 @@ def location(config: Dict[str, Any], block_config: Dict[str, Any]) -> List[Dict[
     :param block_config: block config （未使用）
     :return: 辞書情報
     """
-    return [{"value": "札幌", "synonyms": ["さっぽろ", "サッポロ"]},
-            {"value": "荻窪", "synonyms": ["おぎくぼ"]},
-            {"value": "富山"},
-            {"value": "熊本"},
-            {"value": "旭川"},
-            {"value": "喜多方"},
-            {"value": "徳島"}]
+    return [{"entity": "札幌", "synonyms": ["さっぽろ", "サッポロ"]},
+            {"entity": "荻窪", "synonyms": ["おぎくぼ"]},
+            {"entity": "富山"},
+            {"entity": "熊本"},
+            {"entity": "旭川"},
+            {"entity": "喜多方"},
+            {"entity": "徳島"}]
 
 
 

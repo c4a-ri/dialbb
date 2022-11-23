@@ -26,12 +26,12 @@ from dialbb.main import ANY_FLAG
 COLUMN_FLAG: str = "flag"
 COLUMN_TYPE: str = "type"
 COLUMN_UTTERANCE: str = "utterance"
-COLUMN_SLOT: str = "slot"
-COLUMN_ENTITY: str = "entity"
+COLUMN_SLOT_NAME: str = "slot name"
+COLUMN_ENTITY_CLASS: str = "entity class"
 COLUMN_USE_SYNONYMS: str = "use synonyms"
 COLUMN_AUTOMATICALLY_EXTENSIBLE: str = "automatically extensible"
 COLUMN_MATCHING_STRICTNESS: str = "matching strictness"
-COLUMN_VALUE: str = "value"
+COLUMN_ENTITY: str = "entity"
 COLUMN_SYNONYMS: str = "synonyms"
 
 tagged_utterance_pattern: Pattern = re.compile(r"\(([^)]+)\)\s*\[([^]]+)]")
@@ -58,7 +58,7 @@ def check_columns(required_columns: List[str], df: DataFrame, sheet: str) -> boo
 def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, entities_df: DataFrame,
                           dictionary_df: DataFrame, flags: List[str], function_modules: List[ModuleType],
                           config: Dict[str, Any], block_config: Dict[str, Any],
-                          language='en') -> Dict[str, Any]:
+                          language='ja', sudachi_normalization=False) -> Dict[str, Any]:
     """
     converts nlu knowledge into SNIPS training data
     :param utterances_df: utterances sheet dataframe
@@ -70,6 +70,7 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, entitie
     :param config: application configuration
     :param block_config: block configuration
     :param language: language of this app ('en' or 'ja')
+    :param sudachi_normalization: whether to perform sudachi normalization
     :return: SNIPS training data (to be saved as a JSON file)
     """
 
@@ -78,29 +79,30 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, entitie
     canonicalizer = Canonicalizer(language)
     tokenizer = None
     if language == 'ja':
-        tokenizer = SudachiTokenizer()
+        tokenizer = SudachiTokenizer(normalize=sudachi_normalization)
 
-    intent_definitions: Dict[str, Any] = {}
-    entity_definitions: Dict[str, Any] = {}
-    slot2entity: Dict[str, str] = {}  # from slots sheet
+    snips_intent_definitions: Dict[str, Any] = {}
+    snips_entity_definitions: Dict[str, Any] = {}
+
+    slot_names2entity_classes: Dict[str, str] = {}  # from slots sheet
 
     # when there is no slot sheet
     if slots_df is None:  # no slots sheet
         print(f"Warning: no slots sheet. Dummy entity definition is used instead.")
     else:
         slots_df.fillna('', inplace=True)
-        check_columns([COLUMN_FLAG, COLUMN_SLOT, COLUMN_ENTITY], slots_df, "slots")
+        check_columns([COLUMN_FLAG, COLUMN_SLOT_NAME, COLUMN_ENTITY_CLASS], slots_df, "slots")
         for index, row in slots_df.iterrows():
             if row[COLUMN_FLAG] not in flags and ANY_FLAG not in flags:
                 continue
-            slot: str = row[COLUMN_SLOT].strip()
-            entity: str = row[COLUMN_ENTITY].strip()
+            slot: str = row[COLUMN_SLOT_NAME].strip()
+            entity: str = row[COLUMN_ENTITY_CLASS].strip()
             if not entity.startswith("dialbb/"):  # dictionary function
-                slot2entity[slot] = entity
+                slot_names2entity_classes[slot] = entity
             else:  # entity defined by a dictionary function
                 function_name: str = entity.replace("dialbb/", "")
                 entity: str = function_name  # entity and function name is the same
-                slot2entity[slot] = entity
+                slot_names2entity_classes[slot] = entity
                 function_found = False
                 for function_module in function_modules:
                     function = getattr(function_module, function_name, None)
@@ -109,19 +111,22 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, entitie
                         dictionary: List[Dict[str, Union[str, List[str]]]] \
                             = eval("func(config, block_config)", {}, # execute dictionary function
                                    {"func": function, "config": config, "block_config": block_config})
-                        entity_definitions[entity] = {'data':  []}
+                        snips_entity_definitions[entity] = {'data':  []}
                         for entry in dictionary:
-                            normalized_value = normalize(entry['value'], canonicalizer, tokenizer)
-                            normalized_synonyms = [normalize(synonym, canonicalizer, tokenizer)
+                            value: str = entry['entity']
+                            normalized_value: str = normalize(value, canonicalizer, tokenizer)
+                            normalized_synonyms: List[str] = [normalize(synonym, canonicalizer, tokenizer)
                                                    for synonym in entry.get('synonyms',[])]
-                            entity_definitions[entity]['data'].append({"value": normalized_value,
+                            if value != normalized_value:
+                                normalized_synonyms.append(normalized_value) # normalized entity is used as a synonym
+                            snips_entity_definitions[entity]['data'].append({"value": value,
                                                                        "synonyms": normalized_synonyms})
                         break
                 if not function_found:
                     abort_during_building(f'dictionary function "{function_name}" is not found.')
 
         # reading entities sheet
-        check_columns([COLUMN_FLAG, COLUMN_ENTITY, COLUMN_USE_SYNONYMS,
+        check_columns([COLUMN_FLAG, COLUMN_ENTITY_CLASS, COLUMN_USE_SYNONYMS,
                        COLUMN_AUTOMATICALLY_EXTENSIBLE, COLUMN_MATCHING_STRICTNESS], entities_df, "entities")
         entity_descs: Dict[str, Dict[str, Any]] = {}  # <entity: str> -> {"use_synonyms": <bool>,
                                                       #                   "automatically_extensible": <bool>,
@@ -131,7 +136,7 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, entitie
         else:
             entities_df.fillna('', inplace=True)
             for index, row in entities_df.iterrows():
-                entity: str = row[COLUMN_ENTITY].strip()
+                entity: str = row[COLUMN_ENTITY_CLASS].strip()
                 if row[COLUMN_FLAG] not in flags and ANY_FLAG not in flags:
                     continue
                 if row[COLUMN_USE_SYNONYMS].strip() == "yes":
@@ -158,7 +163,7 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, entitie
             print(f"Warning: no dictionary sheet.")
         else:
             dictionary_df.fillna('', inplace=True)  # change empty cells to empty strings
-            check_columns([COLUMN_FLAG, COLUMN_ENTITY, COLUMN_VALUE, COLUMN_SYNONYMS], dictionary_df, "dictionary")
+            check_columns([COLUMN_FLAG, COLUMN_ENTITY_CLASS, COLUMN_ENTITY, COLUMN_SYNONYMS], dictionary_df, "dictionary")
             for index, row in dictionary_df.iterrows():
                 if row[COLUMN_FLAG] not in flags and ANY_FLAG not in flags:
                     continue
@@ -166,18 +171,21 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, entitie
                 normalized_synonyms: List[str] = [normalize(synonym.strip(), canonicalizer, tokenizer, language)
                                                   for synonym in
                                                   re.split('[,，、]', synonyms_string)]  # convert synonym cell to a list
-                entity = row[COLUMN_ENTITY].strip()
-                normalized_value: str = normalize(row['value'], canonicalizer, tokenizer, language)  # dictionary entry
-                if entity in entity_definitions.keys():
-                    entity_definitions[entity]['data'].append({"value": normalized_value,
+                entity: str = row[COLUMN_ENTITY_CLASS].strip()
+                value: str = row[COLUMN_ENTITY]
+                normalized_value: str = normalize(value, canonicalizer, tokenizer, language)  # dictionary entry
+                if value != normalized_value:
+                    normalized_synonyms.append(normalized_value)  # normalized entity is used as a synonym
+                if entity in snips_entity_definitions.keys():
+                    snips_entity_definitions[entity]['data'].append({"value": value,
                                                                "synonyms": normalized_synonyms})
                 else:
-                    entity_definitions[entity] = {'data': [{"value": normalized_value,
+                    snips_entity_definitions[entity] = {'data': [{"value": value,
                                                             "synonyms": normalized_synonyms}]}
 
         # integrate information in entity sheet into dictionary
-        for entity in entity_definitions.keys():
-            entity_definition = entity_definitions[entity]
+        for entity in snips_entity_definitions.keys():
+            entity_definition = snips_entity_definitions[entity]
             if entity in entity_descs.keys():
                 entity_definition['use_synonyms'] = entity_descs[entity]['use_synonyms']
                 entity_definition['automatically_extensible'] = entity_descs[entity]['automatically_extensible']
@@ -187,13 +195,13 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, entitie
                 sys.exit(1)
 
         # add entity in the slot sheet but not in the dictionary sheet to the dictionary
-        for slot in slot2entity.keys():
-            entity = slot2entity[slot]
-            if entity not in entity_definitions:
-                entity_definitions[entity] = {}
+        for slot in slot_names2entity_classes.keys():
+            entity = slot_names2entity_classes[slot]
+            if entity not in snips_entity_definitions:
+                snips_entity_definitions[entity] = {}
 
-    if entity_definitions == {}:  # if no slots & entity information is provided
-        entity_definitions = {"city": {"data": [{"value": "london"}],  # dummy is needed for SNIPS
+    if snips_entity_definitions == {}:  # if no slots & entity information is provided
+        snips_entity_definitions = {"city": {"data": [{"value": "london"}],  # dummy is needed for SNIPS
                                        "use_synonyms": True,
                                        "automatically_extensible": True,
                                        "matching_strictness": 1.0}}
@@ -216,15 +224,15 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, entitie
         utterance_descs: List[Dict[str, Any]] = []  # [{"data": [...]}, {"data": [...]}, ...]
         for utterance in intent2utterances[intent]:
             if language == "en":
-                utterance_fragments = get_utterance_fragments_en(utterance, canonicalizer, tokenizer, slot2entity)
+                utterance_fragments = get_utterance_fragments_en(utterance, canonicalizer, tokenizer, slot_names2entity_classes)
             elif language == "ja":
-                utterance_fragments = get_utterance_fragments_ja(utterance, canonicalizer, tokenizer, slot2entity)
+                utterance_fragments = get_utterance_fragments_ja(utterance, canonicalizer, tokenizer, slot_names2entity_classes)
             if utterance_fragments:  # ignore if this is None
                 utterance_desc: Dict[str, Any] = {'data': utterance_fragments}
                 utterance_descs.append(utterance_desc)
-        intent_definitions[intent] = {'utterances': utterance_descs}
+        snips_intent_definitions[intent] = {'utterances': utterance_descs}
 
-    result = {"intents": intent_definitions, "entities": entity_definitions, "language": language}
+    result = {"intents": snips_intent_definitions, "entities": snips_entity_definitions, "language": language}
     return result
 
 

@@ -180,7 +180,7 @@ class Manager(AbstractBlock):
         self.log_debug("input: " + str(input_data), session_id=session_id)
 
         try:
-            if not self._dialogue_context.get(session_id): # first turn
+            if not self._dialogue_context.get(session_id):  # first turn 最初のターン
                 self._dialogue_context[session_id] = {}
                 self._dialogue_context[session_id][KEY_CONFIG] = copy.deepcopy(self.config)
                 self._dialogue_context[session_id][KEY_BLOCK_CONFIG] = copy.deepcopy(self.block_config)
