@@ -21,6 +21,8 @@ blocks:  # ブロックのリスト
     flags_to_use:
       - Y
       - T
+    sudachi_normalization: yes
+    num_candidates: 1
   - name: manager
     block_class: stn_management.stn_manager.Manager
     knowledge_file: sample-knowledge-ja.xlsx # 知識記述ファイル

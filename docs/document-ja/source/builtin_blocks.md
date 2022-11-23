@@ -37,6 +37,9 @@ configurationの`language`要素が`ja`の場合は日本語，`en`の場合は�
 [SNIPS_NLU](https://snips-nlu.readthedocs.io/en/latest/)を利用して，ユーザ発話タイプ（インテントとも呼びます）の決定とスロットの抽出を行います．
 
 configurationの`language`要素が`ja`の場合は日本語，`en`の場合は英語の言語理解を行います．
+日本語の場合，ブロックコンフィギュレーションの`sudachi_normalization`が`True`の場合，
+言語理解モデルの構築時と実行時にSudachiの正規化（表記揺れの吸収を含む）を行います．
+
 
 本ブロックは，起動時にExcelで記述した言語理解用知識を読み込み，SNIPSの訓練データに変更し，SNIPSのモデルを構築します．
 
@@ -49,7 +52,7 @@ configurationの`language`要素が`ja`の場合は日本語，`en`の場合は�
   - `nlu_result`: 言語理解結果（辞書型）
     - 例：`{"type": "特定のラーメンが好き", "slots": {"favarite_ramen": "醤油ラーメン"}}}`
 - 知識記述はExcelファイルで行います． block configurationのknowledge_fileにファイル名を指定します．
-  ファイル名はconfigurationファイルからの相対パスで記述します．
+
 
 (nlu_knowledge)=
 
