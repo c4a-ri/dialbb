@@ -219,9 +219,17 @@ class Understander(AbstractBlock):
         slots = {}
         for snips_slot in snips_result["slots"]:
             if type(snips_slot["value"]) == dict:
-                slots[snips_slot["slotName"]] = snips_slot["value"]["value"]
+                slots[snips_slot["slotName"]] \
+                    = self._snips_slot_value_to_dialbb_slot_value(snips_slot["value"]["value"])
             else:
-                slots[snips_slot["slotName"]] = snips_slot["value"]
+                slots[snips_slot["slotName"]] \
+                    = self._snips_slot_value_to_dialbb_slot_value(snips_slot["value"])
         nlu_result = {"type": intent, "slots": slots}
         return nlu_result
 
+    def _snips_slot_value_to_dialbb_slot_value(self, value: str) -> str:
+        if self._language == 'ja':
+            result = value.replace(' ', '')  # 辞書にないスロット値はスペースを含んでいる場合がある
+        else:
+            result = value
+        return result

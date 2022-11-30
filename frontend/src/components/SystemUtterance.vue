@@ -1,43 +1,44 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 defineProps({
     utterance: { type: String, required: true }
 })
 </script>
 <template>
     <div class="row">
-        <div class="chat-r col-7 ms-auto chat-text-r">{{ utterance }}</div>
-        <div class="col-auto chat-icon-r">
+        <div class="col-auto chat-icon-l">
             <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="32"
                 height="32"
                 fill="currentColor"
-                class="bi bi-chat-right-text"
+                class="bi bi-chat-left-text"
                 viewBox="0 0 16 16"
             >
                 <path
-                    d="M2 1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h9.586a2 2 0 0 1 1.414.586l2 2V2a1 1 0 0 0-1-1H2zm12-1a2 2 0 0 1 2 2v12.793a.5.5 0 0 1-.854.353l-2.853-2.853a1 1 0 0 0-.707-.293H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h12z"
+                    d="M14 1a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H4.414A2 2 0 0 0 3 11.586l-2 2V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12.793a.5.5 0 0 0 .854.353l2.853-2.853A1 1 0 0 1 4.414 12H14a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"
                 />
                 <path
                     d="M3 3.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zM3 6a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9A.5.5 0 0 1 3 6zm0 2.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5z"
                 />
             </svg>
         </div>
+        <div class="chat-l col-7 chat-text-l">{{ utterance }}</div>
     </div>
 </template>
 <style scoped>
-.chat-r {
+.chat-l {
     border: 1px solid #ddd;
     border-radius: 15px;
     background-color: darkseagreen;
     margin: 15px;
     padding: 15px;
 }
-.chat-text-r {
-    text-align: right;
+.chat-text-l {
+    text-align: left;
     font-size: 1.25rem;
 }
-.chat-icon-r {
+.chat-icon-l {
     margin: 15px;
     padding: 15px;
 }
