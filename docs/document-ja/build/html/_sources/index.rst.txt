@@ -11,11 +11,12 @@ DialBB ドキュメント
    :caption: Contents:
    :numbered:
 
-   intro
-   concept
-   install
-   sample_app
-   framework
-   builtin_blocks
+   01_intro
+   02_concept
+   03_install
+   04_sample_app
+   05_framework
+   06_builtin_blocks
+   
 
 

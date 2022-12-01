@@ -7,7 +7,7 @@
 
 DialBBのメインモジュールは，メソッド呼び出しまたはWeb API経由で，ユーザ発話をJSON形式で受けとり，システム発話をJSON形式で返します．
 
-メインモジュールは，ブロックと呼ぶいくつかのサブモジュールを順に呼び出すことによって動作します．各ブロックはJSON形式(pythonのdictのデータ)を受け取り，JSON形式のデータを返します．
+メインモジュールは，ブロックと呼ぶいくつかのサブモジュールを順に呼び出すことによって動作します．各ブロックはJSON形式（pythonの辞書型）のデータを受け取り，JSON形式のデータを返します．
 
 各ブロックのクラスや入出力仕様はアプリケーション毎のコンフィギュレーションファイルで規定します．
 
@@ -124,21 +124,24 @@ $ python run_server.py [--port <port>] <config file>
   
   ```python
   >>> from dialbb.main import DialogueProcessor
-  >>> dialogue_processor = DialogueProcessor(<configurationファイル> <追加のconfiguration>)
-  >>> response = dialogue_processor.process(<リクエスト>, initial=True) # 対話の開始時
-  >>> response = dialogue_processor.process(<リクエスト>) # それ以降
+  >>> dialogue_processor = DialogueProcessor(<コンフィギュレーションファイル> <追加のコンフィギュレーション>)
+  >>> session_id = <新しく作成したsession id>          # 対話開始時
+  >>> session_id = <クライアントから送られ来たsession id> # 2回目以降のターン
+  >>> response = dialogue_processor.process(<リクエスト>, session_id)
   ```
   
-  `<追加のconfiguration>`は，以下のような辞書形式のデータで，keyは文字列でなければなりません．
-
-  ```
+  注意: processメソッドの仕様はv0.2.0で変更になりました．
+  
+  `<追加のコンフィギュレーション>`は，以下のような辞書形式のデータで，keyは文字列でなければなりません．
+  
+  ```json
   {
-    "<key1>": <value1>,
-    "<key2>": <value2>
+	  "<key1>": <value1>,
+    "<key2>": <value2>,
     ...
-	}
+  }
   ```
-  これは，configurationファイルから読み込んだデータに追加して用いられます．もし，configurationファイルと追加のconfigurationで同じkeyが用いられていた場合，追加のconfigurationの値が用いられます．
+  これは，コンフィギュレーションファイルから読み込んだデータに追加して用いられます．もし，コンフィギュレーションファイルと追加のコンフィギュレーションで同じkeyが用いられていた場合，追加のコンフィギュレーションの値が用いられます．
   
   <リクエスト>と`response`（レスポンス）は辞書型のデータで，Web APIのリクエスト，レスポンスと同じです．
 
@@ -152,10 +155,10 @@ $ python run_server.py [--port <port>] <config file>
 
 ```
 blocks
-  - <block configuration>
-  - <block configuration>
+  - <ブロックコンフィギュレーション>
+  - <ブロックコンフィギュレーション>
   ...
-  - <block configuration>
+  - <ブロックコンフィギュレーション>
 ```
 
 各ブロックコンフィギュレーションの必須要素は以下です．
@@ -166,7 +169,7 @@ blocks
 
 - `block_class`
 
-  ブロックのクラス名です．組み込みクラスの場合は`dialbb.builtin_blocks`からの相対パスで記述します．開発者の自作ブロックの場合は，モジュールが検索されるパスからの相対パスで記述します．コンフィギュレーションファイルのあるディレクトリは，モジュールが検索されるパス（`sys.path`の要素）に自動的に登録されます．
+  ブロックのクラス名です．モジュールを検索するパス（`sys.path`の要素の一つ．環境変数`PYTHONPATH`で設定するパスはこれに含まれます）からの相対で記述します（組み込みクラスの場合`dialbb.builtin_blocks`からの相対パスでも書けますが推奨されません）．コンフィギュレーションファイルのあるディレクトリは，モジュールが検索されるパス（`sys.path`の要素）に自動的に登録されます．
 
 - `input`
 
@@ -200,7 +203,7 @@ blocks
 
 開発者は自分でブロックを作成することができます．
 
-ブロックのクラスは`diabb.abstract_block.AbstractBlock`の子クラスでないといけません．
+ブロックのクラスは`diabb.abstract_block.AbstractBlock`の子孫クラスでないといけません．
 
 ### 実装すべきメソッド
 
@@ -226,11 +229,11 @@ blocks
 
 - `self.config` 
 
-   configurationの内容を辞書型データにしたものです．これを参照することで，独自に付け加えた要素を読みこむことが可能です．
+   コンフィギュレーションの内容を辞書型データにしたものです．これを参照することで，独自に付け加えた要素を読みこむことが可能です．
    
 - `self.block_config`
 
-   block configurationの内容を辞書型データにしたものです．これを参照することで，独自に付け加えた要素を読みこむことが可能です．
+   ブロックコンフィギュレーションの内容を辞書型データにしたものです．これを参照することで，独自に付け加えた要素を読みこむことが可能です．
    
 - `self.name`
 
@@ -238,26 +241,26 @@ blocks
 
 - `self.config_dir`
 
-   configurationファイルのあるディレクトリです．アプリケーションディレクトリと呼ぶこともあります．
+   コンフィギュレーションファイルのあるディレクトリです．アプリケーションディレクトリと呼ぶこともあります．
 
 ### 利用できるメソッド
 
 以下のロギングメソッドが利用できます．
 
-- log_debug(self, message: str, session_id: str = "unknown")
+- `log_debug(self, message: str, session_id: str = "unknown")`
 
   標準エラー出力にdebugレベルのログを出力します．
   `session_id`にセッションIDを指定するとログに含めることができます．
 
-- log_info(self, message: str, session_id: str = "unknown")
+- `log_info(self, message: str, session_id: str = "unknown")`
 
   標準エラー出力にinfoレベルのログを出力します．
   
-- log_warning(self, message: str, session_id: str = "unknown")
+- `log_warning(self, message: str, session_id: str = "unknown")`
 
   標準エラー出力にwarningレベルのログを出力します．
 
-- log_error(self, message: str, session_id: str = "unknown")
+- `log_error(self, message: str, session_id: str = "unknown")`
 
   標準エラー出力にerrorレベルのログを出力します．
 
@@ -267,3 +270,47 @@ blocks
 Python起動時の環境変数 `DIALBB_DEBUG`の値が`yes` （大文字小文字は問わない）の時，デバッグモードで動作します．この時，`dialbb.main.DEBUG`の値が`True`になります．アプリ開発者が作成するブロックの中でもこの値を参照することができます．
 
 `dialbb.main.DEBUG`が`True`の場合，ロギングレベルはdebugに設定され，その他の場合はinfoに設定されます．
+
+## テストシナリオを用いたテスト
+
+以下のコマンドでテストシナリオを用いたテストができます．
+
+```sh
+$ python dialbb/util/test.py <アプリケーションコンフィギュレーション> \
+  <テストシナリオ> [--output <出力ファイル>]
+```
+
+テストシナリオは以下の形式のテキストファイルです．
+
+```
+<対話の区切り>
+<System: <システム発話>
+User: <ユーザ発話>
+System: <システム発話>
+User: <ユーザ発話>
+...
+System: <システム発話>
+User: <ユーザ発話>
+System: <システム発話>
+<対話の区切り>
+<System: <システム発話>
+User: <ユーザ発話>
+System: <システム発話>
+User: <ユーザ発話>
+...
+System: <システム発話>
+User: <ユーザ発話>
+System: <システム発話>
+<対話の区切り>
+...
+
+```
+
+<対話の区切り>は，"----init"で始まる文字列です．
+
+テストスクリプトは，<ユーザ発話>を順番にアプリケーションに入力して，システム発話を受け取ります．システム発話がスクリプトのシステム発話と異なる場合はwarningを出します．テストが終了すると，出力されたシステム発話を含め，テストシナリオと同じ形式で対話を出力することができます．テストシナリオと出力ファイルを比較することで，応答の変化を調べることができます．
+
+
+
+
+

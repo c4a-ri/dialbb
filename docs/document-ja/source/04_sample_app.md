@@ -12,9 +12,9 @@
 
 - Utterance canonicalizer: 正規化ブロック．ユーザ入力文の正規化（大文字→小文字，全角⇒半角の変換，Unicode正規化など）を行います．
 
-- SNIPS understander: 言語理解ブロック．[SNIPS_NLU](https://snips-nlu.readthedocs.io/en/latest/)を利用して，ユーザ発話タイプ（インテントとも呼びます）の決定とスロットの抽出を行います．
+- SNIPS understander: 言語理解ブロック．形態素解析を行った後，[SNIPS_NLU](https://snips-nlu.readthedocs.io/en/latest/)を利用して，ユーザ発話タイプ（インテントとも呼びます）の決定とスロットの抽出を行います．
   
-- STN manager: 対話管理ブロック．状態遷移ネットワーク(State-Transition Network)を用いて対話管理を行います．
+- STN manager: 対話管理ブロック．状態遷移ネットワーク(State Transition Network)を用いて対話管理を行います．
 
 組み込みブロックとは，DialBBにあらかじめ含まれているブロックです．これらの組み込みブロックの詳細は，{ref}`builtin_blocks`で説明します．
 
@@ -24,14 +24,29 @@
 
 sample_apps/network_jaには以下のファイルが含まれています．
 
-| ファイル名               | 説明                                                         |
-| ------------------------ | ------------------------------------------------------------ |
-| config.yml               | アプリケーションを規定するconfigurationファイルです．<br />どのようなブロックを使うかや，各ブロックが読み込むファイル<br />などが指定されています．<br />このファイルのフォーマットは{ref}`configuration`で詳細に説明します． |
-| config_gs_template.yml   | config.ymlは言語理解と対話管理の知識をExcelで書いたものを使うようになっていますが，Excelの代わりにGoogle Spreadsheetを用いる場合のconfigurationファイルのテンプレートです．config_gs.ymlにコピーし，Google Spreadsheetにアクセスするための情報を加えることで使用できます． |
-| sample-knowledge-ja.xlsx | 言語理解ブロック，対話管理ブロックで用いる知識を記述したものです． |
-| scenario_functions.py    | 対話管理ブロックで用いるプログラムです．                     |
-| dictionary_functions.py  | 言語理解用の辞書をExcel記述ではなく，関数によって定義する場合の例が含まれています． |
-| test_inputs.json         | システムテストで使うデータです．                             |
+- `config.yml`
+
+  アプリケーションを規定するコンフィギュレーションファイルです．どのようなブロックを使うかや，各ブロックが読み込むファイルなどが指定されています．このファイルのフォーマットは{ref}`configuration`で詳細に説明します
+
+- `config_gs_template.yml`　
+
+  `config.yml`は言語理解と対話管理の知識をExcelで書いたものを使うようになっていますが，Excelの代わりにGoogle Spreadsheetを用いる場合のコンフィギュレーションファイルのテンプレートです．`config_gs.yml`にコピーし，Google Spreadsheetにアクセスするための情報を加えることで使用できます．
+
+- `sample-knowledge-ja.xlsx`
+
+  言語理解ブロック，対話管理ブロックで用いる知識を記述したものです．
+
+- scenario_functions.py
+
+  対話管理ブロックで用いるプログラムです．
+
+- `dictionary_functions.py`
+
+  言語理解用の辞書をExcel記述ではなく，関数によって定義する場合の例が含まれています．
+
+- `test_inputs.txt`
+
+  システムテストで使うテストシナリオです．
 
 ## 言語理解ブロック
 

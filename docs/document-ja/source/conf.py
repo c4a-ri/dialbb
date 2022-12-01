@@ -23,7 +23,7 @@ copyright = 'C4A Research Institute, Inc'
 author = 'Mikio Nakano'
 
 # The full version, including alpha/beta/rc tags
-release = 'v0.2a'
+release = 'v0.2.0'
 
 
 # -- General configuration ---------------------------------------------------
@@ -55,6 +55,10 @@ source_suffix = {
     '.md': 'markdown',
 }
 
+# The master toctree document.
+master_doc = 'index'
+
+
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -67,4 +71,36 @@ html_theme = 'sphinx_rtd_theme'
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+# -- Options for LaTeX output ------------------------------------------------
+
+latex_elements = {
+    # The paper size ('letterpaper' or 'a4paper').
+    #
+    # 'papersize': 'letterpaper',
+
+    # The font size ('10pt', '11pt' or '12pt').
+    #
+    # 'pointsize': '10pt',
+
+    # Additional stuff for the LaTeX preamble.
+    #
+    # 'preamble': '',
+
+    # Latex figure (float) alignment
+    #
+    # 'figure_align': 'htbp',
+}
+
+# Grouping the document tree into LaTeX files. List of tuples
+# (source start file, target name, title,
+#  author, documentclass [howto, manual, or own class]).
+latex_documents = [
+    (master_doc, 'dialbb-document-ja.tex', 'DialBBドキュメント',
+     '', 'manual'),
+]
+
+latex_elements = {
+  'extraclassoptions': 'openany,oneside'
+}
 
