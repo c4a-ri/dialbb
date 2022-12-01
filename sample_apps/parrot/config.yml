@@ -1,6 +1,6 @@
 # configuration file for a simple app that echoes user utterances
 
-language: ja
+language: en
 
 blocks:
   - name: parrot
