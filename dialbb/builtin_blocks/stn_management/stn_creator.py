@@ -28,7 +28,14 @@ COLUMN_DESTINATION: str = "next state"
 
 
 def create_stn(df: DataFrame, flags_to_use: List[str]) -> StateTransitionNetwork:
-
+    """
+    creates and returns the state transition network
+    状態遷移ネットワークを作成して返す
+    :param df: scenario DataFrame シナリオDataFrame
+    :param flags_to_use: if the value of flags column is not a member of this list, the row is ignored
+                         もしflags列の値がこのリストになければその行は無視される
+    :return: created StateTransitionNetwork object 作成されたStateTransitionNetworkオブジェクト
+    """
 
     # check column names
     columns = df.columns.values.tolist()

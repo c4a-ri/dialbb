@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>2. DialBBの概要 &mdash; DialBBドキュメント v0.1 ドキュメント</title>
+  <title>2. DialBBの概要 &mdash; DialBBドキュメント v0.2.0 ドキュメント</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -21,8 +21,8 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="索引" href="genindex.html" />
     <link rel="search" title="検索" href="search.html" />
-    <link rel="next" title="3. インストールとサンプルアプリの実行の仕方" href="install.html" />
-    <link rel="prev" title="1. はじめに" href="intro.html" /> 
+    <link rel="next" title="3. インストールとサンプルアプリケーションの実行の仕方" href="03_install.html" />
+    <link rel="prev" title="1. はじめに" href="01_intro.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -42,12 +42,12 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="intro.html">1. はじめに</a></li>
+<li class="toctree-l1"><a class="reference internal" href="01_intro.html">1. はじめに</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">2. DialBBの概要</a></li>
-<li class="toctree-l1"><a class="reference internal" href="install.html">3. インストールとサンプルアプリの実行の仕方</a></li>
-<li class="toctree-l1"><a class="reference internal" href="sample_app.html">4. 日本語サンプルアプリケーションの説明</a></li>
-<li class="toctree-l1"><a class="reference internal" href="framework.html">5. フレームワーク仕様</a></li>
-<li class="toctree-l1"><a class="reference internal" href="builtin_blocks.html">6. 組み込みブロックの仕様</a></li>
+<li class="toctree-l1"><a class="reference internal" href="03_install.html">3. インストールとサンプルアプリケーションの実行の仕方</a></li>
+<li class="toctree-l1"><a class="reference internal" href="04_sample_app.html">4. 日本語サンプルアプリケーションの説明</a></li>
+<li class="toctree-l1"><a class="reference internal" href="05_framework.html">5. フレームワーク仕様</a></li>
+<li class="toctree-l1"><a class="reference internal" href="06_builtin_blocks.html">6. 組み込みブロックの仕様</a></li>
 </ul>
 
         </div>
@@ -66,7 +66,7 @@
       <li><a href="index.html" class="icon icon-home"></a></li>
       <li class="breadcrumb-item active"><span class="section-number">2. </span>DialBBの概要</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="_sources/concept.md.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/02_concept.md.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -76,22 +76,22 @@
              
   <section id="dialbb">
 <h1><span class="section-number">2. </span>DialBBの概要<a class="headerlink" href="#dialbb" title="この見出しへのパーマリンク"></a></h1>
-<p><a class="reference internal" href="intro.html#intro"><span class="std std-ref">はじめに</span></a>に書いたように，DialBBは対話システムを作るためのフレームワークです．</p>
+<p><a class="reference internal" href="01_intro.html#intro"><span class="std std-ref">はじめに</span></a>に書いたように，DialBBは対話システムを作るためのフレームワークです．</p>
 <p>フレームワークとは，それ単体でアプリケーションとして成立はしないが，データや追加のプログラムを与えることでアプリケーションを作成するものです．</p>
 <p>DialBBのアプリケーションは，ブロックと呼ぶモジュールが順に処理を行うことで，ユーザからの入力発話に対するシステム発話を作成し返します．以下に基本的なアーキテクチャを示します．</p>
 <p><img alt="dialbb-arch" src="_images/dialbb-arch.jpg" /></p>
-<p>メインモジュールは，対話の各ターンで入力されたデータ（ユーザ発話を含みます）を各ブロックが順次処理することによって応答を返します．このデータのことをpayloadと呼びます．各ブロックは，payloadの要素のいくつかを受け取り，辞書形式のデータを返します．返されたデータはpayloadに追加されます．すでに同じキーを持つ要素がpayloadにある場合は上書きされます．</p>
-<p>どのようなブロックを使うかは，configurationファイルで設定します．ブロックは，あらかじめDialBBが用意しているブロック（組み込みブロック）でもアプリケーション開発者が作成するブロックでも構いません．</p>
-<p>メインモジュールが各ブロックにどのようなデータを渡し，どのようなデータを受け取るかもconfigurationファイルで指定します．</p>
-<p>詳細は「<a class="reference internal" href="framework.html#framework"><span class="std std-ref">フレームワーク仕様</span></a>」で説明します．</p>
+<p>メインモジュールは，対話の各ターンで入力されたデータ（ユーザ発話を含みます）を各ブロックに順次処理させることにより，システム発話を作成して返します．このデータのことをpayloadと呼びます．各ブロックは，payloadの要素のいくつかを受け取り，辞書形式のデータを返します．返されたデータはpayloadに追加されます．すでに同じキーを持つ要素がpayloadにある場合は上書きされます．</p>
+<p>どのようなブロックを使うかは，コンフィギュレーションファイルで設定します．ブロックは，あらかじめDialBBが用意しているブロック（組み込みブロック）でもアプリケーション開発者が作成するブロックでも構いません．</p>
+<p>メインモジュールが各ブロックにどのようなデータを渡し，どのようなデータを受け取るかもコンフィギュレーションファイルで指定します．</p>
+<p>詳細は「<a class="reference internal" href="05_framework.html#framework"><span class="std std-ref">フレームワーク仕様</span></a>」で説明します．</p>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="intro.html" class="btn btn-neutral float-left" title="1. はじめに" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="install.html" class="btn btn-neutral float-right" title="3. インストールとサンプルアプリの実行の仕方" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="01_intro.html" class="btn btn-neutral float-left" title="1. はじめに" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="03_install.html" class="btn btn-neutral float-right" title="3. インストールとサンプルアプリケーションの実行の仕方" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
