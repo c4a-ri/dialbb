@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.0 (2022.11.15)
+## 0.2.0 (2022.12.1)
 
 - AbstractBlockのインタフェースの変更
 
@@ -16,6 +16,11 @@
   
 - Google Sheetsが利用できるように変更
 
+- テストシナリオのフォーマットを変更
+
+- SNIPS Understander用知識記述のカラム名変更
+
+- SNIPS Understanderのn-best出力に対応
 
 ## 0.1 (2022.8.9)
 

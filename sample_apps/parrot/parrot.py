@@ -17,21 +17,24 @@ class Parrot(AbstractBlock):
 
     def __init__(self, *args):
         super().__init__(*args)
+        self._known_sessions: Dict[str, bool] = {}  # session_id -> True
 
-    def process(self, input: Dict[str, Any], initial=False) -> Dict[str, Any]:
+    def process(self, input: Dict[str, Any], session_id: str) -> Dict[str, Any]:
         """
         :param input. keys: "input_text", "input_aux_data"
         :return: output. keyss: "output_text", "output_aux_data"
         """
 
         self.log_debug("input: " + str(input))
-        if initial:
-            system_utterance = "こちらはオウム返しbotです。何でも言って見てください。"
-            output = {"output_text": system_utterance, "output_aux_data": {}, "final": False}
+        continuing_session: bool = self._known_sessions.get(session_id, False)
+        if not continuing_session:
+            self._known_sessions[session_id] = True
+            system_utterance = "I'm a parrot. You can say anything."
+            output = {"output_text": system_utterance, "output_aux_data": {}, "final": False, "session_id": session_id}
         else:
             user_utterance = input['input_text']
             input_aux_data = input['input_aux_data']
-            system_utterance = f"「{user_utterance}」と仰いましたね。"
-            output = {"output_text": system_utterance, "output_aux_data": input_aux_data, "final": False}
+            system_utterance = f'You said "{user_utterance}"'
+            output = {"output_text": system_utterance, "output_aux_data": input_aux_data, "final": False, "session_id": session_id}
         self.log_debug("output: " + str(output))
         return output

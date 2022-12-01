@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="ja" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>6. 組み込みブロックの仕様 &mdash; DialBBドキュメント v0.2.0 ドキュメント</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+        <script src="_static/translations.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="索引" href="genindex.html" />
+    <link rel="search" title="検索" href="search.html" />
+    <link rel="prev" title="5. フレームワーク仕様" href="05_framework.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> DialBBドキュメント
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="01_intro.html">1. はじめに</a></li>
+<li class="toctree-l1"><a class="reference internal" href="02_concept.html">2. DialBBの概要</a></li>
+<li class="toctree-l1"><a class="reference internal" href="03_install.html">3. インストールとサンプルアプリケーションの実行の仕方</a></li>
+<li class="toctree-l1"><a class="reference internal" href="04_sample_app.html">4. 日本語サンプルアプリケーションの説明</a></li>
+<li class="toctree-l1"><a class="reference internal" href="05_framework.html">5. フレームワーク仕様</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">6. 組み込みブロックの仕様</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#utterance-canonicalizer">6.1. Utterance canonicalizer （文字列正規化ブロック）</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id2">6.1.1. 入出力</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id3">6.1.2. 処理内容</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#snips-understander-snips">6.2. SNIPS understander （SNIPSを用いた言語理解ブロック）</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id4">6.2.1. 入出力</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id5">6.2.2. ブロックコンフィギュレーションのパラメータ</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#nlu-knowledge">6.2.3. 言語理解知識</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#utterances">6.2.3.1. utterancesシート</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#slots">6.2.3.2. slotsシート</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#entities">6.2.3.3. entitiesシート</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dictionary">6.2.3.4. dictionaryシート</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dictionary-function">6.2.3.5. 開発者による辞書関数の定義</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#snips">6.2.3.6. SNIPSの訓練データ</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#stn-manager">6.3. STN manager （状態遷移ネットワークベースの言語理解ブロック）</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id9">6.3.1. ブロックコンフィギュレーションのパラメータ</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scenario">6.3.2. 対話管理の知識記述</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id11">6.3.3. 特別な状態</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id12">6.3.4. 条件とアクション</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id13">6.3.4.1. 関数の引数</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#id14">6.3.5. 関数定義</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id15">6.3.5.1. 組み込み関数</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id16">6.3.5.2. 開発者による関数定義</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#id17">6.3.6. 言語理解結果候補が複数ある場合の処理</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">DialBBドキュメント</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a></li>
+      <li class="breadcrumb-item active"><span class="section-number">6. </span>組み込みブロックの仕様</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/06_builtin_blocks.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="id1">
+<h1><span class="section-number">6. </span>組み込みブロックの仕様<a class="headerlink" href="#id1" title="この見出しへのパーマリンク"></a></h1>
+<p>組み込みブロックとは，DialBBにあらかじめ含まれているブロックです．</p>
+<section id="utterance-canonicalizer">
+<h2><span class="section-number">6.1. </span>Utterance canonicalizer （文字列正規化ブロック）<a class="headerlink" href="#utterance-canonicalizer" title="この見出しへのパーマリンク"></a></h2>
+<p>(<code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.preprocess.utterance_canonicalizer.UtteranceCanonicalizer</span></code>)</p>
+<p>ユーザ入力文の正規化を行います．</p>
+<p>コンフィギュレーションの<code class="docutils literal notranslate"><span class="pre">language</span></code>要素が<code class="docutils literal notranslate"><span class="pre">ja</span></code>の場合は日本語，<code class="docutils literal notranslate"><span class="pre">en</span></code>の場合は英語用の正規化を行います．</p>
+<section id="id2">
+<h3><span class="section-number">6.1.1. </span>入出力<a class="headerlink" href="#id2" title="この見出しへのパーマリンク"></a></h3>
+<ul class="simple">
+<li><p>入力</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">input_text</span></code>: ユーザ発話文字列（文字列）</p>
+<ul>
+<li><p>例：&quot;ＣＵＰ Noodle 好き&quot;</p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>出力</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">output_text</span></code>: 正規化後のユーザ発話（文字列）</p>
+<ul>
+<li><p>例：&quot;cupnoodle好き&quot;</p></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="id3">
+<h3><span class="section-number">6.1.2. </span>処理内容<a class="headerlink" href="#id3" title="この見出しへのパーマリンク"></a></h3>
+<p>正規化ブロックはユーザ発話文字列に対して以下の処理を行います．</p>
+<ul class="simple">
+<li><p>大文字→小文字</p></li>
+<li><p>全角→半角の変換（カタカナを除く）</p></li>
+<li><p>スペースの連続を一つのスペースに変換（英語のみ）</p></li>
+<li><p>スペースの削除（日本語のみ）</p></li>
+<li><p>Unicode正規化（NFKC）（日本語のみ）</p></li>
+</ul>
+</section>
+</section>
+<section id="snips-understander-snips">
+<h2><span class="section-number">6.2. </span>SNIPS understander （SNIPSを用いた言語理解ブロック）<a class="headerlink" href="#snips-understander-snips" title="この見出しへのパーマリンク"></a></h2>
+<p>(<code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.understanding_with_snips.snips_understander.Understander</span></code>)</p>
+<p><a class="reference external" href="https://snips-nlu.readthedocs.io/en/latest/">SNIPS_NLU</a>を利用して，ユーザ発話タイプ（インテントとも呼びます）の決定とスロットの抽出を行います．</p>
+<p>コンフィギュレーションの<code class="docutils literal notranslate"><span class="pre">language</span></code>要素が<code class="docutils literal notranslate"><span class="pre">ja</span></code>の場合は日本語，<code class="docutils literal notranslate"><span class="pre">en</span></code>の場合は英語の言語理解を行います．
+日本語の場合は、SNIPSを適用する前に<a class="reference external" href="https://github.com/WorksApplications/Sudachi">Sudachi</a>を用いて形態素解析を行います。</p>
+<p>本ブロックは，起動時にExcelで記述した言語理解用知識を読み込み，SNIPSの訓練データに変更し，SNIPSのモデルを構築します．</p>
+<p>実行時はSNIPSのモデルを用いて言語理解を行います．</p>
+<section id="id4">
+<h3><span class="section-number">6.2.1. </span>入出力<a class="headerlink" href="#id4" title="この見出しへのパーマリンク"></a></h3>
+<ul>
+<li><p>入力</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">input_text</span></code>: 正規化後のユーザ発話（文字列）</p>
+<ul>
+<li><p>例：&quot;好きなのは醤油&quot;</p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>出力</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">nlu_result</span></code>: 言語理解結果（辞書型または辞書型のリスト）</p>
+<ul>
+<li><p>後述のブロックコンフィギュレーションのパラメータ<code class="docutils literal notranslate"><span class="pre">num_candidates</span></code>が1の場合、言語理解結果は辞書型で以下のような形式です。</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span> {&quot;type&quot;: &lt;ユーザ発話タイプ（インテント）&gt;, 
+  &quot;slots&quot;: {&lt;スロット名&gt;: &lt;スロット値&gt;, ..., &lt;スロット名&gt;: &lt;スロット値&gt;}}
+</pre></div>
+</div>
+<p>以下が例です。</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;特定のラーメンが好き&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;slots&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;favarite_ramen&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;醤油ラーメン&quot;</span><span class="p">}}</span><span class="w"></span>
+</pre></div>
+</div>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">num_candidates</span></code>が2以上の場合、複数の理解結果候補のリストになります。</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span> [{&quot;type&quot;: &lt;ユーザ発話タイプ（インテント）&gt;, 
+   &quot;slots&quot;: {&lt;スロット名&gt;: &lt;スロット値&gt;, ..., &lt;スロット名&gt;: &lt;スロット値&gt;}},
+  {&quot;type&quot;: &lt;ユーザ発話タイプ（インテント）&gt;, 
+   &quot;slots&quot;: {&lt;スロット名&gt;: &lt;スロット値&gt;, ..., &lt;スロット名&gt;: &lt;スロット値&gt;}},
+  ....]
+</pre></div>
+</div>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="id5">
+<h3><span class="section-number">6.2.2. </span>ブロックコンフィギュレーションのパラメータ<a class="headerlink" href="#id5" title="この見出しへのパーマリンク"></a></h3>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">knowledge_file</span></code>（文字列）</p>
+<p>知識を記述したExcelファイルを指定します。コンフィギュレーションファイルのあるディレクトリからの相対パスで記述します。</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">function_definitions</span></code>（文字列）</p>
+<p>辞書関数（<a class="reference internal" href="#dictionary-function"><span class="std std-ref">開発者による辞書関数の定義</span></a>を参照）を定義したモジュールの名前です。複数ある場合は<code class="docutils literal notranslate"><span class="pre">':'</span></code>でつなぎます。モジュール検索パスにある必要があります。（コンフィギュレーションファイルのあるディレクトリはモジュール検索パスに入っています。）</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flags_to_use</span></code>（文字列のリスト）</p>
+<p>各シートの<code class="docutils literal notranslate"><span class="pre">flag</span></code>カラムにこの値のうちのどれかが書かれていた場合に読み込みます。</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sudachi_normalization</span></code>（ブール値）</p>
+<p>日本語の場合，この値が<code class="docutils literal notranslate"><span class="pre">True</span></code>の場合，言語理解モデルの構築時と言語理解実行時にSudachiの正規化（表記揺れの吸収を含む）を行います．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">num_candidates</span></code>（Integer）</p>
+<p>言語理解結果の数（n-bestのn）を指定します。</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">knowledge_google_sheet</span></code> (ハッシュ)</p>
+<ul>
+<li><p>Excelの代わりにGoogle Sheetを用いる場合の情報を記述します。</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">sheet_id</span></code> （文字列）</p>
+<p>Google SheetのIDです。</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">key_file</span></code>（文字列）</p>
+<p>Goole Sheet APIにアクセスするためのキーファイルをコンフィギュレーションファイルのディレクトリからの相対パスで指定します。</p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="nlu-knowledge">
+<span id="id6"></span><h3><span class="section-number">6.2.3. </span>言語理解知識<a class="headerlink" href="#nlu-knowledge" title="この見出しへのパーマリンク"></a></h3>
+<p>言語理解知識は，以下の４つのシートからなります．</p>
+<table class="colwidths-auto docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>シート名</p></th>
+<th class="head"><p>内容</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>utterances</p></td>
+<td><p>タイプ毎の発話例</p></td>
+</tr>
+<tr class="row-odd"><td><p>slots</p></td>
+<td><p>スロットとエンティティの関係</p></td>
+</tr>
+<tr class="row-even"><td><p>entities</p></td>
+<td><p>エンティティに関する情報</p></td>
+</tr>
+<tr class="row-odd"><td><p>dictionary</p></td>
+<td><p>エンティティ毎の辞書エントリーと同義語</p></td>
+</tr>
+</tbody>
+</table>
+<p>シート名はブロックコンフィギュレーションで変更可能ですが，変更することはほとんどないと思いますので，詳細な説明は割愛します．</p>
+<p>（注）各シートのカラム名がver0.2.0で変更されました．</p>
+<section id="utterances">
+<h4><span class="section-number">6.2.3.1. </span>utterancesシート<a class="headerlink" href="#utterances" title="この見出しへのパーマリンク"></a></h4>
+<p>各行は次のカラムからなります．</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">flag</span></code></p>
+<p>利用するかどうかを決めるフラグ．Y: yes, T: testなどを書くことが多いです．どのフラグの行を利用するかはコンフィギュレーションに記述します．サンプルアプリのコンフィギュレーションでは，すべての行を使う設定になっています．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">type</span></code></p>
+<p>発話のタイプ（インテント）</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">utterance</span></code></p>
+<p>発話例．スロットを<code class="docutils literal notranslate"><span class="pre">(豚骨ラーメン)[favorite_ramen]が好きです</span></code>のように<code class="docutils literal notranslate"><span class="pre">(&lt;スロットに対応する言語表現&gt;)[&lt;スロット名&gt;]</span></code>で表現します．スロットに対応する言語表現＝言語理解結果に表れる（すなわちmanagerに送られる）スロット値ではないことに注意．言語表現が<code class="docutils literal notranslate"><span class="pre">dictionary</span></code>シートの<code class="docutils literal notranslate"><span class="pre">synonyms</span></code>カラムにあるものの場合，スロット値は，<code class="docutils literal notranslate"><span class="pre">dictionary</span></code>シートの<code class="docutils literal notranslate"><span class="pre">entity</span></code>カラムに書かれたものになります．</p>
+</li>
+</ul>
+<p>utterancesシートのみならずこのブロックで使うシートにこれ以外のカラムがあっても構いません．</p>
+</section>
+<section id="slots">
+<h4><span class="section-number">6.2.3.2. </span>slotsシート<a class="headerlink" href="#slots" title="この見出しへのパーマリンク"></a></h4>
+<p>各行は次のカラムからなります．</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">flag</span></code></p>
+<p>utterancesシートと同じ</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">slot</span> <span class="pre">name</span></code></p>
+<p>スロット名．utterancesシートの発話例で使うもの．言語理解結果でも用います．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">entity</span> <span class="pre">class</span></code></p>
+<p>エンティティクラス名．スロットの値がどのようなタイプの名詞句なのかを表します．異なるスロットが同じエンティティクラスを持つ場合があります．例えば，<code class="docutils literal notranslate"><span class="pre">(東京)[source_station]から(京都)[destination_station]までの特急券を買いたい</span></code>のように，<code class="docutils literal notranslate"><span class="pre">source_station,</span> <span class="pre">destination_station</span></code>とも<code class="docutils literal notranslate"><span class="pre">station</span></code>クラスのエンティティを取ります．
+<code class="docutils literal notranslate"><span class="pre">entity</span> <span class="pre">class</span></code>カラムの値として辞書関数（<code class="docutils literal notranslate"><span class="pre">dialbb/&lt;関数名&gt;</span></code>の形）を使うことができます．これにより，dictionaryシートに辞書情報を記述する代わりに，関数呼び出しで辞書記述を得ることができます．（例: <code class="docutils literal notranslate"><span class="pre">dialbb/location</span></code>）関数は以下の「<a class="reference internal" href="#dictionary-function"><span class="std std-ref">開発者による辞書関数の定義</span></a>」で説明します．
+またentity classカラムの値は，SNIPSの<a class="reference external" href="https://snips-nlu.readthedocs.io/en/latest/builtin_entities.html">builtin entity</a>でも構いません．（例: <code class="docutils literal notranslate"><span class="pre">snips/city</span></code>）</p>
+<p>SNIPSのbuiltin entityを用いる場合，以下のようにしてインストールする必要があります．</p>
+</li>
+</ul>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>	$ snips-nlu download-entity snips/city ja
+</pre></div>
+</div>
+<p>​	SNIPSのbuiltin entityを用いた場合の精度などの検証は不十分です．</p>
+</section>
+<section id="entities">
+<h4><span class="section-number">6.2.3.3. </span>entitiesシート<a class="headerlink" href="#entities" title="この見出しへのパーマリンク"></a></h4>
+<p>各行は次のカラムからなります．</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">flag</span></code></p>
+<p>utterancesシートと同じ</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">entity</span> <span class="pre">class</span></code></p>
+<p>エンティティクラス名．slotsシートで辞書関数を指定した場合は，こでも同じように辞書関数名を書く必要があります．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">use</span> <span class="pre">synonyms</span></code></p>
+<p><a class="reference external" href="https://snips-nlu.readthedocs.io/en/0.20.0/data_model.html#entity-values-synonyms">同義語を使うかどうか</a> (<code class="docutils literal notranslate"><span class="pre">Yes</span></code>または<code class="docutils literal notranslate"><span class="pre">No</span></code>)</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">automatically</span> <span class="pre">extensible</span></code></p>
+<p><a class="reference external" href="https://snips-nlu.readthedocs.io/en/0.20.0/data_model.html#auto-extensible">辞書にない値でも認識するかどうか</a> (<code class="docutils literal notranslate"><span class="pre">Yes</span></code>または<code class="docutils literal notranslate"><span class="pre">No</span></code>)</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">matching</span> <span class="pre">strictness</span></code></p>
+<p><a class="reference external" href="https://snips-nlu.readthedocs.io/en/latest/api.html">エンティティのマッチングの厳格さ</a> <code class="docutils literal notranslate"><span class="pre">0.0</span></code> - <code class="docutils literal notranslate"><span class="pre">1.0</span></code></p>
+</li>
+</ul>
+</section>
+<section id="dictionary">
+<h4><span class="section-number">6.2.3.4. </span>dictionaryシート<a class="headerlink" href="#dictionary" title="この見出しへのパーマリンク"></a></h4>
+<p>各行は次のカラムからなります．</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">flag</span></code></p>
+<p>utterancesシートと同じ</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">entity</span> <span class="pre">class</span></code></p>
+<p>エンティティクラス名</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">entity</span></code></p>
+<p>辞書エントリー名．言語理解結果にも含まれます．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">synonyms</span></code></p>
+<p>同義語を<code class="docutils literal notranslate"><span class="pre">,</span></code>または <code class="docutils literal notranslate"><span class="pre">，</span></code>または<code class="docutils literal notranslate"><span class="pre">，</span></code>で連結したもの</p>
+</li>
+</ul>
+</section>
+<section id="dictionary-function">
+<span id="id7"></span><h4><span class="section-number">6.2.3.5. </span>開発者による辞書関数の定義<a class="headerlink" href="#dictionary-function" title="この見出しへのパーマリンク"></a></h4>
+<p>辞書関数は，主に外部のデータベースなどから辞書情報を取ってくるときに利用します．</p>
+<p>辞書関数はブロックコンフィギュレーションの<code class="docutils literal notranslate"><span class="pre">dictionary_function</span></code>で指定するモジュールの中で定義します．</p>
+<p>辞書関数は引数にコンフィギュレーションとブロックコンフィギュレーションを取ります．これらに外部データベースへの接続情報などが書いてあることを想定しています．</p>
+<p>辞書関数の返り値は辞書型のリストで，<code class="docutils literal notranslate"><span class="pre">{&quot;value&quot;:</span> <span class="pre">&lt;文字列&gt;,</span> <span class="pre">&quot;synonyms&quot;:</span> <span class="pre">&lt;文字列のリスト&gt;}</span></code>の形の辞書型のリストです．<code class="docutils literal notranslate"><span class="pre">&quot;synonyms&quot;</span></code>キーはなくても構いません．</p>
+<p>以下に辞書関数の例を示します．</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">location</span><span class="p">(</span><span class="n">config</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">block_config</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> \
+    <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]]]:</span>
+    <span class="k">return</span> <span class="p">[{</span><span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;札幌&quot;</span><span class="p">,</span> <span class="s2">&quot;synonyms&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;さっぽろ&quot;</span><span class="p">,</span> <span class="s2">&quot;サッポロ&quot;</span><span class="p">]},</span>
+            <span class="p">{</span><span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;荻窪&quot;</span><span class="p">,</span> <span class="s2">&quot;synonyms&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;おぎくぼ&quot;</span><span class="p">]},</span>
+            <span class="p">{</span><span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;徳島&quot;</span><span class="p">}]</span>
+</pre></div>
+</div>
+</section>
+<section id="snips">
+<h4><span class="section-number">6.2.3.6. </span>SNIPSの訓練データ<a class="headerlink" href="#snips" title="この見出しへのパーマリンク"></a></h4>
+<p>アプリを立ち上げると上記の知識はSNIPSの訓練データに変換され，モデルが作られます．</p>
+<p>SNIPSの訓練データはアプリのディレクトリの<code class="docutils literal notranslate"><span class="pre">_training_data.json</span></code>です．このファイルを見ることで，うまく変換されているかどうかを確認できます．</p>
+</section>
+</section>
+</section>
+<section id="stn-manager">
+<span id="id8"></span><h2><span class="section-number">6.3. </span>STN manager （状態遷移ネットワークベースの言語理解ブロック）<a class="headerlink" href="#stn-manager" title="この見出しへのパーマリンク"></a></h2>
+<p>(<code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.stn_manager.stn_management</span></code>)</p>
+<p>状態遷移ネットワーク(State-Transition Network)を用いて対話管理を行います．</p>
+<ul class="simple">
+<li><p>入力</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">sentence</span></code>: 正規化後のユーザ発話（文字列）</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nlu_result</span></code>:言語理解結果（辞書型または辞書型のリスト）</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">user_id</span></code>:ユーザID（文字列）</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aux_data</span></code>補助データ（辞書型）</p></li>
+</ul>
+</li>
+<li><p>出力</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">output_text</span></code>: システム発話（文字列）</p>
+<ul>
+<li><p>例：&quot;醤油ラーメン好きなんですね&quot;</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">final</span></code>: 対話終了かどうかのフラグ（ブール値）</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aux_data</span></code>補助データ（辞書型）遷移した状態のIDを含めて返す</p>
+<ul>
+<li><p>例：<code class="docutils literal notranslate"><span class="pre">{&quot;state&quot;:</span> <span class="pre">&quot;特定のラーメンが好き&quot;}</span></code></p></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<section id="id9">
+<h3><span class="section-number">6.3.1. </span>ブロックコンフィギュレーションのパラメータ<a class="headerlink" href="#id9" title="この見出しへのパーマリンク"></a></h3>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">knowledge_file</span></code>（文字列）</p>
+<p>シナリオを記述したExcelファイルを指定します。コンフィギュレーションファイルのあるディレクトリからの相対パスで記述します。</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">function_definitions</span></code>（文字列）</p>
+<p>シナリオ関数（<a class="reference internal" href="#dictionary-function"><span class="std std-ref">開発者による辞書関数の定義</span></a>を参照）を定義したモジュールの名前です。複数ある場合は<code class="docutils literal notranslate"><span class="pre">':'</span></code>でつなぎます。モジュール検索パスにある必要があります。（コンフィギュレーションファイルのあるディレクトリはモジュール検索パスに入っています。）</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flags_to_use</span></code>（文字列のリスト）</p>
+<p>各シートの<code class="docutils literal notranslate"><span class="pre">flag</span></code>カラムにこの値のうちのどれかが書かれていた場合に読み込みます。</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">knowledge_google_sheet</span></code> (ハッシュ)</p>
+<p>SNIPS Understanderと同じです。</p>
+</li>
+</ul>
+</section>
+<section id="scenario">
+<span id="id10"></span><h3><span class="section-number">6.3.2. </span>対話管理の知識記述<a class="headerlink" href="#scenario" title="この見出しへのパーマリンク"></a></h3>
+<p>対話管理知識（シナリオ）は，Excelファイルのscenarioシートです．</p>
+<p>各行は次のカラムからなります．</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">flag</span></code></p>
+<p>utteranceシートと同じ</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">state</span></code></p>
+<p>状態名</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">system</span> <span class="pre">utterance</span></code></p>
+<p>stateの状態で生成されるシステム発話の候補．システム発話文字列に含まれる{&lt;変数&gt;}は，対話中にその変数に代入された値で置き換えられます．stateが同じ行は複数あり得ますが，同じstateの行のsystem utteranceすべてが発話の候補となり，ランダムに生成されます．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">user</span> <span class="pre">utterance</span> <span class="pre">example</span></code></p>
+<p>ユーザ発話の例．対話の流れを理解するために書くだけで，システムでは用いられません．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">user</span> <span class="pre">utterance</span> <span class="pre">type</span></code></p>
+<p>ユーザ発話を言語理解した結果得られるユーザ発話のタイプ．遷移の条件となります．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">conditions</span></code></p>
+<p>条件（の並び）．遷移の条件を表す関数呼び出し．複数あっても構いません．複数ある場合は，<code class="docutils literal notranslate"><span class="pre">;</span></code>で連結します．各条件は<code class="docutils literal notranslate"><span class="pre">&lt;関数名&gt;(&lt;引数1&gt;,</span> <span class="pre">&lt;引数2&gt;,</span> <span class="pre">...,</span> <span class="pre">&lt;引数n&gt;)</span></code>の形をしています．引数は0個でも構いません．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">actions</span></code></p>
+<p>アクション（の並び）．遷移した際に実行する関数呼び出し．複数あっても構いません．複数ある場合は，<code class="docutils literal notranslate"><span class="pre">;</span></code>で連結します．各条件は<code class="docutils literal notranslate"><span class="pre">&lt;関数名&gt;(&lt;引数1&gt;,</span> <span class="pre">&lt;引数2&gt;,</span> <span class="pre">...,</span> <span class="pre">&lt;引数n&gt;)</span></code>の形をしています．引数は0個でも構いません．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">next</span> <span class="pre">state</span></code></p>
+<p>遷移先の状態名</p>
+</li>
+</ul>
+<p>基本的に1行が一つの遷移を表します．各遷移のuser utterance typeが空かもしくは言語理解結果と一致し，conditionsが空か全部満たされた場合，遷移の条件を満たし，next stateに遷移します．その際，actionsを実行します．</p>
+<p>シートにこれ以外のカラムがあっても構いません．</p>
+</section>
+<section id="id11">
+<h3><span class="section-number">6.3.3. </span>特別な状態<a class="headerlink" href="#id11" title="この見出しへのパーマリンク"></a></h3>
+<p>以下の状態名はあらかじめ定義されています．</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">#prep</span></code></p>
+<p>準備状態．初期状態の前にある状態です．対話が始まった時に初期状態に遷移します．この時，この遷移のアクションを実行します．最初のシステム発話を状況に応じて変更するときに使います．日本語サンプルアプリは，対話が行われる時間に応じて挨拶の内容を変更します．この準備状態はなくても構いません．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">#initial</span></code></p>
+<p>初期状態．対話はこの状態から始まります．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">#error</span></code></p>
+<p>内部エラーが起きたときこの状態に移動します．システム発話を生成して終了します．</p>
+</li>
+</ul>
+<p>また，<code class="docutils literal notranslate"><span class="pre">#final_say_bye</span></code> のように，<code class="docutils literal notranslate"><span class="pre">#final</span></code>ではじまるstate IDは最終状態を表します．
+最終状態ではシステム発話を生成して対話を終了します．</p>
+</section>
+<section id="id12">
+<h3><span class="section-number">6.3.4. </span>条件とアクション<a class="headerlink" href="#id12" title="この見出しへのパーマリンク"></a></h3>
+<p>STN Managerは，対話のセッションごとに文脈情報を保持しています．文脈情報は変数とその値の組の集合（pythonの辞書型データ）で，値はどのようなデータ構造でも構いません．</p>
+<p>条件やアクションの関数は文脈情報にアクセスします．</p>
+<section id="id13">
+<h4><span class="section-number">6.3.4.1. </span>関数の引数<a class="headerlink" href="#id13" title="この見出しへのパーマリンク"></a></h4>
+<p>条件やアクションで用いる関数の引数には次のタイプがあります．</p>
+<ul>
+<li><p>特殊変数 （<code class="docutils literal notranslate"><span class="pre">#</span></code>で始まる文字列）</p>
+<p>以下の種類があります．</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">#&lt;スロット名&gt;</span></code>
+直前のユーザ発話の言語理解結果（入力の<code class="docutils literal notranslate"><span class="pre">nlu_result</span></code>の値）のスロット値．スロット値が空の場合は空文字列になります．</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">#&lt;補助データのキー&gt;</span></code>
+入力のaux_dataの中のこのキーの値．例えば<code class="docutils literal notranslate"><span class="pre">#emotion</span></code>の場合，<code class="docutils literal notranslate"><span class="pre">aux_data['emotion']</span></code>の値．このキーがない場合は，空文字列になります．</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">#sentence</span></code>
+直前のユーザ発話（正規化したもの）</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">#user_id</span></code>
+ユーザID（文字列）</p></li>
+</ul>
+</li>
+<li><p>変数（<code class="docutils literal notranslate"><span class="pre">*</span></code>で始まる文字列）</p>
+<p>文脈情報における変数の値<code class="docutils literal notranslate"><span class="pre">*&lt;変数名&gt;</span></code>の形．変数の値は文字列でないといけません．文脈情報にその変数がない場合は空文字列になります．</p>
+</li>
+<li><p>変数参照（&amp;で始まる文字列）</p>
+<p><code class="docutils literal notranslate"><span class="pre">&amp;&lt;文脈情報での変数の名前&gt;</span></code> の形で，関数定義内で文脈情報の変数名を利用するときに用います．</p>
+</li>
+<li><p>定数（<code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code>で囲んだ文字列）</p>
+<p>文字列そのままを意味します．</p>
+</li>
+</ul>
+</section>
+</section>
+<section id="id14">
+<h3><span class="section-number">6.3.5. </span>関数定義<a class="headerlink" href="#id14" title="この見出しへのパーマリンク"></a></h3>
+<p>条件やアクションで用いる関数は，DialBB組み込みのものと，開発者が定義するものがあります．条件で使う関数はbool値を返し，アクションで使う関数は何も返しません．</p>
+<section id="id15">
+<h4><span class="section-number">6.3.5.1. </span>組み込み関数<a class="headerlink" href="#id15" title="この見出しへのパーマリンク"></a></h4>
+<p>組み込み関数には以下があります．</p>
+<ul>
+<li><p>条件で用いる関数</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">_eq(x,</span> <span class="pre">y)</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">x</span></code>と<code class="docutils literal notranslate"><span class="pre">y</span></code>が同じなら<code class="docutils literal notranslate"><span class="pre">True</span></code>を返します．
+例：<code class="docutils literal notranslate"><span class="pre">_eq(*a,</span> <span class="pre">&quot;b&quot;</span></code>): 変数<code class="docutils literal notranslate"><span class="pre">a</span></code>の値が<code class="docutils literal notranslate"><span class="pre">&quot;b&quot;</span></code>なら<code class="docutils literal notranslate"><span class="pre">True</span></code>を返します．
+<code class="docutils literal notranslate"><span class="pre">_eq(#food,</span> <span class="pre">&quot;ラーメン&quot;)</span></code>: <code class="docutils literal notranslate"><span class="pre">#food</span></code>スロットが<code class="docutils literal notranslate"><span class="pre">&quot;ラーメン&quot;</span></code>なら<code class="docutils literal notranslate"><span class="pre">True</span></code>を返します．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">_ne(x,</span> <span class="pre">y)</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">x</span></code>と<code class="docutils literal notranslate"><span class="pre">y</span></code>が同じでなければ<code class="docutils literal notranslate"><span class="pre">True</span></code>を返します．</p>
+<p>例：<code class="docutils literal notranslate"><span class="pre">_ne(*a,</span> <span class="pre">*b)</span></code>: 変数<code class="docutils literal notranslate"><span class="pre">a</span></code>の値と変数<code class="docutils literal notranslate"><span class="pre">b</span></code>の値が異なれば<code class="docutils literal notranslate"><span class="pre">True</span></code>を返します．
+<code class="docutils literal notranslate"><span class="pre">_ne(#food,</span> <span class="pre">&quot;ラーメン&quot;):</span></code> <code class="docutils literal notranslate"><span class="pre">#food</span></code>スロットが<code class="docutils literal notranslate"><span class="pre">&quot;ラーメン&quot;</span></code>なら<code class="docutils literal notranslate"><span class="pre">False</span></code>を返します．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">_contains(x,</span> <span class="pre">y)</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">x</span></code>が文字列として<code class="docutils literal notranslate"><span class="pre">y</span></code>を含む場合<code class="docutils literal notranslate"><span class="pre">True</span></code>を返します．<br />
+例：_contains(#sentence, &quot;はい&quot;) : ユーザ発話が「はい」を含めばTrueを返します．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">_not_contains(x,</span> <span class="pre">y)</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">x</span></code>が文字列として<code class="docutils literal notranslate"><span class="pre">y</span></code>を含まない場合<code class="docutils literal notranslate"><span class="pre">True</span></code>を返します．</p>
+<p>例： <code class="docutils literal notranslate"><span class="pre">_not_contains(#sentence,</span> <span class="pre">&quot;はい&quot;)</span></code> : ユーザ発話が<code class="docutils literal notranslate"><span class="pre">&quot;はい&quot;</span></code>を含めば<code class="docutils literal notranslate"><span class="pre">True</span></code>を返します．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">_member_of(x,</span> <span class="pre">y)</span></code></p>
+<p>文字列<code class="docutils literal notranslate"><span class="pre">y</span></code>を<code class="docutils literal notranslate"><span class="pre">':'</span></code>で分割してできたリストに文字列<code class="docutils literal notranslate"><span class="pre">x</span></code>が含まれていれば<code class="docutils literal notranslate"><span class="pre">True</span></code>を返します．</p>
+<p>例：<code class="docutils literal notranslate"><span class="pre">_member_of(#food,</span> <span class="pre">&quot;ラーメン:チャーハン:餃子&quot;)</span></code></p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">_not_member_of(x,</span> <span class="pre">y)</span></code></p>
+<p>文字列<code class="docutils literal notranslate"><span class="pre">y</span></code>を<code class="docutils literal notranslate"><span class="pre">':'</span></code>で分割してできたリストに文字列<code class="docutils literal notranslate"><span class="pre">x</span></code>が含まれていなければ<code class="docutils literal notranslate"><span class="pre">True</span></code>を返します．</p>
+<p>例：<code class="docutils literal notranslate"><span class="pre">_not_member_of(*favorite_food,</span> <span class="pre">&quot;ラーメン:チャーハン:餃子&quot;)</span></code></p>
+</li>
+</ul>
+</li>
+<li><p>アクションで用いる関数</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">_set(x,</span> <span class="pre">y)</span></code></p>
+<p>変数<code class="docutils literal notranslate"><span class="pre">x</span></code>に<code class="docutils literal notranslate"><span class="pre">y</span></code>をセットします．</p>
+<p>例：<code class="docutils literal notranslate"><span class="pre">_set(&amp;a,</span> <span class="pre">b)</span></code>: <code class="docutils literal notranslate"><span class="pre">b</span></code>の値を<code class="docutils literal notranslate"><span class="pre">a</span></code>にセットします．
+<code class="docutils literal notranslate"><span class="pre">_set(&amp;a,</span> <span class="pre">&quot;hello&quot;)</span></code>： <code class="docutils literal notranslate"><span class="pre">a</span></code>に<code class="docutils literal notranslate"><span class="pre">&quot;hello&quot;</span></code>をセットします．</p>
+</li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="id16">
+<h4><span class="section-number">6.3.5.2. </span>開発者による関数定義<a class="headerlink" href="#id16" title="この見出しへのパーマリンク"></a></h4>
+<p>開発者が関数定義を行うときには，アプリケーションディレクトリのscenario_functions.pyを編集します．</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">get_ramen_location</span><span class="p">(</span><span class="n">ramen</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">variable</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">location</span><span class="p">:</span><span class="nb">str</span> <span class="o">=</span> <span class="n">ramen_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ramen</span><span class="p">,</span> <span class="s2">&quot;日本&quot;</span><span class="p">)</span>
+    <span class="n">context</span><span class="p">[</span><span class="n">variable</span><span class="p">]</span> <span class="o">=</span> <span class="n">location</span>
+</pre></div>
+</div>
+<p>上記のように，シナリオで使われている引数にプラスして，文脈情報を受け取る辞書型の変数を必ず加える必要があります．</p>
+<p>シナリオで使われている引数はすべて文字列でなくてはなりません．</p>
+<p>引数には，特殊変数・変数の場合，その値が渡されます．</p>
+<p>また，変数参照の場合は'<code class="docutils literal notranslate"><span class="pre">&amp;</span></code>'を除いた変数名が，定数の場合は，<code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code>の中の文字列が渡されます．</p>
+<p><code class="docutils literal notranslate"><span class="pre">context</span></code>は対話の最初に以下のキーと値のペアがセットされています．</p>
+<table class="colwidths-auto docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>キー</p></th>
+<th class="head"><p>値</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>_state</p></td>
+<td><p>state id</p></td>
+</tr>
+<tr class="row-odd"><td><p>_config</p></td>
+<td><p>configファイルを読み込んでできた辞書型のデータ</p></td>
+</tr>
+<tr class="row-even"><td><p>_block_config</p></td>
+<td><p>configファイルのうち対話管理ブロックの設定部分（辞書型のデータ）</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="id17">
+<h3><span class="section-number">6.3.6. </span>言語理解結果候補が複数ある場合の処理<a class="headerlink" href="#id17" title="この見出しへのパーマリンク"></a></h3>
+<p>入力の<code class="docutils literal notranslate"><span class="pre">nlu_result</span></code>が辞書型のリストで、複数の言語理解結果候補を含んでいる場合の処理は次のようになります。</p>
+<p>リストの先頭から順に、言語理解結果候補の<code class="docutils literal notranslate"><span class="pre">type</span></code>の値が、現在の状態から可能な遷移のうちのどれかの<code class="docutils literal notranslate"><span class="pre">user</span> <span class="pre">utterance</span> <span class="pre">type</span></code>の値に等しいかどうかを調べ、等しい遷移があれば、その言語理解結果候補を用います。</p>
+<p>どの言語理解結果候補も上記の条件に合わない場合、リストの先頭の言語理解結果候補を用います。</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="05_framework.html" class="btn btn-neutral float-left" title="5. フレームワーク仕様" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright C4A Research Institute, Inc.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

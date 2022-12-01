@@ -105,5 +105,6 @@ if __name__ == '__main__':
         with open(args.output, mode='w', encoding='utf-8') as fp:
             for log_line in log_lines:
                 print(log_line, file=fp)
+        print("Dialogues have been written in the file: " + args.output)
 
 
