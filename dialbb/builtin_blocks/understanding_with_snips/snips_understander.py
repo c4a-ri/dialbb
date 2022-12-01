@@ -87,10 +87,12 @@ class Understander(AbstractBlock):
                 function_definition_module: str = function_definition.strip()
                 function_modules.append(importlib.import_module(function_definition_module))  # developer specified
 
+        sudachi_normalization: bool = False
         # setting Japanese tokenizer
         if self._language == 'ja':
-            sudachi_normalization: bool = self.block_config.get(CONFIG_KEY_SUDACHI_NORMALIZATION, False)
+            sudachi_normalization = self.block_config.get(CONFIG_KEY_SUDACHI_NORMALIZATION, False)
             self._tokenizer = SudachiTokenizer(normalize=sudachi_normalization)
+
 
         # convert nlu knowledge dataframes to JSON in SNIPS format
         nlu_knowledge_json = convert_nlu_knowledge(utterances_df, slots_df, entities_df, dictionary_df,
@@ -219,9 +221,17 @@ class Understander(AbstractBlock):
         slots = {}
         for snips_slot in snips_result["slots"]:
             if type(snips_slot["value"]) == dict:
-                slots[snips_slot["slotName"]] = snips_slot["value"]["value"]
+                slots[snips_slot["slotName"]] \
+                    = self._snips_slot_value_to_dialbb_slot_value(snips_slot["value"]["value"])
             else:
-                slots[snips_slot["slotName"]] = snips_slot["value"]
+                slots[snips_slot["slotName"]] \
+                    = self._snips_slot_value_to_dialbb_slot_value(snips_slot["value"])
         nlu_result = {"type": intent, "slots": slots}
         return nlu_result
 
+    def _snips_slot_value_to_dialbb_slot_value(self, value: str) -> str:
+        if self._language == 'ja':
+            result = value.replace(' ', '')  # 辞書にないスロット値はスペースを含んでいる場合がある
+        else:
+            result = value
+        return result
