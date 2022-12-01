@@ -205,9 +205,10 @@ class Manager(AbstractBlock):
                 self._dialogue_context[session_id][KEY_BLOCK_CONFIG] = copy.deepcopy(self.block_config)
                 # perform actions in the prep state
                 prep_state: State = self._network.get_prep_state()
-                prep_actions: List[Action] = prep_state.get_transitions()[0].get_actions()
-                if prep_actions:
-                    self._perform_actions(prep_actions, nlu_result, aux_data, user_id, session_id, sentence)
+                if prep_state:
+                    prep_actions: List[Action] = prep_state.get_transitions()[0].get_actions()
+                    if prep_actions:
+                        self._perform_actions(prep_actions, nlu_result, aux_data, user_id, session_id, sentence)
                 # move to initial state
                 current_state_name = INITIAL_STATE_NAME
                 self._dialogue_context[session_id][KEY_CURRENT_STATE_NAME] = current_state_name
@@ -323,7 +324,7 @@ class Manager(AbstractBlock):
         # search function in function modules  functionをfunction moduleの中で探す
         for function_module in self._function_modules:
             function = getattr(function_module, function_name, None)
-            if function is not None:  # if function is found
+            if function:  # if function is found
                 condition_function = function
                 break
         if not condition_function:  # when condition function is not defined

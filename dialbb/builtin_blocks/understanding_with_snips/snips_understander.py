@@ -87,10 +87,12 @@ class Understander(AbstractBlock):
                 function_definition_module: str = function_definition.strip()
                 function_modules.append(importlib.import_module(function_definition_module))  # developer specified
 
+        sudachi_normalization: bool = False
         # setting Japanese tokenizer
         if self._language == 'ja':
-            sudachi_normalization: bool = self.block_config.get(CONFIG_KEY_SUDACHI_NORMALIZATION, False)
+            sudachi_normalization = self.block_config.get(CONFIG_KEY_SUDACHI_NORMALIZATION, False)
             self._tokenizer = SudachiTokenizer(normalize=sudachi_normalization)
+
 
         # convert nlu knowledge dataframes to JSON in SNIPS format
         nlu_knowledge_json = convert_nlu_knowledge(utterances_df, slots_df, entities_df, dictionary_df,
