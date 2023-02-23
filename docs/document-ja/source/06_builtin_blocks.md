@@ -104,7 +104,8 @@
 
 - `knowledge_google_sheet` (ハッシュ)
 
-  - Excelの代わりにGoogle Sheetを用いる場合の情報を記述します．
+  - Excelの代わりにGoogle Sheetを用いる場合の情報を記述します．（Google Sheetを利用する際の設定は[こはたさんの記事](https://note.com/kohaku935/n/nc13bcd11632d)が参考になりますが，Google Cloud Platformの設定画面のUIがこの記事とは多少変わっています．）
+  
 
     - `sheet_id` （文字列）
 
