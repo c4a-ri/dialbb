@@ -1,6 +1,6 @@
 # DialBB: 対話システム構築フレームワーク
 
-ver.0.2.0
+ver.0.3.0
 
 DialBBは対話システムを構築するためのフレームワークです．
 非商用向けに公開しています．ライセンスの詳細は[ライセンス](LICENSE)をご覧ください．
@@ -16,6 +16,8 @@ DialBBのメインモジュールは，メソッド呼び出しまたはWeb API�
 ![dialbb-arch](docs/images/dialbb-arch.jpg)
 
 詳細およびインストールの仕方は[ドキュメント](https://c4a-ri.github.io/dialbb/document-ja/build/html/)を参照して下さい．
-最新バージョン以外のドキュメントは[docs](docs)にあります．
+最新バージョン以外のドキュメントは[リンク集](https://c4a-ri.github.io/dialbb/)にあります．
+
+DialBBに関するご要望・ご質問は[GitHub Discussions](https://github.com/c4a-ri/dialbb/discussions)または，`dialbbあっとc4a.jp`にお寄せください。
 
 (c) C4A Research Institute, Inc.

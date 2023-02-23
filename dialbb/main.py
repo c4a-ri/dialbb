@@ -137,7 +137,7 @@ class DialogueProcessor:
             output_from_block = block.block_object.process(input_to_block, session_id=session_id)
             for key_in_output, key_in_payload in block.block_config['output'].items():
                 if key_in_output not in output_from_block:
-                    self._logger.warning(f"key '{key_in_output}' is not in the output from the block.")
+                    self._logger.error(f"key '{key_in_output}' is not in the output from the block.")
                 payload[key_in_payload] = output_from_block[key_in_output]
             self._logger.debug(f"payload: " + str(payload))
 

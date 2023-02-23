@@ -16,7 +16,6 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
         <script src="_static/translations.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="索引" href="genindex.html" />
@@ -99,8 +98,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a></li>
-      <li class="breadcrumb-item active"><span class="section-number">6. </span>組み込みブロックの仕様</li>
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><span class="section-number">6. </span>組み込みブロックの仕様</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/06_builtin_blocks.md.txt" rel="nofollow"> View page source</a>
       </li>
@@ -158,7 +157,7 @@
 <p>(<code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.understanding_with_snips.snips_understander.Understander</span></code>)</p>
 <p><a class="reference external" href="https://snips-nlu.readthedocs.io/en/latest/">SNIPS_NLU</a>を利用して，ユーザ発話タイプ（インテントとも呼びます）の決定とスロットの抽出を行います．</p>
 <p>コンフィギュレーションの<code class="docutils literal notranslate"><span class="pre">language</span></code>要素が<code class="docutils literal notranslate"><span class="pre">ja</span></code>の場合は日本語，<code class="docutils literal notranslate"><span class="pre">en</span></code>の場合は英語の言語理解を行います．
-日本語の場合は、SNIPSを適用する前に<a class="reference external" href="https://github.com/WorksApplications/Sudachi">Sudachi</a>を用いて形態素解析を行います。</p>
+日本語の場合は，SNIPSを適用する前に<a class="reference external" href="https://github.com/WorksApplications/Sudachi">Sudachi</a>を用いて形態素解析を行います．</p>
 <p>本ブロックは，起動時にExcelで記述した言語理解用知識を読み込み，SNIPSの訓練データに変更し，SNIPSのモデルを構築します．</p>
 <p>実行時はSNIPSのモデルを用いて言語理解を行います．</p>
 <section id="id4">
@@ -177,17 +176,17 @@
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">nlu_result</span></code>: 言語理解結果（辞書型または辞書型のリスト）</p>
 <ul>
-<li><p>後述のブロックコンフィギュレーションのパラメータ<code class="docutils literal notranslate"><span class="pre">num_candidates</span></code>が1の場合、言語理解結果は辞書型で以下のような形式です。</p>
+<li><p>後述のブロックコンフィギュレーションのパラメータ<code class="docutils literal notranslate"><span class="pre">num_candidates</span></code>が1の場合，言語理解結果は辞書型で以下のような形式です．</p>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span> {&quot;type&quot;: &lt;ユーザ発話タイプ（インテント）&gt;, 
   &quot;slots&quot;: {&lt;スロット名&gt;: &lt;スロット値&gt;, ..., &lt;スロット名&gt;: &lt;スロット値&gt;}}
 </pre></div>
 </div>
-<p>以下が例です。</p>
+<p>以下が例です．</p>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;特定のラーメンが好き&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;slots&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;favarite_ramen&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;醤油ラーメン&quot;</span><span class="p">}}</span><span class="w"></span>
 </pre></div>
 </div>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">num_candidates</span></code>が2以上の場合、複数の理解結果候補のリストになります。</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">num_candidates</span></code>が2以上の場合，複数の理解結果候補のリストになります．</p>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span> [{&quot;type&quot;: &lt;ユーザ発話タイプ（インテント）&gt;, 
    &quot;slots&quot;: {&lt;スロット名&gt;: &lt;スロット値&gt;, ..., &lt;スロット名&gt;: &lt;スロット値&gt;}},
   {&quot;type&quot;: &lt;ユーザ発話タイプ（インテント）&gt;, 
@@ -206,29 +205,29 @@
 <h3><span class="section-number">6.2.2. </span>ブロックコンフィギュレーションのパラメータ<a class="headerlink" href="#id5" title="この見出しへのパーマリンク"></a></h3>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">knowledge_file</span></code>（文字列）</p>
-<p>知識を記述したExcelファイルを指定します。コンフィギュレーションファイルのあるディレクトリからの相対パスで記述します。</p>
+<p>知識を記述したExcelファイルを指定します．コンフィギュレーションファイルのあるディレクトリからの相対パスで記述します．</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">function_definitions</span></code>（文字列）</p>
-<p>辞書関数（<a class="reference internal" href="#dictionary-function"><span class="std std-ref">開発者による辞書関数の定義</span></a>を参照）を定義したモジュールの名前です。複数ある場合は<code class="docutils literal notranslate"><span class="pre">':'</span></code>でつなぎます。モジュール検索パスにある必要があります。（コンフィギュレーションファイルのあるディレクトリはモジュール検索パスに入っています。）</p>
+<p>辞書関数（<a class="reference internal" href="#dictionary-function"><span class="std std-ref">開発者による辞書関数の定義</span></a>を参照）を定義したモジュールの名前です．複数ある場合は<code class="docutils literal notranslate"><span class="pre">':'</span></code>でつなぎます．モジュール検索パスにある必要があります．（コンフィギュレーションファイルのあるディレクトリはモジュール検索パスに入っています．）</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">flags_to_use</span></code>（文字列のリスト）</p>
-<p>各シートの<code class="docutils literal notranslate"><span class="pre">flag</span></code>カラムにこの値のうちのどれかが書かれていた場合に読み込みます。</p>
+<p>各シートの<code class="docutils literal notranslate"><span class="pre">flag</span></code>カラムにこの値のうちのどれかが書かれていた場合に読み込みます．このパラメータがセットされていない場合はすべての行が読み込まれます．</p>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">sudachi_normalization</span></code>（ブール値）</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">sudachi_normalization</span></code>（ブール値．デフォルト値<code class="docutils literal notranslate"><span class="pre">False</span></code>）</p>
 <p>日本語の場合，この値が<code class="docutils literal notranslate"><span class="pre">True</span></code>の場合，言語理解モデルの構築時と言語理解実行時にSudachiの正規化（表記揺れの吸収を含む）を行います．</p>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">num_candidates</span></code>（Integer）</p>
-<p>言語理解結果の数（n-bestのn）を指定します。</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">num_candidates</span></code>（Integer. デフォルト値<code class="docutils literal notranslate"><span class="pre">1</span></code>）</p>
+<p>言語理解結果の数（n-bestのn）を指定します．</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">knowledge_google_sheet</span></code> (ハッシュ)</p>
 <ul>
-<li><p>Excelの代わりにGoogle Sheetを用いる場合の情報を記述します。</p>
+<li><p>Excelの代わりにGoogle Sheetを用いる場合の情報を記述します．（Google Sheetを利用する際の設定は<a class="reference external" href="https://note.com/kohaku935/n/nc13bcd11632d">こはたさんの記事</a>が参考になりますが，Google Cloud Platformの設定画面のUIがこの記事とは多少変わっています．）</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">sheet_id</span></code> （文字列）</p>
-<p>Google SheetのIDです。</p>
+<p>Google SheetのIDです．</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">key_file</span></code>（文字列）</p>
-<p>Goole Sheet APIにアクセスするためのキーファイルをコンフィギュレーションファイルのディレクトリからの相対パスで指定します。</p>
+<p>Goole Sheet APIにアクセスするためのキーファイルをコンフィギュレーションファイルのディレクトリからの相対パスで指定します．</p>
 </li>
 </ul>
 </li>
@@ -394,16 +393,19 @@
 <h3><span class="section-number">6.3.1. </span>ブロックコンフィギュレーションのパラメータ<a class="headerlink" href="#id9" title="この見出しへのパーマリンク"></a></h3>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">knowledge_file</span></code>（文字列）</p>
-<p>シナリオを記述したExcelファイルを指定します。コンフィギュレーションファイルのあるディレクトリからの相対パスで記述します。</p>
+<p>シナリオを記述したExcelファイルを指定します．コンフィギュレーションファイルのあるディレクトリからの相対パスで記述します．</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">function_definitions</span></code>（文字列）</p>
-<p>シナリオ関数（<a class="reference internal" href="#dictionary-function"><span class="std std-ref">開発者による辞書関数の定義</span></a>を参照）を定義したモジュールの名前です。複数ある場合は<code class="docutils literal notranslate"><span class="pre">':'</span></code>でつなぎます。モジュール検索パスにある必要があります。（コンフィギュレーションファイルのあるディレクトリはモジュール検索パスに入っています。）</p>
+<p>シナリオ関数（<a class="reference internal" href="#dictionary-function"><span class="std std-ref">開発者による辞書関数の定義</span></a>を参照）を定義したモジュールの名前です．複数ある場合は<code class="docutils literal notranslate"><span class="pre">':'</span></code>でつなぎます．モジュール検索パスにある必要があります．（コンフィギュレーションファイルのあるディレクトリはモジュール検索パスに入っています．）</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">flags_to_use</span></code>（文字列のリスト）</p>
-<p>各シートの<code class="docutils literal notranslate"><span class="pre">flag</span></code>カラムにこの値のうちのどれかが書かれていた場合に読み込みます。</p>
+<p>各シートの<code class="docutils literal notranslate"><span class="pre">flag</span></code>カラムにこの値のうちのどれかが書かれていた場合に読み込みます．</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">knowledge_google_sheet</span></code> (ハッシュ)</p>
-<p>SNIPS Understanderと同じです。</p>
+<p>SNIPS Understanderと同じです．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">scenario_graph</span></code>: (ブール値．デフォルト値<code class="docutils literal notranslate"><span class="pre">False</span></code>）</p>
+<p>この値が<code class="docutils literal notranslate"><span class="pre">True</span></code>の場合，シナリオシートの<code class="docutils literal notranslate"><span class="pre">system</span> <span class="pre">utterance</span></code>カラムと<code class="docutils literal notranslate"><span class="pre">user</span> <span class="pre">utterance</span> <span class="pre">example</span></code>カラムの値を使って，グラフを作成します．これにより，シナリオ作成者が直感的に状態遷移ネットワークを確認できます．</p>
 </li>
 </ul>
 </section>
@@ -573,9 +575,9 @@
 </section>
 <section id="id17">
 <h3><span class="section-number">6.3.6. </span>言語理解結果候補が複数ある場合の処理<a class="headerlink" href="#id17" title="この見出しへのパーマリンク"></a></h3>
-<p>入力の<code class="docutils literal notranslate"><span class="pre">nlu_result</span></code>が辞書型のリストで、複数の言語理解結果候補を含んでいる場合の処理は次のようになります。</p>
-<p>リストの先頭から順に、言語理解結果候補の<code class="docutils literal notranslate"><span class="pre">type</span></code>の値が、現在の状態から可能な遷移のうちのどれかの<code class="docutils literal notranslate"><span class="pre">user</span> <span class="pre">utterance</span> <span class="pre">type</span></code>の値に等しいかどうかを調べ、等しい遷移があれば、その言語理解結果候補を用います。</p>
-<p>どの言語理解結果候補も上記の条件に合わない場合、リストの先頭の言語理解結果候補を用います。</p>
+<p>入力の<code class="docutils literal notranslate"><span class="pre">nlu_result</span></code>が辞書型のリストで，複数の言語理解結果候補を含んでいる場合の処理は次のようになります．</p>
+<p>リストの先頭から順に，言語理解結果候補の<code class="docutils literal notranslate"><span class="pre">type</span></code>の値が，現在の状態から可能な遷移のうちのどれかの<code class="docutils literal notranslate"><span class="pre">user</span> <span class="pre">utterance</span> <span class="pre">type</span></code>の値に等しいかどうかを調べ，等しい遷移があれば，その言語理解結果候補を用います．</p>
+<p>どの言語理解結果候補も上記の条件に合わない場合，リストの先頭の言語理解結果候補を用います．</p>
 </section>
 </section>
 </section>

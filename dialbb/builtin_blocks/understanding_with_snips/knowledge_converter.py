@@ -19,7 +19,7 @@ from dialbb.builtin_blocks.util.abstract_tokenizer import AbstractTokenizer
 from dialbb.builtin_blocks.util.canonicalizer import Canonicalizer
 from re import Pattern
 
-from dialbb.builtin_blocks.util.sudachi_tokenizer import SudachiTokenizer, Token
+from dialbb.builtin_blocks.util.tokenizer_with_sudachi import TokenizerWithSudachi, TokenWithIndicies
 from dialbb.util.error_handlers import abort_during_building, warn_during_building
 from dialbb.main import ANY_FLAG
 
@@ -58,7 +58,7 @@ def check_columns(required_columns: List[str], df: DataFrame, sheet: str) -> boo
 def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, entities_df: DataFrame,
                           dictionary_df: DataFrame, flags: List[str], function_modules: List[ModuleType],
                           config: Dict[str, Any], block_config: Dict[str, Any],
-                          language='ja', sudachi_normalization=False) -> Dict[str, Any]:
+                          tokenizer, language='ja') -> Dict[str, Any]:
     """
     converts nlu knowledge into SNIPS training data
     言語理解知識をSNIPSの訓練データに変換する
@@ -78,9 +78,6 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, entitie
     print(f"converting nlu knowledge.")
 
     canonicalizer = Canonicalizer(language)
-    tokenizer = None
-    if language == 'ja':
-        tokenizer = SudachiTokenizer(normalize=sudachi_normalization)
 
     snips_intent_definitions: Dict[str, Any] = {}
     snips_entity_definitions: Dict[str, Any] = {}
@@ -292,12 +289,12 @@ def get_utterance_fragments_ja(utterance: str, canonicalizer: Canonicalizer,
     fragments: List[Dict[str, Any]] = []
     utterance:str = canonicalize_tagged_utterance_ja(utterance, canonicalizer)
     utterance_without_tags: str = tagged_utterance_pattern.sub(r'\1',utterance)
-    tokens: List[Token] = tokenizer.tokenize(utterance_without_tags)  # tokenization
+    tokens: List[TokenWithIndicies] = tokenizer.tokenize(utterance_without_tags)  # tokenization
     # if DEBUG:
     #     print("utterance_with_tags: " + utterance)
     #     print("utterance_without_tags: " + utterance_without_tags)
     #     print("tokenized: " + " ".join([token.form for token in tokens]))
-    end_index2token: Dict[int, Token] = {}  # {3: <token end at 3>, 6: <token end at 6> ...}
+    end_index2token: Dict[int, TokenWithIndicies] = {}  # {3: <token end at 3>, 6: <token end at 6> ...}
     for token in tokens:
         end_index2token[token.end-1] = token # -1 is necessary because end index is one bigger than the end position
     slot_tags = [{"start": m.start(), "end": m.end(),
