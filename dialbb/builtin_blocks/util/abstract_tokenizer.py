@@ -6,11 +6,11 @@
 #   単語分割の抽象クラス
 
 import dataclasses
-from typing import List
+from typing import List, Dict, Any
 
 
 @dataclasses.dataclass
-class Token:
+class TokenWithIndicies:
     """
     token information
     トークン情報
@@ -25,11 +25,11 @@ class AbstractTokenizer:
     def __init__(self):
         pass
 
-    def tokenize(self, input_text: str) -> List[Token]:
+    def tokenize(self, input_text: str) -> List[TokenWithIndicies]:
         """
         tokzenize input into list of Token objects
         :param input_text: input text
-        :return: list of Token object
+        :return: list of TokenWithIndices object
         """
 
         raise NotImplementedError

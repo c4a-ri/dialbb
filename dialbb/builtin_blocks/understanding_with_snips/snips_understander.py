@@ -15,6 +15,7 @@ import pandas as pd
 from pandas import DataFrame
 from dialbb.builtin_blocks.understanding_with_snips.knowledge_converter import convert_nlu_knowledge
 from dialbb.abstract_block import AbstractBlock
+from dialbb.builtin_blocks.util.tokenizer_with_whitespaces import TokenizerWithWhitespaces
 from dialbb.main import CONFIG_KEY_FLAGS_TO_USE, CONFIG_KEY_LANGUAGE
 from typing import Any, Dict, List, Tuple
 import os
@@ -28,7 +29,8 @@ from snips_nlu.default_configs import CONFIG_EN, CONFIG_JA
 
 from dialbb.main import ANY_FLAG, KEY_SESSION_ID
 from dialbb.util.error_handlers import abort_during_building
-from dialbb.builtin_blocks.util.sudachi_tokenizer import SudachiTokenizer, Token
+from dialbb.builtin_blocks.util.tokenizer_with_sudachi import TokenizerWithSudachi
+
 
 SNIPS_SEED = 42  # from SNIPS tutorial
 
@@ -42,6 +44,7 @@ CONFIG_KEY_ENTITIES_SHEET: str = "entities_sheet"
 CONFIG_KEY_DICTIONARY_SHEET: str = "dictionary_sheet"
 CONFIG_KEY_SUDACHI_NORMALIZATION: str = "sudachi_normalization"
 CONFIG_KEY_NUM_CANDIDATES: str = "num_candidates"
+CONFIG_KEY_TOKENS: str = "tokens"
 KEY_INPUT_TEXT: str = "input_text"
 KEY_NLU_RESULT: str = "nlu_result"
 SCOPES = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
@@ -56,13 +59,19 @@ class Understander(AbstractBlock):
 
         super().__init__(*args)
 
+        # which rows to use
         flags_to_use = self.block_config.get(CONFIG_KEY_FLAGS_TO_USE, [ANY_FLAG])
 
+        # sheets in spreadsheet
         utterances_sheet = self.block_config.get(CONFIG_KEY_UTTERANCE_SHEET, "utterances")
         slots_sheet = self.block_config.get(CONFIG_KEY_SLOTS_SHEET, "slots")
         entities_sheet = self.block_config.get(CONFIG_KEY_ENTITIES_SHEET, "entities")
         dictionary_sheet = self.block_config.get(CONFIG_KEY_DICTIONARY_SHEET, "dictionary")
+
+        # language: "us" or "jp"
         self._language = self.config[CONFIG_KEY_LANGUAGE]
+
+        # how many NLU candidates will be sent to the dialogue manager
         self._num_candidates = self.block_config.get(CONFIG_KEY_NUM_CANDIDATES, 1)
         if type(self._num_candidates) != int or self._num_candidates < 1:
             abort_during_building(f"value of {CONFIG_KEY_NUM_CANDIDATES} must be a natural number.")
@@ -87,18 +96,17 @@ class Understander(AbstractBlock):
                 function_definition_module: str = function_definition.strip()
                 function_modules.append(importlib.import_module(function_definition_module))  # developer specified
 
-        sudachi_normalization: bool = False
         # setting Japanese tokenizer
         if self._language == 'ja':
             sudachi_normalization = self.block_config.get(CONFIG_KEY_SUDACHI_NORMALIZATION, False)
-            self._tokenizer = SudachiTokenizer(normalize=sudachi_normalization)
-
+            self._tokenizer = TokenizerWithSudachi(normalize=sudachi_normalization)
+        else: # english
+            self._tokenizer = TokenizerWithWhitespaces()
 
         # convert nlu knowledge dataframes to JSON in SNIPS format
         nlu_knowledge_json = convert_nlu_knowledge(utterances_df, slots_df, entities_df, dictionary_df,
                                                    flags_to_use, function_modules, self.config, self.block_config,
-                                                   language=self._language,
-                                                   sudachi_normalization=sudachi_normalization)
+                                                   self._tokenizer, language=self._language)
         # write training file 訓練データファイルを書き出す
         with open(os.path.join(self.config_dir, "_training_data.json"), "w", encoding='utf-8') as fp:
             fp.write(json.dumps(nlu_knowledge_json, indent=2, ensure_ascii=False))
@@ -185,17 +193,14 @@ class Understander(AbstractBlock):
         session_id: str = input.get(KEY_SESSION_ID, "undecided")
         self.log_debug("input: " + str(input), session_id=session_id)
 
-        sentence = input[KEY_INPUT_TEXT]
-        if sentence == "":
+        tokens = input[CONFIG_KEY_TOKENS]
+        if not tokens == "":  # if input is empty
             if self._num_candidates == 1:  # non n-best mode
                 nlu_result: Dict[str, Any] = {"type": "", "slots": {}}
             else:  # n-best mode
                 nlu_result: List[Dict[str, Any]] = [{"type": "", "slots": {}}]
         else:
-            input_to_nlu: str = sentence
-            if self._language == 'ja':
-                tokens: List[Token] = self._tokenizer.tokenize(sentence)
-                input_to_nlu = " ".join([token.form for token in tokens])
+            input_to_nlu = " ".join(tokens)  # concatenate tokens into a string
             if self._num_candidates == 1:  # non n-best mode
                 snips_result: Dict[str, Any] = self._nlu_engine.parse(input_to_nlu)
                 nlu_result: Dict[str, Any] = self.one_snips_result_to_nlu_result(snips_result)
