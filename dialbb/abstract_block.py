@@ -23,10 +23,12 @@ class AbstractBlock:
     """
 
     def __init__(self, *args):
-
-        # block config, application config, and directory of configuration file (app directory)
+        """
+        initialize block with the configuration
+        :param args: tuple of block config, application config, and directory of configuration file (app directory)
+        """
         self.block_config, self.config, self.config_dir = args
-        self.name = self.block_config.get("name", None)  # name of this block このブロックの名前
+        self.name = self.block_config.get("name", str(type(self)))  # name of this block このブロックの名前
         self._logger = get_logger(self.name)  # logger
 
     def process(self, input_data: Dict[str, Any], session_id: str) -> Dict[str, Any]:

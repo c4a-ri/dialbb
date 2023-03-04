@@ -15,7 +15,6 @@ import pandas as pd
 from pandas import DataFrame
 from dialbb.builtin_blocks.understanding_with_snips.knowledge_converter import convert_nlu_knowledge
 from dialbb.abstract_block import AbstractBlock
-from dialbb.builtin_blocks.util.tokenizer_with_whitespaces import TokenizerWithWhitespaces
 from dialbb.main import CONFIG_KEY_FLAGS_TO_USE, CONFIG_KEY_LANGUAGE
 from typing import Any, Dict, List, Tuple
 import os
@@ -29,7 +28,6 @@ from snips_nlu.default_configs import CONFIG_EN, CONFIG_JA
 
 from dialbb.main import ANY_FLAG, KEY_SESSION_ID
 from dialbb.util.error_handlers import abort_during_building
-from dialbb.builtin_blocks.util.tokenizer_with_sudachi import TokenizerWithSudachi
 
 
 SNIPS_SEED = 42  # from SNIPS tutorial
@@ -89,24 +87,18 @@ class Understander(AbstractBlock):
             utterances_df, slots_df, entities_df, dictionary_df \
                 = self.get_dfs_from_excel(excel_file, utterances_sheet, slots_sheet, entities_sheet, dictionary_sheet)
 
-        function_modules: List[ModuleType] = []  # dictionary function modules
+        # importing dictionary function modules
+        function_modules: List[ModuleType] = []
         function_definitions: str = self.block_config.get("function_definitions")  # module name(s) in config
         if function_definitions:
             for function_definition in function_definitions.split(':'):
                 function_definition_module: str = function_definition.strip()
                 function_modules.append(importlib.import_module(function_definition_module))  # developer specified
 
-        # setting Japanese tokenizer
-        if self._language == 'ja':
-            sudachi_normalization = self.block_config.get(CONFIG_KEY_SUDACHI_NORMALIZATION, False)
-            self._tokenizer = TokenizerWithSudachi(normalize=sudachi_normalization)
-        else: # english
-            self._tokenizer = TokenizerWithWhitespaces()
-
         # convert nlu knowledge dataframes to JSON in SNIPS format
         nlu_knowledge_json = convert_nlu_knowledge(utterances_df, slots_df, entities_df, dictionary_df,
                                                    flags_to_use, function_modules, self.config, self.block_config,
-                                                   self._tokenizer, language=self._language)
+                                                   language=self._language)
         # write training file 訓練データファイルを書き出す
         with open(os.path.join(self.config_dir, "_training_data.json"), "w", encoding='utf-8') as fp:
             fp.write(json.dumps(nlu_knowledge_json, indent=2, ensure_ascii=False))
@@ -194,7 +186,7 @@ class Understander(AbstractBlock):
         self.log_debug("input: " + str(input), session_id=session_id)
 
         tokens = input[CONFIG_KEY_TOKENS]
-        if not tokens == "":  # if input is empty
+        if not tokens:  # if input is empty
             if self._num_candidates == 1:  # non n-best mode
                 nlu_result: Dict[str, Any] = {"type": "", "slots": {}}
             else:  # n-best mode
