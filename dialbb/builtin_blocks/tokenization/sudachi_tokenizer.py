@@ -18,9 +18,9 @@ from sudachipy import tokenizer
 from sudachipy import dictionary
 
 
-# only English and Japanese are supported
-# 英語、日本語のみ
-supported_languages = ("en", "ja")
+# only Japanese is supported
+# 日本語のみ
+supported_languages = ("ja")
 
 KEY_INPUT_TEXT = 'input_text'
 KEY_TOKENS = 'tokens'

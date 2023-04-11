@@ -53,7 +53,8 @@ class AbstractTokenizer(AbstractBlock):
         """
 
         session_id = input_data.get(KEY_SESSION_ID, "undecided")  # for logging
-        self.log_debug("input: " + str(input_data), session_id=session_id)
+        if session_id != "undecided":  # only when used in a dialogue session, not in building
+            self.log_debug("input: " + str(input_data), session_id=session_id)
         input_text: str = input_data[KEY_INPUT_TEXT]
         if input_text == "":
             tokens_with_indices = []
@@ -61,7 +62,8 @@ class AbstractTokenizer(AbstractBlock):
             tokens_with_indices = self.tokenize(input_text)
         tokens = [token_with_indices.form for token_with_indices in tokens_with_indices]
         output = {KEY_TOKENS: tokens, KEY_TOKENS_WITH_INDICES: tokens_with_indices}
-        self.log_debug("output: " + str(output), session_id=session_id)
+        if session_id != "undecided":  # only when used in a dialogue session, not in building
+            self.log_debug("output: " + str(output), session_id=session_id)
         return output
 
     def tokenize(self, input_text: str) -> List[TokenWithIndices]:
