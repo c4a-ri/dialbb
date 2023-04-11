@@ -24,10 +24,7 @@ import argparse
 from dialbb.main import DialogueProcessor
 from dialbb.util.logger import get_logger
 
-DIALBB_HOME: str = os.environ.get("DIALBB_HOME")
-if not DIALBB_HOME:
-    print("environment variable DIALBB_HOME is not set.")
-    sys.exit(1)
+DIALBB_HOME = os.path.dirname(__file__)
 
 # read json schema files
 init_request_schema_file: str = os.path.join(DIALBB_HOME, "schemata/init_request.jsd")
