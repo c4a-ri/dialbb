@@ -12,15 +12,13 @@ __copyright__ = 'C4A Research Institute, Inc.'
 
 from typing import Dict, Any, List
 from dialbb.abstract_block import AbstractBlock
-from dialbb.main import CONFIG_KEY_LANGUAGE, KEY_SESSION_ID
+from dialbb.main import KEY_SESSION_ID
 import dataclasses
-from sudachipy import tokenizer
-from sudachipy import dictionary
-
 
 KEY_INPUT_TEXT = 'input_text'
 KEY_TOKENS = 'tokens'
 KEY_TOKENS_WITH_INDICES = 'tokens_with_indices'
+
 
 @dataclasses.dataclass
 class TokenWithIndices:

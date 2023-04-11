@@ -14,21 +14,24 @@ from jsonschema import validate, ValidationError
 from flask import Flask, request, jsonify, render_template
 import argparse
 
-DIALBB_HOME = os.path.dirname(__file__)
-sys.path.append(DIALBB_HOME)  # TODO avoid this not to violate PEP8 E402
+# DIALBB_HOME = os.path.dirname(__file__)
+# sys.path.append(DIALBB_HOME)  # TODO avoid this not to violate PEP8 E402
 
 # import mimetypes
-# mimetypes.add_type('application/javascript',
-# '.js')
+# mimetypes.add_type('application/javascript', '.js')
 # mimetypes.add_type('text/css', '.css')
 
 from dialbb.main import DialogueProcessor
 from dialbb.util.logger import get_logger
 
+DIALBB_HOME: str = os.environ.get("DIALBB_HOME")
+if not DIALBB_HOME:
+    print("environment variable DIALBB_HOME is not set.")
+    sys.exit(1)
 
 # read json schema files
-init_request_schema_file = os.path.join(DIALBB_HOME, "schemata/init_request.jsd")
-dialogue_request_schema_file = os.path.join(DIALBB_HOME, "schemata/dialogue_request.jsd")
+init_request_schema_file: str = os.path.join(DIALBB_HOME, "schemata/init_request.jsd")
+dialogue_request_schema_file: str = os.path.join(DIALBB_HOME, "schemata/dialogue_request.jsd")
 for request_schema_file in (init_request_schema_file, dialogue_request_schema_file):
     if not os.path.exists(request_schema_file):
         raise Exception(f"can't find request schema: {request_schema_file}")
@@ -66,7 +69,7 @@ def init():
     request_json = request.json
     logger.info("initial request: " + str(request_json))
     try:
-        validate(request_json, init_request_schema) # throws ValidationError
+        validate(request_json, init_request_schema)  # throws ValidationError
     except ValidationError as e:
         logger.warning("request is not valid.")
         return jsonify({"message": "bad initial request format."}), 400
@@ -89,7 +92,6 @@ def dialogue():
     result = jsonify(dialogue_processor.process(request.json))
     logger.info("response: " + str(result))
     return result
-
 
 
 if __name__ == '__main__':

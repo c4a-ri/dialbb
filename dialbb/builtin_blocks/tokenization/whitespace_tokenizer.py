@@ -16,6 +16,7 @@ from dialbb.builtin_blocks.tokenization.abstract_tokenizer import TokenWithIndic
 KEY_INPUT_TEXT = 'input_text'
 KEY_TOKENS = 'tokens'
 
+
 class WhitespaceTokenizer(AbstractTokenizer):
     """
     Block Class for tokenization
@@ -24,7 +25,6 @@ class WhitespaceTokenizer(AbstractTokenizer):
     def __init__(self, *args):
 
         super().__init__(*args)
-
 
     def tokenize(self, input_text: str) -> List[TokenWithIndices]:
 
