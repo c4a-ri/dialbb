@@ -16,8 +16,6 @@ import yaml
 import os
 import sys
 
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-
 from dialbb.util.globals import DEBUG
 from dialbb.abstract_block import AbstractBlock
 from dialbb.util.error_handlers import abort_during_building

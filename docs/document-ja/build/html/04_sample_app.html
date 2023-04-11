@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="ja" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>4. 日本語サンプルアプリケーションの説明 &mdash; DialBBドキュメント v0.2.0 ドキュメント</title>
@@ -12,10 +12,8 @@
   <![endif]-->
   
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
         <script src="_static/translations.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="索引" href="genindex.html" />
@@ -29,11 +27,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> DialBBドキュメント
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            DialBBドキュメント
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -73,8 +75,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li><span class="section-number">4. </span>日本語サンプルアプリケーションの説明</li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active"><span class="section-number">4. </span>日本語サンプルアプリケーションの説明</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/04_sample_app.md.txt" rel="nofollow"> View page source</a>
       </li>
@@ -130,7 +132,7 @@
 <h3><span class="section-number">4.3.1. </span>言語理解結果<a class="headerlink" href="#id5" title="この見出しへのパーマリンク"></a></h3>
 <p>言語理解ブロックは，入力発話を解析し，タイプとスロットを抽出します．</p>
 <p>例えば，「好きなのは醤油」の言語理解結果は次のようになります．</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;特定のラーメンが好き&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;slots&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;favarite_ramen&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;醤油ラーメン&quot;</span><span class="p">}}</span><span class="w"></span>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;特定のラーメンが好き&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;slots&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;favarite_ramen&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;醤油ラーメン&quot;</span><span class="p">}}</span>
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">&quot;特定のラーメンが好き&quot;</span></code>がタイプで，<code class="docutils literal notranslate"><span class="pre">&quot;favarite_ramen&quot;</span></code>スロットの値が<code class="docutils literal notranslate"><span class="pre">&quot;醤油ラーメン&quot;</span></code>です．複数のスロットを持つような発話もあり得ます．</p>
@@ -139,7 +141,7 @@
 <h3><span class="section-number">4.3.2. </span>言語理解知識<a class="headerlink" href="#id6" title="この見出しへのパーマリンク"></a></h3>
 <p>言語理解用の知識は，<code class="docutils literal notranslate"><span class="pre">sample-knowledge-ja.xlsx</span></code>に書かれています．</p>
 <p>言語理解知識は，以下の４つのシートからなります．</p>
-<table class="colwidths-auto docutils align-default">
+<table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>シート名</p></th>
 <th class="head"><p>内容</p></th>

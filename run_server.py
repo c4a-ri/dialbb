@@ -91,7 +91,6 @@ def dialogue():
     return result
 
 
-
 if __name__ == '__main__':
 
     # read arguments

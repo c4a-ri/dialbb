@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="ja" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>3. インストールとサンプルアプリケーションの実行の仕方 &mdash; DialBBドキュメント v0.2.0 ドキュメント</title>
@@ -12,10 +12,8 @@
   <![endif]-->
   
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
         <script src="_static/translations.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="索引" href="genindex.html" />
@@ -29,11 +27,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> DialBBドキュメント
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            DialBBドキュメント
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -78,8 +80,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li><span class="section-number">3. </span>インストールとサンプルアプリケーションの実行の仕方</li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active"><span class="section-number">3. </span>インストールとサンプルアプリケーションの実行の仕方</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/03_install.md.txt" rel="nofollow"> View page source</a>
       </li>
@@ -101,17 +103,17 @@
 <section id="dialbb">
 <h2><span class="section-number">3.2. </span>DialBBのインストール<a class="headerlink" href="#dialbb" title="この見出しへのパーマリンク"></a></h2>
 <p>githubのソースコードをcloneします．</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/c4a-ri/dialbb.git
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/c4a-ri/dialbb.git
 </pre></div>
 </div>
 </section>
 <section id="python-library">
 <h2><span class="section-number">3.3. </span>python libraryのインストール<a class="headerlink" href="#python-library" title="この見出しへのパーマリンク"></a></h2>
 <p>cloneしたディレクトリに移動し，以下を実行してください．</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ <span class="nb">cd</span> dialbb
-$ pip install -r requirements.txt 
-$ python -m snips_nlu download en（英語アプリケーションを作成・利用する場合）
-$ python -m snips_nlu download ja（日本語アプリケーションを作成・利用する場合）
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>dialbb
+$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt<span class="w"> </span>
+$<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>snips_nlu<span class="w"> </span>download<span class="w"> </span>en（英語アプリケーションを作成・利用する場合）
+$<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>snips_nlu<span class="w"> </span>download<span class="w"> </span>ja（日本語アプリケーションを作成・利用する場合）
 </pre></div>
 </div>
 <ul>
@@ -136,7 +138,7 @@ $ python -m snips_nlu download ja（日本語アプリケーションを作成�
 <section id="id3">
 <h2><span class="section-number">3.5. </span>オウム返しサンプルアプリケーションのサーバの起動<a class="headerlink" href="#id3" title="この見出しへのパーマリンク"></a></h2>
 <p>ただオウム返しを行うアプリケーションです．</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ python run_server.py sample_apps/parrot/config.yml
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python<span class="w"> </span>run_server.py<span class="w"> </span>sample_apps/parrot/config.yml
 </pre></div>
 </div>
 <section id="id4">
@@ -146,30 +148,30 @@ curlをインストールしていない場合は，「<a class="reference inter
 い．</p>
 <ul>
 <li><p>最初のアクセス</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ curl -X POST -H <span class="s2">&quot;Content-Type: application/json&quot;</span> <span class="se">\</span>
-  -d <span class="s1">&#39;{&quot;user_id&quot;:&quot;user1&quot;}&#39;</span> http://localhost:8080/init
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;user_id&quot;:&quot;user1&quot;}&#39;</span><span class="w"> </span>http://localhost:8080/init
 </pre></div>
 </div>
 <p>以下のレスポンスが帰ります．</p>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nt">&quot;aux_data&quot;</span><span class="p">:</span><span class="kc">null</span><span class="p">,</span><span class="w"> </span>
 <span class="w"> </span><span class="nt">&quot;session_id&quot;</span><span class="p">:</span><span class="s2">&quot;dialbb_session1&quot;</span><span class="p">,</span><span class="w"> </span>
 <span class="w"> </span><span class="nt">&quot;system_utterance&quot;</span><span class="p">:</span><span class="s2">&quot;I&#39;m a parrot. You can say anything.&quot;</span><span class="p">,</span><span class="w"> </span>
-<span class="w"> </span><span class="nt">&quot;user_id&quot;</span><span class="p">:</span><span class="s2">&quot;user1&quot;</span><span class="p">}</span><span class="w"></span>
+<span class="w"> </span><span class="nt">&quot;user_id&quot;</span><span class="p">:</span><span class="s2">&quot;user1&quot;</span><span class="p">}</span>
 </pre></div>
 </div>
 </li>
 <li><p>2回目以降のアクセス</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ curl -X POST -H <span class="s2">&quot;Content-Type: application/json&quot;</span> <span class="se">\</span>
-  -d <span class="s1">&#39;{&quot;user_utterance&quot;: &quot;こんにちは&quot;, &quot;user_id&quot;:&quot;user1&quot;, &quot;session_id&quot;:&quot;dialbb_session1&quot;}&#39;</span> <span class="se">\</span>
-  http://localhost:8080/dialogue
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;user_utterance&quot;: &quot;こんにちは&quot;, &quot;user_id&quot;:&quot;user1&quot;, &quot;session_id&quot;:&quot;dialbb_session1&quot;}&#39;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>http://localhost:8080/dialogue
 </pre></div>
 </div>
 <p>以下のレスポンスが帰ります．</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nt">&quot;aux_data&quot;</span><span class="p">:</span><span class="kc">null</span><span class="p">,</span><span class="w"></span>
-<span class="w"> </span><span class="nt">&quot;final&quot;</span><span class="p">:</span><span class="kc">false</span><span class="p">,</span><span class="w"></span>
-<span class="w"> </span><span class="nt">&quot;session_id&quot;</span><span class="p">:</span><span class="s2">&quot;dialbb_session1&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w"> </span><span class="nt">&quot;system_utterance&quot;</span><span class="p">:</span><span class="s2">&quot;You said \&quot;こんにちは\&quot;&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w"> </span><span class="nt">&quot;user_id&quot;</span><span class="p">:</span><span class="s2">&quot;user1&quot;</span><span class="p">}</span><span class="w"></span>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nt">&quot;aux_data&quot;</span><span class="p">:</span><span class="kc">null</span><span class="p">,</span>
+<span class="w"> </span><span class="nt">&quot;final&quot;</span><span class="p">:</span><span class="kc">false</span><span class="p">,</span>
+<span class="w"> </span><span class="nt">&quot;session_id&quot;</span><span class="p">:</span><span class="s2">&quot;dialbb_session1&quot;</span><span class="p">,</span>
+<span class="w"> </span><span class="nt">&quot;system_utterance&quot;</span><span class="p">:</span><span class="s2">&quot;You said \&quot;こんにちは\&quot;&quot;</span><span class="p">,</span>
+<span class="w"> </span><span class="nt">&quot;user_id&quot;</span><span class="p">:</span><span class="s2">&quot;user1&quot;</span><span class="p">}</span>
 </pre></div>
 </div>
 </li>
@@ -184,12 +186,12 @@ curlをインストールしていない場合は，「<a class="reference inter
 <p>以下のコマンドで起動します</p>
 <ul>
 <li><p>英語アプリケーション</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ python run_server.py sample_apps/network_en/config.yml 
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python<span class="w"> </span>run_server.py<span class="w"> </span>sample_apps/network_en/config.yml<span class="w"> </span>
 </pre></div>
 </div>
 </li>
 <li><p>日本語アプリケーション</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ python run_server.py sample_apps/network_ja/config.yml 
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python<span class="w"> </span>run_server.py<span class="w"> </span>sample_apps/network_ja/config.yml<span class="w"> </span>
 </pre></div>
 </div>
 </li>
@@ -212,17 +214,17 @@ curlをインストールしていない場合は，「<a class="reference inter
 <ul class="simple">
 <li><p>英語</p></li>
 </ul>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ python dialbb/util/test.py sample_apps/network_en/config.yml <span class="se">\</span>
-  sample_apps/network_en/test_inputs.txt --output <span class="se">\</span>
-  sample_apps/network_en/_test_outputs.txt
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python<span class="w"> </span>dialbb/util/test.py<span class="w"> </span>sample_apps/network_en/config.yml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>sample_apps/network_en/test_inputs.txt<span class="w"> </span>--output<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>sample_apps/network_en/_test_outputs.txt
 </pre></div>
 </div>
 <p>​    <code class="docutils literal notranslate"><span class="pre">sample_apps/network_en/_test_outputs.txt</span></code>に対話のやりとりが書き込まれます．</p>
 <ul class="simple">
 <li><p>日本語</p></li>
 </ul>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ python dialbb/util/test.py sample_apps/network_ja/config.yml <span class="se">\</span>
-sample_apps/network_ja/test_inputs.txt --output <span class="se">\</span>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python<span class="w"> </span>dialbb/util/test.py<span class="w"> </span>sample_apps/network_ja/config.yml<span class="w"> </span><span class="se">\</span>
+sample_apps/network_ja/test_inputs.txt<span class="w"> </span>--output<span class="w"> </span><span class="se">\</span>
 sample_apps/network_ja/_test_outputs.txt
 </pre></div>
 </div>
