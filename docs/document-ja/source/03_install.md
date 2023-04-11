@@ -4,10 +4,12 @@
 
 ## 実行環境
 
-Ubuntu 20.04およびWindows 10上のpython 3.8.10で，以下の手順で動作することを確認しています．
+Ubuntu 20.04上のpython 3.8.10で，以下の手順で動作することを確認しています．
 
 他のバージョンのPythonでも動作する可能性が高いです．
-また，MacOSでも動作しますが，インストールに追加の手順が必要な場合があります．詳細は割愛します．
+また，Windows 10やMacOSでも動作しますが，インストールに追加の手順が必要な場合がありますが，エラーメッセージに沿って追加のソフトウェアをインストールすれば解決しますので，詳細は割愛します．
+
+以下の説明はUbuntu上のbashで作業することを仮定しています．他のシェルやWindowsコマンドプロンプトを用いる場合は，適宜読み替えてください．
 
 ## DialBBのインストール
 
@@ -17,16 +19,38 @@ githubのソースコードをcloneします．
 $ git clone https://github.com/c4a-ri/dialbb.git
 ```
 
-## python libraryのインストール
+この場合,`dialbb`という名前のディレクトリができます．
 
-cloneしたディレクトリに移動し，以下を実行してください．
+特定の名前のディレクトリにインストールしたい場合は以下のようにしてください．
 
 ```sh
-$ cd dialbb
-$ pip install -r requirements.txt 
-$ python -m snips_nlu download en（英語アプリケーションを作成・利用する場合）
-$ python -m snips_nlu download ja（日本語アプリケーションを作成・利用する場合）
+$ git clone https://github.com/c4a-ri/dialbb.git <ディレクトリ名>
+
 ```
+
+できたディレクトリを以下で「DialBBディレクトリ」と呼びます．
+
+
+## pythonライブラリのインストール
+
+- <DialBBディレクトリ>に移動します．
+
+- 次に必要なら仮想環境を構築します．以下はvenvの例です．
+
+  ```sh
+  $ pyhon -m venv venv  # 仮想環境をvenvという名前で構築
+  $ venv/bin/activate   # 仮想環境に入る
+  ```
+
+- 次に以下を実行してください．
+
+
+  ```sh
+  $ pip install -r requirements.txt 
+  $ python -m snips_nlu download en # 英語アプリケーションを作成・利用する場合
+  $ python -m snips_nlu download ja # 日本語アプリケーションを作成・利用する場合
+  ```
+
 
 - 注意
 
@@ -43,8 +67,18 @@ $ python -m snips_nlu download ja（日本語アプリケーションを作成�
 
 ## Graphvizのインストール
 
-[Graphvizのサイト](https://graphviz.org/download/)などを参考にgraphvizをインストールします．
+[Graphvizのサイト](https://graphviz.org/download/)などを参考にGraphvizをインストールします．
 ただ，Graphvizがなくてもアプリケーションを動作させることは可能です．
+
+
+## 環境変数の設定
+
+以下のように環境変数を設定します．
+
+```sh
+$ export PYTHONPATH=<DialBBディレクトリ>:$PYTHONPATH
+```
+
 
 ## オウム返しサンプルアプリケーションのサーバの起動
 
@@ -53,6 +87,7 @@ $ python -m snips_nlu download ja（日本語アプリケーションを作成�
 ```sh
 $ python run_server.py sample_apps/parrot/config.yml
 ```
+
 
 ### 動作確認
 
@@ -99,7 +134,7 @@ DialBBには，あらかじめ作成してあるブロック（組み込みブ�
 
 ### 起動
 
-以下のコマンドで起動します
+以下のコマンドで起動します．
 
 
 - 英語アプリケーション

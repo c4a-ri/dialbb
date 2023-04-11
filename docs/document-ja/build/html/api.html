@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="ja" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DialBB API ドキュメント &mdash; DialBBドキュメント v0.2.0 ドキュメント</title>
+  <title>DialBB API ドキュメント &mdash; DialBBドキュメント v0.3.0 ドキュメント</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -12,10 +12,8 @@
   <![endif]-->
   
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
         <script src="_static/translations.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="索引" href="genindex.html" />
@@ -27,11 +25,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> DialBBドキュメント
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            DialBBドキュメント
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -60,8 +62,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>DialBB API ドキュメント</li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">DialBB API ドキュメント</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/api.md.txt" rel="nofollow"> View page source</a>
       </li>
@@ -78,7 +80,7 @@
 <h2>Web API 仕様<a class="headerlink" href="#web-api" title="この見出しへのパーマリンク"></a></h2>
 <section id="id1">
 <h3>サーバの起動<a class="headerlink" href="#id1" title="この見出しへのパーマリンク"></a></h3>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ python run_server.py &lt;config file&gt;
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python<span class="w"> </span>run_server.py<span class="w"> </span>&lt;config<span class="w"> </span>file&gt;
 </pre></div>
 </div>
 </section>
@@ -173,7 +175,7 @@
 <section id="id4">
 <h3>利用方法<a class="headerlink" href="#id4" title="この見出しへのパーマリンク"></a></h3>
 <p>環境変数を以下のように設定します．</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">PYTHONPATH</span><span class="o">=</span>&lt;DialBBのディレクトリ&gt;:<span class="nv">$PYTHONPATH</span>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span>&lt;DialBBのディレクトリ&gt;:<span class="nv">$PYTHONPATH</span>
 </pre></div>
 </div>
 <p>pythonを立ち上げるか，DialBBを呼び出すアプリケーションの中で，以下のようにDialogueProcessorのインスタンスを作成し，processメソッドを呼び出します．</p>
