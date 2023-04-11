@@ -125,9 +125,8 @@ $ python run_server.py [--port <port>] <config file>
   ```python
   >>> from dialbb.main import DialogueProcessor
   >>> dialogue_processor = DialogueProcessor(<コンフィギュレーションファイル> <追加のコンフィギュレーション>)
-  >>> session_id = <新しく作成したsession id>          # 対話開始時
-  >>> session_id = <クライアントから送られ来たsession id> # 2回目以降のターン
-  >>> response = dialogue_processor.process(<リクエスト>, session_id)
+  >>> response = dialogue_processor.process(<リクエスト>, initial=True)  # 対話セッション開始時
+  >>> response = dialogue_processor.process(<リクエスト>) # セッション継続時
   ```
   
   注意: processメソッドの仕様はv0.2.0で変更になりました．
