@@ -73,12 +73,11 @@ $ git clone https://github.com/c4a-ri/dialbb.git <ディレクトリ名>
 
 ## 環境変数の設定
 
-以下のように環境変数を設定します．
+以下のように環境変数`PYTHONPATH`を設定します．ただし，以下の手順はすべて<DialBBディレクトリ>で行っているため，環境変数`PYTHONPATH`を設定しなくても行えます．
 
 ```sh
 $ export PYTHONPATH=<DialBBディレクトリ>:$PYTHONPATH
 ```
-
 
 ## オウム返しサンプルアプリケーションのサーバの起動
 

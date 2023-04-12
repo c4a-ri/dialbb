@@ -198,7 +198,12 @@
 <p>アプリケーションにWebAPI経由でアクセスすることもできます．</p>
 <section id="id8">
 <h3><span class="section-number">5.2.1. </span>サーバの起動<a class="headerlink" href="#id8" title="この見出しへのパーマリンク"></a></h3>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python<span class="w"> </span>run_server.py<span class="w"> </span><span class="o">[</span>--port<span class="w"> </span>&lt;port&gt;<span class="o">]</span><span class="w"> </span>&lt;config<span class="w"> </span>file&gt;
+<p>環境変数<code class="docutils literal notranslate"><span class="pre">PYTHONPATH</span></code>を設定します．</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span>&lt;DialBBのディレクトリ&gt;:<span class="nv">$PYTHONPATH</span>
+</pre></div>
+</div>
+<p>コンフィギュレーションファイルを指定してサーバを起動します．</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python<span class="w"> </span>&lt;DialBBのディレクトリ&gt;/run_server.py<span class="w"> </span><span class="o">[</span>--port<span class="w"> </span>&lt;port&gt;<span class="o">]</span><span class="w"> </span>&lt;config<span class="w"> </span>file&gt;
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">port</span></code>（ポート番号）のデフォルトは8080です．</p>

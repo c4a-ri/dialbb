@@ -137,7 +137,7 @@ Sudachiの`SplitMode.C`を用いて単語分割します．
 	    以下が例です．
 	  
 	    ```json
-	     {"type": "特定のラーメンが好き", "slots": {"favarite_ramen": "醤油ラーメン"}}
+	     {"type": "特定のラーメンが好き", "slots": {"favorite_ramen": "醤油ラーメン"}}
 	    ```
 	  
 	  - `num_candidates`が2以上の場合，複数の理解結果候補のリストになります．

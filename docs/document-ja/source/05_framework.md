@@ -108,8 +108,16 @@ DialBBのメインモジュールは，クラスAPI（メソッド呼び出し�
 
 ### サーバの起動
 
+環境変数`PYTHONPATH`を設定します．
+
 ```sh
-$ python run_server.py [--port <port>] <config file>
+export PYTHONPATH=<DialBBのディレクトリ>:$PYTHONPATH
+```
+
+コンフィギュレーションファイルを指定してサーバを起動します．
+
+```sh
+$ python <DialBBのディレクトリ>/run_server.py [--port <port>] <config file>
 ```
 
 `port`（ポート番号）のデフォルトは8080です．
