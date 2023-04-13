@@ -1,7 +1,7 @@
 (intro)=
 # はじめに
 
-[DialBB (Dialogue Building Blocks)](https://github.com/c4a-ri/dialbb)は対話システムを構築するためのフレームワークです．
+[DialBB (*Dial*ogue System Development Framework with *B*uilding *B*locks)](https://github.com/c4a-ri/dialbb)は対話システムを構築するためのフレームワークです．
 
 対話システムは情報分野の様々な技術を統合して構築されます．本フレームワークを用いることで，対話システム技術の知識や情報システム開発経験の少ない人でも対話システムが構築でき，様々な情報技術を学ぶことができることを目指しています．また，アーキテクチャのわかりやすさ，拡張性の高さ，コードの読みやすさなどを重視し，プログラミング・システム開発教育の教材にしてもらえることも目指しています．DialBB開発の目的については、[人工知能学会SLUD研究会の論文](https://www.jstage.jst.go.jp/article/jsaislud/96/0/96_39/_article/-char/ja)に書きましたので、そちらも合わせてご参照ください。
 
