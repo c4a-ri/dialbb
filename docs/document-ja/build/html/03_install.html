@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>3. インストールとサンプルアプリケーションの実行の仕方 &mdash; DialBBドキュメント v0.2.0 ドキュメント</title>
+  <title>3. インストールとサンプルアプリケーションの実行の仕方 &mdash; DialBBドキュメント v0.3.0 ドキュメント</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -48,23 +48,24 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">3. インストールとサンプルアプリケーションの実行の仕方</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#id2">3.1. 実行環境</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#dialbb">3.2. DialBBのインストール</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#python-library">3.3. python libraryのインストール</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#python">3.3. pythonライブラリのインストール</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#graphviz">3.4. Graphvizのインストール</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id3">3.5. オウム返しサンプルアプリケーションのサーバの起動</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id4">3.5.1. 動作確認</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id3">3.5. 環境変数の設定</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id4">3.6. オウム返しサンプルアプリケーションのサーバの起動</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id5">3.6.1. 動作確認</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#id5">3.6. 組み込みブロックを用いたサンプルアプリケーションの起動</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id6">3.6.1. 起動</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#test-with-browser">3.6.2. 動作確認</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id8">3.6.3. テストセットを用いた動作確認</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id6">3.7. 組み込みブロックを用いたサンプルアプリケーションの起動</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id7">3.7.1. 起動</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#test-with-browser">3.7.2. 動作確認</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id9">3.7.3. テストセットを用いた動作確認</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="04_sample_app.html">4. 日本語サンプルアプリケーションの説明</a></li>
 <li class="toctree-l1"><a class="reference internal" href="05_framework.html">5. フレームワーク仕様</a></li>
-<li class="toctree-l1"><a class="reference internal" href="06_builtin_blocks.html">6. 組み込みブロックの仕様</a></li>
+<li class="toctree-l1"><a class="reference internal" href="06_builtin_blocks.html">6. 組み込みブロッククラスの仕様</a></li>
 </ul>
 
         </div>
@@ -96,9 +97,10 @@
 <p>本章では，DialBBをインストールしてサンプルアプリケーションを実行する方法について説明します．もし以下の作業を行うことが難しければ，詳しい人に聞いてください．</p>
 <section id="id2">
 <h2><span class="section-number">3.1. </span>実行環境<a class="headerlink" href="#id2" title="この見出しへのパーマリンク"></a></h2>
-<p>Ubuntu 20.04およびWindows 10上のpython 3.8.10で，以下の手順で動作することを確認しています．</p>
+<p>Ubuntu 20.04上のpython 3.8.10で，以下の手順で動作することを確認しています．</p>
 <p>他のバージョンのPythonでも動作する可能性が高いです．
-また，MacOSでも動作しますが，インストールに追加の手順が必要な場合があります．詳細は割愛します．</p>
+また，Windows 10やMacOSでも動作しますが，インストールに追加の手順が必要な場合がありますが，エラーメッセージに沿って追加のソフトウェアをインストールすれば解決しますので，詳細は割愛します．</p>
+<p>以下の説明はUbuntu上のbashで作業することを仮定しています．他のシェルやWindowsコマンドプロンプトを用いる場合は，適宜読み替えてください．</p>
 </section>
 <section id="dialbb">
 <h2><span class="section-number">3.2. </span>DialBBのインストール<a class="headerlink" href="#dialbb" title="この見出しへのパーマリンク"></a></h2>
@@ -106,17 +108,30 @@
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/c4a-ri/dialbb.git
 </pre></div>
 </div>
-</section>
-<section id="python-library">
-<h2><span class="section-number">3.3. </span>python libraryのインストール<a class="headerlink" href="#python-library" title="この見出しへのパーマリンク"></a></h2>
-<p>cloneしたディレクトリに移動し，以下を実行してください．</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>dialbb
-$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt<span class="w"> </span>
-$<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>snips_nlu<span class="w"> </span>download<span class="w"> </span>en（英語アプリケーションを作成・利用する場合）
-$<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>snips_nlu<span class="w"> </span>download<span class="w"> </span>ja（日本語アプリケーションを作成・利用する場合）
+<p>この場合,<code class="docutils literal notranslate"><span class="pre">dialbb</span></code>という名前のディレクトリができます．</p>
+<p>特定の名前のディレクトリにインストールしたい場合は以下のようにしてください．</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/c4a-ri/dialbb.git<span class="w"> </span>&lt;ディレクトリ名&gt;
 </pre></div>
 </div>
+<p>できたディレクトリを以下で「DialBBディレクトリ」と呼びます．</p>
+</section>
+<section id="python">
+<h2><span class="section-number">3.3. </span>pythonライブラリのインストール<a class="headerlink" href="#python" title="この見出しへのパーマリンク"></a></h2>
 <ul>
+<li><p>&lt;DialBBディレクトリ&gt;に移動します．</p></li>
+<li><p>次に必要なら仮想環境を構築します．以下はvenvの例です．</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>pyhon<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv<span class="w">  </span><span class="c1"># 仮想環境をvenvという名前で構築</span>
+$<span class="w"> </span>venv/bin/activate<span class="w">   </span><span class="c1"># 仮想環境に入る</span>
+</pre></div>
+</div>
+</li>
+<li><p>次に以下を実行してください．</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt<span class="w"> </span>
+$<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>snips_nlu<span class="w"> </span>download<span class="w"> </span>en<span class="w"> </span><span class="c1"># 英語アプリケーションを作成・利用する場合</span>
+$<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>snips_nlu<span class="w"> </span>download<span class="w"> </span>ja<span class="w"> </span><span class="c1"># 日本語アプリケーションを作成・利用する場合</span>
+</pre></div>
+</div>
+</li>
 <li><p>注意</p>
 <ul>
 <li><p>Windows上のAnacondaを用いて実行する場合，Anaconda Promptを管理者モードで起動しないといけない可能性があります．</p></li>
@@ -132,17 +147,24 @@ $<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span
 </section>
 <section id="graphviz">
 <h2><span class="section-number">3.4. </span>Graphvizのインストール<a class="headerlink" href="#graphviz" title="この見出しへのパーマリンク"></a></h2>
-<p><a class="reference external" href="https://graphviz.org/download/">Graphvizのサイト</a>などを参考にgraphvizをインストールします．
+<p><a class="reference external" href="https://graphviz.org/download/">Graphvizのサイト</a>などを参考にGraphvizをインストールします．
 ただ，Graphvizがなくてもアプリケーションを動作させることは可能です．</p>
 </section>
 <section id="id3">
-<h2><span class="section-number">3.5. </span>オウム返しサンプルアプリケーションのサーバの起動<a class="headerlink" href="#id3" title="この見出しへのパーマリンク"></a></h2>
+<h2><span class="section-number">3.5. </span>環境変数の設定<a class="headerlink" href="#id3" title="この見出しへのパーマリンク"></a></h2>
+<p>以下のように環境変数<code class="docutils literal notranslate"><span class="pre">PYTHONPATH</span></code>を設定します．ただし，以下の手順はすべて&lt;DialBBディレクトリ&gt;で行っているため，環境変数<code class="docutils literal notranslate"><span class="pre">PYTHONPATH</span></code>を設定しなくても行えます．</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span><span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span>&lt;DialBBディレクトリ&gt;:<span class="nv">$PYTHONPATH</span>
+</pre></div>
+</div>
+</section>
+<section id="id4">
+<h2><span class="section-number">3.6. </span>オウム返しサンプルアプリケーションのサーバの起動<a class="headerlink" href="#id4" title="この見出しへのパーマリンク"></a></h2>
 <p>ただオウム返しを行うアプリケーションです．</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python<span class="w"> </span>run_server.py<span class="w"> </span>sample_apps/parrot/config.yml
 </pre></div>
 </div>
-<section id="id4">
-<h3><span class="section-number">3.5.1. </span>動作確認<a class="headerlink" href="#id4" title="この見出しへのパーマリンク"></a></h3>
+<section id="id5">
+<h3><span class="section-number">3.6.1. </span>動作確認<a class="headerlink" href="#id5" title="この見出しへのパーマリンク"></a></h3>
 <p>別のターミナルから以下を実行してください．
 curlをインストールしていない場合は，「<a class="reference internal" href="#test-with-browser"><span class="std std-ref">動作確認</span></a>」に書いてある方法でテストしてくださ
 い．</p>
@@ -178,12 +200,12 @@ curlをインストールしていない場合は，「<a class="reference inter
 </ul>
 </section>
 </section>
-<section id="id5">
-<h2><span class="section-number">3.6. </span>組み込みブロックを用いたサンプルアプリケーションの起動<a class="headerlink" href="#id5" title="この見出しへのパーマリンク"></a></h2>
-<p>DialBBには，あらかじめ作成してあるブロック（組み込みブロック）を用いたサンプルアプリケーションがあります．</p>
 <section id="id6">
-<h3><span class="section-number">3.6.1. </span>起動<a class="headerlink" href="#id6" title="この見出しへのパーマリンク"></a></h3>
-<p>以下のコマンドで起動します</p>
+<h2><span class="section-number">3.7. </span>組み込みブロックを用いたサンプルアプリケーションの起動<a class="headerlink" href="#id6" title="この見出しへのパーマリンク"></a></h2>
+<p>DialBBには，あらかじめ作成してあるブロック（組み込みブロック）を用いたサンプルアプリケーションがあります．</p>
+<section id="id7">
+<h3><span class="section-number">3.7.1. </span>起動<a class="headerlink" href="#id7" title="この見出しへのパーマリンク"></a></h3>
+<p>以下のコマンドで起動します．</p>
 <ul>
 <li><p>英語アプリケーション</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python<span class="w"> </span>run_server.py<span class="w"> </span>sample_apps/network_en/config.yml<span class="w"> </span>
@@ -198,7 +220,7 @@ curlをインストールしていない場合は，「<a class="reference inter
 </ul>
 </section>
 <section id="test-with-browser">
-<span id="id7"></span><h3><span class="section-number">3.6.2. </span>動作確認<a class="headerlink" href="#test-with-browser" title="この見出しへのパーマリンク"></a></h3>
+<span id="id8"></span><h3><span class="section-number">3.7.2. </span>動作確認<a class="headerlink" href="#test-with-browser" title="この見出しへのパーマリンク"></a></h3>
 <p>上記でアプリケーションを起動したサーバのホスト名かIPアドレスを<code class="docutils literal notranslate"><span class="pre">&lt;hostname&gt;</span></code>としたとき，ブラウザから以下のURLに接続すると対話画面が現れますので，そこで対話してみてください．</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">http</span><span class="p">:</span><span class="o">//&lt;</span><span class="n">hostname</span><span class="o">&gt;</span><span class="p">:</span><span class="mi">8080</span> 
 </pre></div>
@@ -208,8 +230,8 @@ curlをインストールしていない場合は，「<a class="reference inter
 </pre></div>
 </div>
 </section>
-<section id="id8">
-<h3><span class="section-number">3.6.3. </span>テストセットを用いた動作確認<a class="headerlink" href="#id8" title="この見出しへのパーマリンク"></a></h3>
+<section id="id9">
+<h3><span class="section-number">3.7.3. </span>テストセットを用いた動作確認<a class="headerlink" href="#id9" title="この見出しへのパーマリンク"></a></h3>
 <p>以下のコマンドで，ユーザ発話を順に処理して対話するテストを行うことができます．</p>
 <ul class="simple">
 <li><p>英語</p></li>

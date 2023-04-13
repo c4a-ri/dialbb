@@ -6,17 +6,23 @@
 
 本アプリケーションは以下のようなシステム構成をしています．
 
+
 ![sample-arch](../../images/sample-arch.jpg)
 
-本アプリケーションでは，以下の3つの組み込みブロックを利用しています．
 
-- Utterance canonicalizer: 正規化ブロック．ユーザ入力文の正規化（大文字→小文字，全角⇒半角の変換，Unicode正規化など）を行います．
+本アプリケーションでは，以下のつの組み込みブロックを利用しています．
+なお，組み込みブロックとは，DialBBにあらかじめ含まれているブロックです．これらの組み込みブロックの詳細は，「{ref}`builtin-blocks`」で説明します．
 
-- SNIPS understander: 言語理解ブロック．形態素解析を行った後，[SNIPS_NLU](https://snips-nlu.readthedocs.io/en/latest/)を利用して，ユーザ発話タイプ（インテントとも呼びます）の決定とスロットの抽出を行います．
+- Japanese Canonicalizer: ユーザ入力文の正規化（大文字→小文字，全角→半角の変換，Unicode正規化など）を行います．
+
+- Sudachi Tokenizer: 正規化されたユーザ入力文を単語に分割します．形態素解析器[Sudachi](https://github.com/WorksApplications/Sudachi)を用います．
+
+- SNIPS Understander: 言語理解を行います．[SNIPS_NLU](https://snips-nlu.readthedocs.io/en/latest/)を利用して，ユーザ発話タイプ（インテントとも呼びます）の決定とスロットの抽出を行います．
   
-- STN manager: 対話管理ブロック．状態遷移ネットワーク(State Transition Network)を用いて対話管理を行います．
+- STN Manager: 対話管理と言語生成を行います．状態遷移ネットワーク(State Transition Network)を用いて対話管理を行い，システム発話を出力します．
 
-組み込みブロックとは，DialBBにあらかじめ含まれているブロックです．これらの組み込みブロックの詳細は，{ref}`builtin_blocks`で説明します．
+メインモジュールとブロックを結ぶ矢印の上の記号は，左側がメインモジュールのblackboardにおけるキーで，右側がブロックの入出力におけるキーです．
+
 
 ## アプリケーションを構成するファイル
 
@@ -26,33 +32,34 @@ sample_apps/network_jaには以下のファイルが含まれています．
 
 - `config.yml`
 
-  アプリケーションを規定するコンフィギュレーションファイルです．どのようなブロックを使うかや，各ブロックが読み込むファイルなどが指定されています．このファイルのフォーマットは{ref}`configuration`で詳細に説明します
+  アプリケーションを規定するコンフィギュレーションファイルです．どのようなブロックを使うかや，各ブロックが読み込むファイルなどが指定されています．このファイルのフォーマットは「{ref}`configuration`」で詳細に説明します
 
 - `config_gs_template.yml`　
 
-  `config.yml`は言語理解と対話管理の知識をExcelで書いたものを使うようになっていますが，Excelの代わりにGoogle Spreadsheetを用いる場合のコンフィギュレーションファイルのテンプレートです．`config_gs.yml`にコピーし，Google Spreadsheetにアクセスするための情報を加えることで使用できます．
+  SNIPS UnderstanderブロックとSTN Manageブロックで用いる知識をExcelではなく，Google Spreadsheetを用いる場合のコンフィギュレーションファイルのテンプレートです．これをコピーし，Google Spreadsheetにアクセスするための情報を加えることで使用できます．
 
 - `sample-knowledge-ja.xlsx`
 
-  言語理解ブロック，対話管理ブロックで用いる知識を記述したものです．
+  SNIPS UndderstanderブロックとSTN Managerブロックで用いる知識を記述したものです．
 
-- scenario_functions.py
+- `scenario_functions.py`
 
-  対話管理ブロックで用いるプログラムです．
+  STN Managerブロックで用いるプログラムです．
 
 - `dictionary_functions.py`
 
-  言語理解用の辞書をExcel記述ではなく，関数によって定義する場合の例が含まれています．
+  SNIPS Undderstander用の辞書をExcel記述ではなく，関数によって定義する場合の例が含まれています．
 
 - `test_inputs.txt`
 
   システムテストで使うテストシナリオです．
 
-## 言語理解ブロック
+## SNIPS Understanderブロック
 
 ### 言語理解結果
 
-言語理解ブロックは，入力発話を解析し，タイプとスロットを抽出します．
+SNIPS Understanderブロックは，入力発話を解析し，言語理解結果を出力します．
+言語理解結果はタイプとスロットの集合からなります．
 
 例えば，「好きなのは醤油」の言語理解結果は次のようになります．
 
@@ -64,7 +71,7 @@ sample_apps/network_jaには以下のファイルが含まれています．
 
 ### 言語理解知識
 
-言語理解用の知識は，`sample-knowledge-ja.xlsx`に書かれています．
+SNIPS Understanderブロックが用いる言語理解用の知識は，`sample-knowledge-ja.xlsx`に書かれています．
 
 言語理解知識は，以下の４つのシートからなります．
 
@@ -83,7 +90,7 @@ sample_apps/network_jaには以下のファイルが含まれています．
 
 SNIPS用の訓練データはアプリのディレクトリの`_training_data.json`です．このファイルを見ることで，うまく変換されているかどうかを確認できます．
 
-## 対話管理ブロック
+## STN Managerブロック
 
 対話管理知識（シナリオ）は，`sample-knowledge-ja.xlsx`ファイルの`scenario`シートです．
 このシートの書き方の詳細は「{ref}`scenario`」を参照してください．

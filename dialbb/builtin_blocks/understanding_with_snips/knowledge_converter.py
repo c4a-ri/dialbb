@@ -9,19 +9,21 @@ __version__ = '0.1'
 __author__ = 'Mikio Nakano'
 __copyright__ = 'C4A Research Institute, Inc.'
 
+import importlib
 from types import ModuleType
 from typing import Dict, List, Any, Union
 import sys
 import re
 from pandas import DataFrame
 
-from dialbb.builtin_blocks.util.abstract_tokenizer import AbstractTokenizer
-from dialbb.builtin_blocks.util.canonicalizer import Canonicalizer
 from re import Pattern
 
-from dialbb.builtin_blocks.util.sudachi_tokenizer import SudachiTokenizer, Token
+from dialbb.abstract_block import AbstractBlock
+from dialbb.builtin_blocks.preprocess.abstract_canonicalizer import AbstractCanonicalizer
+from dialbb.builtin_blocks.tokenization.abstract_tokenizer import AbstractTokenizer
 from dialbb.util.error_handlers import abort_during_building, warn_during_building
 from dialbb.main import ANY_FLAG
+from dialbb.builtin_blocks.tokenization.abstract_tokenizer import TokenWithIndices
 
 COLUMN_FLAG: str = "flag"
 COLUMN_TYPE: str = "type"
@@ -33,6 +35,10 @@ COLUMN_AUTOMATICALLY_EXTENSIBLE: str = "automatically extensible"
 COLUMN_MATCHING_STRICTNESS: str = "matching strictness"
 COLUMN_ENTITY: str = "entity"
 COLUMN_SYNONYMS: str = "synonyms"
+KEY_CLASS: str = "class"
+KEY_CANONICALIZER: str = "canonicalizer"
+KEY_TOKENIZER: str = "tokenizer"
+KEY_TOKENS_WITH_INDICES: str = "tokens_with_indices"
 
 tagged_utterance_pattern: Pattern = re.compile(r"\(([^)]+)\)\s*\[([^]]+)]")
 
@@ -54,11 +60,26 @@ def check_columns(required_columns: List[str], df: DataFrame, sheet: str) -> boo
                                   + "There might be extra whitespaces.")
     return True
 
+def create_block_object(block_config: Dict[str, Any]) -> AbstractBlock:
+    """
+    create a block object (tokenizer or canonicalizer)
+    :param block_config: config
+    :return: block object
+    """
+
+    print(f"creating block whose class is {block_config[KEY_CLASS]}.")
+    block_module_name, block_class_name = block_config[KEY_CLASS].rsplit(".", 1)
+    component_module = importlib.import_module(block_module_name)
+    block_class = getattr(component_module, block_class_name)
+    block_object = block_class(block_config, {}, "")  # create block (instance of block class)
+    if not isinstance(block_object, AbstractBlock):
+        raise Exception(f"{block_config[KEY_CLASS]} is not a subclass of AbstractBlock.")
+    return block_object
 
 def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, entities_df: DataFrame,
                           dictionary_df: DataFrame, flags: List[str], function_modules: List[ModuleType],
                           config: Dict[str, Any], block_config: Dict[str, Any],
-                          language='ja', sudachi_normalization=False) -> Dict[str, Any]:
+                          language='ja') -> Dict[str, Any]:
     """
     converts nlu knowledge into SNIPS training data
     言語理解知識をSNIPSの訓練データに変換する
@@ -77,10 +98,16 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, entitie
 
     print(f"converting nlu knowledge.")
 
-    canonicalizer = Canonicalizer(language)
-    tokenizer = None
-    if language == 'ja':
-        tokenizer = SudachiTokenizer(normalize=sudachi_normalization)
+    # canonicalizer
+    canonicalizer_config: Dict[str, Any] = block_config.get(KEY_CANONICALIZER)
+    if not canonicalizer_config:
+        abort_during_building("Canonicalizer is not specified in the config of SNIPS understander.")
+    canonicalizer: AbstractCanonicalizer = create_block_object(canonicalizer_config)
+
+    tokenizer_config: Dict[str, Any] = block_config.get(KEY_TOKENIZER)
+    if not tokenizer_config:
+        abort_during_building("Tokenizer is not specified in the config of SNIPS understander.")
+    tokenizer: AbstractTokenizer = create_block_object(tokenizer_config)
 
     snips_intent_definitions: Dict[str, Any] = {}
     snips_entity_definitions: Dict[str, Any] = {}
@@ -246,7 +273,7 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, entitie
     return result
 
 
-def get_utterance_fragments_en(utterance: str, canonicalizer: Canonicalizer,
+def get_utterance_fragments_en(utterance: str, canonicalizer: AbstractCanonicalizer,
                                tokenizer: AbstractTokenizer,
                                slot2entity: Dict[str, str]) -> List[Dict[str, Any]]:
     """
@@ -276,7 +303,7 @@ def get_utterance_fragments_en(utterance: str, canonicalizer: Canonicalizer,
     return fragments
 
 
-def get_utterance_fragments_ja(utterance: str, canonicalizer: Canonicalizer,
+def get_utterance_fragments_ja(utterance: str, canonicalizer: AbstractCanonicalizer,
                                tokenizer: AbstractTokenizer,
                                slot2entity: Dict[str, str]) -> List[Dict[str, Any]]:
     """
@@ -292,13 +319,15 @@ def get_utterance_fragments_ja(utterance: str, canonicalizer: Canonicalizer,
     fragments: List[Dict[str, Any]] = []
     utterance:str = canonicalize_tagged_utterance_ja(utterance, canonicalizer)
     utterance_without_tags: str = tagged_utterance_pattern.sub(r'\1',utterance)
-    tokens: List[Token] = tokenizer.tokenize(utterance_without_tags)  # tokenization
+    input_to_tokenizer_block: Dict[str, str] = {"input_text": utterance_without_tags}
+    output_from_tokenizer_block: Dict[str, Any] = tokenizer.process(input_to_tokenizer_block)  # tokenization
+    tokens_with_indices: List[TokenWithIndices] = output_from_tokenizer_block.get(KEY_TOKENS_WITH_INDICES, {})
     # if DEBUG:
     #     print("utterance_with_tags: " + utterance)
     #     print("utterance_without_tags: " + utterance_without_tags)
     #     print("tokenized: " + " ".join([token.form for token in tokens]))
-    end_index2token: Dict[int, Token] = {}  # {3: <token end at 3>, 6: <token end at 6> ...}
-    for token in tokens:
+    end_index2token: Dict[int, TokenWithIndices] = {}  # {3: <token end at 3>, 6: <token end at 6> ...}
+    for token in tokens_with_indices:
         end_index2token[token.end-1] = token # -1 is necessary because end index is one bigger than the end position
     slot_tags = [{"start": m.start(), "end": m.end(),
                   "slot_name": m.group(2),"value": m.group(1)}
@@ -351,7 +380,7 @@ def get_utterance_fragments_ja(utterance: str, canonicalizer: Canonicalizer,
     return fragments
 
 
-def canonicalize_tagged_utterance_en(input_text: str, canonicalizer: Canonicalizer) -> str:
+def canonicalize_tagged_utterance_en(input_text: str, canonicalizer: AbstractCanonicalizer) -> str:
     """
     canonicalizes English utterance with slot tags
     :param input_text: utterance string with slot tags
@@ -365,7 +394,7 @@ def canonicalize_tagged_utterance_en(input_text: str, canonicalizer: Canonicaliz
     return result
 
 
-def canonicalize_tagged_utterance_ja(input_text: str, canonicalizer: Canonicalizer) -> str:
+def canonicalize_tagged_utterance_ja(input_text: str, canonicalizer: AbstractCanonicalizer) -> str:
     """
     canonicalizes Japanese utterance with slot tags
     :param input_text: utterance string with slot tags
@@ -381,7 +410,7 @@ def canonicalize_tagged_utterance_ja(input_text: str, canonicalizer: Canonicaliz
     return result
 
 
-def normalize(input_text: str, canonicalizer: Canonicalizer,
+def normalize(input_text: str, canonicalizer: AbstractCanonicalizer,
               tokenizer: AbstractTokenizer, language: str = "ja") -> str:
     """
     canonicalizes and tokenizes input string

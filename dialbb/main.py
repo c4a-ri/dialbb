@@ -111,39 +111,39 @@ class DialogueProcessor:
                  レスポンス　（システム発話を含む）
         """
 
-        payload: Dict[str, Any] = request
+        blackboard: Dict[str, Any] = request
 
         if initial:  # first turn
             global session_count
             session_count += 1
             # create session id string
             session_id = "dialbb_session" + str(session_count)  # todo generate random session name
-            payload[KEY_SESSION_ID] = session_id
-            payload['user_utterance'] = ""
+            blackboard[KEY_SESSION_ID] = session_id
+            blackboard['user_utterance'] = ""
         else:
-            session_id = payload[KEY_SESSION_ID]  # session id received from the client
-        self._logger.debug(f"payload: " + str(payload))
+            session_id = blackboard[KEY_SESSION_ID]  # session id received from the client
+        self._logger.debug(f"blackboard: " + str(blackboard))
 
-        # each block process payload
+        # each block process blackboard
         for block in self._blocks:
             input_to_block = {}
-            for key_in_input, key_in_payload in block.block_config['input'].items():
-                if key_in_payload not in payload:
-                    self._logger.warning(f"key '{key_in_payload}' is not in the payload.")
-                input_to_block[key_in_input] = payload.get(key_in_payload, None)
+            for key_in_input, key_in_blackboard in block.block_config['input'].items():
+                if key_in_blackboard not in blackboard:
+                    self._logger.warning(f"key '{key_in_blackboard}' is not in the blackboard.")
+                input_to_block[key_in_input] = blackboard.get(key_in_blackboard, None)
             # call each block's process method
             output_from_block = block.block_object.process(input_to_block, session_id=session_id)
-            for key_in_output, key_in_payload in block.block_config['output'].items():
+            for key_in_output, key_in_blackboard in block.block_config['output'].items():
                 if key_in_output not in output_from_block:
-                    self._logger.warning(f"key '{key_in_output}' is not in the output from the block.")
-                payload[key_in_payload] = output_from_block[key_in_output]
-            self._logger.debug(f"payload: " + str(payload))
+                    self._logger.error(f"key '{key_in_output}' is not in the output from the block.")
+                blackboard[key_in_blackboard] = output_from_block[key_in_output]
+            self._logger.debug(f"blackboard: " + str(blackboard))
 
-        # create response from the payload
-        response = {"system_utterance": payload.get('system_utterance', ""),
-                    "session_id": payload['session_id'],
-                    "user_id": payload['user_id'],
-                    "final": payload.get('final', False),
-                    "aux_data": payload.get("aux_data", {})}
+        # create response from the blackboard
+        response = {"system_utterance": blackboard.get('system_utterance', ""),
+                    "session_id": blackboard['session_id'],
+                    "user_id": blackboard['user_id'],
+                    "final": blackboard.get('final', False),
+                    "aux_data": blackboard.get("aux_data", {})}
 
         return response

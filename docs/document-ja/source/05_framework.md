@@ -3,45 +3,56 @@
 
 ここではフレームワークとしてのDialBBの仕様を説明します．Pythonプログラミングの知識がある読者を想定しています．
 
-## 概要
+## 入出力
 
-DialBBのメインモジュールは，メソッド呼び出しまたはWeb API経由で，ユーザ発話をJSON形式で受けとり，システム発話をJSON形式で返します．
+DialBBのメインモジュールは，クラスAPI（メソッド呼び出し）で，ユーザ発話をJSON形式で受けとり，システム発話をJSON形式で返します．
 
-メインモジュールは，ブロックと呼ぶいくつかのサブモジュールを順に呼び出すことによって動作します．各ブロックはJSON形式（pythonの辞書型）のデータを受け取り，JSON形式のデータを返します．
+メインモジュールは，ブロックを順に呼び出すことによって動作します．各ブロックはJSON形式（pythonの辞書型）のデータを受け取り，JSON形式のデータを返します．
 
 各ブロックのクラスや入出力仕様はアプリケーション毎のコンフィギュレーションファイルで規定します．
 
-## 入出力
+### DialogueProcessorクラス
 
-### WebAPI
+アプリケーションの作成は，`dialbb.main.DialogueProcessor`クラスのオブジェクトを作成することで行います．
 
+これは以下の手順で行います．
 
-#### サーバの起動
+- 環境変数PYTHONPATHにDialBBのディレクトリを追加します．
 
-```sh
-$ python run_server.py [--port <port>] <config file>
-```
-
-`port`（ポート番号）のデフォルトは8080です．
-
-
-#### クライアントからの接続（セッションの開始時）
-
-- URI
-
-  ```
-  http://<server>:<port>/init
+  ```sh
+  export PYTHONPATH=<DialBBのディレクトリ>:$PYTHONPATH
   ```
 
-- リクエストヘッダ
-
+- pythonを立ち上げるか，DialBBを呼び出すアプリケーションの中で，以下のように`DialogueProcessor`のインスタンスを作成し，`process`メソッド[^fn-process]を呼び出します．
+  
+  ```python
+  >>> from dialbb.main import DialogueProcessor
+  >>> dialogue_processor = DialogueProcessor(<コンフィギュレーションファイル> <追加のコンフィギュレーション>)
+  >>> response = dialogue_processor.process(<リクエスト>, initial=True)  # 対話セッション開始時
+  >>> response = dialogue_processor.process(<リクエスト>) # セッション継続時
   ```
-  Content-Type: application/json
+  
+  [^fn-process]: processメソッドの仕様はv0.2.0で変更になりました．
+  
+  
+  `<追加のコンフィギュレーション>`は，以下のような辞書形式のデータで，keyは文字列でなければなりません．
+  
+  ```json
+  {
+	"<key1>": <value1>,
+    "<key2>": <value2>,
+    ...
+  }
   ```
+  これは，コンフィギュレーションファイルから読み込んだデータに追加して用いられます．もし，コンフィギュレーションファイルと追加のコンフィギュレーションで同じkeyが用いられていた場合，追加のコンフィギュレーションの値が用いられます．
+  
+  <リクエスト>と`response`（レスポンス）は辞書型のデータで，以下で説明します．
 
-- リクエストボディ
+### リクエスト
 
-  以下の形のJSONです．
+#### セッション開始時
+
+以下の形のJSONです．
 
   ```json
   {
@@ -49,14 +60,30 @@ $ python run_server.py [--port <port>] <config file>
     "aux_data": <補助データ: データ型は任意>
   }
   ```
-  
+
   - `user_id`は必須で，`aux_data`は任意です．
 
   - <ユーザID>はユーザに関するユニークなIDです. 同じユーザが何度も対話する際に，以前の対話の内容をアプリが覚えておくために用います．
 
   - <補助データ>は，クライアントの状態をアプリに送信するために用います．フォーマットは任意のJSONオブジェクトで，アプリ毎に決めます．
 
-- レスポンス
+####  セッション開始後
+
+以下の形のJSONです．
+
+  ```json
+  {"user_id": <ユーザID: 文字列>,
+   "session_id": <セッションID: 文字列>,
+   "user_utterance": <ユーザ発話文字列: 文字列>,
+   "aux_data":<補助データ: データ型は任意>}
+  ```
+
+  - `user_id`, `session_id`, `user_utterance`は必須．`aux_data`は任意です．
+  - <セッションID>は，サーバから送られたセッションIDです．
+  - <ユーザ発話文字列>は，ユーザが入力した発話文字列です．
+
+
+### レスポンス
 
   ```json
   {
@@ -74,7 +101,51 @@ $ python run_server.py [--port <port>] <config file>
   - <対話終了フラグ>は，対話が終了したかどうかを表すブール値です．
   - <補助データ>は，対話アプリがクライアントに送信するデータです．サーバの状態などを送信するのに使います．
 
-#### クライアントからの接続（セッション開始後）
+
+## WebAPI
+
+アプリケーションにWebAPI経由でアクセスすることもできます．
+
+### サーバの起動
+
+環境変数`PYTHONPATH`を設定します．
+
+```sh
+export PYTHONPATH=<DialBBのディレクトリ>:$PYTHONPATH
+```
+
+コンフィギュレーションファイルを指定してサーバを起動します．
+
+```sh
+$ python <DialBBのディレクトリ>/run_server.py [--port <port>] <config file>
+```
+
+`port`（ポート番号）のデフォルトは8080です．
+
+
+### クライアントからの接続（セッションの開始時）
+
+- URI
+
+  ```
+  http://<server>:<port>/init
+  ```
+
+- リクエストヘッダ
+
+  ```
+  Content-Type: application/json
+  ```
+
+- リクエストボディ
+
+  クラスAPIの場合のリクエストと同じJSON形式のデータです．
+
+- レスポンス
+
+  クラスAPIの場合のレスポンスと同じJSON形式のデータです．
+  
+### クライアントからの接続（セッション開始後）
 
 
 - URI
@@ -90,70 +161,21 @@ $ python run_server.py [--port <port>] <config file>
 
 - リクエストボディ
 
-  以下の形のJSONです．
-
-  ```json
-  {"user_id": <ユーザID: 文字列>,
-   "session_id": <セッションID: 文字列>,
-   "user_utterance": <ユーザ発話文字列: 文字列>,
-   "aux_data":<補助データ: データ型は任意>}
-  ```
-
-  - `user_id`, `session_id`, `user_utterance`は必須．`aux_data`は任意です．
-  - <セッションID>は，サーバから送られたセッションIDです．
-  - <ユーザ発話文字列>は，ユーザが入力した発話文字列です．
+  クラスAPIの場合のリクエストと同じJSON形式のデータです．
 
 - レスポンス
 
-  セッションの開始時のレスポンスと同じです．
-
-
-### クラスAPI
-
-クラスAPIを用いる場合，`dialbb.main.DialogueProcessor`クラスのオブジェクトを作成することで，DialBBのアプリケーションを作成します．
-
-これは以下の手順で行います．
-
-- 以下のように，環境変数PYTHONPATHにDialBBのディレクトリを追加します．
-
-  ```sh
-  export PYTHONPATH=<DialBBのディレクトリ>:$PYTHONPATH
-  ```
-
-- pythonを立ち上げるか，DialBBを呼び出すアプリケーションの中で，以下のように`DialogueProcessor`のインスタンスを作成し，`process`メソッドを呼び出します．
-  
-  ```python
-  >>> from dialbb.main import DialogueProcessor
-  >>> dialogue_processor = DialogueProcessor(<コンフィギュレーションファイル> <追加のコンフィギュレーション>)
-  >>> response = dialogue_processor.process(<リクエスト>, initial=True)  # 対話セッション開始時
-  >>> response = dialogue_processor.process(<リクエスト>) # セッション継続時
-  ```
-  
-  注意: processメソッドの仕様はv0.2.0で変更になりました．
-  
-  `<追加のコンフィギュレーション>`は，以下のような辞書形式のデータで，keyは文字列でなければなりません．
-  
-  ```json
-  {
-	  "<key1>": <value1>,
-    "<key2>": <value2>,
-    ...
-  }
-  ```
-  これは，コンフィギュレーションファイルから読み込んだデータに追加して用いられます．もし，コンフィギュレーションファイルと追加のコンフィギュレーションで同じkeyが用いられていた場合，追加のコンフィギュレーションの値が用いられます．
-  
-  <リクエスト>と`response`（レスポンス）は辞書型のデータで，Web APIのリクエスト，レスポンスと同じです．
-
+  クラスAPIの場合のレスポンスと同じJSON形式のデータです．
 
 (configuration)=
 ## コンフィギュレーション
 
 コンフィギュレーションは辞書形式のデータで，yamlファイルで与えることを前提としています．
 
-コンフィギュレーションに必ず必要なのはblocks要素のみです．blocks要素は，各ブロックがどのようなものかを規定するもの（これをブロックコンフィギュレーションと呼びます）のリストで，以下のような形をしています．
+コンフィギュレーションに必ず必要なのは`blocks`要素のみです．`blocks`要素は，各ブロックがどのようなものかを規定するもの（これをブロックコンフィギュレーションと呼びます）のリストで，以下のような形をしています．
 
 ```
-blocks
+blocks:
   - <ブロックコンフィギュレーション>
   - <ブロックコンフィギュレーション>
   ...
@@ -168,35 +190,39 @@ blocks
 
 - `block_class`
 
-  ブロックのクラス名です．モジュールを検索するパス（`sys.path`の要素の一つ．環境変数`PYTHONPATH`で設定するパスはこれに含まれます）からの相対で記述します（組み込みクラスの場合`dialbb.builtin_blocks`からの相対パスでも書けますが推奨されません）．コンフィギュレーションファイルのあるディレクトリは，モジュールが検索されるパス（`sys.path`の要素）に自動的に登録されます．
+  ブロックのクラス名です．モジュールを検索するパス（`sys.path`の要素の一つ．環境変数`PYTHONPATH`で設定するパスはこれに含まれます）からの相対で記述します．
+  
+  コンフィギュレーションファイルのあるディレクトリは，モジュールが検索されるパス（`sys.path`の要素）に自動的に登録されます．
+  
+  組み込みクラスは，`dialbb.builtin_blocks.<モジュール名>.<クラス名>`の形で指定してください．`dialbb.builtin_blocks`からの相対パスでも書けますが，非推奨です．
 
 - `input`
 
-  メインモジュールからブロックへの入力を規定します．辞書型のデータで，keyがブロック内での参照に用いられ，valueがpayload（メインモジュールで保持されるデータ）での参照に用いられます．例えば，
+  メインモジュールからブロックへの入力を規定します．辞書型のデータで，keyがブロック内での参照に用いられ，valueがblackboard（メインモジュールで保持されるデータ）での参照に用いられます．例えば，
 
   ```yaml
   input: 
     sentence: canonicalized_user_utterance
   ```
 
-  のように指定されていたとすると，ブロック内で`input['sentence']`で参照できるものは，メインモジュールの`payload['canonicalized_user_utterance']`です．
+  のように指定されていたとすると，ブロック内で`input['sentence']`で参照できるものは，メインモジュールの`blackboard['canonicalized_user_utterance']`です．
 
 - `output`
 
-  ブロックからメインモジュールへの出力を規定します．`input`同様，辞書型のデータで，keyがブロック内での参照に用いられ，valueがpayloadでの参照に用いられます．
+  ブロックからメインモジュールへの出力を規定します．`input`同様，辞書型のデータで，keyがブロック内での参照に用いられ，valueがblackboardでの参照に用いられます．
 
   ```yaml
   output:
     output_text: system_utterance
   ```
 
-​       の場合，ブロックからの出力を`output`とすると，
+  の場合，ブロックからの出力を`output`とすると，
 
-```python
-	payload['system_utterance'] = output['output_text']
-```
+  ```python
+	blackboard['system_utterance'] = output['output_text']
+  ```
 
-​       の処理が行われます．`payload`がすでに`system_utterance`をキーとして持っていた場合は，その値は上書きされます．
+  の処理が行われます．`blackboard`がすでに`system_utterance`をキーとして持っていた場合は，その値は上書きされます．
 
 ## ブロックの自作方法
 
@@ -220,7 +246,7 @@ blocks
 
 - `process(self, input: Dict[str, Any], session_id: str = False) -> Dict[str, Any]`
 
-  入力inputを処理し，出力を返します．入力，出力とメインモジュールのpayloadの関係はコンフィギュレーションで規定されます．（「{ref}`configuration`」を参照）
+  入力inputを処理し，出力を返します．入力，出力とメインモジュールのblackboardの関係はコンフィギュレーションで規定されます．（「{ref}`configuration`」を参照）
   `session_id`はメインモジュールから渡される文字列で，対話のセッション毎にユニークなものです．
 
 
@@ -236,7 +262,7 @@ blocks
    
 - `self.name`
 
-   ブロックの名前です．(文字列)
+   コンフィギュレーションに書いてあるブロックの名前です．(文字列)
 
 - `self.config_dir`
 

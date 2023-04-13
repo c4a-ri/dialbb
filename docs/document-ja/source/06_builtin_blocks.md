@@ -1,37 +1,108 @@
-# 組み込みブロックの仕様
+(builtin-blocks)=
+# 組み込みブロッククラスの仕様
 
+組み込みブロッククラスとは，DialBBにあらかじめ含まれているブロッククラスです．
 
-組み込みブロックとは，DialBBにあらかじめ含まれているブロックです．
+ver0.3で正規化ブロッククラスが変更になりました．また，新たに単語分割のブロッククラスが導入されました．
+それに伴い，SNIPS言語理解の入力も変更になっています．
 
+## Japanese canonicalizer （日本語文字列正規化ブロック）
 
-## Utterance canonicalizer （文字列正規化ブロック）
+(`dialbb.builtin_blocks.preprocess.japanese_canonicalizer.JapaneseCanonicalizer`)
 
-(`dialbb.builtin_blocks.preprocess.utterance_canonicalizer.UtteranceCanonicalizer`)
-
-ユーザ入力文の正規化を行います．
-
-コンフィギュレーションの`language`要素が`ja`の場合は日本語，`en`の場合は英語用の正規化を行います．
+入力文字列の正規化を行います．
 
 ### 入出力
 
 - 入力
-  - `input_text`: ユーザ発話文字列（文字列）
+  - `input_text`: 入力文字列（文字列）
     - 例："ＣＵＰ Noodle 好き"
 
 - 出力
-  - `output_text`: 正規化後のユーザ発話（文字列）
+  - `output_text`: 正規化後の文字列（文字列）
     - 例："cupnoodle好き"
 
 ### 処理内容
 
-正規化ブロックはユーザ発話文字列に対して以下の処理を行います．
+入力文字列に対して以下の処理を行います．
 
-- 大文字→小文字
+- 前後のスペースの削除
+- 英大文字→英小文字
+- 改行の削除
 - 全角→半角の変換（カタカナを除く）
-- スペースの連続を一つのスペースに変換（英語のみ）
-- スペースの削除（日本語のみ）
-- Unicode正規化（NFKC）（日本語のみ）
+- スペースの削除
+- Unicode正規化（NFKC）
 
+## Simple canonicalizer （単純文字列正規化ブロック）
+
+(`dialbb.builtin_blocks.preprocess.simple_canonicalizer.SimpleCanonicalizer`)
+
+ユーザ入力文の正規化を行います．主に英語が対象です．
+
+### 入出力
+
+- 入力
+  - `input_text`: 入力文字列（文字列）
+    - 例：" I  like ramen"
+
+- 出力
+  - `output_text`: 正規化後の文字列（文字列）
+    - 例："i like ramen"
+
+### 処理内容
+
+入力文字列に対して以下の処理を行います．
+
+- 前後のスペースの削除
+- 英大文字→英小文字
+- 改行の削除
+- スペースの連続を一つのスペースに変換
+
+
+## Sudachi tokenizer （Sudachiベースの日本語単語分割ブロック）
+
+(`dialbb.builtin_blocks.tokenization.sudachi_tokenizer.SudachiTokenizer`)
+
+[Sudachi](https://github.com/WorksApplications/Sudachi)を用いて入力文字列を単語に分割します．
+
+### 入出力
+
+- 入力
+  - `input_text`: 入力文字列（文字列）
+    - 例："私はラーメンが食べたい"
+
+- 出力
+  - `tokens`: トークンのリスト（文字列のリスト）
+    - 例：['私','は','ラーメン','が','食べ','たい']
+  - `tokens_with_indices`: トークン情報のリスト（`dialbb.tokenization.abstract_tokenizer.TokenWIthIndices`クラスのオブジェクトのリスト）．トークン情報には，トークンに加えてそのトークンの開始位置が元の文字列の何文字目から何文字目までなのかの情報も含まれている．
+
+### 処理内容
+
+Sudachiの`SplitMode.C`を用いて単語分割します．
+
+ブロックコンフィギュレーションの`sudachi_normalization`の値が`True`の時，Sudachi正規化を行います．
+デフォルト値は`False`です．
+
+## Whitespace tokenizer （空白ベースの単語分割ブロック）
+
+(`dialbb.builtin_blocks.tokenization.whitespace_tokenizer.WhitespaceTokenizer`)
+
+入力を空白で区切って単語に分割します．主に英語が対象です．
+
+### 入出力
+
+- 入力
+  - `input_text`: 入力文字列（文字列）
+    - 例："i like ramen"
+
+- 出力
+  - `tokens`: トークンのリスト（文字列のリスト）
+    - 例：['i','like','ramen']
+  - `tokens_with_indices`: トークン情報のリスト（`dialbb.tokenization.abstract_tokenizer.TokenWIthIndices`クラスのオブジェクトのリスト）．トークン情報には，トークンに加えてそのトークンの開始位置が元の文字列の何文字目から何文字目までなのかの情報も含まれています．
+
+### 処理内容
+
+単純正規化ブロックで正規化された入力を空白で区切って単語に分割します．
 
 
 ## SNIPS understander （SNIPSを用いた言語理解ブロック）
@@ -41,8 +112,7 @@
 [SNIPS_NLU](https://snips-nlu.readthedocs.io/en/latest/)を利用して，ユーザ発話タイプ（インテントとも呼びます）の決定とスロットの抽出を行います．
 
 コンフィギュレーションの`language`要素が`ja`の場合は日本語，`en`の場合は英語の言語理解を行います．
-日本語の場合は，SNIPSを適用する前に[Sudachi](https://github.com/WorksApplications/Sudachi)を用いて形態素解析を行います．
-
+日本語の場合は，SNIPSを適用する前にを用いて形態素解析を行います．
 
 本ブロックは，起動時にExcelで記述した言語理解用知識を読み込み，SNIPSの訓練データに変更し，SNIPSのモデルを構築します．
 
@@ -51,8 +121,8 @@
 ### 入出力
 
 - 入力
-  - `input_text`: 正規化後のユーザ発話（文字列）
-    - 例："好きなのは醤油"
+  - `tokens`: トークンのリスト（文字列のリスト）
+    - 例：['好き','な','の','は','醤油']
   
 - 出力
   - `nlu_result`: 言語理解結果（辞書型または辞書型のリスト）
@@ -67,7 +137,7 @@
 	    以下が例です．
 	  
 	    ```json
-	     {"type": "特定のラーメンが好き", "slots": {"favarite_ramen": "醤油ラーメン"}}
+	     {"type": "特定のラーメンが好き", "slots": {"favorite_ramen": "醤油ラーメン"}}
 	    ```
 	  
 	  - `num_candidates`が2以上の場合，複数の理解結果候補のリストになります．
@@ -94,13 +164,29 @@
 
   各シートの`flag`カラムにこの値のうちのどれかが書かれていた場合に読み込みます．このパラメータがセットされていない場合はすべての行が読み込まれます．
 
-- `sudachi_normalization`（ブール値．デフォルト値`False`）
+- `canonicalizer` 
 
-  日本語の場合，この値が`True`の場合，言語理解モデルの構築時と言語理解実行時にSudachiの正規化（表記揺れの吸収を含む）を行います．
+   言語理解知識をSNIPSの訓練データに変換する際に行う正規化の情報を指定します．
+
+   - `class`
+   
+      正規化のブロックのクラスを指定します．基本的にアプリケーションで用いる正規化のブロックと同じものを指定します．
+	  
+- `tokenizer` 
+
+   言語理解知識をSNIPSの訓練データに変換する際に行う単語分割の情報を指定します．
+
+   - `class`
+   
+      単語分割のブロックのクラスを指定します．基本的にアプリケーションで用いる単語分割のブロックと同じものを指定します．
+	  
+   - `sudachi_normalization`（ブール値．デフォルト値`False`）
+
+      単語分割にSudachi Tokenizerを用いる場合、この値が`True`の時には、Sudachi正規化を行います．
 
 - `num_candidates`（Integer. デフォルト値`1`）
 
-  言語理解結果の数（n-bestのn）を指定します．
+   言語理解結果の最大数（n-bestのn）を指定します．
 
 - `knowledge_google_sheet` (ハッシュ)
 
@@ -222,7 +308,6 @@ utterancesシートのみならずこのブロックで使うシートにこれ�
    同義語を`,`または `，`または`，`で連結したもの
 
 (dictionary_function)=
-
 #### 開発者による辞書関数の定義
 
 辞書関数は，主に外部のデータベースなどから辞書情報を取ってくるときに利用します．
@@ -250,7 +335,7 @@ def location(config: Dict[str, Any], block_config: Dict[str, Any]) \
 SNIPSの訓練データはアプリのディレクトリの`_training_data.json`です．このファイルを見ることで，うまく変換されているかどうかを確認できます．
 
 (stn_manager)=
-## STN manager （状態遷移ネットワークベースの言語理解ブロック）
+## STN manager （状態遷移ネットワークベースの対話管理ブロック）
 
 (`dialbb.builtin_blocks.stn_manager.stn_management`)  
 

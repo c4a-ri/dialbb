@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DialBB ドキュメント &mdash; DialBBドキュメント v0.2.0 ドキュメント</title>
+  <title>DialBB ドキュメント &mdash; DialBBドキュメント v0.3.0 ドキュメント</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -47,7 +47,7 @@
 <li class="toctree-l1"><a class="reference internal" href="03_install.html">3. インストールとサンプルアプリケーションの実行の仕方</a></li>
 <li class="toctree-l1"><a class="reference internal" href="04_sample_app.html">4. 日本語サンプルアプリケーションの説明</a></li>
 <li class="toctree-l1"><a class="reference internal" href="05_framework.html">5. フレームワーク仕様</a></li>
-<li class="toctree-l1"><a class="reference internal" href="06_builtin_blocks.html">6. 組み込みブロックの仕様</a></li>
+<li class="toctree-l1"><a class="reference internal" href="06_builtin_blocks.html">6. 組み込みブロッククラスの仕様</a></li>
 </ul>
 
         </div>
@@ -84,32 +84,36 @@
 <li class="toctree-l1"><a class="reference internal" href="03_install.html">3. インストールとサンプルアプリケーションの実行の仕方</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="03_install.html#id2">3.1. 実行環境</a></li>
 <li class="toctree-l2"><a class="reference internal" href="03_install.html#dialbb">3.2. DialBBのインストール</a></li>
-<li class="toctree-l2"><a class="reference internal" href="03_install.html#python-library">3.3. python libraryのインストール</a></li>
+<li class="toctree-l2"><a class="reference internal" href="03_install.html#python">3.3. pythonライブラリのインストール</a></li>
 <li class="toctree-l2"><a class="reference internal" href="03_install.html#graphviz">3.4. Graphvizのインストール</a></li>
-<li class="toctree-l2"><a class="reference internal" href="03_install.html#id3">3.5. オウム返しサンプルアプリケーションのサーバの起動</a></li>
-<li class="toctree-l2"><a class="reference internal" href="03_install.html#id5">3.6. 組み込みブロックを用いたサンプルアプリケーションの起動</a></li>
+<li class="toctree-l2"><a class="reference internal" href="03_install.html#id3">3.5. 環境変数の設定</a></li>
+<li class="toctree-l2"><a class="reference internal" href="03_install.html#id4">3.6. オウム返しサンプルアプリケーションのサーバの起動</a></li>
+<li class="toctree-l2"><a class="reference internal" href="03_install.html#id6">3.7. 組み込みブロックを用いたサンプルアプリケーションの起動</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="04_sample_app.html">4. 日本語サンプルアプリケーションの説明</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="04_sample_app.html#id2">4.1. システム構成</a></li>
 <li class="toctree-l2"><a class="reference internal" href="04_sample_app.html#id3">4.2. アプリケーションを構成するファイル</a></li>
-<li class="toctree-l2"><a class="reference internal" href="04_sample_app.html#id4">4.3. 言語理解ブロック</a></li>
-<li class="toctree-l2"><a class="reference internal" href="04_sample_app.html#id7">4.4. 対話管理ブロック</a></li>
+<li class="toctree-l2"><a class="reference internal" href="04_sample_app.html#snips-understander">4.3. SNIPS Understanderブロック</a></li>
+<li class="toctree-l2"><a class="reference internal" href="04_sample_app.html#stn-manager">4.4. STN Managerブロック</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="05_framework.html">5. フレームワーク仕様</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="05_framework.html#id2">5.1. 概要</a></li>
-<li class="toctree-l2"><a class="reference internal" href="05_framework.html#id3">5.2. 入出力</a></li>
+<li class="toctree-l2"><a class="reference internal" href="05_framework.html#id2">5.1. 入出力</a></li>
+<li class="toctree-l2"><a class="reference internal" href="05_framework.html#webapi">5.2. WebAPI</a></li>
 <li class="toctree-l2"><a class="reference internal" href="05_framework.html#configuration">5.3. コンフィギュレーション</a></li>
-<li class="toctree-l2"><a class="reference internal" href="05_framework.html#id8">5.4. ブロックの自作方法</a></li>
-<li class="toctree-l2"><a class="reference internal" href="05_framework.html#id12">5.5. デバッグモード</a></li>
-<li class="toctree-l2"><a class="reference internal" href="05_framework.html#id13">5.6. テストシナリオを用いたテスト</a></li>
+<li class="toctree-l2"><a class="reference internal" href="05_framework.html#id12">5.4. ブロックの自作方法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="05_framework.html#id16">5.5. デバッグモード</a></li>
+<li class="toctree-l2"><a class="reference internal" href="05_framework.html#id17">5.6. テストシナリオを用いたテスト</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="06_builtin_blocks.html">6. 組み込みブロックの仕様</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="06_builtin_blocks.html#utterance-canonicalizer">6.1. Utterance canonicalizer （文字列正規化ブロック）</a></li>
-<li class="toctree-l2"><a class="reference internal" href="06_builtin_blocks.html#snips-understander-snips">6.2. SNIPS understander （SNIPSを用いた言語理解ブロック）</a></li>
-<li class="toctree-l2"><a class="reference internal" href="06_builtin_blocks.html#stn-manager">6.3. STN manager （状態遷移ネットワークベースの言語理解ブロック）</a></li>
+<li class="toctree-l1"><a class="reference internal" href="06_builtin_blocks.html">6. 組み込みブロッククラスの仕様</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="06_builtin_blocks.html#japanese-canonicalizer">6.1. Japanese canonicalizer （日本語文字列正規化ブロック）</a></li>
+<li class="toctree-l2"><a class="reference internal" href="06_builtin_blocks.html#simple-canonicalizer">6.2. Simple canonicalizer （単純文字列正規化ブロック）</a></li>
+<li class="toctree-l2"><a class="reference internal" href="06_builtin_blocks.html#sudachi-tokenizer-sudachi">6.3. Sudachi tokenizer （Sudachiベースの日本語単語分割ブロック）</a></li>
+<li class="toctree-l2"><a class="reference internal" href="06_builtin_blocks.html#whitespace-tokenizer">6.4. Whitespace tokenizer （空白ベースの単語分割ブロック）</a></li>
+<li class="toctree-l2"><a class="reference internal" href="06_builtin_blocks.html#snips-understander-snips">6.5. SNIPS understander （SNIPSを用いた言語理解ブロック）</a></li>
+<li class="toctree-l2"><a class="reference internal" href="06_builtin_blocks.html#stn-manager">6.6. STN manager （状態遷移ネットワークベースの対話管理ブロック）</a></li>
 </ul>
 </li>
 </ul>

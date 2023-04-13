@@ -15,8 +15,6 @@ import sys
 import os
 from statistics import mean
 
-sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
-
 from dialbb.main import DialogueProcessor
 
 USER_ID = "user1"

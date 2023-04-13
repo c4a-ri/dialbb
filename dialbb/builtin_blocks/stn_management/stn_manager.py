@@ -20,6 +20,7 @@ from pandas import DataFrame
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
+import dialbb.main
 from dialbb.builtin_blocks.stn_management.scenario_graph import create_scenario_graph
 from dialbb.builtin_blocks.stn_management.state_transition_network \
     import StateTransitionNetwork, State, Transition, Argument, Condition, Action, \
@@ -213,7 +214,11 @@ class Manager(AbstractBlock):
                 current_state_name = INITIAL_STATE_NAME
                 self._dialogue_context[session_id][KEY_CURRENT_STATE_NAME] = current_state_name
             else:
-                self.log_debug("dialogue_context: " + str(self._dialogue_context[session_id]), session_id=session_id)
+                if DEBUG:
+                    dialogue_context: Dict[str, Any] = copy.copy(self._dialogue_context[session_id])
+                    del dialogue_context[KEY_CONFIG]
+                    del dialogue_context[KEY_BLOCK_CONFIG]
+                    self.log_debug("dialogue_context: " + str(dialogue_context), session_id=session_id)
                 previous_state_name: str = self._dialogue_context[session_id][KEY_CURRENT_STATE_NAME]
                 if previous_state_name is None:
                     self.log_error(f"can't find previous state for session.", session_id=session_id)
@@ -231,8 +236,9 @@ class Manager(AbstractBlock):
             current_state: State = self._network.get_state_from_state_name(current_state_name)
             if not current_state:
                 self.log_error(f"can't find state to move.", session_id=session_id)
+                # set cause of the error
                 self._dialogue_context[session_id][KEY_CAUSE] = f"can't find state to move: {current_state_name}"
-                current_state_name = ERROR_STATE_NAME
+                current_state_name = ERROR_STATE_NAME  # move to error state
                 current_state = self._network.get_state_from_state_name(current_state_name)
             output_text = current_state.get_one_system_utterance()
             output_text = self._substitute_variables(output_text, session_id)
@@ -244,7 +250,11 @@ class Manager(AbstractBlock):
             output = {"output_text": "Internal error occurred.", "final": True}
 
         self.log_debug("output: " + str(output), session_id=session_id)
-        self.log_debug("updated dialogue_context: " + str(self._dialogue_context[session_id]), session_id=session_id)
+        if DEBUG:
+            dialogue_context: Dict[str, Any] = copy.copy(self._dialogue_context[session_id])
+            del dialogue_context[KEY_CONFIG]
+            del dialogue_context[KEY_BLOCK_CONFIG]
+            self.log_debug("updated dialogue_context: " + str(dialogue_context), session_id=session_id)
         return output
 
     def _substitute_variables(self, text: str, session_id: str) -> str:
@@ -397,12 +407,12 @@ class Manager(AbstractBlock):
         :return:
         """
 
-        if argument.is_constant():
+        if argument.is_constant():  # quoted string
             return argument.get_name()  # its name as is
-        elif argument.is_address():
+        elif argument.is_address():  # starts with '&'
             return argument.get_name()  # its name as is
         elif argument.is_special_variable():  # realize special variable (sentence or slot name)
-            slot_name: str = argument.get_name()
+            slot_name: str = argument.get_name()    # starts with '#'
             if slot_name == "sentence":
                 return sentence
             if slot_name == "user_id":
@@ -412,6 +422,7 @@ class Manager(AbstractBlock):
             elif slot_name in aux_data.keys():
                 return aux_data[slot_name]
             else:
+                self.log_warning(f"special variable #{str(argument.get_name())} is not realized.", session_id=session_id)
                 return slot_name  # do not realize
         elif argument.is_variable():  # realize
             variable_name: str = argument.get_name()
