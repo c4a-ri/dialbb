@@ -26,7 +26,7 @@ blocks:
     output: 
       nlu_result: nlu_result
     knowledge_file: sample-knowledge-en.xlsx  # scenario excel
-    num_candidates: 1
+    num_candidates: 5
   - name: manager  # state transition network-based dialogue manager block
     block_class: dialbb.builtin_blocks.stn_management.stn_manager.Manager
     knowledge_file: sample-knowledge-en.xlsx  # scenario excel

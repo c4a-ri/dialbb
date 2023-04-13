@@ -48,7 +48,9 @@ class WhitespaceTokenizer(AbstractTokenizer):
             if char == ' ':
                 result.append(TokenWithIndices(start=start, end=index, form=form))
                 start = index + 1
+                form = ""
             else:
                 form += char
+        result.append(TokenWithIndices(start=start, end=len(input_text), form=form))
         return result
 
