@@ -76,6 +76,144 @@ def create_block_object(block_config: Dict[str, Any]) -> AbstractBlock:
         raise Exception(f"{block_config[KEY_CLASS]} is not a subclass of AbstractBlock.")
     return block_object
 
+def convert_slots_sheet(slots_df: DataFrame, config: Dict[str, Any], block_config: Dict[str, Any],
+                        flags: List[str], canonicalizer: AbstractCanonicalizer, tokenizer: AbstractTokenizer,
+                        function_modules: List[ModuleType]) -> (Dict[str, Any], Dict[str, str]):
+    """
+    slots dataframeを変換する
+    converts slots dataframe and returns the following:
+    - snips_entity_definitions:
+    - slot_names2entity_classes:
+    :param slots_df: slots sheet dataframe
+    :param config: configuration
+    :param block_config: block configuration
+    :param flags: flats to use
+    :param canonicalizer: canonicalizer object
+    :param tokenizer: tokenizer object
+    :param function_modules: modules that may have dictionary functions
+    :return: a tuple of entity definition dict and a dict from slot names to entity classes
+    """
+    snips_entity_definitions: Dict[str, Any] = {}
+    slot_names2entity_classes: Dict[str, str] = {}
+
+    slots_df.fillna('', inplace=True)
+    check_columns([COLUMN_FLAG, COLUMN_SLOT_NAME, COLUMN_ENTITY_CLASS], slots_df, "slots")
+    for index, row in slots_df.iterrows():
+        if row[COLUMN_FLAG] not in flags and ANY_FLAG not in flags:
+            continue
+        slot: str = row[COLUMN_SLOT_NAME].strip()
+        entity_class: str = row[COLUMN_ENTITY_CLASS].strip()
+        if not entity_class.startswith("dialbb/"):  # dictionary function
+            slot_names2entity_classes[slot] = entity_class
+        else:  # entity defined by a dictionary function
+            function_name: str = entity_class.replace("dialbb/", "")
+            entity_class = function_name  # entity and function name is the same
+            slot_names2entity_classes[slot] = entity_class
+            function_found = False
+            for function_module in function_modules:
+                function = getattr(function_module, function_name, None)
+                function_found = True
+                if function:
+                    dictionary: List[Dict[str, Union[str, List[str]]]] \
+                        = eval("func(config, block_config)", {}, # execute dictionary function
+                               {"func": function, "config": config, "block_config": block_config})
+                    snips_entity_definitions[entity_class] = {'data':  []}
+                    for entry in dictionary:
+                        entity: str = entry['entity']
+                        normalized_value: str = normalize(entity, canonicalizer, tokenizer)
+                        normalized_synonyms: List[str] = [normalize(synonym, canonicalizer, tokenizer)
+                                               for synonym in entry.get('synonyms',[])]
+                        if entity != normalized_value:
+                            normalized_synonyms.append(normalized_value) # normalized entity is used as a synonym
+                        snips_entity_definitions[entity_class]['data'].append({"value": entity,
+                                                                               "synonyms": normalized_synonyms})
+                    break
+            if not function_found:
+                abort_during_building(f'dictionary function "{function_name}" is not found.')
+
+    return snips_entity_definitions, slot_names2entity_classes
+
+
+def convert_entities_sheet(entities_df: DataFrame, flags: List[str]) -> Dict[str, Dict[str, Any]]:
+    """
+    converts an entities sheet into a dictionary from entities to dictionaries representing entity attributes:
+    <entity: str> -> {"use_synonyms": <bool>, "automatically_extensible": <bool>, "matching_strictness": <float>}
+
+    :param entities_df: entities sheet dataframe
+    :param flags: flags to use (specified in the configuration file)
+    :return: entity class descriptions
+    """
+
+    # converting entities dataframe
+    # entities dataframeの変換
+    check_columns([COLUMN_FLAG, COLUMN_ENTITY_CLASS, COLUMN_USE_SYNONYMS,
+                   COLUMN_AUTOMATICALLY_EXTENSIBLE, COLUMN_MATCHING_STRICTNESS], entities_df, "entities")
+    entity_class_descriptions: Dict[str, Dict[str, Any]] = {}
+
+    entities_df.fillna('', inplace=True)
+    for index, row in entities_df.iterrows():
+        entity_class: str = row[COLUMN_ENTITY_CLASS].strip()
+        if row[COLUMN_FLAG] not in flags and ANY_FLAG not in flags:
+            continue
+        if row[COLUMN_USE_SYNONYMS].strip() == "yes":
+            use_synonyms: bool = True
+        else:
+            use_synonyms = False
+        if row[COLUMN_AUTOMATICALLY_EXTENSIBLE].strip() == "yes":
+            automatically_extensible: bool = True
+        else:
+            automatically_extensible = False
+        matching_strictness = row[COLUMN_MATCHING_STRICTNESS]
+        try:
+            matching_strictness = float(matching_strictness)
+        except Exception as e:
+            abort_during_building(f"matching strictness must be a number: {str(matching_strictness)}")
+        if entity_class.startswith("dialbb/"):
+            entity_class = entity_class.replace("dialbb/", "")
+        entity_class_descriptions[entity_class] = {"use_synonyms": use_synonyms,
+                                "automatically_extensible": automatically_extensible,
+                                "matching_strictness": matching_strictness}
+    return entity_class_descriptions
+
+
+def convert_dictionary_sheet(dictionary_df: DataFrame, flags: List[str], canonicalizer: AbstractCanonicalizer,
+                             tokenizer: AbstractTokenizer, language: str,
+                             snips_entity_definitions: Dict[str, Any]) -> None:
+    """
+    Reads dictionary sheet and updates snips entity definitions
+    :param dictionary_df: dictionary dataframe
+    :param flags: flags to use (specified in the configuration)
+    :param canonicalizer: canonicalizer object
+    :param tokenizer: tokenizer object
+    :param language: language of the application
+    :param snips_entity_definitions: snips entity definitions. This is created in convert_slot_sheets
+           and to be updated in this function.
+    :return: None
+    """
+
+    dictionary_df.fillna('', inplace=True)  # change empty cells to empty strings
+    check_columns([COLUMN_FLAG, COLUMN_ENTITY_CLASS, COLUMN_ENTITY, COLUMN_SYNONYMS], dictionary_df, "dictionary")
+    for index, row in dictionary_df.iterrows():
+        if row[COLUMN_FLAG] not in flags and ANY_FLAG not in flags:
+            continue
+        synonyms_string: str = row[COLUMN_SYNONYMS]
+        normalized_synonyms: List[str] = [normalize(synonym.strip(), canonicalizer, tokenizer, language)
+                                          for synonym in
+                                          re.split('[,，、]', synonyms_string)]  # convert synonym cell to a list
+        entity_class: str = row[COLUMN_ENTITY_CLASS].strip()
+        entity: str = row[COLUMN_ENTITY]
+        normalized_value: str = normalize(entity, canonicalizer, tokenizer, language)  # dictionary entry
+        if entity != normalized_value:
+            normalized_synonyms.append(normalized_value)  # normalized entity is used as a synonym
+        if entity_class in snips_entity_definitions.keys():
+            snips_entity_definitions[entity_class]['data'].append({"value": entity,
+                                                                   "synonyms": normalized_synonyms})
+        else:
+            snips_entity_definitions[entity_class] = {'data': [{"value": entity,
+                                                                "synonyms": normalized_synonyms}]}
+
+
+
 def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, entities_df: DataFrame,
                           dictionary_df: DataFrame, flags: List[str], function_modules: List[ModuleType],
                           config: Dict[str, Any], block_config: Dict[str, Any],
@@ -111,110 +249,28 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, entitie
 
     snips_intent_definitions: Dict[str, Any] = {}
     snips_entity_definitions: Dict[str, Any] = {}
-
-    slot_names2entity_classes: Dict[str, str] = {}  # from slots sheet
+    slot_names2entity_classes: Dict[str, str] = {}
 
     # when there is no slot sheet
     # slot sheetがない時
     if slots_df is None:  # no slots sheet
         print(f"Warning: no slots sheet. Dummy entity definition is used instead.")
     else:
-        # converting slots dataframe
-        # slots dataframeの変換
-        slots_df.fillna('', inplace=True)
-        check_columns([COLUMN_FLAG, COLUMN_SLOT_NAME, COLUMN_ENTITY_CLASS], slots_df, "slots")
-        for index, row in slots_df.iterrows():
-            if row[COLUMN_FLAG] not in flags and ANY_FLAG not in flags:
-                continue
-            slot: str = row[COLUMN_SLOT_NAME].strip()
-            entity_class: str = row[COLUMN_ENTITY_CLASS].strip()
-            if not entity_class.startswith("dialbb/"):  # dictionary function
-                slot_names2entity_classes[slot] = entity_class
-            else:  # entity defined by a dictionary function
-                function_name: str = entity_class.replace("dialbb/", "")
-                entity_class = function_name  # entity and function name is the same
-                slot_names2entity_classes[slot] = entity_class
-                function_found = False
-                for function_module in function_modules:
-                    function = getattr(function_module, function_name, None)
-                    function_found = True
-                    if function:
-                        dictionary: List[Dict[str, Union[str, List[str]]]] \
-                            = eval("func(config, block_config)", {}, # execute dictionary function
-                                   {"func": function, "config": config, "block_config": block_config})
-                        snips_entity_definitions[entity_class] = {'data':  []}
-                        for entry in dictionary:
-                            entity: str = entry['entity']
-                            normalized_value: str = normalize(entity, canonicalizer, tokenizer)
-                            normalized_synonyms: List[str] = [normalize(synonym, canonicalizer, tokenizer)
-                                                   for synonym in entry.get('synonyms',[])]
-                            if entity != normalized_value:
-                                normalized_synonyms.append(normalized_value) # normalized entity is used as a synonym
-                            snips_entity_definitions[entity_class]['data'].append({"value": entity,
-                                                                                   "synonyms": normalized_synonyms})
-                        break
-                if not function_found:
-                    abort_during_building(f'dictionary function "{function_name}" is not found.')
+        snips_entity_definitions, slot_names2entity_classes \
+            = convert_slots_sheet(slots_df, config, block_config, flags, canonicalizer, tokenizer, function_modules)
 
-        # converting entities dataframe
-        # entities dataframeの変換
-        check_columns([COLUMN_FLAG, COLUMN_ENTITY_CLASS, COLUMN_USE_SYNONYMS,
-                       COLUMN_AUTOMATICALLY_EXTENSIBLE, COLUMN_MATCHING_STRICTNESS], entities_df, "entities")
-        entity_class_descriptions: Dict[str, Dict[str, Any]] = {}  # <entity: str> -> {"use_synonyms": <bool>,
-                                                      #                   "automatically_extensible": <bool>,
-                                                      #                   "matching_strictness": <float>}
         if entities_df is None:  # no entities sheet
             print(f"Warning: no entities sheet.")
         else:
-            entities_df.fillna('', inplace=True)
-            for index, row in entities_df.iterrows():
-                entity_class: str = row[COLUMN_ENTITY_CLASS].strip()
-                if row[COLUMN_FLAG] not in flags and ANY_FLAG not in flags:
-                    continue
-                if row[COLUMN_USE_SYNONYMS].strip() == "yes":
-                    use_synonyms: bool = True
-                else:
-                    use_synonyms = False
-                if row[COLUMN_AUTOMATICALLY_EXTENSIBLE].strip() == "yes":
-                    automatically_extensible: bool = True
-                else:
-                    automatically_extensible = False
-                matching_strictness = row[COLUMN_MATCHING_STRICTNESS]
-                try:
-                    matching_strictness = float(matching_strictness)
-                except Exception as e:
-                    abort_during_building(f"matching strictness must be a number: {str(matching_strictness)}")
-                if entity_class.startswith("dialbb/"):
-                    entity_class = entity_class.replace("dialbb/", "")
-                entity_class_descriptions[entity_class] = {"use_synonyms": use_synonyms,
-                                        "automatically_extensible": automatically_extensible,
-                                        "matching_strictness": matching_strictness}
+            entity_class_descriptions: Dict[str, Dict[str, Any]] = convert_entities_sheet(entities_df, flags)
 
         # converting dictionary sheet
         # dictionary sheetの変換
         if dictionary_df is None:  # no dictionary sheet
             print(f"Warning: no dictionary sheet.")
         else:
-            dictionary_df.fillna('', inplace=True)  # change empty cells to empty strings
-            check_columns([COLUMN_FLAG, COLUMN_ENTITY_CLASS, COLUMN_ENTITY, COLUMN_SYNONYMS], dictionary_df, "dictionary")
-            for index, row in dictionary_df.iterrows():
-                if row[COLUMN_FLAG] not in flags and ANY_FLAG not in flags:
-                    continue
-                synonyms_string: str = row[COLUMN_SYNONYMS]
-                normalized_synonyms: List[str] = [normalize(synonym.strip(), canonicalizer, tokenizer, language)
-                                                  for synonym in
-                                                  re.split('[,，、]', synonyms_string)]  # convert synonym cell to a list
-                entity_class: str = row[COLUMN_ENTITY_CLASS].strip()
-                entity: str = row[COLUMN_ENTITY]
-                normalized_value: str = normalize(entity, canonicalizer, tokenizer, language)  # dictionary entry
-                if entity != normalized_value:
-                    normalized_synonyms.append(normalized_value)  # normalized entity is used as a synonym
-                if entity_class in snips_entity_definitions.keys():
-                    snips_entity_definitions[entity_class]['data'].append({"value": entity,
-                                                                           "synonyms": normalized_synonyms})
-                else:
-                    snips_entity_definitions[entity_class] = {'data': [{"value": entity,
-                                                                        "synonyms": normalized_synonyms}]}
+            convert_dictionary_sheet(dictionary_df, flags, canonicalizer, tokenizer,
+                                     language, snips_entity_definitions)
 
         # integrate information in entities dataframe into dictionary
         # entities dataframeの情報を辞書と統合する
