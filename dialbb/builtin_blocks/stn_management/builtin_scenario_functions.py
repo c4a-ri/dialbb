@@ -94,3 +94,13 @@ def builtin_not_member_of(x: str, y: str, context: Dict[str, Any]) -> bool:
     :return: True when x is a not member of y
     """
     return x not in [m.strip() for m in y.split(":")]
+
+
+def builtin_is_long_silence(context: Dict[str, Any]) -> bool:
+    """
+    checks if input is detection of a long silence
+    入力が長い沈黙の検出結果の場合 Trueを返す
+    :return: True when input is a long silence, False otherwise
+    """
+    return context['aux_data'].get('long_silence', False)
+
