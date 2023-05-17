@@ -104,3 +104,24 @@ def builtin_is_long_silence(context: Dict[str, Any]) -> bool:
     """
     return context['aux_data'].get('long_silence', False)
 
+
+def builtin_confidence_is_low(context: Dict[str, Any]) -> bool:
+    """
+    check if the confidence is low
+    :return: True if the confidence of the input is lower than threshould
+    """
+
+    if context['block_config'].get('ask_repetition') \
+        and context['block_config']['ask_repetition'].get("confidence_threshold"):
+        if context['aux_data'].get("confidence"):
+            if context['aux_data']["confidence"] < context['block_config']['ask_repetition']["confidence_threshold"]:
+                return True
+            else:
+                return False
+        else:
+            print("warning: confidence is not in the aux_data.")
+            return False
+    else:
+        print("warning: confidence_threshold is not specified in the configuration.")
+        return False
+
