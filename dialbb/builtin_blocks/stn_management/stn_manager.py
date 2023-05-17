@@ -30,23 +30,27 @@ from dialbb.abstract_block import AbstractBlock
 from dialbb.main import ANY_FLAG, DEBUG, CONFIG_KEY_FLAGS_TO_USE, CONFIG_DIR
 from dialbb.util.error_handlers import abort_during_building
 
-KEY_CURRENT_STATE_NAME: str = "_current_state_name"
-KEY_CONFIG: str = "_config"
-KEY_BLOCK_CONFIG: str = "_block_config"
-KEY_CAUSE: str = "_cause"
-
 CONFIG_KEY_KNOWLEDGE_GOOGLE_SHEET: str = "knowledge_google_sheet"  # google sheet info
 CONFIG_KEY_SHEET_ID: str = "sheet_id"  # google sheet id
 CONFIG_KEY_KEY_FILE: str = "key_file"  # key file for Google sheets API
 CONFIG_KEY_SCENARIO_SHEET: str = "scenario_sheet"
 CONFIG_KEY_KNOWLEDGE_FILE: str = "knowledge_file"
 CONFIG_KEY_SCENARIO_GRAPH: str = "scenario_graph"
-CONFIG_KEY_REPEAT: str = "repeat_when_no_available_transitions"
+CONFIG_KEY_REPEAT_WHEN_NO_AVAILABLE_TRANSITIONS: str = "repeat_when_no_available_transitions"
+CONFIG_KEY_ASK_REPETITION: str = "ask_repetition"
+CONFIG_KEY_CONFIDENCE_THRESHOLD: str = "confidence_threshold"
+CONFIG_KEY_UTTERANCE: str = "utterance"
 SHEET_NAME_SCENARIO: str = "scenario"
 
-STOP_DIALOGUE = "stop_dialogue"
+KEY_CURRENT_STATE_NAME: str = "_current_state_name"
+KEY_CONFIG: str = "_config"
+KEY_BLOCK_CONFIG: str = "_block_config"
+KEY_CAUSE: str = "_cause"
+KEY_STOP_DIALOGUE = "stop_dialogue"
+KEY_REWIND = 'rewind'
+KEY_CONFIDENCE = 'confidence'
+
 FINAL_ABORT_STATE_NAME = "#final_abort"
-REWIND = 'rewind'
 
 # builtin function module
 # 組み込み関数
@@ -85,13 +89,22 @@ class Manager(AbstractBlock):
         self._function_modules.append(imported_module)
 
         # whether to repeat when there are no available transitions (instead of default transition)
-        self._repeat_when_no_available_transitions: bool = self.block_config.get(CONFIG_KEY_REPEAT)
+        self._repeat_when_no_available_transitions: bool = self.block_config.get(CONFIG_KEY_REPEAT_WHEN_NO_AVAILABLE_TRANSITIONS)
+
+        # set threshold for asking repetition
+        self._ask_repetition_if_confidence_is_low: bool = self.block_config.get(CONFIG_KEY_ASK_REPETITION, False)
+        if self._ask_repetition_if_confidence_is_low:
+            self._confidence_threshold: bool \
+                = self.block_config[CONFIG_KEY_ASK_REPETITION].get(CONFIG_KEY_CONFIDENCE_THRESHOLD)
 
         # dialogue context for each dialogue session  session id -> {key -> value}
         # セッション毎の対話文脈
         self._dialogue_context: Dict[str, Dict[str, Any]] = {}
         # for rewinding  状態を元に戻す時のため
         self._previous_dialogue_context: Dict[str, Dict[str, Any]] = {}
+
+        # session id -> whether asking repetition or not
+        self._asking_repetition: Dict[str, bool] = {}
 
         # create network
         sheet_name = self.block_config.get(CONFIG_KEY_SCENARIO_SHEET, SHEET_NAME_SCENARIO)
@@ -208,6 +221,8 @@ class Manager(AbstractBlock):
         sentence = input_data.get("sentence", "")
         previous_state_name: str = ""
 
+        self._asking_repetition[session_id] = False
+
         self.log_debug("input: " + str(input_data), session_id=session_id)
 
         try:
@@ -227,11 +242,11 @@ class Manager(AbstractBlock):
             else:
                 if DEBUG:  # logging for debug
                     dialogue_context: Dict[str, Any] = copy.copy(self._dialogue_context[session_id])
-                    del dialogue_context[KEY_CONFIG]
+                    del dialogue_context[KEY_CONFIG]  # delete lengthy values
                     del dialogue_context[KEY_BLOCK_CONFIG]
                     self.log_debug("dialogue_context: " + str(dialogue_context), session_id=session_id)
 
-                if aux_data.get(REWIND):  # revert
+                if aux_data.get(KEY_REWIND):  # revert
                     self._dialogue_context[session_id] = self._dialogue_context[session_id]
                 else:  # save dialogue context
                     self._previous_dialogue_context[session_id] = copy.deepcopy(self._dialogue_context[session_id])
@@ -245,10 +260,17 @@ class Manager(AbstractBlock):
                 if type(nlu_result) == list:
                     nlu_result = self._select_nlu_result(nlu_result, previous_state_name)
                     self.log_info(f"nlu result selected: {str(nlu_result)}", session_id=session_id)
-                # find destination state  遷移先の状態を見つける
-                next_state_name: str = self._transition(previous_state_name, nlu_result, aux_data,
-                                                        user_id, session_id, sentence)
-                self._dialogue_context[session_id][KEY_CURRENT_STATE_NAME] = next_state_name
+
+                #
+                if self._ask_repetition_if_confidence_is_low and aux_data.get(KEY_CONFIDENCE) < self._confidence_threshold:
+                    # repeat
+                    next_state_name: str = previous_state_name
+                    self._asking_repetition[session_id] = False
+                else:
+                    # find destination state  遷移先の状態を見つける
+                    next_state_name: str = self._transition(previous_state_name, nlu_result, aux_data,
+                                                            user_id, session_id, sentence)
+                    self._dialogue_context[session_id][KEY_CURRENT_STATE_NAME] = next_state_name
             new_state: State = self._network.get_state_from_state_name(next_state_name)
             if not new_state:
                 if self._repeat_when_no_available_transitions:
@@ -260,8 +282,15 @@ class Manager(AbstractBlock):
                     self._dialogue_context[session_id][KEY_CAUSE] = f"can't find state to move: {next_state_name}"
                     next_state_name = ERROR_STATE_NAME  # move to error state
                     new_state = self._network.get_state_from_state_name(next_state_name)
-            output_text = new_state.get_one_system_utterance()
-            output_text = self._substitute_variables(output_text, session_id)
+
+            if self._asking_repetition[session_id]:
+                output_text = self.block_config[CONFIG_KEY_ASK_REPETITION]\
+                    .get(CONFIG_KEY_UTTERANCE, "Could you say that again?")
+            else:
+                output_text = new_state.get_one_system_utterance()
+                output_text = self._substitute_variables(output_text, session_id)
+
+            # check if the new state is a final state
             final: bool = False
             if self._network.is_final_state_or_error_state(next_state_name):
                 final = True
@@ -319,7 +348,7 @@ class Manager(AbstractBlock):
             return ERROR_STATE_NAME
 
         # if aux data's stop_dialogue value is True, go to #final_abort state
-        if aux_data.get(STOP_DIALOGUE):
+        if aux_data.get(KEY_STOP_DIALOGUE):
             return FINAL_ABORT_STATE_NAME
 
         previous_state: State = self._network.get_state_from_state_name(previous_state_name)
