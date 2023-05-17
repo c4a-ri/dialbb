@@ -251,7 +251,7 @@ class Manager(AbstractBlock):
                 else:  # save dialogue context
                     self._previous_dialogue_context[session_id] = copy.deepcopy(self._dialogue_context[session_id])
                 previous_state_name = self._dialogue_context[session_id].get(KEY_CURRENT_STATE_NAME, "")
-                if previous_state_name is "":
+                if previous_state_name == "":
                     self.log_error(f"can't find previous state for session.", session_id=session_id)
                     if DEBUG:
                         raise Exception()
