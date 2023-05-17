@@ -10,7 +10,7 @@ __author__ = 'Mikio Nakano'
 __copyright__ = 'C4A Research Institute, Inc.'
 
 import re
-from typing import List, Dict
+from typing import List, Dict, Any
 from dialbb.util.error_handlers import abort_during_building, warn_during_building
 
 CONSTANT: str = "constant"
@@ -368,10 +368,11 @@ class StateTransitionNetwork:
         """
         return self._state_names2states.get(PREP_STATE_NAME)
 
-    def check_network(self) -> bool:
+    def check_network(self, repeat_when_no_available_transitions: bool) -> bool:
         """
         checks if network is valid
         このネットワークが正しいか調べる
+        :param repeat_when_no_available_transitions: whether repeat the same utterance when there are no available transitions
         :return: True is valid, False otherwise 正しければTrueを返す
         """
         result: bool = True
@@ -397,7 +398,7 @@ class StateTransitionNetwork:
                                                  " has an extra transition after default transition.")
                         if not transition.get_user_utterance_type() and not transition.get_conditions():
                             has_default_transition = True
-                    if not has_default_transition:
+                    if not has_default_transition and repeat_when_no_available_transitions:
                         warn_during_building(f"state '{state_name}' has no default transition.")
         prep_state: State = self._state_names2states.get(PREP_STATE_NAME)
         if prep_state:

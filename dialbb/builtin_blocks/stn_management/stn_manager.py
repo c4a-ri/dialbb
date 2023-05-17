@@ -41,7 +41,12 @@ CONFIG_KEY_KEY_FILE: str = "key_file"  # key file for Google sheets API
 CONFIG_KEY_SCENARIO_SHEET: str = "scenario_sheet"
 CONFIG_KEY_KNOWLEDGE_FILE: str = "knowledge_file"
 CONFIG_KEY_SCENARIO_GRAPH: str = "scenario_graph"
+CONFIG_KEY_REPEAT: str = "repeat_when_no_available_transitions"
 SHEET_NAME_SCENARIO: str = "scenario"
+
+STOP_DIALOGUE = "stop_dialogue"
+FINAL_ABORT_STATE_NAME = "#final_abort"
+REWIND = 'rewind'
 
 # builtin function module
 # 組み込み関数
@@ -79,9 +84,14 @@ class Manager(AbstractBlock):
         imported_module = importlib.import_module(BUILTIN_FUNCTION_MODULE)  # builtin
         self._function_modules.append(imported_module)
 
+        # whether to repeat when there are no available transitions (instead of default transition)
+        self._repeat_when_no_available_transitions: bool = self.block_config.get(CONFIG_KEY_REPEAT)
+
         # dialogue context for each dialogue session  session id -> {key -> value}
         # セッション毎の対話文脈
         self._dialogue_context: Dict[str, Dict[str, Any]] = {}
+        # for rewinding  状態を元に戻す時のため
+        self._previous_dialogue_context: Dict[str, Dict[str, Any]] = {}
 
         # create network
         sheet_name = self.block_config.get(CONFIG_KEY_SCENARIO_SHEET, SHEET_NAME_SCENARIO)
@@ -102,7 +112,7 @@ class Manager(AbstractBlock):
 
         # check network
         if DEBUG:
-            self._network.check_network()
+            self._network.check_network(self._repeat_when_no_available_transitions)
 
         # generate a graph file from the network
         dot_file: str = os.path.join(CONFIG_DIR, "_stn_graph.dot")  # dot file to input to graphviz
@@ -196,6 +206,7 @@ class Manager(AbstractBlock):
         nlu_result: Union[Dict[str, Any], List[Dict[str, Any]]] = input_data.get('nlu_result', {"type": "", "slots": {}})
         aux_data: Dict[str, Any] = input_data.get('aux_data', {})
         sentence = input_data.get("sentence", "")
+        previous_state_name: str = ""
 
         self.log_debug("input: " + str(input_data), session_id=session_id)
 
@@ -204,23 +215,28 @@ class Manager(AbstractBlock):
                 self._dialogue_context[session_id] = {}
                 self._dialogue_context[session_id][KEY_CONFIG] = copy.deepcopy(self.config)
                 self._dialogue_context[session_id][KEY_BLOCK_CONFIG] = copy.deepcopy(self.block_config)
-                # perform actions in the prep state
+                # perform actions in the prep state prep状態のactionを実行する
                 prep_state: State = self._network.get_prep_state()
                 if prep_state:
                     prep_actions: List[Action] = prep_state.get_transitions()[0].get_actions()
                     if prep_actions:
                         self._perform_actions(prep_actions, nlu_result, aux_data, user_id, session_id, sentence)
                 # move to initial state
-                current_state_name = INITIAL_STATE_NAME
-                self._dialogue_context[session_id][KEY_CURRENT_STATE_NAME] = current_state_name
+                next_state_name = INITIAL_STATE_NAME
+                self._dialogue_context[session_id][KEY_CURRENT_STATE_NAME] = next_state_name
             else:
-                if DEBUG:
+                if DEBUG:  # logging for debug
                     dialogue_context: Dict[str, Any] = copy.copy(self._dialogue_context[session_id])
                     del dialogue_context[KEY_CONFIG]
                     del dialogue_context[KEY_BLOCK_CONFIG]
                     self.log_debug("dialogue_context: " + str(dialogue_context), session_id=session_id)
-                previous_state_name: str = self._dialogue_context[session_id][KEY_CURRENT_STATE_NAME]
-                if previous_state_name is None:
+
+                if aux_data.get(REWIND):  # revert
+                    self._dialogue_context[session_id] = self._dialogue_context[session_id]
+                else:  # save dialogue context
+                    self._previous_dialogue_context[session_id] = copy.deepcopy(self._dialogue_context[session_id])
+                previous_state_name = self._dialogue_context[session_id].get(KEY_CURRENT_STATE_NAME, "")
+                if previous_state_name is "":
                     self.log_error(f"can't find previous state for session.", session_id=session_id)
                     if DEBUG:
                         raise Exception()
@@ -229,23 +245,27 @@ class Manager(AbstractBlock):
                 if type(nlu_result) == list:
                     nlu_result = self._select_nlu_result(nlu_result, previous_state_name)
                     self.log_info(f"nlu result selected: {str(nlu_result)}", session_id=session_id)
-
-                current_state_name: str = self._transition(previous_state_name, nlu_result, aux_data,
-                                                           user_id, session_id, sentence)
-                self._dialogue_context[session_id][KEY_CURRENT_STATE_NAME] = current_state_name
-            current_state: State = self._network.get_state_from_state_name(current_state_name)
-            if not current_state:
-                self.log_error(f"can't find state to move.", session_id=session_id)
-                # set cause of the error
-                self._dialogue_context[session_id][KEY_CAUSE] = f"can't find state to move: {current_state_name}"
-                current_state_name = ERROR_STATE_NAME  # move to error state
-                current_state = self._network.get_state_from_state_name(current_state_name)
-            output_text = current_state.get_one_system_utterance()
+                # find destination state  遷移先の状態を見つける
+                next_state_name: str = self._transition(previous_state_name, nlu_result, aux_data,
+                                                        user_id, session_id, sentence)
+                self._dialogue_context[session_id][KEY_CURRENT_STATE_NAME] = next_state_name
+            new_state: State = self._network.get_state_from_state_name(next_state_name)
+            if not new_state:
+                if self._repeat_when_no_available_transitions:
+                    next_state_name: str = previous_state_name
+                    new_state = self._network.get_state_from_state_name(next_state_name)
+                else:
+                    self.log_error(f"can't find state to move.", session_id=session_id)
+                    # set cause of the error
+                    self._dialogue_context[session_id][KEY_CAUSE] = f"can't find state to move: {next_state_name}"
+                    next_state_name = ERROR_STATE_NAME  # move to error state
+                    new_state = self._network.get_state_from_state_name(next_state_name)
+            output_text = new_state.get_one_system_utterance()
             output_text = self._substitute_variables(output_text, session_id)
             final: bool = False
-            if self._network.is_final_state_or_error_state(current_state_name):
+            if self._network.is_final_state_or_error_state(next_state_name):
                 final = True
-            output = {"output_text": output_text, "final": final, "aux_data": {"state": current_state_name}}
+            output = {"output_text": output_text, "final": final, "aux_data": {"state": next_state_name}}
         except STNError as e:
             output = {"output_text": "Internal error occurred.", "final": True}
 
@@ -285,28 +305,43 @@ class Manager(AbstractBlock):
         :param aux_data: auxiliary data received from the main process
         :param user_id: user id string
         :param session_id: session id string
+        :param repeat_when_no_available_transitions: whether to repeat instead of default transitions
         :return: the name of the destination state to move to 遷移後の状態の名前
         """
+
+        # 今final状態かerror状態か
+        # check if the current state is a final or error state
         if self._network.is_final_state_or_error_state(previous_state_name):
             self.log_error("no available transitions found from state: " + previous_state_name,
                            session_id=session_id)
             self._dialogue_context[session_id][KEY_CAUSE] = f"no available transitions found from state: " \
                                                             + previous_state_name
             return ERROR_STATE_NAME
+
+        # if aux data's stop_dialogue value is True, go to #final_abort state
+        if aux_data.get(STOP_DIALOGUE):
+            return FINAL_ABORT_STATE_NAME
+
         previous_state: State = self._network.get_state_from_state_name(previous_state_name)
-        if not previous_state:
-            self.log_error("can't find previous state: " + previous_state_name,
-                           session_id=session_id)
-            self._dialogue_context[session_id][KEY_CAUSE] = f"can't find previous state: " \
-                                                            + previous_state_name
+        if not previous_state:  # can't find previous state
+            self.log_error("can't find previous state: " + previous_state_name, session_id=session_id)
+            self._dialogue_context[session_id][KEY_CAUSE] = f"can't find previous state: " + previous_state_name
             return ERROR_STATE_NAME
         self.log_debug("trying to find transition from state: " + previous_state_name)
+
+        # find available transitions 適用可能な遷移を探す
         for transition in previous_state.get_transitions():
             if self._check_transition(transition, nlu_result, aux_data, user_id, session_id, sentence):
                 destination_state_name: str = transition.get_destination()
                 self._perform_actions(transition.get_actions(), nlu_result, aux_data, user_id, session_id, sentence)
                 self.log_debug("moving to state: " + destination_state_name, session_id=session_id)
                 return destination_state_name
+
+        # when no available transitions 適用可能な遷移がなかった
+        if self._repeat_when_no_available_transitions:  # repeat previous utterance
+            return previous_state_name
+
+        # judge as an error
         self.log_error("no available transitions found from state: " + previous_state_name,
                        session_id=session_id)
         self._dialogue_context[session_id][KEY_CAUSE] = f"no available transitions found from state: " \
