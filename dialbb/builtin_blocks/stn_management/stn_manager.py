@@ -40,17 +40,25 @@ CONFIG_KEY_REPEAT_WHEN_NO_AVAILABLE_TRANSITIONS: str = "repeat_when_no_available
 CONFIG_KEY_ASK_REPETITION: str = "ask_repetition"
 CONFIG_KEY_CONFIDENCE_THRESHOLD: str = "confidence_threshold"
 CONFIG_KEY_UTTERANCE: str = "utterance"
-SHEET_NAME_SCENARIO: str = "scenario"
+CONFIG_KEY_IGNORE_OOC_BARGE_IN: str = "ignore_out_of_context_barge_in"
+CONFIG_KEY_REACTION_TO_SILENCE: str = "reaction_to_silence"
+CONFIG_KEY_ACTION: str = "action"
+CONFIG_KEY_DESTINATION: str = "destination"
 
 KEY_CURRENT_STATE_NAME: str = "_current_state_name"
 KEY_CONFIG: str = "_config"
 KEY_BLOCK_CONFIG: str = "_block_config"
 KEY_CAUSE: str = "_cause"
-KEY_STOP_DIALOGUE = "stop_dialogue"
-KEY_REWIND = 'rewind'
-KEY_CONFIDENCE = 'confidence'
+KEY_STOP_DIALOGUE: str = "stop_dialogue"
+KEY_REWIND: str = 'rewind'
+KEY_CONFIDENCE: str = 'confidence'
+KEY_BARGE_IN: str = 'barge_in'
+KEY_BARGE_IN_IGNORED: str = "barge_in_ignored"
+KEY_LONG_SILENCE: str = "long_silence"
 
 FINAL_ABORT_STATE_NAME = "#final_abort"
+SHEET_NAME_SCENARIO: str = "scenario"
+DEFAULT_UTTERANCE_ASKING_REPETITION: str = "Could you say that again?"
 
 # builtin function module
 # 組み込み関数
@@ -89,7 +97,23 @@ class Manager(AbstractBlock):
         self._function_modules.append(imported_module)
 
         # whether to repeat when there are no available transitions (instead of default transition)
-        self._repeat_when_no_available_transitions: bool = self.block_config.get(CONFIG_KEY_REPEAT_WHEN_NO_AVAILABLE_TRANSITIONS)
+        self._repeat_when_no_available_transitions: bool \
+            = self.block_config.get(CONFIG_KEY_REPEAT_WHEN_NO_AVAILABLE_TRANSITIONS)
+
+        # whether to ignore out of context (matching no non-default transition) barge_in
+        self._ignore_out_of_context_barge_in: bool = self.block_config.get(CONFIG_KEY_IGNORE_OOC_BARGE_IN, False)
+
+        # reaction to long silence
+        self._reaction_to_silence: bool = self.block_config.get(CONFIG_KEY_REACTION_TO_SILENCE, False)
+        if self._reaction_to_silence:
+            self._action_to_react_to_silence: str \
+                = self.block_config[CONFIG_KEY_REACTION_TO_SILENCE].get(CONFIG_KEY_ACTION)
+            if self._action_to_react_to_silence not in ("repeat", "transition"):
+                abort_during_building(f"{CONFIG_KEY_REACTION_TO_SILENCE}/{CONFIG_KEY_ACTION}"
+                                      + "must be either 'repeat' or 'transition'.")
+            elif self._action_to_react_to_silence == "transition":
+                self._destination_of_reacting_to_silence \
+                    = self.block_config[CONFIG_KEY_REACTION_TO_SILENCE][CONFIG_KEY_DESTINATION]
 
         # set threshold for asking repetition
         self._ask_repetition_if_confidence_is_low: bool = self.block_config.get(CONFIG_KEY_ASK_REPETITION, False)
@@ -247,6 +271,7 @@ class Manager(AbstractBlock):
                     self.log_debug("dialogue_context: " + str(dialogue_context), session_id=session_id)
 
                 if aux_data.get(KEY_REWIND):  # revert
+                    self.log_debug("Rewinding to the previous dialogue context.")
                     self._dialogue_context[session_id] = self._dialogue_context[session_id]
                 else:  # save dialogue context
                     self._previous_dialogue_context[session_id] = copy.deepcopy(self._dialogue_context[session_id])
@@ -262,8 +287,10 @@ class Manager(AbstractBlock):
                     self.log_info(f"nlu result selected: {str(nlu_result)}", session_id=session_id)
 
                 #
-                if self._ask_repetition_if_confidence_is_low and aux_data.get(KEY_CONFIDENCE) < self._confidence_threshold:
+                if self._ask_repetition_if_confidence_is_low \
+                        and aux_data.get(KEY_CONFIDENCE) < self._confidence_threshold:
                     # repeat
+                    self.log_debug("Asking repetition because input confidence is low.")
                     next_state_name: str = previous_state_name
                     self._asking_repetition[session_id] = False
                 else:
@@ -273,7 +300,9 @@ class Manager(AbstractBlock):
                     self._dialogue_context[session_id][KEY_CURRENT_STATE_NAME] = next_state_name
             new_state: State = self._network.get_state_from_state_name(next_state_name)
             if not new_state:
+                # when configured to repeat utterance instead of default transition
                 if self._repeat_when_no_available_transitions:
+                    self.log_debug("Making no transition since there are no available transitions.")
                     next_state_name: str = previous_state_name
                     new_state = self._network.get_state_from_state_name(next_state_name)
                 else:
@@ -283,18 +312,24 @@ class Manager(AbstractBlock):
                     next_state_name = ERROR_STATE_NAME  # move to error state
                     new_state = self._network.get_state_from_state_name(next_state_name)
 
-            if self._asking_repetition[session_id]:
+            # select utterance
+            if self._asking_repetition[session_id]:  # when asking repetition
                 output_text = self.block_config[CONFIG_KEY_ASK_REPETITION]\
-                    .get(CONFIG_KEY_UTTERANCE, "Could you say that again?")
+                    .get(CONFIG_KEY_UTTERANCE, DEFAULT_UTTERANCE_ASKING_REPETITION)
             else:
                 output_text = new_state.get_one_system_utterance()
-                output_text = self._substitute_variables(output_text, session_id)
+                output_text = self._substitute_variables(output_text, session_id)  # replace variables
 
             # check if the new state is a final state
             final: bool = False
             if self._network.is_final_state_or_error_state(next_state_name):
                 final = True
-            output = {"output_text": output_text, "final": final, "aux_data": {"state": next_state_name}}
+
+            aux_data['state'] = next_state_name  # add new state to aux_data
+
+            # create output data
+            output = {"output_text": output_text, "final": final, "aux_data": aux_data}
+
         except STNError as e:
             output = {"output_text": "Internal error occurred.", "final": True}
 
@@ -334,7 +369,6 @@ class Manager(AbstractBlock):
         :param aux_data: auxiliary data received from the main process
         :param user_id: user id string
         :param session_id: session id string
-        :param repeat_when_no_available_transitions: whether to repeat instead of default transitions
         :return: the name of the destination state to move to 遷移後の状態の名前
         """
 
@@ -349,6 +383,7 @@ class Manager(AbstractBlock):
 
         # if aux data's stop_dialogue value is True, go to #final_abort state
         if aux_data.get(KEY_STOP_DIALOGUE):
+            self.log_debug("Moving to #final abort state as requested")
             return FINAL_ABORT_STATE_NAME
 
         previous_state: State = self._network.get_state_from_state_name(previous_state_name)
@@ -361,10 +396,28 @@ class Manager(AbstractBlock):
         # find available transitions 適用可能な遷移を探す
         for transition in previous_state.get_transitions():
             if self._check_transition(transition, nlu_result, aux_data, user_id, session_id, sentence):
+                # ignore barge-in out-of-context input
+                if self._ignore_out_of_context_barge_in and aux_data.get(KEY_BARGE_IN, False) \
+                        and transition.is_default_transition():
+                    self.log_debug("Input is barge-in and default transition is selected. Going back to previous sate.")
+                    aux_data[KEY_BARGE_IN_IGNORED] = True
+                    return previous_state_name
+                if self._action_to_react_to_silence and aux_data.get(KEY_LONG_SILENCE, False) \
+                        and transition.is_default_transition():
+                    if self._action_to_react_to_silence == 'repeat':
+                        self.log_debug("Going back to previous state as input is long silence.")
+                        return previous_state_name
+                    else:  # transition
+                        destination_state_name: str = self._destination_of_reacting_to_silence
+                        self.log_debug(f"Moving to {destination_state_name} as input is long silence.")
+                        return destination_state_name
+
                 destination_state_name: str = transition.get_destination()
                 self._perform_actions(transition.get_actions(), nlu_result, aux_data, user_id, session_id, sentence)
                 self.log_debug("moving to state: " + destination_state_name, session_id=session_id)
                 return destination_state_name
+
+
 
         # when no available transitions 適用可能な遷移がなかった
         if self._repeat_when_no_available_transitions:  # repeat previous utterance

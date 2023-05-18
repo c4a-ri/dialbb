@@ -7,6 +7,9 @@
   - もしリクエストのaux_dataのstop_dialogueの値がTrueなら、#final_abort状態に遷移する
   - リクエストの"aux_data"の"rewind"の値がTrueの場合、対話の状態を直前のものに戻し、対話文脈を戻す
   - デフォルト遷移の代わりに遷移しないことをオプションで選択可能に変更
+  - リクエストの"aux_data"の"confidence"の値がコンフィギュレーションの"ask_repetition"の"confidence_threshold"の値以下の場合に、状態遷移をおこなわず、"ask_repetition"の"utterance"の値をシステム発話とする。
+  - 入力がlong silenceの場合に，コンフィギュレーションのreaction_to_silenceに応じて動作を変更する
+  - 組み込みシナリオ関数 _confidence_is_low, _is_long_silenceを実装
 
 ## 0.3.0 (2023.4.13)
 

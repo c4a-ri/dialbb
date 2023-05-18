@@ -225,6 +225,17 @@ class Transition:
         """
         return self._destination
 
+    def is_default_transition(self) -> bool:
+        """
+        checks if this is a default transition
+        デフォルト遷移かどうかをチェック
+        :return: True if this is a default transition
+        """
+        if self._user_utterance_type and self._conditions:
+            return False
+        else:
+            return True
+
 
 class State:
     """
