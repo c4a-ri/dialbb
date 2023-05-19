@@ -38,14 +38,15 @@ class Argument:
         elif argument_string[0] in ('*', '＊'):  # variable value e.g., *aaa 変数の値
             self._type = VARIABLE
             self._name = argument_string[1:]
-        elif argument_string[0] in ('"', '“') and argument_string[-1] in ('"', '”'):  # constant string 定数文字列
+        elif argument_string[0] in ('"', '”', '“') and argument_string[-1] in ('"', '”', '“'):  # constant string 定数文字列
             self._type = CONSTANT
             self._name = argument_string[1:-1]
         elif argument_string[0] in ('&', '＆'):  # variable name 変数名
             self._type = ADDRESS
             self._name = argument_string[1:]  # remove '&'
         else:
-            warn_during_building("can't create an Argument object: " + argument_string)
+            warn_during_building(f"'{argument_string}' is not a valid argument. " +
+                                 "It's not a special variable, variable, constant, nor address.")
 
     def __str__(self):
         return f"Argument: type={self._type}, name={self._name}"
