@@ -71,14 +71,6 @@ $ git clone https://github.com/c4a-ri/dialbb.git <ディレクトリ名>
 ただ，Graphvizがなくてもアプリケーションを動作させることは可能です．
 
 
-## 環境変数の設定
-
-以下のように環境変数`PYTHONPATH`を設定します．ただし，以下の手順はすべて<DialBBディレクトリ>で行っているため，環境変数`PYTHONPATH`を設定しなくても行えます．
-
-```sh
-$ export PYTHONPATH=<DialBBディレクトリ>:$PYTHONPATH
-```
-
 ## オウム返しサンプルアプリケーションのサーバの起動
 
 ただオウム返しを行うアプリケーションです．
