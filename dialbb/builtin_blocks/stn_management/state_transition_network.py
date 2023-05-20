@@ -325,14 +325,12 @@ class StateTransitionNetwork:
     """
 
     def __init__(self):
-        self._initial_state = State(INITIAL_STATE_NAME)  # initial state 初期状態
         self._error_state = State(ERROR_STATE_NAME)  # error state エラー状態
-        self._states = [self._initial_state, self._error_state]  # state list 状態のリスト
+        self._states = [self._error_state]  # state list 状態のリスト
         self._final_states = []  # list of final states 最終状態のリスト
 
         # mapping from state names to states 状態名から状態へのマッピング
-        self._state_names2states: Dict[str, State] = {INITIAL_STATE_NAME: self._initial_state,
-                                                      ERROR_STATE_NAME: self._error_state}
+        self._state_names2states: Dict[str, State] = {ERROR_STATE_NAME: self._error_state}
 
     def get_state_from_state_name(self, state_name: str) -> State:
         """
@@ -413,17 +411,8 @@ class StateTransitionNetwork:
                     if not has_default_transition and repeat_when_no_available_transitions:
                         warn_during_building(f"state '{state_name}' has no default transition.")
         prep_state: State = self._state_names2states.get(PREP_STATE_NAME)
-        if prep_state:
-            if len(prep_state.get_transitions()) != 1:
-                warn_during_building(f"#prep state must have one transition.")
-            elif prep_state.get_transitions()[0].get_destination() != INITIAL_STATE_NAME:
-                warn_during_building(f"the destination of the #prep state's transition must be #initial.")
-            elif prep_state.get_transitions()[0].get_user_utterance_type():
-                warn_during_building(f"#prep state's transition must not have user utterance type.")
-            elif prep_state.get_transitions()[0].get_conditions():
-                warn_during_building(f"#prep state's transition must not have conditions.")
-            elif prep_state.get_system_utterances():
-                warn_during_building(f"#prep state must not have system utterances.")
+        if prep_state and prep_state.get_system_utterances():
+            warn_during_building(f"#prep state must not have system utterances.")
 
         # check if each destination is a valid state
         all_destinations: List[State] = []
@@ -441,6 +430,8 @@ class StateTransitionNetwork:
                 continue
             if state not in all_destinations:
                 warn_during_building(f"state {state.get_name()} is not a destination of any transitions.")
+        if not self._state_names2states.get(PREP_STATE_NAME) and not self._state_names2states.get(INITIAL_STATE_NAME):
+            warn_during_building(f"either state {INITIAL_STATE_NAME} or state {PREP_STATE_NAME} must exist.")
 
         # todo check if functions are defined
         # todo check if set command has two args and its first argument is a variable

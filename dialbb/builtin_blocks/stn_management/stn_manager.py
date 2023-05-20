@@ -249,6 +249,7 @@ class Manager(AbstractBlock):
 
         self.log_debug("input: " + str(input_data), session_id=session_id)
 
+
         try:
             if not self._dialogue_context.get(session_id):  # first turn 最初のターン
                 self._dialogue_context[session_id] = {}
@@ -259,10 +260,15 @@ class Manager(AbstractBlock):
                 if prep_state:
                     prep_actions: List[Action] = prep_state.get_transitions()[0].get_actions()
                     if prep_actions:
-                        self._perform_actions(prep_actions, nlu_result, aux_data, user_id, session_id, sentence)
-                # move to initial state
-                next_state_name = INITIAL_STATE_NAME
-                self._dialogue_context[session_id][KEY_CURRENT_STATE_NAME] = next_state_name
+                        #self._perform_actions(prep_actions, nlu_result, aux_data, user_id, session_id, sentence)
+                        # find destination state  遷移先の状態を見つける
+                        current_state_name: str = self._transition(prep_state.get_name(), nlu_result, aux_data,
+                                                                   user_id, session_id, sentence)
+                        self._dialogue_context[session_id][KEY_CURRENT_STATE_NAME] = current_state_name
+                else:
+                    # move to initial state
+                    current_state_name = INITIAL_STATE_NAME
+                    self._dialogue_context[session_id][KEY_CURRENT_STATE_NAME] = current_state_name
             else:
                 if DEBUG:  # logging for debug
                     dialogue_context: Dict[str, Any] = copy.copy(self._dialogue_context[session_id])
@@ -291,26 +297,26 @@ class Manager(AbstractBlock):
                         and aux_data.get(KEY_CONFIDENCE) < self._confidence_threshold:
                     # repeat
                     self.log_debug("Asking repetition because input confidence is low.")
-                    next_state_name: str = previous_state_name
+                    current_state_name: str = previous_state_name
                     self._asking_repetition[session_id] = False
                 else:
                     # find destination state  遷移先の状態を見つける
-                    next_state_name: str = self._transition(previous_state_name, nlu_result, aux_data,
-                                                            user_id, session_id, sentence)
-                    self._dialogue_context[session_id][KEY_CURRENT_STATE_NAME] = next_state_name
-            new_state: State = self._network.get_state_from_state_name(next_state_name)
+                    current_state_name: str = self._transition(previous_state_name, nlu_result, aux_data,
+                                                               user_id, session_id, sentence)
+                    self._dialogue_context[session_id][KEY_CURRENT_STATE_NAME] = current_state_name
+            new_state: State = self._network.get_state_from_state_name(current_state_name)
             if not new_state:
                 # when configured to repeat utterance instead of default transition
                 if self._repeat_when_no_available_transitions:
                     self.log_debug("Making no transition since there are no available transitions.")
-                    next_state_name: str = previous_state_name
-                    new_state = self._network.get_state_from_state_name(next_state_name)
+                    current_state_name: str = previous_state_name
+                    new_state = self._network.get_state_from_state_name(current_state_name)
                 else:
                     self.log_error(f"can't find state to move.", session_id=session_id)
                     # set cause of the error
-                    self._dialogue_context[session_id][KEY_CAUSE] = f"can't find state to move: {next_state_name}"
-                    next_state_name = ERROR_STATE_NAME  # move to error state
-                    new_state = self._network.get_state_from_state_name(next_state_name)
+                    self._dialogue_context[session_id][KEY_CAUSE] = f"can't find state to move: {current_state_name}"
+                    current_state_name = ERROR_STATE_NAME  # move to error state
+                    new_state = self._network.get_state_from_state_name(current_state_name)
 
             # select utterance
             if self._asking_repetition[session_id]:  # when asking repetition
@@ -322,10 +328,10 @@ class Manager(AbstractBlock):
 
             # check if the new state is a final state
             final: bool = False
-            if self._network.is_final_state_or_error_state(next_state_name):
+            if self._network.is_final_state_or_error_state(current_state_name):
                 final = True
 
-            aux_data['state'] = next_state_name  # add new state to aux_data
+            aux_data['state'] = current_state_name  # add new state to aux_data
 
             # create output data
             output = {"output_text": output_text, "final": final, "aux_data": aux_data}
@@ -402,7 +408,8 @@ class Manager(AbstractBlock):
                     self.log_debug("Input is barge-in and default transition is selected. Going back to previous sate.")
                     aux_data[KEY_BARGE_IN_IGNORED] = True
                     return previous_state_name
-                if self._action_to_react_to_silence and aux_data.get(KEY_LONG_SILENCE, False) \
+                if self._reaction_to_silence and self._action_to_react_to_silence \
+                        and aux_data.get(KEY_LONG_SILENCE, False) \
                         and transition.is_default_transition():
                     if self._action_to_react_to_silence == 'repeat':
                         self.log_debug("Going back to previous state as input is long silence.")

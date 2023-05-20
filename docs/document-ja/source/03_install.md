@@ -38,7 +38,7 @@ $ git clone https://github.com/c4a-ri/dialbb.git <ディレクトリ名>
 - 次に必要なら仮想環境を構築します．以下はvenvの例です．
 
   ```sh
-  $ pyhon -m venv venv  # 仮想環境をvenvという名前で構築
+  $ python -m venv venv  # 仮想環境をvenvという名前で構築
   $ venv/bin/activate   # 仮想環境に入る
   ```
 

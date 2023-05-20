@@ -10,6 +10,7 @@
   - リクエストの"aux_data"の"confidence"の値がコンフィギュレーションの"ask_repetition"の"confidence_threshold"の値以下の場合に、状態遷移をおこなわず、"ask_repetition"の"utterance"の値をシステム発話とする。
   - 入力がlong silenceの場合に，コンフィギュレーションのreaction_to_silenceに応じて動作を変更する
   - 組み込みシナリオ関数 _confidence_is_low, _is_long_silenceを実装
+  - prep stateからの遷移をinitialではないstateに可能
 
 ## 0.3.0 (2023.4.13)
 
