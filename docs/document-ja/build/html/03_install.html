@@ -50,15 +50,14 @@
 <li class="toctree-l2"><a class="reference internal" href="#dialbb">3.2. DialBBのインストール</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#python">3.3. pythonライブラリのインストール</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#graphviz">3.4. Graphvizのインストール</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id3">3.5. 環境変数の設定</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id4">3.6. オウム返しサンプルアプリケーションのサーバの起動</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id5">3.6.1. 動作確認</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id3">3.5. オウム返しサンプルアプリケーションのサーバの起動</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id4">3.5.1. 動作確認</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#id6">3.7. 組み込みブロックを用いたサンプルアプリケーションの起動</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id7">3.7.1. 起動</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#test-with-browser">3.7.2. 動作確認</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id9">3.7.3. テストセットを用いた動作確認</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id5">3.6. 組み込みブロックを用いたサンプルアプリケーションの起動</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id6">3.6.1. 起動</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#test-with-browser">3.6.2. 動作確認</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id8">3.6.3. テストセットを用いた動作確認</a></li>
 </ul>
 </li>
 </ul>
@@ -120,7 +119,7 @@
 <ul>
 <li><p>&lt;DialBBディレクトリ&gt;に移動します．</p></li>
 <li><p>次に必要なら仮想環境を構築します．以下はvenvの例です．</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>pyhon<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv<span class="w">  </span><span class="c1"># 仮想環境をvenvという名前で構築</span>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv<span class="w">  </span><span class="c1"># 仮想環境をvenvという名前で構築</span>
 $<span class="w"> </span>venv/bin/activate<span class="w">   </span><span class="c1"># 仮想環境に入る</span>
 </pre></div>
 </div>
@@ -151,20 +150,13 @@ $<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span
 ただ，Graphvizがなくてもアプリケーションを動作させることは可能です．</p>
 </section>
 <section id="id3">
-<h2><span class="section-number">3.5. </span>環境変数の設定<a class="headerlink" href="#id3" title="この見出しへのパーマリンク"></a></h2>
-<p>以下のように環境変数<code class="docutils literal notranslate"><span class="pre">PYTHONPATH</span></code>を設定します．ただし，以下の手順はすべて&lt;DialBBディレクトリ&gt;で行っているため，環境変数<code class="docutils literal notranslate"><span class="pre">PYTHONPATH</span></code>を設定しなくても行えます．</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span><span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span>&lt;DialBBディレクトリ&gt;:<span class="nv">$PYTHONPATH</span>
-</pre></div>
-</div>
-</section>
-<section id="id4">
-<h2><span class="section-number">3.6. </span>オウム返しサンプルアプリケーションのサーバの起動<a class="headerlink" href="#id4" title="この見出しへのパーマリンク"></a></h2>
+<h2><span class="section-number">3.5. </span>オウム返しサンプルアプリケーションのサーバの起動<a class="headerlink" href="#id3" title="この見出しへのパーマリンク"></a></h2>
 <p>ただオウム返しを行うアプリケーションです．</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python<span class="w"> </span>run_server.py<span class="w"> </span>sample_apps/parrot/config.yml
 </pre></div>
 </div>
-<section id="id5">
-<h3><span class="section-number">3.6.1. </span>動作確認<a class="headerlink" href="#id5" title="この見出しへのパーマリンク"></a></h3>
+<section id="id4">
+<h3><span class="section-number">3.5.1. </span>動作確認<a class="headerlink" href="#id4" title="この見出しへのパーマリンク"></a></h3>
 <p>別のターミナルから以下を実行してください．
 curlをインストールしていない場合は，「<a class="reference internal" href="#test-with-browser"><span class="std std-ref">動作確認</span></a>」に書いてある方法でテストしてくださ
 い．</p>
@@ -200,11 +192,11 @@ curlをインストールしていない場合は，「<a class="reference inter
 </ul>
 </section>
 </section>
-<section id="id6">
-<h2><span class="section-number">3.7. </span>組み込みブロックを用いたサンプルアプリケーションの起動<a class="headerlink" href="#id6" title="この見出しへのパーマリンク"></a></h2>
+<section id="id5">
+<h2><span class="section-number">3.6. </span>組み込みブロックを用いたサンプルアプリケーションの起動<a class="headerlink" href="#id5" title="この見出しへのパーマリンク"></a></h2>
 <p>DialBBには，あらかじめ作成してあるブロック（組み込みブロック）を用いたサンプルアプリケーションがあります．</p>
-<section id="id7">
-<h3><span class="section-number">3.7.1. </span>起動<a class="headerlink" href="#id7" title="この見出しへのパーマリンク"></a></h3>
+<section id="id6">
+<h3><span class="section-number">3.6.1. </span>起動<a class="headerlink" href="#id6" title="この見出しへのパーマリンク"></a></h3>
 <p>以下のコマンドで起動します．</p>
 <ul>
 <li><p>英語アプリケーション</p>
@@ -220,7 +212,7 @@ curlをインストールしていない場合は，「<a class="reference inter
 </ul>
 </section>
 <section id="test-with-browser">
-<span id="id8"></span><h3><span class="section-number">3.7.2. </span>動作確認<a class="headerlink" href="#test-with-browser" title="この見出しへのパーマリンク"></a></h3>
+<span id="id7"></span><h3><span class="section-number">3.6.2. </span>動作確認<a class="headerlink" href="#test-with-browser" title="この見出しへのパーマリンク"></a></h3>
 <p>上記でアプリケーションを起動したサーバのホスト名かIPアドレスを<code class="docutils literal notranslate"><span class="pre">&lt;hostname&gt;</span></code>としたとき，ブラウザから以下のURLに接続すると対話画面が現れますので，そこで対話してみてください．</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">http</span><span class="p">:</span><span class="o">//&lt;</span><span class="n">hostname</span><span class="o">&gt;</span><span class="p">:</span><span class="mi">8080</span> 
 </pre></div>
@@ -230,8 +222,8 @@ curlをインストールしていない場合は，「<a class="reference inter
 </pre></div>
 </div>
 </section>
-<section id="id9">
-<h3><span class="section-number">3.7.3. </span>テストセットを用いた動作確認<a class="headerlink" href="#id9" title="この見出しへのパーマリンク"></a></h3>
+<section id="id8">
+<h3><span class="section-number">3.6.3. </span>テストセットを用いた動作確認<a class="headerlink" href="#id8" title="この見出しへのパーマリンク"></a></h3>
 <p>以下のコマンドで，ユーザ発話を順に処理して対話するテストを行うことができます．</p>
 <ul class="simple">
 <li><p>英語</p></li>
