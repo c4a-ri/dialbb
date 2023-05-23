@@ -409,7 +409,7 @@ class StateTransitionNetwork:
                                                  " has an extra transition after default transition.")
                         if not transition.get_user_utterance_type() and not transition.get_conditions():
                             has_default_transition = True
-                    if not has_default_transition and repeat_when_no_available_transitions:
+                    if not has_default_transition and not repeat_when_no_available_transitions:
                         warn_during_building(f"state '{state_name}' has no default transition.")
         prep_state: State = self._state_names2states.get(PREP_STATE_NAME)
         if prep_state and prep_state.get_system_utterances():
