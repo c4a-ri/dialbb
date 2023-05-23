@@ -21,6 +21,7 @@ PREP_STATE_NAME = "#prep"
 INITIAL_STATE_NAME = "#initial"
 FINAL_STATE_PREFIX = "#final"
 ERROR_STATE_NAME = "#error"
+FINAL_ABORT_STATE_NAME = "#final_abort"
 BUILTIN_FUNCTION_PREFIX = "builtin"
 
 
@@ -426,7 +427,8 @@ class StateTransitionNetwork:
                     all_destinations.append(destination_state)
         # check if each state is a destination at least one transition
         for state in self._states:
-            if state.get_name() in (PREP_STATE_NAME, INITIAL_STATE_NAME, ERROR_STATE_NAME):
+            if state.get_name() in (PREP_STATE_NAME, INITIAL_STATE_NAME,
+                                    ERROR_STATE_NAME, FINAL_ABORT_STATE_NAME):
                 continue
             if state not in all_destinations:
                 warn_during_building(f"state {state.get_name()} is not a destination of any transitions.")

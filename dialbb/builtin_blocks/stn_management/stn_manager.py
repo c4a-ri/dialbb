@@ -24,7 +24,7 @@ import dialbb.main
 from dialbb.builtin_blocks.stn_management.scenario_graph import create_scenario_graph
 from dialbb.builtin_blocks.stn_management.state_transition_network \
     import StateTransitionNetwork, State, Transition, Argument, Condition, Action, \
-    INITIAL_STATE_NAME, ERROR_STATE_NAME
+    INITIAL_STATE_NAME, ERROR_STATE_NAME, FINAL_ABORT_STATE_NAME
 from dialbb.builtin_blocks.stn_management.stn_creator import create_stn
 from dialbb.abstract_block import AbstractBlock
 from dialbb.main import ANY_FLAG, DEBUG, CONFIG_KEY_FLAGS_TO_USE, CONFIG_DIR
@@ -56,7 +56,6 @@ KEY_BARGE_IN: str = 'barge_in'
 KEY_BARGE_IN_IGNORED: str = "barge_in_ignored"
 KEY_LONG_SILENCE: str = "long_silence"
 
-FINAL_ABORT_STATE_NAME = "#final_abort"
 SHEET_NAME_SCENARIO: str = "scenario"
 DEFAULT_UTTERANCE_ASKING_REPETITION: str = "Could you say that again?"
 
@@ -241,14 +240,15 @@ class Manager(AbstractBlock):
 
         user_id: str = input_data['user_id']
         nlu_result: Union[Dict[str, Any], List[Dict[str, Any]]] = input_data.get('nlu_result', {"type": "", "slots": {}})
-        aux_data: Dict[str, Any] = input_data.get('aux_data', {})
+        aux_data: Dict[str, Any] = input_data.get('aux_data')
+        if aux_data is None:
+            aux_data = {}
         sentence = input_data.get("sentence", "")
         previous_state_name: str = ""
 
         self._asking_repetition[session_id] = False
 
         self.log_debug("input: " + str(input_data), session_id=session_id)
-
 
         try:
             if not self._dialogue_context.get(session_id):  # first turn 最初のターン
@@ -278,7 +278,7 @@ class Manager(AbstractBlock):
 
                 if aux_data.get(KEY_REWIND):  # revert
                     self.log_debug("Rewinding to the previous dialogue context.")
-                    self._dialogue_context[session_id] = self._dialogue_context[session_id]
+                    self._dialogue_context[session_id] = self._previous_dialogue_context[session_id]
                 else:  # save dialogue context
                     self._previous_dialogue_context[session_id] = copy.deepcopy(self._dialogue_context[session_id])
                 previous_state_name = self._dialogue_context[session_id].get(KEY_CURRENT_STATE_NAME, "")
@@ -294,7 +294,7 @@ class Manager(AbstractBlock):
 
                 #
                 if self._ask_repetition_if_confidence_is_low \
-                        and aux_data.get(KEY_CONFIDENCE) < self._confidence_threshold:
+                        and aux_data.get(KEY_CONFIDENCE, 1.0) < self._confidence_threshold:
                     # repeat
                     self.log_debug("Asking repetition because input confidence is low.")
                     current_state_name: str = previous_state_name
