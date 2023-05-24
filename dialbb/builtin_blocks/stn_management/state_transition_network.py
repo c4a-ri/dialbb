@@ -33,7 +33,7 @@ class Argument:
 
     def __init__(self, argument_string: str):
 
-        if argument_string[0] in ('#', '＃'): # special variable 特殊変数
+        if argument_string[0] in ('#', '＃'):  # special variable 特殊変数
             self._type = SPECIAL_VARIABLE
             self._name = argument_string[1:]
         elif argument_string[0] in ('*', '＊'):  # variable value e.g., *aaa 変数の値
@@ -172,9 +172,13 @@ class Transition:
                 continue
             m = function_call_pattern.match(condition_str)  # function pattern match
             if m:
-                function_name = m.group(1).strip()
+                function_name: str = m.group(1).strip()
                 # create argument instances
-                arguments = [Argument(argument_str.strip()) for argument_str in m.group(2).split(",")]
+                argument_list_str: str = m.group(2).strip()
+                if argument_list_str:
+                    arguments: List[Argument] = [Argument(argument_str.strip()) for argument_str in argument_list_str.split(",")]
+                else:
+                    arguments = []
                 self._conditions.append(Condition(function_name, arguments, condition_str))
             else:
                 abort_during_building(f"{condition_str} is not a valid condition.")
@@ -185,12 +189,12 @@ class Transition:
                 continue
             m = function_call_pattern.match(action_str)
             if m:
-                command_name = m.group(1).strip()
-                argument_list_str = m.group(2).strip()
+                command_name: str = m.group(1).strip()
+                argument_list_str: str = m.group(2).strip()
                 if argument_list_str:
                     arguments = [Argument(argument_str.strip()) for argument_str in argument_list_str.split(",")]
                 else:
-                    arguments = []
+                    arguments: List[Argument] = []
                 self._actions.append(Action(command_name, arguments, action_str))
             else:
                 warn_during_building(f"{action_str} is not a valid action.")
@@ -316,7 +320,7 @@ class State:
         return self._system_utterances
 
 
-function_call_pattern = re.compile("([^(]+)\(([^)]*)\)") # matches function patter such as "func(..)"
+function_call_pattern = re.compile(r"([^(]+)\(([^)]*)\)")  # matches function patter such as "func(..)"
 
 
 class StateTransitionNetwork:
