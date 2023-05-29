@@ -232,7 +232,7 @@ class Manager(AbstractBlock):
                   sentence: canonicalized user utterance string
                   nlu_result: NLU result (dictionary)
                   user id: user id string
-                  aux_data: auxiliary data (optional)
+                  aux_data: auxiliary data
         :param session_id: session id string
         :return: dictionary having the following keys
                    output_text: system utterance
@@ -244,6 +244,7 @@ class Manager(AbstractBlock):
         nlu_result: Union[Dict[str, Any], List[Dict[str, Any]]] = input_data.get('nlu_result', {"type": "", "slots": {}})
         aux_data: Dict[str, Any] = input_data.get('aux_data')
         if aux_data is None:
+            self.log_warning("aux_data is not ", session_id=session_id)
             aux_data = {}
         sentence = input_data.get("sentence", "")
         previous_state_name: str = ""

@@ -96,7 +96,7 @@
 <p>本章では，DialBBをインストールしてサンプルアプリケーションを実行する方法について説明します．もし以下の作業を行うことが難しければ，詳しい人に聞いてください．</p>
 <section id="id2">
 <h2><span class="section-number">3.1. </span>実行環境<a class="headerlink" href="#id2" title="この見出しへのパーマリンク"></a></h2>
-<p>Ubuntu 20.04上のpython 3.8.10で，以下の手順で動作することを確認しています．他のバージョンのPythonでも動作する可能性が高いですが，インストール時に後述する問題が発生する場合があります．</p>
+<p>Ubuntu 20.04上のpython 3.8.10および3.9.12で，以下の手順で動作することを確認しています．</p>
 <p>以下の説明はUbuntu上のbashで作業することを仮定しています．他のシェルやWindowsコマンドプロンプトを用いる場合は，適宜読み替えてください．</p>
 </section>
 <section id="dialbb">
@@ -128,10 +128,9 @@ $<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span
 $<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>snips_nlu<span class="w"> </span>download<span class="w"> </span>ja<span class="w"> </span><span class="c1"># 日本語アプリケーションを作成・利用する場合</span>
 </pre></div>
 </div>
-<p>注意事項</p>
-<ul>
+<p>注意</p>
+</li>
 <li><p>途中でエラーになり，Rustなどの追加のソフトウェアのインストールを求められる場合があります．その場合，指示にしがってインストールしてください．うまくいかない場合はREADMEに書いてある連絡先に連絡してください．</p></li>
-<li><p>python3.7の場合，インストールするライブラリのバージョンを変更しないといけない可能性があります．</p></li>
 <li><p>python3.9以上の場合，</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="ne">ModuleNotFoundError</span><span class="p">:</span> <span class="n">No</span> <span class="n">module</span> <span class="n">named</span> <span class="s1">&#39;setuptools_rust&#39;</span>
 </pre></div>
@@ -148,8 +147,6 @@ $<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span
 </pre></div>
 </div>
 <p>それに対する対処法は<a class="reference external" href="https://qiita.com/kasajei/items/5e22161b62f4b84787bc">この記事</a>などを参照ください．</p>
-</li>
-</ul>
 </li>
 </ul>
 </section>

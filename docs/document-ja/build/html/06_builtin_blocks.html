@@ -96,7 +96,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#id23">6.6.6. 言語理解結果候補が複数ある場合の処理</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id24">6.6.7. 音声入力を扱うための仕組み（）</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id24">6.6.7. 音声入力を扱うための仕組み</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#id25">6.6.7.1. ブロックコンフィギュレーションパラメータ</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#id26">6.6.7.2. 組み込み条件関数</a></li>
 </ul>
@@ -530,7 +530,7 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">final</span></code>: 対話終了かどうかのフラグ（ブール値）</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">aux_data</span></code>: 補助データ（辞書型）(ver. 0.3.1で変更）
 入力の補助データを，後述のアクション関数の中でアップデートしたものに，遷移した状態のIDを含めたもの．アクション関数の中でのアップデートは必ずしも行われるわけではない．遷移した状態は，以下の形式で付加される．</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span>{&quot;state&quot;: &quot;特定のラーメンが好き&quot;}`
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nt">&quot;state&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;特定のラーメンが好き&quot;</span><span class="p">}</span>
 </pre></div>
 </div>
 </li>
@@ -620,7 +620,7 @@
 </section>
 <section id="id18">
 <h3><span class="section-number">6.6.4. </span>条件とアクション<a class="headerlink" href="#id18" title="この見出しへのパーマリンク"></a></h3>
-<p>STN Managerは，対話のセッションごとに文脈情報を保持しています．文脈情報は変数とその値の組の集合（pythonの辞書型データ）で，値はどのようなデータ構造でも構いません．</p>
+<p>STN Managerは，対話のセッションごとに<strong>文脈情報</strong>を保持しています．文脈情報は変数とその値の組の集合（pythonの辞書型データ）で，値はどのようなデータ構造でも構いません．</p>
 <p>条件やアクションの関数は文脈情報にアクセスします．</p>
 <section id="arguments">
 <span id="id19"></span><h4><span class="section-number">6.6.4.1. </span>関数の引数<a class="headerlink" href="#arguments" title="この見出しへのパーマリンク"></a></h4>
@@ -744,7 +744,7 @@
 <p>どの言語理解結果候補も上記の条件に合わない場合，リストの先頭の言語理解結果候補を用います．</p>
 </section>
 <section id="id24">
-<h3><span class="section-number">6.6.7. </span>音声入力を扱うための仕組み（）<a class="headerlink" href="#id24" title="この見出しへのパーマリンク"></a></h3>
+<h3><span class="section-number">6.6.7. </span>音声入力を扱うための仕組み<a class="headerlink" href="#id24" title="この見出しへのパーマリンク"></a></h3>
 <p>ver. 0.3.1で，音声認識結果を入力として扱うときに生じる問題に対処するため，以下の処理が導入されました．</p>
 <section id="id25">
 <h4><span class="section-number">6.6.7.1. </span>ブロックコンフィギュレーションパラメータ<a class="headerlink" href="#id25" title="この見出しへのパーマリンク"></a></h4>
@@ -771,13 +771,13 @@
 </section>
 <section id="id26">
 <h4><span class="section-number">6.6.7.2. </span>組み込み条件関数<a class="headerlink" href="#id26" title="この見出しへのパーマリンク"></a></h4>
-<p>以下の組み込み条件関数が追加されています。</p>
+<p>以下の組み込み条件関数が追加されています．</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">_confidence_is_low()</span></code></p>
 <p>入力の<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>の<code class="docutils literal notranslate"><span class="pre">confidence</span></code>の値がコンフィギュレーションの<code class="docutils literal notranslate"><span class="pre">input_confidence_threshold</span></code>の値以下の場合にTrueを返します．</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">_is_long_silence()</span></code></p>
-<p>入力の<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>の<code class="docutils literal notranslate"><span class="pre">long_silence</span></code>の値が<code class="docutils literal notranslate"><span class="pre">True</span></code>の場合に<code class="docutils literal notranslate"><span class="pre">True</span></code>を返します。</p>
+<p>入力の<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>の<code class="docutils literal notranslate"><span class="pre">long_silence</span></code>の値が<code class="docutils literal notranslate"><span class="pre">True</span></code>の場合に<code class="docutils literal notranslate"><span class="pre">True</span></code>を返します．</p>
 </li>
 </ul>
 </section>
