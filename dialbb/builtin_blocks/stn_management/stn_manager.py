@@ -37,11 +37,9 @@ CONFIG_KEY_SCENARIO_SHEET: str = "scenario_sheet"
 CONFIG_KEY_KNOWLEDGE_FILE: str = "knowledge_file"
 CONFIG_KEY_SCENARIO_GRAPH: str = "scenario_graph"
 CONFIG_KEY_REPEAT_WHEN_NO_AVAILABLE_TRANSITIONS: str = "repeat_when_no_available_transitions"
-CONFIG_KEY_ASK_REPETITION: str = "ask_repetition"
-CONFIG_KEY_CONFIDENCE_THRESHOLD: str = "confidence_threshold"
-CONFIG_KEY_UTTERANCE: str = "utterance"
-CONFIG_KEY_OOC_BARGE_IN: str = "out_of_context_barge_in"
-CONFIG_KEY_IGNORE: str = "ignore"
+CONFIG_KEY_UTTERANCE_TO_ASK_REPETITION: str = "utterance_to_ask_repetition"
+CONFIG_KEY_INPUT_CONFIDENCE_THRESHOLD: str = "input_confidence_threshold"
+CONFIG_KEY_IGNORE_OOC_BARGE_IN: str = "ignore_out_of_context_barge_in"
 CONFIG_KEY_REACTION_TO_SILENCE: str = "reaction_to_silence"
 CONFIG_KEY_ACTION: str = "action"
 CONFIG_KEY_DESTINATION: str = "destination"
@@ -100,13 +98,11 @@ class Manager(AbstractBlock):
         self._repeat_when_no_available_transitions: bool \
             = self.block_config.get(CONFIG_KEY_REPEAT_WHEN_NO_AVAILABLE_TRANSITIONS)
 
+        # set input confidence threshold
+        self._input_confidence_threshold = self.block_config.get(CONFIG_KEY_INPUT_CONFIDENCE_THRESHOLD, 0.0)
+
         # whether to ignore out of context (matching no non-default transition) barge_in
-        self._ignore_ooc_barge_in = False
-        if self.block_config.get(CONFIG_KEY_OOC_BARGE_IN) \
-                and self.block_config[CONFIG_KEY_OOC_BARGE_IN].get(CONFIG_KEY_IGNORE):
-            self._ignore_ooc_barge_in = True
-            self._confidence_threshold_for_ignoring_barge_in \
-                = self.block_config[CONFIG_KEY_OOC_BARGE_IN].get(CONFIG_KEY_CONFIDENCE_THRESHOLD, 0.0)
+        self._ignore_ooc_barge_in = self.block_config.get(CONFIG_KEY_IGNORE_OOC_BARGE_IN)
 
         # reaction to long silence
         self._reaction_to_silence: bool = self.block_config.get(CONFIG_KEY_REACTION_TO_SILENCE, False)
@@ -121,10 +117,10 @@ class Manager(AbstractBlock):
                     = self.block_config[CONFIG_KEY_REACTION_TO_SILENCE][CONFIG_KEY_DESTINATION]
 
         # set threshold for asking repetition
-        self._ask_repetition_if_confidence_is_low: bool = self.block_config.get(CONFIG_KEY_ASK_REPETITION, False)
-        if self._ask_repetition_if_confidence_is_low:
-            self._confidence_threshold: bool \
-                = self.block_config[CONFIG_KEY_ASK_REPETITION].get(CONFIG_KEY_CONFIDENCE_THRESHOLD, 0.0)
+        self._ask_repetition_if_confidence_is_low: bool = False
+        self._utterance_asking_repetition: str = self.block_config.get(CONFIG_KEY_UTTERANCE_TO_ASK_REPETITION)
+        if self._utterance_asking_repetition:
+            self._ask_repetition_if_confidence_is_low: bool = True
 
         # dialogue context for each dialogue session  session id -> {key -> value}
         # セッション毎の対話文脈
@@ -300,7 +296,7 @@ class Manager(AbstractBlock):
 
                 #
                 if not aux_data.get(KEY_BARGE_IN) and self._ask_repetition_if_confidence_is_low \
-                        and aux_data.get(KEY_CONFIDENCE, 1.0) < self._confidence_threshold:
+                        and aux_data.get(KEY_CONFIDENCE, 1.0) < self._input_confidence_threshold:
                     # repeat
                     self.log_debug("Asking repetition because input confidence is low.")
                     current_state_name: str = previous_state_name
@@ -326,8 +322,7 @@ class Manager(AbstractBlock):
 
             # select utterance
             if self._asking_repetition[session_id]:  # when asking repetition
-                output_text = self.block_config[CONFIG_KEY_ASK_REPETITION]\
-                    .get(CONFIG_KEY_UTTERANCE, DEFAULT_UTTERANCE_ASKING_REPETITION)
+                output_text = self._utterance_asking_repetition
             else:
                 output_text = new_state.get_one_system_utterance()
                 output_text = self._substitute_variables(output_text, session_id)  # replace variables
@@ -410,7 +405,8 @@ class Manager(AbstractBlock):
             if self._check_transition(transition, nlu_result, aux_data, user_id, session_id, sentence):
                 # ignore barge-in out-of-context input
                 if self._ignore_ooc_barge_in and aux_data.get(KEY_BARGE_IN, False) \
-                        and (transition.is_default_transition() or aux_data.get(KEY_CONFIDENCE) < self._confidence_threshold_for_ignoring_barge_in):
+                        and (transition.is_default_transition()
+                             or aux_data.get(KEY_CONFIDENCE) < self._input_confidence_threshold):
                     self.log_debug("Input is barge-in and default transition is selected. Going back to previous sate.")
                     aux_data[KEY_BARGE_IN_IGNORED] = True
                     return previous_state_name

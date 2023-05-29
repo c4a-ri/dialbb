@@ -45,9 +45,11 @@ blocks:  # ブロックのリスト
       sentence: canonicalized_user_utterance
       nlu_result: nlu_result
       user_id: user_id
+      aux_data: aux_data
     output:
       output_text: system_utterance
       final: final
+      aux_data: aux_data      
     flags_to_use:
       - Y
       - T
