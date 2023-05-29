@@ -48,25 +48,8 @@ $ git clone https://github.com/c4a-ri/dialbb.git <ディレクトリ名>
   $ python -m snips_nlu download ja # 日本語アプリケーションを作成・利用する場合
   ```
 
-  注意事項
 
-  - 途中でエラーになり，Rustなどの追加のソフトウェアのインストールを求められる場合があります．その場合，指示にしがってインストールしてください．うまくいかない場合はREADMEに書いてある連絡先に連絡してください．
-
-  - python3.7の場合，インストールするライブラリのバージョンを変更しないといけない可能性があります．
-  
-  - python3.9以上の場合，
-  
-    ```
-	ModuleNotFoundError: No module named 'setuptools_rust'
-    ```
-	などのエラーが出るかもしれません．その場合，以下のコマンドで解決する可能性があります．
-	
-	```
-	pip install --upgrade pip setuptools wheel
-    ```
-
-     その他，エラーメッセージに応じて必要なライブラリをインストールしてください．不明点があったりうまくいかなったりした場合は連絡してください．
-	 
+- 注意
 
   - Windows上のAnacondaを用いて実行する場合，Anaconda Promptを管理者モードで起動しないといけない可能性があります．
 
