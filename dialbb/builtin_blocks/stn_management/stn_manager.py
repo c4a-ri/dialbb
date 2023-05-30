@@ -20,7 +20,6 @@ from pandas import DataFrame
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
-import dialbb.main
 from dialbb.builtin_blocks.stn_management.scenario_graph import create_scenario_graph
 from dialbb.builtin_blocks.stn_management.state_transition_network \
     import StateTransitionNetwork, State, Transition, Argument, Condition, Action, \
@@ -54,6 +53,7 @@ KEY_CONFIDENCE: str = 'confidence'
 KEY_BARGE_IN: str = 'barge_in'
 KEY_BARGE_IN_IGNORED: str = "barge_in_ignored"
 KEY_LONG_SILENCE: str = "long_silence"
+KEY_PREVIOUS_SYSTEM_UTTERANCE: str = 'previous_system_utterance'
 
 SHEET_NAME_SCENARIO: str = "scenario"
 DEFAULT_UTTERANCE_ASKING_REPETITION: str = "Could you say that again?"
@@ -65,7 +65,7 @@ BUILTIN_FUNCTION_MODULE: str = "dialbb.builtin_blocks.stn_management.builtin_sce
 # for using google spreadsheet
 SCOPES = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
 
-var_in_system_utterance_pattern = re.compile(r'\{([^\}]+)\}')  # {<variable name>}
+var_in_system_utterance_pattern = re.compile(r'{([^}]+)}')  # {<variable name>}
 
 
 class STNError(Exception):
@@ -324,9 +324,11 @@ class Manager(AbstractBlock):
             # select utterance
             if self._asking_repetition[session_id]:  # when asking repetition
                 output_text = self._utterance_asking_repetition
+                self._dialogue_context[session_id][KEY_PREVIOUS_SYSTEM_UTTERANCE] = output_text
             else:
                 output_text = new_state.get_one_system_utterance()
                 output_text = self._substitute_variables(output_text, session_id)  # replace variables
+                self._dialogue_context[session_id][KEY_PREVIOUS_SYSTEM_UTTERANCE] = output_text
 
             # check if the new state is a final state
             final: bool = False

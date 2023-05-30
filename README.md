@@ -18,9 +18,9 @@ DialBBのメインモジュールは，メソッド呼び出しまたはWeb API�
 詳細およびインストールの仕方は[ドキュメント](https://c4a-ri.github.io/dialbb/document-ja/build/html/)を参照して下さい．
 最新バージョン以外のドキュメントは[リンク集](https://c4a-ri.github.io/dialbb/)にあります．
 
-DialBBに関するご要望・ご質問は以下のところにお寄せください。
+DialBBに関するご要望・ご質問・バグ報告は以下のところに気軽にお寄せください．些細なことや漠然とした質問でも構いません．
 
-  - バグ報告など: [GitHub Issues](https://github.com/c4a-ri/dialbb/issues)
+  - バグ報告・ドキュメントの不備指摘など: [GitHub Issues](https://github.com/c4a-ri/dialbb/issues)
 
   - 長期的な開発方針など：[GitHub Discussions](https://github.com/c4a-ri/dialbb/discussions)
   

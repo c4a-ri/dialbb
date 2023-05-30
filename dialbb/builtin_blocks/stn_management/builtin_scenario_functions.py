@@ -111,10 +111,10 @@ def builtin_confidence_is_low(context: Dict[str, Any]) -> bool:
     :return: True if the confidence of the input is lower than threshould
     """
 
-    if context['block_config'].get('ask_repetition') \
-        and context['block_config']['ask_repetition'].get("confidence_threshold"):
+    if context['_block_config'].get('ask_repetition') \
+        and context['_block_config']['ask_repetition'].get("confidence_threshold"):
         if context['aux_data'].get("confidence"):
-            if context['aux_data']["confidence"] < context['block_config']['ask_repetition']["confidence_threshold"]:
+            if context['aux_data']["confidence"] < context['_block_config']['ask_repetition']["confidence_threshold"]:
                 return True
             else:
                 return False
