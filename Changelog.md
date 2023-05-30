@@ -2,7 +2,7 @@
 
 ## 0.3.1 (2023.5.29)
 
-- STN Manager
+- STN Manager組み込みブロック
 
   - もしリクエストのaux_dataのstop_dialogueの値がTrueなら、#final_abort状態に遷移する
 
@@ -18,7 +18,12 @@
 
   - prep stateからinitialではないstateに遷移可能
 
+  - 文脈情報にaux_dataを自動的に付加
+
+  - 直前のシステム発話を文脈情報に付加
+
   - condition functionの引数が0の場合にエラーになるバグを修正
+
   
 ## 0.3.0 (2023.4.13)
 

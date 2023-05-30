@@ -87,18 +87,19 @@
 <li class="toctree-l3"><a class="reference internal" href="#scenario">6.6.2. 対話管理の知識記述</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#id17">6.6.3. 特別な状態</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#id18">6.6.4. 条件とアクション</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#arguments">6.6.4.1. 関数の引数</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id19">6.6.4.1. 文脈情報</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#arguments">6.6.4.2. 関数の引数</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#id20">6.6.5. 関数定義</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#id21">6.6.5.1. 組み込み関数</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#id22">6.6.5.2. 開発者による関数定義</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id21">6.6.5. 関数定義</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id22">6.6.5.1. 組み込み関数</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id23">6.6.5.2. 開発者による関数定義</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#id23">6.6.6. 言語理解結果候補が複数ある場合の処理</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id24">6.6.7. 音声入力を扱うための仕組み</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#id25">6.6.7.1. ブロックコンフィギュレーションパラメータ</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#id26">6.6.7.2. 組み込み条件関数</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id24">6.6.6. 言語理解結果候補が複数ある場合の処理</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id25">6.6.7. 音声入力を扱うための仕組み</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id26">6.6.7.1. ブロックコンフィギュレーションパラメータ</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id27">6.6.7.2. 組み込み条件関数</a></li>
 </ul>
 </li>
 </ul>
@@ -514,9 +515,9 @@
 <li><p>入力</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">sentence</span></code>: 正規化後のユーザ発話（文字列）</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">nlu_result</span></code>:v言語理解結果（辞書型または辞書型のリスト）</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nlu_result</span></code>:言語理解結果（辞書型または辞書型のリスト）</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">user_id</span></code>: ユーザID（文字列）</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">aux_data</span></code>: 補助データ（辞書型）</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aux_data</span></code>: 補助データ（辞書型）（必須ではありませんが指定することが推奨されます）</p></li>
 </ul>
 </li>
 <li><p>出力</p>
@@ -620,10 +621,39 @@
 </section>
 <section id="id18">
 <h3><span class="section-number">6.6.4. </span>条件とアクション<a class="headerlink" href="#id18" title="この見出しへのパーマリンク"></a></h3>
-<p>STN Managerは，対話のセッションごとに<strong>文脈情報</strong>を保持しています．文脈情報は変数とその値の組の集合（pythonの辞書型データ）で，値はどのようなデータ構造でも構いません．</p>
+<section id="id19">
+<h4><span class="section-number">6.6.4.1. </span>文脈情報<a class="headerlink" href="#id19" title="この見出しへのパーマリンク"></a></h4>
+<p>STN Managerは，対話のセッションごとに文脈情報を保持しています．文脈情報は変数とその値の組の集合（pythonの辞書型データ）で，値はどのようなデータ構造でも構いません．</p>
 <p>条件やアクションの関数は文脈情報にアクセスします．</p>
+<p>文脈情報にはあらかじめ以下のキーと値のペアがセットされています．</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>キー</p></th>
+<th class="head"><p>値</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>_state</p></td>
+<td><p>state id</p></td>
+</tr>
+<tr class="row-odd"><td><p>_config</p></td>
+<td><p>configファイルを読み込んでできた辞書型のデータ</p></td>
+</tr>
+<tr class="row-even"><td><p>_block_config</p></td>
+<td><p>configファイルのうち対話管理ブロックの設定部分（辞書型のデータ）</p></td>
+</tr>
+<tr class="row-odd"><td><p>_aux_data</p></td>
+<td><p>メインプロセスから受け取ったaux_data（辞書型のデータ）</p></td>
+</tr>
+<tr class="row-even"><td><p>_previous_system_utterance</p></td>
+<td><p>直前のシステム発話（文字列）</p></td>
+</tr>
+</tbody>
+</table>
+<p>これらに加えて新しいキーと値のペアをアクション関数内で追加することができます．</p>
+</section>
 <section id="arguments">
-<span id="id19"></span><h4><span class="section-number">6.6.4.1. </span>関数の引数<a class="headerlink" href="#arguments" title="この見出しへのパーマリンク"></a></h4>
+<span id="id20"></span><h4><span class="section-number">6.6.4.2. </span>関数の引数<a class="headerlink" href="#arguments" title="この見出しへのパーマリンク"></a></h4>
 <p>条件やアクションで用いる関数の引数には次のタイプがあります．</p>
 <ul>
 <li><p>特殊変数 （<code class="docutils literal notranslate"><span class="pre">#</span></code>で始まる文字列）</p>
@@ -651,11 +681,11 @@
 </ul>
 </section>
 </section>
-<section id="id20">
-<h3><span class="section-number">6.6.5. </span>関数定義<a class="headerlink" href="#id20" title="この見出しへのパーマリンク"></a></h3>
-<p>条件やアクションで用いる関数は，DialBB組み込みのものと，開発者が定義するものがあります．条件で使う関数はbool値を返し，アクションで使う関数は何も返しません．</p>
 <section id="id21">
-<h4><span class="section-number">6.6.5.1. </span>組み込み関数<a class="headerlink" href="#id21" title="この見出しへのパーマリンク"></a></h4>
+<h3><span class="section-number">6.6.5. </span>関数定義<a class="headerlink" href="#id21" title="この見出しへのパーマリンク"></a></h3>
+<p>条件やアクションで用いる関数は，DialBB組み込みのものと，開発者が定義するものがあります．条件で使う関数はbool値を返し，アクションで使う関数は何も返しません．</p>
+<section id="id22">
+<h4><span class="section-number">6.6.5.1. </span>組み込み関数<a class="headerlink" href="#id22" title="この見出しへのパーマリンク"></a></h4>
 <p>組み込み関数には以下があります．</p>
 <ul>
 <li><p>条件で用いる関数</p>
@@ -704,8 +734,8 @@
 </li>
 </ul>
 </section>
-<section id="id22">
-<h4><span class="section-number">6.6.5.2. </span>開発者による関数定義<a class="headerlink" href="#id22" title="この見出しへのパーマリンク"></a></h4>
+<section id="id23">
+<h4><span class="section-number">6.6.5.2. </span>開発者による関数定義<a class="headerlink" href="#id23" title="この見出しへのパーマリンク"></a></h4>
 <p>開発者が関数定義を行うときには，アプリケーションディレクトリのscenario_functions.pyを編集します．</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">get_ramen_location</span><span class="p">(</span><span class="n">ramen</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">variable</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="n">location</span><span class="p">:</span><span class="nb">str</span> <span class="o">=</span> <span class="n">ramen_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ramen</span><span class="p">,</span> <span class="s2">&quot;日本&quot;</span><span class="p">)</span>
@@ -716,38 +746,19 @@
 <p>シナリオで使われている引数はすべて文字列でなくてはなりません．</p>
 <p>引数には，特殊変数・変数の場合，その値が渡されます．</p>
 <p>また，変数参照の場合は'<code class="docutils literal notranslate"><span class="pre">&amp;</span></code>'を除いた変数名が，定数の場合は，<code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code>の中の文字列が渡されます．</p>
-<p><code class="docutils literal notranslate"><span class="pre">context</span></code>は対話の最初に以下のキーと値のペアがセットされています．</p>
-<table class="docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>キー</p></th>
-<th class="head"><p>値</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>_state</p></td>
-<td><p>state id</p></td>
-</tr>
-<tr class="row-odd"><td><p>_config</p></td>
-<td><p>configファイルを読み込んでできた辞書型のデータ</p></td>
-</tr>
-<tr class="row-even"><td><p>_block_config</p></td>
-<td><p>configファイルのうち対話管理ブロックの設定部分（辞書型のデータ）</p></td>
-</tr>
-</tbody>
-</table>
 </section>
 </section>
-<section id="id23">
-<h3><span class="section-number">6.6.6. </span>言語理解結果候補が複数ある場合の処理<a class="headerlink" href="#id23" title="この見出しへのパーマリンク"></a></h3>
-<p>入力の<code class="docutils literal notranslate"><span class="pre">nlu_result</span></code>が辞書型のリストで，複数の言語理解結果候補を含んでいる場合の処理は次のようになります．</p>
+<section id="id24">
+<h3><span class="section-number">6.6.6. </span>言語理解結果候補が複数ある場合の処理<a class="headerlink" href="#id24" title="この見出しへのパーマリンク"></a></h3>
+<p>入力の<code class="docutils literal notranslate"><span class="pre">nlu_result</span></code>がリスト型のデータで，複数の言語理解結果候補を含んでいる場合，処理は次のようになります．</p>
 <p>リストの先頭から順に，言語理解結果候補の<code class="docutils literal notranslate"><span class="pre">type</span></code>の値が，現在の状態から可能な遷移のうちのどれかの<code class="docutils literal notranslate"><span class="pre">user</span> <span class="pre">utterance</span> <span class="pre">type</span></code>の値に等しいかどうかを調べ，等しい遷移があれば，その言語理解結果候補を用います．</p>
 <p>どの言語理解結果候補も上記の条件に合わない場合，リストの先頭の言語理解結果候補を用います．</p>
 </section>
-<section id="id24">
-<h3><span class="section-number">6.6.7. </span>音声入力を扱うための仕組み<a class="headerlink" href="#id24" title="この見出しへのパーマリンク"></a></h3>
-<p>ver. 0.3.1で，音声認識結果を入力として扱うときに生じる問題に対処するため，以下の処理が導入されました．</p>
 <section id="id25">
-<h4><span class="section-number">6.6.7.1. </span>ブロックコンフィギュレーションパラメータ<a class="headerlink" href="#id25" title="この見出しへのパーマリンク"></a></h4>
+<h3><span class="section-number">6.6.7. </span>音声入力を扱うための仕組み<a class="headerlink" href="#id25" title="この見出しへのパーマリンク"></a></h3>
+<p>ver. 0.3.1で，音声認識結果を入力として扱うときに生じる問題に対処するため，以下の処理が導入されました．</p>
+<section id="id26">
+<h4><span class="section-number">6.6.7.1. </span>ブロックコンフィギュレーションパラメータ<a class="headerlink" href="#id26" title="この見出しへのパーマリンク"></a></h4>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">input_confidence_threshold</span></code> （float．デフォルト値<code class="docutils literal notranslate"><span class="pre">1.0</span></code>）</p>
 <p>入力が音声認識結果の時，その確信度がこの値未満の場合に，確信度が低いとみなします．入力の確信度は，<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>の<code class="docutils literal notranslate"><span class="pre">confidence</span></code>の値です．<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>に<code class="docutils literal notranslate"><span class="pre">confidence</span></code>キーがないときは，確信度が高いとみなします．確信度が低い場合は，以下に述べるパラメータの値に応じて処理が変わります．</p>
@@ -769,8 +780,8 @@
 </li>
 </ul>
 </section>
-<section id="id26">
-<h4><span class="section-number">6.6.7.2. </span>組み込み条件関数<a class="headerlink" href="#id26" title="この見出しへのパーマリンク"></a></h4>
+<section id="id27">
+<h4><span class="section-number">6.6.7.2. </span>組み込み条件関数<a class="headerlink" href="#id27" title="この見出しへのパーマリンク"></a></h4>
 <p>以下の組み込み条件関数が追加されています．</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">_confidence_is_low()</span></code></p>

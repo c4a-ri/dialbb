@@ -46,6 +46,7 @@ CONFIG_KEY_DESTINATION: str = "destination"
 KEY_CURRENT_STATE_NAME: str = "_current_state_name"
 KEY_CONFIG: str = "_config"
 KEY_BLOCK_CONFIG: str = "_block_config"
+KEY_AUX_DATA: str = "_aux_data"
 KEY_CAUSE: str = "_cause"
 KEY_STOP_DIALOGUE: str = "stop_dialogue"
 KEY_REWIND: str = 'rewind'
@@ -53,7 +54,7 @@ KEY_CONFIDENCE: str = 'confidence'
 KEY_BARGE_IN: str = 'barge_in'
 KEY_BARGE_IN_IGNORED: str = "barge_in_ignored"
 KEY_LONG_SILENCE: str = "long_silence"
-KEY_PREVIOUS_SYSTEM_UTTERANCE: str = 'previous_system_utterance'
+KEY_PREVIOUS_SYSTEM_UTTERANCE: str = '_previous_system_utterance'
 
 SHEET_NAME_SCENARIO: str = "scenario"
 DEFAULT_UTTERANCE_ASKING_REPETITION: str = "Could you say that again?"
@@ -244,7 +245,7 @@ class Manager(AbstractBlock):
         nlu_result: Union[Dict[str, Any], List[Dict[str, Any]]] = input_data.get('nlu_result', {"type": "", "slots": {}})
         aux_data: Dict[str, Any] = input_data.get('aux_data')
         if aux_data is None:
-            self.log_warning("aux_data is not ", session_id=session_id)
+            self.log_warning("aux_data is not included in the input", session_id=session_id)
             aux_data = {}
         sentence = input_data.get("sentence", "")
         previous_state_name: str = ""
@@ -258,6 +259,7 @@ class Manager(AbstractBlock):
                 self._dialogue_context[session_id] = {}
                 self._dialogue_context[session_id][KEY_CONFIG] = copy.deepcopy(self.config)
                 self._dialogue_context[session_id][KEY_BLOCK_CONFIG] = copy.deepcopy(self.block_config)
+                self._dialogue_context[session_id][KEY_AUX_DATA] = aux_data
                 # perform actions in the prep state prep状態のactionを実行する
                 prep_state: State = self._network.get_prep_state()
                 if prep_state:
@@ -429,8 +431,6 @@ class Manager(AbstractBlock):
                 self._perform_actions(transition.get_actions(), nlu_result, aux_data, user_id, session_id, sentence)
                 self.log_debug("moving to state: " + destination_state_name, session_id=session_id)
                 return destination_state_name
-
-
 
         # when no available transitions 適用可能な遷移がなかった
         if self._repeat_when_no_available_transitions:  # repeat previous utterance

@@ -102,19 +102,18 @@ def builtin_is_long_silence(context: Dict[str, Any]) -> bool:
     入力が長い沈黙の検出結果の場合 Trueを返す
     :return: True when input is a long silence, False otherwise
     """
-    return context['aux_data'].get('long_silence', False)
+    return context['_aux_data'].get('long_silence', False)
 
 
 def builtin_confidence_is_low(context: Dict[str, Any]) -> bool:
     """
     check if the confidence is low
-    :return: True if the confidence of the input is lower than threshould
+    :return: True if the confidence of the input is lower than threshold
     """
 
-    if context['_block_config'].get('ask_repetition') \
-        and context['_block_config']['ask_repetition'].get("confidence_threshold"):
-        if context['aux_data'].get("confidence"):
-            if context['aux_data']["confidence"] < context['_block_config']['ask_repetition']["confidence_threshold"]:
+    if context['_block_config'].get("input_confidence_threshold"):
+        if context['_aux_data'].get("confidence"):
+            if context['_aux_data']["confidence"] < context['_block_config']["input_confidence_threshold"]:
                 return True
             else:
                 return False
