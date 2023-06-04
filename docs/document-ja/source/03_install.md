@@ -193,3 +193,7 @@ http://localhost:8080/test
 
 ​    `sample_apps/network_ja/_test_outputs.txt`に対話のやりとりが書き込まれます．
 
+### 実験用アプリケーション
+
+`sample_apps/lab_app_ja/`に実験用アプリケーションがあります．組み込みブロックの様々な機能を試すためのアプリケーションです．詳細は`sample_apps/lab_app_ja/README.md`を参照してください．
+

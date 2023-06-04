@@ -13,12 +13,11 @@ from datetime import datetime
 from typing import Dict, Any
 import os
 
-import openai
-
-use_openai:bool = False
+use_openai: bool = False
 
 openai_key: str = os.environ.get('OPENAI_KEY', "")
 if openai_key:
+    import openai
     use_openai = True
     openai.api_key = openai_key
 
@@ -84,7 +83,7 @@ def decide_greeting(greeting_variable: str, context: Dict[str, Any]) -> None:
 
 def generate_with_openai_gpt(prompt: str):
     response = openai.ChatCompletion.create(
-        #engine="gpt-4",
+        #model="gpt-4",
         model="gpt-3.5-turbo",
         messages=[
             {"role": "user", "content": prompt}
@@ -95,18 +94,21 @@ def generate_with_openai_gpt(prompt: str):
 
 def set_impression_of_dialogue(impression_key: str, context: Dict[str, Any]) -> None:
 
-    prompt = ""
+    if use_openai:
 
-    for turn in context["_dialogue_history"]:
-        if turn["speaker"] == 'user':
-            prompt += f"ユーザ「{turn['utterance']}」\n"
-        else:
-            prompt += f"システム「{turn['utterance']}」\n"
-    prompt += "の後、システムが感想を短く言う発話を生成してください。"
+        prompt = ""
+        for turn in context["_dialogue_history"]:
+            if turn["speaker"] == 'user':
+                prompt += f"ユーザ「{turn['utterance']}」\n"
+            else:
+                prompt += f"システム「{turn['utterance']}」\n"
+        prompt += "の後、システムが感想を短く言う発話を生成してください。"
 
-    generated_utterance: str = generate_with_openai_gpt(prompt)
+        generated_utterance: str = generate_with_openai_gpt(prompt)
+        impression = generated_utterance.replace("「", "").replace("」", "")
 
-    impression = generated_utterance.replace("「", "").replace("」", "")
+    else:
+        impression = "そうなんですね"
 
     context[impression_key] = impression
 
