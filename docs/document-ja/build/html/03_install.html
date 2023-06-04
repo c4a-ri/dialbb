@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>3. インストールとサンプルアプリケーションの実行の仕方 &mdash; DialBBドキュメント v0.3.0 ドキュメント</title>
+  <title>3. インストールとサンプルアプリケーションの実行の仕方 &mdash; DialBBドキュメント v0.4.0 ドキュメント</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -58,6 +58,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#id6">3.6.1. 起動</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#test-with-browser">3.6.2. 動作確認</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#id8">3.6.3. テストセットを用いた動作確認</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id9">3.6.4. 実験用アプリケーション</a></li>
 </ul>
 </li>
 </ul>
@@ -96,9 +97,7 @@
 <p>本章では，DialBBをインストールしてサンプルアプリケーションを実行する方法について説明します．もし以下の作業を行うことが難しければ，詳しい人に聞いてください．</p>
 <section id="id2">
 <h2><span class="section-number">3.1. </span>実行環境<a class="headerlink" href="#id2" title="この見出しへのパーマリンク"></a></h2>
-<p>Ubuntu 20.04上のpython 3.8.10で，以下の手順で動作することを確認しています．</p>
-<p>現在のところpython3.9以上では動作が確認できていません。(SNIPSのインストールができないため）</p>
-<p>また，Windows 10やMacOSでも動作しますが，インストールに追加の手順が必要な場合がありますが，エラーメッセージに沿って追加のソフトウェアをインストールすれば解決しますので，詳細は割愛します．</p>
+<p>Ubuntu 20.04上のpython 3.8.10および3.9.12で，以下の手順で動作することを確認しています．</p>
 <p>以下の説明はUbuntu上のbashで作業することを仮定しています．他のシェルやWindowsコマンドプロンプトを用いる場合は，適宜読み替えてください．</p>
 </section>
 <section id="dialbb">
@@ -118,9 +117,9 @@
 <h2><span class="section-number">3.3. </span>pythonライブラリのインストール<a class="headerlink" href="#python" title="この見出しへのパーマリンク"></a></h2>
 <ul>
 <li><p>&lt;DialBBディレクトリ&gt;に移動します．</p></li>
-<li><p>次に必要なら仮想環境を構築します．以下はLinux上のvenvの例です．</p>
+<li><p>次に必要なら仮想環境を構築します．以下はvenvの例です．</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv<span class="w">  </span><span class="c1"># 仮想環境をvenvという名前で構築</span>
-$<span class="w"> </span><span class="nb">source</span><span class="w"> </span>venv/bin/activate<span class="w">   </span><span class="c1"># 仮想環境に入る</span>
+$<span class="w"> </span>venv/bin/activate<span class="w">   </span><span class="c1"># 仮想環境に入る</span>
 </pre></div>
 </div>
 </li>
@@ -130,17 +129,25 @@ $<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span
 $<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>snips_nlu<span class="w"> </span>download<span class="w"> </span>ja<span class="w"> </span><span class="c1"># 日本語アプリケーションを作成・利用する場合</span>
 </pre></div>
 </div>
+<p>注意</p>
 </li>
-<li><p>注意</p>
-<ul>
+<li><p>途中でエラーになり，Rustなどの追加のソフトウェアのインストールを求められる場合があります．その場合，指示にしがってインストールしてください．うまくいかない場合はREADMEに書いてある連絡先に連絡してください．</p></li>
+<li><p>python3.9以上の場合，</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="ne">ModuleNotFoundError</span><span class="p">:</span> <span class="n">No</span> <span class="n">module</span> <span class="n">named</span> <span class="s1">&#39;setuptools_rust&#39;</span>
+</pre></div>
+</div>
+<p>などのエラーが出るかもしれません．その場合，以下のコマンドで解決する可能性があります．</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">upgrade</span> <span class="n">pip</span> <span class="n">setuptools</span> <span class="n">wheel</span>
+</pre></div>
+</div>
+<p>その他，エラーメッセージに応じて必要なライブラリをインストールしてください．不明点があったりうまくいかなったりした場合は連絡してください．</p>
+</li>
 <li><p>Windows上のAnacondaを用いて実行する場合，Anaconda Promptを管理者モードで起動しないといけない可能性があります．</p></li>
 <li><p>pyenvを使っている場合，以下のエラーが出る可能性があります．</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="ne">ModuleNotFoundError</span><span class="p">:</span> <span class="n">No</span> <span class="n">module</span> <span class="n">named</span> <span class="s1">&#39;_bz2&#39;</span> 
 </pre></div>
 </div>
 <p>それに対する対処法は<a class="reference external" href="https://qiita.com/kasajei/items/5e22161b62f4b84787bc">この記事</a>などを参照ください．</p>
-</li>
-</ul>
 </li>
 </ul>
 </section>
@@ -243,6 +250,10 @@ sample_apps/network_ja/_test_outputs.txt
 </pre></div>
 </div>
 <p>​    <code class="docutils literal notranslate"><span class="pre">sample_apps/network_ja/_test_outputs.txt</span></code>に対話のやりとりが書き込まれます．</p>
+</section>
+<section id="id9">
+<h3><span class="section-number">3.6.4. </span>実験用アプリケーション<a class="headerlink" href="#id9" title="この見出しへのパーマリンク"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">sample_apps/lab_app_ja/</span></code>に実験用アプリケーションがあります．組み込みブロックの様々な機能を試すためのアプリケーションです．詳細は<code class="docutils literal notranslate"><span class="pre">sample_apps/lab_app_ja/README.md</span></code>を参照してください．</p>
 </section>
 </section>
 </section>

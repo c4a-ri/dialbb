@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.4.0 (2023.6.4)
+
+- クラスAPIの場合、requestは破壊的に操作しない
+
+- STN Manager組み込みブロック
+
+  - もしリクエストのaux_dataのstop_dialogueの値がTrueなら、#final_abort状態に遷移する
+
+  - リクエストの"aux_data"の"rewind"の値がTrueの場合、対話の状態を直前のものに戻し、対話文脈を戻す
+
+  - デフォルト遷移の代わりに遷移しないことをオプションで選択可能に変更
+
+  - リクエストの"aux_data"の"confidence"の値がコンフィギュレーションの"ask_repetition"の"confidence_threshold"の値以下の場合に、状態遷移をおこなわず、"ask_repetition"の"utterance"の値をシステム発話とする。
+
+  - 入力がlong silenceの場合に，コンフィギュレーションのreaction_to_silenceに応じて動作を変更する
+
+  - 組み込みシナリオ関数 _confidence_is_low, _is_long_silenceを実装
+
+  - prep stateからinitialではないstateに遷移可能
+
+  - 文脈情報にaux_dataを自動的に付加
+
+  - 直前のシステム発話を文脈情報に付加
+
+  - condition functionの引数が0の場合にエラーになるバグを修正
+
+  
 ## 0.3.0 (2023.4.13)
 
 - 組み込みの単語分割ブロッククラスを追加。それに伴い、SNIPS Understanderの入力が文字列からトークン列に変更（後方互換性なし）

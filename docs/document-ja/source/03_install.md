@@ -4,11 +4,7 @@
 
 ## 実行環境
 
-Ubuntu 20.04上のpython 3.8.10で，以下の手順で動作することを確認しています．
-
-現在のところpython3.9以上では動作が確認できていません。(SNIPSのインストールができないため）
-
-また，Windows 10やMacOSでも動作しますが，インストールに追加の手順が必要な場合がありますが，エラーメッセージに沿って追加のソフトウェアをインストールすれば解決しますので，詳細は割愛します．
+Ubuntu 20.04上のpython 3.8.10および3.9.12で，以下の手順で動作することを確認しています．
 
 以下の説明はUbuntu上のbashで作業することを仮定しています．他のシェルやWindowsコマンドプロンプトを用いる場合は，適宜読み替えてください．
 
@@ -36,11 +32,11 @@ $ git clone https://github.com/c4a-ri/dialbb.git <ディレクトリ名>
 
 - <DialBBディレクトリ>に移動します．
 
-- 次に必要なら仮想環境を構築します．以下はLinux上のvenvの例です．
+- 次に必要なら仮想環境を構築します．以下はvenvの例です．
 
   ```sh
   $ python -m venv venv  # 仮想環境をvenvという名前で構築
-  $ source venv/bin/activate   # 仮想環境に入る
+  $ venv/bin/activate   # 仮想環境に入る
   ```
 
 - 次に以下を実行してください．
@@ -53,7 +49,24 @@ $ git clone https://github.com/c4a-ri/dialbb.git <ディレクトリ名>
   ```
 
 
-- 注意
+  注意
+
+ - 途中でエラーになり，Rustなどの追加のソフトウェアのインストールを求められる場合があります．その場合，指示にしがってインストールしてください．うまくいかない場合はREADMEに書いてある連絡先に連絡してください．
+
+  - python3.9以上の場合，
+  
+    ```
+	ModuleNotFoundError: No module named 'setuptools_rust'
+    ```
+	などのエラーが出るかもしれません．その場合，以下のコマンドで解決する可能性があります．
+	
+	```
+	pip install --upgrade pip setuptools wheel
+    ```
+
+     その他，エラーメッセージに応じて必要なライブラリをインストールしてください．不明点があったりうまくいかなったりした場合は連絡してください．
+	 
+
 
   - Windows上のAnacondaを用いて実行する場合，Anaconda Promptを管理者モードで起動しないといけない可能性があります．
 
@@ -179,4 +192,8 @@ http://localhost:8080/test
    ```
 
 ​    `sample_apps/network_ja/_test_outputs.txt`に対話のやりとりが書き込まれます．
+
+### 実験用アプリケーション
+
+`sample_apps/lab_app_ja/`に実験用アプリケーションがあります．組み込みブロックの様々な機能を試すためのアプリケーションです．詳細は`sample_apps/lab_app_ja/README.md`を参照してください．
 

@@ -94,3 +94,33 @@ def builtin_not_member_of(x: str, y: str, context: Dict[str, Any]) -> bool:
     :return: True when x is a not member of y
     """
     return x not in [m.strip() for m in y.split(":")]
+
+
+def builtin_is_long_silence(context: Dict[str, Any]) -> bool:
+    """
+    checks if input is detection of a long silence
+    入力が長い沈黙の検出結果の場合 Trueを返す
+    :return: True when input is a long silence, False otherwise
+    """
+    return context['_aux_data'].get('long_silence', False)
+
+
+def builtin_confidence_is_low(context: Dict[str, Any]) -> bool:
+    """
+    check if the confidence is low
+    :return: True if the confidence of the input is lower than threshold
+    """
+
+    if context['_block_config'].get("input_confidence_threshold"):
+        if context['_aux_data'].get("confidence"):
+            if context['_aux_data']["confidence"] < context['_block_config']["input_confidence_threshold"]:
+                return True
+            else:
+                return False
+        else:
+            print("warning: confidence is not in the aux_data.")
+            return False
+    else:
+        print("warning: confidence_threshold is not specified in the configuration.")
+        return False
+

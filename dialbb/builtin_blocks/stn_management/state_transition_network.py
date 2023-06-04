@@ -10,7 +10,7 @@ __author__ = 'Mikio Nakano'
 __copyright__ = 'C4A Research Institute, Inc.'
 
 import re
-from typing import List, Dict
+from typing import List, Dict, Any
 from dialbb.util.error_handlers import abort_during_building, warn_during_building
 
 CONSTANT: str = "constant"
@@ -21,6 +21,7 @@ PREP_STATE_NAME = "#prep"
 INITIAL_STATE_NAME = "#initial"
 FINAL_STATE_PREFIX = "#final"
 ERROR_STATE_NAME = "#error"
+FINAL_ABORT_STATE_NAME = "#final_abort"
 BUILTIN_FUNCTION_PREFIX = "builtin"
 
 
@@ -32,20 +33,21 @@ class Argument:
 
     def __init__(self, argument_string: str):
 
-        if argument_string[0] in ('#', '＃'): # special variable 特殊変数
+        if argument_string[0] in ('#', '＃'):  # special variable 特殊変数
             self._type = SPECIAL_VARIABLE
             self._name = argument_string[1:]
         elif argument_string[0] in ('*', '＊'):  # variable value e.g., *aaa 変数の値
             self._type = VARIABLE
             self._name = argument_string[1:]
-        elif argument_string[0] in ('"', '“') and argument_string[-1] in ('"', '”'):  # constant string 定数文字列
+        elif argument_string[0] in ('"', '”', '“') and argument_string[-1] in ('"', '”', '“'):  # constant string 定数文字列
             self._type = CONSTANT
             self._name = argument_string[1:-1]
         elif argument_string[0] in ('&', '＆'):  # variable name 変数名
             self._type = ADDRESS
             self._name = argument_string[1:]  # remove '&'
         else:
-            warn_during_building("can't create an Argument object: " + argument_string)
+            warn_during_building(f"'{argument_string}' is not a valid argument. " +
+                                 "It's not a special variable, variable, constant, nor address.")
 
     def __str__(self):
         return f"Argument: type={self._type}, name={self._name}"
@@ -170,9 +172,13 @@ class Transition:
                 continue
             m = function_call_pattern.match(condition_str)  # function pattern match
             if m:
-                function_name = m.group(1).strip()
+                function_name: str = m.group(1).strip()
                 # create argument instances
-                arguments = [Argument(argument_str.strip()) for argument_str in m.group(2).split(",")]
+                argument_list_str: str = m.group(2).strip()
+                if argument_list_str:
+                    arguments: List[Argument] = [Argument(argument_str.strip()) for argument_str in argument_list_str.split(",")]
+                else:
+                    arguments = []
                 self._conditions.append(Condition(function_name, arguments, condition_str))
             else:
                 abort_during_building(f"{condition_str} is not a valid condition.")
@@ -183,12 +189,12 @@ class Transition:
                 continue
             m = function_call_pattern.match(action_str)
             if m:
-                command_name = m.group(1).strip()
-                argument_list_str = m.group(2).strip()
+                command_name: str = m.group(1).strip()
+                argument_list_str: str = m.group(2).strip()
                 if argument_list_str:
                     arguments = [Argument(argument_str.strip()) for argument_str in argument_list_str.split(",")]
                 else:
-                    arguments = []
+                    arguments: List[Argument] = []
                 self._actions.append(Action(command_name, arguments, action_str))
             else:
                 warn_during_building(f"{action_str} is not a valid action.")
@@ -224,6 +230,17 @@ class Transition:
         :return: the name of the destination state
         """
         return self._destination
+
+    def is_default_transition(self) -> bool:
+        """
+        checks if this is a default transition
+        デフォルト遷移かどうかをチェック
+        :return: True if this is a default transition
+        """
+        if self._user_utterance_type or self._conditions:
+            return False
+        else:
+            return True
 
 
 class State:
@@ -303,7 +320,7 @@ class State:
         return self._system_utterances
 
 
-function_call_pattern = re.compile("([^(]+)\(([^)]*)\)") # matches function patter such as "func(..)"
+function_call_pattern = re.compile(r"([^(]+)\(([^)]*)\)")  # matches function patter such as "func(..)"
 
 
 class StateTransitionNetwork:
@@ -313,14 +330,12 @@ class StateTransitionNetwork:
     """
 
     def __init__(self):
-        self._initial_state = State(INITIAL_STATE_NAME)  # initial state 初期状態
         self._error_state = State(ERROR_STATE_NAME)  # error state エラー状態
-        self._states = [self._initial_state, self._error_state]  # state list 状態のリスト
+        self._states = [self._error_state]  # state list 状態のリスト
         self._final_states = []  # list of final states 最終状態のリスト
 
         # mapping from state names to states 状態名から状態へのマッピング
-        self._state_names2states: Dict[str, State] = {INITIAL_STATE_NAME: self._initial_state,
-                                                      ERROR_STATE_NAME: self._error_state}
+        self._state_names2states: Dict[str, State] = {ERROR_STATE_NAME: self._error_state}
 
     def get_state_from_state_name(self, state_name: str) -> State:
         """
@@ -368,10 +383,11 @@ class StateTransitionNetwork:
         """
         return self._state_names2states.get(PREP_STATE_NAME)
 
-    def check_network(self) -> bool:
+    def check_network(self, repeat_when_no_available_transitions: bool) -> bool:
         """
         checks if network is valid
         このネットワークが正しいか調べる
+        :param repeat_when_no_available_transitions: whether repeat the same utterance when there are no available transitions
         :return: True is valid, False otherwise 正しければTrueを返す
         """
         result: bool = True
@@ -397,20 +413,11 @@ class StateTransitionNetwork:
                                                  " has an extra transition after default transition.")
                         if not transition.get_user_utterance_type() and not transition.get_conditions():
                             has_default_transition = True
-                    if not has_default_transition:
+                    if not has_default_transition and not repeat_when_no_available_transitions:
                         warn_during_building(f"state '{state_name}' has no default transition.")
         prep_state: State = self._state_names2states.get(PREP_STATE_NAME)
-        if prep_state:
-            if len(prep_state.get_transitions()) != 1:
-                warn_during_building(f"#prep state must have one transition.")
-            elif prep_state.get_transitions()[0].get_destination() != INITIAL_STATE_NAME:
-                warn_during_building(f"the destination of the #prep state's transition must be #initial.")
-            elif prep_state.get_transitions()[0].get_user_utterance_type():
-                warn_during_building(f"#prep state's transition must not have user utterance type.")
-            elif prep_state.get_transitions()[0].get_conditions():
-                warn_during_building(f"#prep state's transition must not have conditions.")
-            elif prep_state.get_system_utterances():
-                warn_during_building(f"#prep state must not have system utterances.")
+        if prep_state and prep_state.get_system_utterances():
+            warn_during_building(f"#prep state must not have system utterances.")
 
         # check if each destination is a valid state
         all_destinations: List[State] = []
@@ -424,10 +431,13 @@ class StateTransitionNetwork:
                     all_destinations.append(destination_state)
         # check if each state is a destination at least one transition
         for state in self._states:
-            if state.get_name() in (PREP_STATE_NAME, INITIAL_STATE_NAME, ERROR_STATE_NAME):
+            if state.get_name() in (PREP_STATE_NAME, INITIAL_STATE_NAME,
+                                    ERROR_STATE_NAME, FINAL_ABORT_STATE_NAME):
                 continue
             if state not in all_destinations:
                 warn_during_building(f"state {state.get_name()} is not a destination of any transitions.")
+        if not self._state_names2states.get(PREP_STATE_NAME) and not self._state_names2states.get(INITIAL_STATE_NAME):
+            warn_during_building(f"either state {INITIAL_STATE_NAME} or state {PREP_STATE_NAME} must exist.")
 
         # todo check if functions are defined
         # todo check if set command has two args and its first argument is a variable
