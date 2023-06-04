@@ -1,0 +1,64 @@
+# 状態遷移ネットワークベースの日本語サンプルアプリのコンフィギュレーションファイル
+
+language: ja   # 言語を指定
+
+blocks:  # ブロックのリスト
+  - name: canonicalizer  # ブロック名
+    # ブロックのクラス
+    block_class: dialbb.builtin_blocks.preprocess.japanese_canonicalizer.JapaneseCanonicalizer
+    input: # ブロックへの入力
+      input_text: user_utterance
+    output: # ブロックからの出力
+      output_text: canonicalized_user_utterance
+  - name: tokenizer  # ブロック名
+    # ブロックのクラス
+    block_class: dialbb.builtin_blocks.tokenization.sudachi_tokenizer.SudachiTokenizer
+    input: # ブロックへの入力
+      input_text: canonicalized_user_utterance
+    output: # ブロックからの出力
+      tokens: tokens
+    sudachi_normalization: yes
+  - name: understander
+    block_class: dialbb.builtin_blocks.understanding_with_snips.snips_understander.Understander
+    canonicalizer:
+      class: dialbb.builtin_blocks.preprocess.japanese_canonicalizer.JapaneseCanonicalizer
+    tokenizer:
+      class: dialbb.builtin_blocks.tokenization.sudachi_tokenizer.SudachiTokenizer
+      sudachi_normalization: yes
+    input:
+      tokens: tokens
+    output: 
+      nlu_result: nlu_result
+    knowledge_file: lab_app_ja_knowledge.xlsx  # 知識記述ファイル
+    function_definitions: dictionary_functions  # 知識記述の中で用いる関数の定義ファイル
+    flags_to_use:
+      - Y
+      - T
+    sudachi_normalization: yes
+    num_candidates: 1
+  - name: manager
+    block_class: dialbb.builtin_blocks.stn_management.stn_manager.Manager
+    knowledge_file: lab_app_ja_knowledge.xlsx # 知識記述ファイル
+    function_definitions: scenario_functions  # 知識記述の中で用いる関数の定義ファイル
+    scenario_graph: yes
+    input:
+      sentence: canonicalized_user_utterance
+      nlu_result: nlu_result
+      user_id: user_id
+      aux_data: aux_data
+    output:
+      output_text: system_utterance
+      final: final
+      aux_data: aux_data      
+    repeat_when_no_available_transitions: yes
+    input_confidence_threshold: 0.5
+    utterance_to_ask_repetition: もう一度言って頂けますか？
+    ignore_out_of_context_barge_in: yes
+    reaction_to_silence:
+      action: repeat
+      #destination: state1
+    flags_to_use:
+      - Y
+      - T
+    
+    

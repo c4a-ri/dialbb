@@ -9,6 +9,7 @@ __version__ = '0.1'
 __author__ = 'Mikio Nakano'
 __copyright__ = 'C4A Research Institute, Inc.'
 
+import copy
 import dataclasses
 from typing import Dict, Any, List
 import importlib
@@ -111,7 +112,7 @@ class DialogueProcessor:
                  レスポンス　（システム発話を含む）
         """
 
-        blackboard: Dict[str, Any] = request
+        blackboard: Dict[str, Any] = copy.deepcopy(request)
 
         if initial:  # first turn
             global session_count

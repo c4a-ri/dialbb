@@ -55,6 +55,7 @@ KEY_BARGE_IN: str = 'barge_in'
 KEY_BARGE_IN_IGNORED: str = "barge_in_ignored"
 KEY_LONG_SILENCE: str = "long_silence"
 KEY_PREVIOUS_SYSTEM_UTTERANCE: str = '_previous_system_utterance'
+KEY_DIALOGUE_HISTORY: str = '_dialogue_history'
 
 SHEET_NAME_SCENARIO: str = "scenario"
 DEFAULT_UTTERANCE_ASKING_REPETITION: str = "Could you say that again?"
@@ -249,6 +250,7 @@ class Manager(AbstractBlock):
             aux_data = {}
         sentence = input_data.get("sentence", "")
         previous_state_name: str = ""
+        current_state_name: str = ""
 
         self._asking_repetition[session_id] = False
 
@@ -260,6 +262,7 @@ class Manager(AbstractBlock):
                 self._dialogue_context[session_id][KEY_CONFIG] = copy.deepcopy(self.config)
                 self._dialogue_context[session_id][KEY_BLOCK_CONFIG] = copy.deepcopy(self.block_config)
                 self._dialogue_context[session_id][KEY_AUX_DATA] = aux_data
+                self._dialogue_context[session_id][KEY_DIALOGUE_HISTORY] = []
                 # perform actions in the prep state prep状態のactionを実行する
                 prep_state: State = self._network.get_prep_state()
                 if prep_state:
@@ -279,6 +282,7 @@ class Manager(AbstractBlock):
                     dialogue_context: Dict[str, Any] = copy.copy(self._dialogue_context[session_id])
                     del dialogue_context[KEY_CONFIG]  # delete lengthy values
                     del dialogue_context[KEY_BLOCK_CONFIG]
+                    del dialogue_context[KEY_DIALOGUE_HISTORY]
                     self.log_debug("dialogue_context: " + str(dialogue_context), session_id=session_id)
 
                 if aux_data.get(KEY_REWIND):  # revert
@@ -286,6 +290,12 @@ class Manager(AbstractBlock):
                     self._dialogue_context[session_id] = self._previous_dialogue_context[session_id]
                 else:  # save dialogue context
                     self._previous_dialogue_context[session_id] = copy.deepcopy(self._dialogue_context[session_id])
+
+                # update dialogue history
+                self._dialogue_context[session_id][KEY_DIALOGUE_HISTORY].append({"speaker": "user",
+                                                                                 "utterance": sentence})
+
+                # find previous state
                 previous_state_name = self._dialogue_context[session_id].get(KEY_CURRENT_STATE_NAME, "")
                 if previous_state_name == "":
                     self.log_error(f"can't find previous state for session.", session_id=session_id)
@@ -309,11 +319,13 @@ class Manager(AbstractBlock):
                     current_state_name: str = self._transition(previous_state_name, nlu_result, aux_data,
                                                                user_id, session_id, sentence)
                     self._dialogue_context[session_id][KEY_CURRENT_STATE_NAME] = current_state_name
-            new_state: State = self._network.get_state_from_state_name(current_state_name)
-            if not new_state:
+
+            # when no transition found 遷移がみつからなかった場合
+            if current_state_name == "":
                 # when configured to repeat utterance instead of default transition
                 if self._repeat_when_no_available_transitions:
-                    self.log_debug("Making no transition since there are no available transitions.")
+                    self.log_debug("Making no transition since there are no available transitions.",
+                                   session_id=session_id)
                     current_state_name: str = previous_state_name
                     new_state = self._network.get_state_from_state_name(current_state_name)
                 else:
@@ -323,14 +335,24 @@ class Manager(AbstractBlock):
                     current_state_name = ERROR_STATE_NAME  # move to error state
                     new_state = self._network.get_state_from_state_name(current_state_name)
 
-            # select utterance
+            new_state: State = self._network.get_state_from_state_name(current_state_name)
+            if not new_state:  # state is not defined 遷移先が定義されていない
+                self.log_error(f"State moving to is not defined: " + current_state_name, session_id=session_id)
+                # set cause of the error
+                self._dialogue_context[session_id][KEY_CAUSE] = f"State moving to is not defined: {current_state_name}"
+                current_state_name = ERROR_STATE_NAME  # move to error state
+                new_state = self._network.get_state_from_state_name(current_state_name)
+
+            # select utterance システム発話を選択
             if self._asking_repetition[session_id]:  # when asking repetition
                 output_text = self._utterance_asking_repetition
-                self._dialogue_context[session_id][KEY_PREVIOUS_SYSTEM_UTTERANCE] = output_text
             else:
                 output_text = new_state.get_one_system_utterance()
                 output_text = self._substitute_variables(output_text, session_id)  # replace variables
-                self._dialogue_context[session_id][KEY_PREVIOUS_SYSTEM_UTTERANCE] = output_text
+
+            self._dialogue_context[session_id][KEY_PREVIOUS_SYSTEM_UTTERANCE] = output_text
+            self._dialogue_context[session_id][KEY_DIALOGUE_HISTORY].append({"speaker": "system",
+                                                                             "utterance": output_text})
 
             # check if the new state is a final state
             final: bool = False
@@ -395,7 +417,7 @@ class Manager(AbstractBlock):
 
         # if aux data's stop_dialogue value is True, go to #final_abort state
         if aux_data.get(KEY_STOP_DIALOGUE):
-            self.log_debug("Moving to #final abort state as requested")
+            self.log_debug("Moving to #final_abort state as requested", session_id=session_id)
             return FINAL_ABORT_STATE_NAME
 
         previous_state: State = self._network.get_state_from_state_name(previous_state_name)
@@ -403,16 +425,22 @@ class Manager(AbstractBlock):
             self.log_error("can't find previous state: " + previous_state_name, session_id=session_id)
             self._dialogue_context[session_id][KEY_CAUSE] = f"can't find previous state: " + previous_state_name
             return ERROR_STATE_NAME
-        self.log_debug("trying to find transition from state: " + previous_state_name)
+        self.log_debug("trying to find transition from state: " + previous_state_name, session_id=session_id)
+
+        # ignore low-confident barge-in input 確信度の低いバージインは無視
+        if self._ignore_ooc_barge_in and aux_data.get(KEY_BARGE_IN, False) \
+            and aux_data.get(KEY_CONFIDENCE) < self._input_confidence_threshold:
+            print(f"input confidence: {str(aux_data.get(KEY_CONFIDENCE))}, threshold: {str(self._input_confidence_threshold)}")
+            self.log_debug(f"Input is barge-in and confidence is low. Going back to previous sate.", session_id=session_id)
+            aux_data[KEY_BARGE_IN_IGNORED] = True
+            return previous_state_name
 
         # find available transitions 適用可能な遷移を探す
         for transition in previous_state.get_transitions():
             if self._check_transition(transition, nlu_result, aux_data, user_id, session_id, sentence):
                 # ignore barge-in out-of-context input
-                if self._ignore_ooc_barge_in and aux_data.get(KEY_BARGE_IN, False) \
-                        and (transition.is_default_transition()
-                             or aux_data.get(KEY_CONFIDENCE) < self._input_confidence_threshold):
-                    self.log_debug("Input is barge-in and default transition is selected. Going back to previous sate.")
+                if self._ignore_ooc_barge_in and aux_data.get(KEY_BARGE_IN, False) and transition.is_default_transition():
+                    self.log_debug("Input is barge-in and default transition is selected. Going back to previous sate.", session_id=session_id)
                     aux_data[KEY_BARGE_IN_IGNORED] = True
                     return previous_state_name
 
@@ -420,11 +448,11 @@ class Manager(AbstractBlock):
                         and aux_data.get(KEY_LONG_SILENCE, False) \
                         and transition.is_default_transition():
                     if self._action_to_react_to_silence == 'repeat':
-                        self.log_debug("Going back to previous state as input is long silence.")
+                        self.log_debug("Going back to previous state as input is long silence.", session_id=session_id)
                         return previous_state_name
                     else:  # transition
                         destination_state_name: str = self._destination_of_reacting_to_silence
-                        self.log_debug(f"Moving to {destination_state_name} as input is long silence.")
+                        self.log_debug(f"Moving to {destination_state_name} as input is long silence.", session_id=session_id)
                         return destination_state_name
 
                 destination_state_name: str = transition.get_destination()

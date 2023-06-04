@@ -237,7 +237,7 @@ class Transition:
         デフォルト遷移かどうかをチェック
         :return: True if this is a default transition
         """
-        if self._user_utterance_type and self._conditions:
+        if self._user_utterance_type or self._conditions:
             return False
         else:
             return True

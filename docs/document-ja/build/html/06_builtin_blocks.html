@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>6. 組み込みブロッククラスの仕様 &mdash; DialBBドキュメント v0.3.1 ドキュメント</title>
+  <title>6. 組み込みブロッククラスの仕様 &mdash; DialBBドキュメント v0.4.0 ドキュメント</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -98,8 +98,9 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#id24">6.6.6. 言語理解結果候補が複数ある場合の処理</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#id25">6.6.7. 音声入力を扱うための仕組み</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#id26">6.6.7.1. ブロックコンフィギュレーションパラメータ</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#id27">6.6.7.2. 組み込み条件関数</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id26">6.6.7.1. ブロックコンフィギュレーションパラメータの追加</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id27">6.6.7.2. 組み込み条件関数の追加</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id28">6.6.7.3. 直前の誤った入力を無視する</a></li>
 </ul>
 </li>
 </ul>
@@ -648,8 +649,25 @@
 <tr class="row-even"><td><p>_previous_system_utterance</p></td>
 <td><p>直前のシステム発話（文字列）</p></td>
 </tr>
+<tr class="row-odd"><td><p>_dialogue_history</p></td>
+<td><p>対話履歴（リスト）</p></td>
+</tr>
 </tbody>
 </table>
+<p>対話履歴は，以下の形です．</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">[</span>
+  <span class="p">{</span><span class="s2">&quot;speaker&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span>
+   <span class="n">utterance</span><span class="s2">&quot;: &lt;正規化後のユーザ発話(文字列)&gt;},</span>
+  <span class="p">{</span><span class="s2">&quot;speaker&quot;</span><span class="p">:</span> <span class="s2">&quot;system&quot;</span><span class="p">,</span>
+   <span class="n">utterance</span><span class="s2">&quot;: &lt;システム発話&gt;},</span>
+  <span class="p">{</span><span class="s2">&quot;speaker&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span>
+   <span class="n">utterance</span><span class="s2">&quot;: &lt;正規化後のユーザ発話(文字列)&gt;},</span>
+  <span class="p">{</span><span class="s2">&quot;speaker&quot;</span><span class="p">:</span> <span class="s2">&quot;system&quot;</span><span class="p">,</span>
+   <span class="n">utterance</span><span class="s2">&quot;: &lt;システム発話&gt;},</span>
+  <span class="o">...</span>
+<span class="p">]</span>
+</pre></div>
+</div>
 <p>これらに加えて新しいキーと値のペアをアクション関数内で追加することができます．</p>
 </section>
 <section id="arguments">
@@ -756,15 +774,15 @@
 </section>
 <section id="id25">
 <h3><span class="section-number">6.6.7. </span>音声入力を扱うための仕組み<a class="headerlink" href="#id25" title="この見出しへのパーマリンク"></a></h3>
-<p>ver. 0.3.1で，音声認識結果を入力として扱うときに生じる問題に対処するため，以下の処理が導入されました．</p>
+<p>ver. 0.3.1で，音声認識結果を入力として扱うときに生じる問題に対処するため，以下の変更が行われました．</p>
 <section id="id26">
-<h4><span class="section-number">6.6.7.1. </span>ブロックコンフィギュレーションパラメータ<a class="headerlink" href="#id26" title="この見出しへのパーマリンク"></a></h4>
+<h4><span class="section-number">6.6.7.1. </span>ブロックコンフィギュレーションパラメータの追加<a class="headerlink" href="#id26" title="この見出しへのパーマリンク"></a></h4>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">input_confidence_threshold</span></code> （float．デフォルト値<code class="docutils literal notranslate"><span class="pre">1.0</span></code>）</p>
 <p>入力が音声認識結果の時，その確信度がこの値未満の場合に，確信度が低いとみなします．入力の確信度は，<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>の<code class="docutils literal notranslate"><span class="pre">confidence</span></code>の値です．<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>に<code class="docutils literal notranslate"><span class="pre">confidence</span></code>キーがないときは，確信度が高いとみなします．確信度が低い場合は，以下に述べるパラメータの値に応じて処理が変わります．</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">utterance_to_ask_repetition</span></code>（文字列）</p>
-<p>これが指定されている場合，入力の確信度が低いときは，状態遷移をおこなわず，&quot;utterance_to_ask_repetition&quot;の値をシステム発話とします．ただし，バージインの場合（<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>に<code class="docutils literal notranslate"><span class="pre">barge_in</span></code>要素があり，その値が<code class="docutils literal notranslate"><span class="pre">True</span></code>の場合）を除きます）</p>
+<p>これが指定されている場合，入力の確信度が低いときは，状態遷移をおこなわず，この要素の値をシステム発話とします．ただし，バージインの場合（<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>に<code class="docutils literal notranslate"><span class="pre">barge_in</span></code>要素があり，その値が<code class="docutils literal notranslate"><span class="pre">True</span></code>の場合）はこの処理を行いません．</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">ignore_out_of_context_barge_in</span></code> （ブール値．デフォルト値<code class="docutils literal notranslate"><span class="pre">False</span></code>）</p>
 <p>この値が<code class="docutils literal notranslate"><span class="pre">True</span></code>の場合，入力がバージイン発話(リクエストの<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>の<code class="docutils literal notranslate"><span class="pre">barge_in</span></code>の値が<code class="docutils literal notranslate"><span class="pre">True</span></code>)の場合，デフォルト遷移以外の遷移の条件を満たさなかった場合（すなわちシナリオで予想された入力ではない）か，または，入力の確信度が低い場合，遷移しません．この時に，レスポンスの<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>の<code class="docutils literal notranslate"><span class="pre">barge_in_ignored</span></code>を<code class="docutils literal notranslate"><span class="pre">True</span></code>とします．</p>
@@ -781,7 +799,7 @@
 </ul>
 </section>
 <section id="id27">
-<h4><span class="section-number">6.6.7.2. </span>組み込み条件関数<a class="headerlink" href="#id27" title="この見出しへのパーマリンク"></a></h4>
+<h4><span class="section-number">6.6.7.2. </span>組み込み条件関数の追加<a class="headerlink" href="#id27" title="この見出しへのパーマリンク"></a></h4>
 <p>以下の組み込み条件関数が追加されています．</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">_confidence_is_low()</span></code></p>
@@ -791,6 +809,13 @@
 <p>入力の<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>の<code class="docutils literal notranslate"><span class="pre">long_silence</span></code>の値が<code class="docutils literal notranslate"><span class="pre">True</span></code>の場合に<code class="docutils literal notranslate"><span class="pre">True</span></code>を返します．</p>
 </li>
 </ul>
+</section>
+<section id="id28">
+<h4><span class="section-number">6.6.7.3. </span>直前の誤った入力を無視する<a class="headerlink" href="#id28" title="この見出しへのパーマリンク"></a></h4>
+<p>入力の<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>の<code class="docutils literal notranslate"><span class="pre">rewind</span></code>の値が<code class="docutils literal notranslate"><span class="pre">True</span></code>の場合，直前のレスポンスを行う前の状態から遷移を行います．
+直前のレスポンスを行った際に実行したアクションによる対話文脈の変更も元に戻されます．</p>
+<p>音声認識の際に，ユーザ発話を間違って途中で分割してしまい，前半だけに対する応答を行ってしまった場合に用います．</p>
+<p>対話文脈は元に戻りますが，アクション関数の中でグローバル変数の値を変更していたり，外部データベースの内容を変更していた場合にはもとに戻らないことに注意してください．</p>
 </section>
 </section>
 </section>
