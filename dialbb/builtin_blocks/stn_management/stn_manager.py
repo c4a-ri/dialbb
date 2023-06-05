@@ -429,8 +429,7 @@ class Manager(AbstractBlock):
 
         # ignore low-confident barge-in input 確信度の低いバージインは無視
         if self._ignore_ooc_barge_in and aux_data.get(KEY_BARGE_IN, False) \
-            and aux_data.get(KEY_CONFIDENCE) < self._input_confidence_threshold:
-            print(f"input confidence: {str(aux_data.get(KEY_CONFIDENCE))}, threshold: {str(self._input_confidence_threshold)}")
+            and aux_data.get(KEY_CONFIDENCE, 1.0) < self._input_confidence_threshold:
             self.log_debug(f"Input is barge-in and confidence is low. Going back to previous sate.", session_id=session_id)
             aux_data[KEY_BARGE_IN_IGNORED] = True
             return previous_state_name
