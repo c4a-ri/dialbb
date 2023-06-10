@@ -277,17 +277,15 @@ class Manager(AbstractBlock):
                     # move to initial state
                     current_state_name = INITIAL_STATE_NAME
                     self._dialogue_context[session_id][KEY_CURRENT_STATE_NAME] = current_state_name
+                self._previous_dialogue_context[session_id] = copy.deepcopy(self._dialogue_context[session_id])
             else:
                 if DEBUG:  # logging for debug
-                    dialogue_context: Dict[str, Any] = copy.copy(self._dialogue_context[session_id])
-                    del dialogue_context[KEY_CONFIG]  # delete lengthy values
-                    del dialogue_context[KEY_BLOCK_CONFIG]
-                    del dialogue_context[KEY_DIALOGUE_HISTORY]
-                    self.log_debug("dialogue_context: " + str(dialogue_context), session_id=session_id)
+                    self._log_dialogue_context_for_debug(session_id)
 
                 if aux_data.get(KEY_REWIND):  # revert
                     self.log_debug("Rewinding to the previous dialogue context.")
                     self._dialogue_context[session_id] = self._previous_dialogue_context[session_id]
+                    self._log_dialogue_context_for_debug(session_id)
                 else:  # save dialogue context
                     self._previous_dialogue_context[session_id] = copy.deepcopy(self._dialogue_context[session_id])
 
@@ -374,6 +372,13 @@ class Manager(AbstractBlock):
             del dialogue_context[KEY_BLOCK_CONFIG]
             self.log_debug("updated dialogue_context: " + str(dialogue_context), session_id=session_id)
         return output
+
+    def _log_dialogue_context_for_debug(self, session_id: str):
+        dialogue_context: Dict[str, Any] = copy.copy(self._dialogue_context[session_id])
+        del dialogue_context[KEY_CONFIG]  # delete lengthy values
+        del dialogue_context[KEY_BLOCK_CONFIG]
+        del dialogue_context[KEY_DIALOGUE_HISTORY]
+        self.log_debug("dialogue_context: " + str(dialogue_context), session_id=session_id)
 
     def _substitute_variables(self, text: str, session_id: str) -> str:
         """
