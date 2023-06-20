@@ -28,7 +28,7 @@ $ git clone https://github.com/c4a-ri/dialbb.git <ディレクトリ名>
 できたディレクトリを以下で「DialBBディレクトリ」と呼びます．
 
 
-## pythonライブラリのインストール
+## Pythonライブラリのインストール
 
 - <DialBBディレクトリ>に移動します．
 
@@ -166,7 +166,7 @@ http://<hostname>:8080
 サーバをWindows上で動作させた場合，ブラウザ上に対話画面が出ないことがあります．その場合は，以下のURLに接続すると，簡易な対話画面が出ます．
 
 ```
-http://localhost:8080/test
+http://<hostname>:8080/test
 ```
 
 ### テストセットを用いた動作確認
