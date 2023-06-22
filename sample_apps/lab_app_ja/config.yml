@@ -52,7 +52,11 @@ blocks:  # ブロックのリスト
       aux_data: aux_data      
     repeat_when_no_available_transitions: yes
     input_confidence_threshold: 0.5
-    utterance_to_ask_repetition: もう一度言って頂けますか？
+    confirmation_request:
+      function_to_generate_utterance: generate_confirmation_request
+      acknowledgement_utterance_type: 肯定
+      denial_utterance_type: 否定
+    #utterance_to_ask_repetition: もう一度言って頂けますか？
     ignore_out_of_context_barge_in: yes
     reaction_to_silence:
       action: repeat

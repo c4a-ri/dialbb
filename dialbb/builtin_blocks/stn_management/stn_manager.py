@@ -23,7 +23,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 from dialbb.builtin_blocks.stn_management.scenario_graph import create_scenario_graph
 from dialbb.builtin_blocks.stn_management.state_transition_network \
     import StateTransitionNetwork, State, Transition, Argument, Condition, Action, \
-    INITIAL_STATE_NAME, ERROR_STATE_NAME, FINAL_ABORT_STATE_NAME
+    INITIAL_STATE_NAME, ERROR_STATE_NAME, FINAL_ABORT_STATE_NAME, GOSUB, EXIT
 from dialbb.builtin_blocks.stn_management.stn_creator import create_stn
 from dialbb.abstract_block import AbstractBlock
 from dialbb.main import ANY_FLAG, DEBUG, CONFIG_KEY_FLAGS_TO_USE, CONFIG_DIR
@@ -56,6 +56,7 @@ KEY_BARGE_IN_IGNORED: str = "barge_in_ignored"
 KEY_LONG_SILENCE: str = "long_silence"
 KEY_PREVIOUS_SYSTEM_UTTERANCE: str = '_previous_system_utterance'
 KEY_DIALOGUE_HISTORY: str = '_dialogue_history'
+KEY_SUB_DIALOGUE_STACK: str = '_sub_dialogue_stack'
 
 SHEET_NAME_SCENARIO: str = "scenario"
 DEFAULT_UTTERANCE_ASKING_REPETITION: str = "Could you say that again?"
@@ -263,6 +264,7 @@ class Manager(AbstractBlock):
                 self._dialogue_context[session_id][KEY_BLOCK_CONFIG] = copy.deepcopy(self.block_config)
                 self._dialogue_context[session_id][KEY_AUX_DATA] = aux_data
                 self._dialogue_context[session_id][KEY_DIALOGUE_HISTORY] = []
+                self._dialogue_context[session_id][KEY_SUB_DIALOGUE_STACK] = []
                 # perform actions in the prep state prep状態のactionを実行する
                 prep_state: State = self._network.get_prep_state()
                 if prep_state:
@@ -272,6 +274,7 @@ class Manager(AbstractBlock):
                         # find destination state  遷移先の状態を見つける
                         current_state_name: str = self._transition(prep_state.get_name(), nlu_result, aux_data,
                                                                    user_id, session_id, sentence)
+                        current_state_name = self._handle_sub_dialogue(current_state_name, session_id)
                         self._dialogue_context[session_id][KEY_CURRENT_STATE_NAME] = current_state_name
                 else:
                     # move to initial state
@@ -316,6 +319,7 @@ class Manager(AbstractBlock):
                     # find destination state  遷移先の状態を見つける
                     current_state_name: str = self._transition(previous_state_name, nlu_result, aux_data,
                                                                user_id, session_id, sentence)
+                    current_state_name = self._handle_sub_dialogue(current_state_name, session_id)
                     self._dialogue_context[session_id][KEY_CURRENT_STATE_NAME] = current_state_name
 
             # when no transition found 遷移がみつからなかった場合
@@ -398,6 +402,31 @@ class Manager(AbstractBlock):
                     raise Exception()
         return result
 
+    def _handle_sub_dialogue(self, destination_state_string: str, session_id: str) -> str:
+        """
+        If destination string is sub-dialogue information, return the destination state after stacking the return state,
+        Else return as is
+        :param destination_state_string:  #gosub:<destination>:<state to return>
+        :param session_id: session id string
+        :return: destination state name
+        """
+
+        if destination_state_string == EXIT:
+            print(self._dialogue_context[session_id][KEY_SUB_DIALOGUE_STACK])
+            destination: str = self._dialogue_context[session_id][KEY_SUB_DIALOGUE_STACK].pop()
+            self.log_debug("Exiting from sub-dialogue. Returning to: " + destination)
+            return destination
+        elif destination_state_string.startswith(GOSUB):
+            states: List[str] = re.split("[:：]", destination_state_string)
+            destination: str = states[1].strip()
+            state_to_return: str = states[2].strip()
+            self._dialogue_context[session_id][KEY_SUB_DIALOGUE_STACK].append(state_to_return)
+            self.log_debug(f"Entering sub-dialogue at state '{destination}'. "
+                           + f"Pushing the return point '{state_to_return}' onto the stack")
+            return destination
+        else:
+            return destination_state_string
+
     def _transition(self, previous_state_name: str, nlu_result: Dict[str, Any], aux_data: Dict[str, Any],
                     user_id: str, session_id: str, sentence: str) -> str:
         """
@@ -462,6 +491,12 @@ class Manager(AbstractBlock):
                 destination_state_name: str = transition.get_destination()
                 self._perform_actions(transition.get_actions(), nlu_result, aux_data, user_id, session_id, sentence)
                 self.log_debug("moving to state: " + destination_state_name, session_id=session_id)
+
+                # if the destination is a skip state, make another transition
+                if self._network.is_skip_state(destination_state_name):
+                    self.log_debug("Skip state. Making another transition.")
+                    destination_state_name = self._transition(destination_state_name, nlu_result, aux_data,
+                                                              user_id, session_id, sentence)
                 return destination_state_name
 
         # when no available transitions 適用可能な遷移がなかった
@@ -504,7 +539,7 @@ class Manager(AbstractBlock):
             return False
         else:
             argument_names: List[str] = ["arg" + str(i) for i in range(len(condition.get_arguments()))]
-            # realize variables
+            # realize variables 変数の具体化
             argument_values: List[Any] \
                 = [self._realize_argument(argument, nlu_result, aux_data, user_id, session_id, sentence)
                    for argument in condition.get_arguments()]
@@ -514,7 +549,7 @@ class Manager(AbstractBlock):
                                session_id=session_id)
             argument_names.append("context")  # add context to the arguments 対話文脈を引数に加える
             argument_values.append(self._dialogue_context[session_id])
-            args: Dict[str,str] = dict(zip(argument_names, argument_values))
+            args: Dict[str, str] = dict(zip(argument_names, argument_values))
             args["func"] = condition_function
             expression = "func(" + ','.join(argument_names) + ")"
             try:

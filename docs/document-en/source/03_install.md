@@ -50,6 +50,7 @@ The resulting directory is referred to below as the <DialBB directory>.
   ```sh
   $ pip install -r requirements.txt 
   $ python -m snips_nlu download en # When creating and using an English application
+  $ python -m snips_nlu download ja # When creating and using a Japanese application
   ```
 
 
@@ -142,13 +143,21 @@ Excute the following on another terminal. If you do not have curl installed, tes
 
 DialBB has sample applications that uses only pre-created blocks (built-in blocks).
 
-### 起動
+### Start
 
 The following command starts the application.
 
 
+  - English application
+
   ```sh
   $ python run_server.py sample_apps/network_en/config.yml 
+  ```
+
+  - Japanese application
+
+  ```sh
+  $ python run_server.py sample_apps/network_ja/config.yml 
   ```
 
 (test_with_browser)=
@@ -170,13 +179,27 @@ http://<hostname>:8080/test
 
 The following commands can be used to test the sequential processing and interaction of user speech.
 
+  - English
+
    ```sh
    $ python dialbb/util/test.py sample_apps/network_en/config.yml \
      sample_apps/network_en/test_inputs.txt --output \
      sample_apps/network_en/_test_outputs.txt
+   
    ```
 
-    The dialog exchange is written to sample_apps/network_en/_test_outputs.txt
+    The dialog exchange is written to `sample_apps/network_en/_test_outputs.txt`.
+	
+  - Japanese
+
+   ```sh
+   $ python dialbb/util/test.py sample_apps/network_ja/config.yml \
+   sample_apps/network_ja/test_inputs.txt --output \
+   sample_apps/network_ja/_test_outputs.txt
+   ```
+
+​    `sample_apps/network_ja/_test_outputs.txt`に対話のやりとりが書き込まれます．
+
 
 ### Experimental Applications
 

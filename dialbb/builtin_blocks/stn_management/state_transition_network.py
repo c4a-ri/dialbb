@@ -17,13 +17,15 @@ CONSTANT: str = "constant"
 SPECIAL_VARIABLE: str = "special_variable"
 VARIABLE: str = "variable"
 ADDRESS: str = "address"
-PREP_STATE_NAME = "#prep"
-INITIAL_STATE_NAME = "#initial"
-FINAL_STATE_PREFIX = "#final"
-ERROR_STATE_NAME = "#error"
-FINAL_ABORT_STATE_NAME = "#final_abort"
-BUILTIN_FUNCTION_PREFIX = "builtin"
-
+PREP_STATE_NAME: str = "#prep"
+INITIAL_STATE_NAME: str = "#initial"
+FINAL_STATE_PREFIX: str = "#final"
+ERROR_STATE_NAME: str = "#error"
+FINAL_ABORT_STATE_NAME: str = "#final_abort"
+BUILTIN_FUNCTION_PREFIX: str = "builtin"
+GOSUB: str = "#gosub"
+EXIT: str = "#exit"
+SKIP: str = "$skip"
 
 class Argument:
     """
@@ -375,6 +377,18 @@ class StateTransitionNetwork:
         else:
             return False
 
+    def is_skip_state(self, state_name: str) -> bool:
+        """
+        judge if a state is a skip state
+        :param state_name: the name of a state
+        :return: True if it is a skip state, False otherwise
+        """
+        state: State = self._state_names2states.get(state_name)
+        if state and len(state.get_system_utterances()) > 0 and state.get_system_utterances()[0] == SKIP:
+            return True
+        else:
+            return False
+
     def get_prep_state(self) -> State:
         """
         returns prep state
@@ -391,7 +405,8 @@ class StateTransitionNetwork:
         :return: True is valid, False otherwise 正しければTrueを返す
         """
         result: bool = True
-        # make sure that special states have system utterances
+
+        # make sure that each state has system utterances
         for state in self._states:
             if state.get_name() != PREP_STATE_NAME and not state.get_system_utterances():
                 warn_during_building(f"state '{state.get_name()}' has no system utterances.")
@@ -424,11 +439,32 @@ class StateTransitionNetwork:
         for state in self._states:
             for transition in state.get_transitions():
                 destination_name: str = transition.get_destination()
-                destination_state = self._state_names2states.get(destination_name)
-                if not destination_state:
-                    warn_during_building(f"destination {destination_name} is not a valid state.")
-                elif destination_state not in all_destinations:
-                    all_destinations.append(destination_state)
+                if destination_name == EXIT:
+                    continue
+                elif destination_name.startswith(GOSUB):  # in case of #gosub (sub dialogue)
+                    gosub_states: List[str] = re.split('[:：]', destination_name)
+                    if len(gosub_states) != 3:
+                        warn_during_building(f"gosub description does not have destination and return states: {destination_name}")
+
+                    gosub_destination: str = gosub_states[1].strip()
+                    gosub_destination_state: State = self._state_names2states.get(gosub_destination)
+                    if not gosub_destination_state:
+                        warn_during_building(f"destination {gosub_destination} is not a valid state.")
+                    all_destinations.append(gosub_destination_state)
+
+                    gosub_return: str = gosub_states[2].strip()
+                    gosub_return_state: State = self._state_names2states.get(gosub_return)
+                    if not gosub_return_state:
+                        warn_during_building(f"destination {gosub_return} is not a valid state.")
+                    all_destinations.append(gosub_return_state)
+
+                else:
+                    destination_state: State = self._state_names2states.get(destination_name)
+                    if not destination_state:
+                        warn_during_building(f"destination {destination_name} is not a valid state.")
+                    elif destination_state not in all_destinations:
+                        all_destinations.append(destination_state)
+
         # check if each state is a destination at least one transition
         for state in self._states:
             if state.get_name() in (PREP_STATE_NAME, INITIAL_STATE_NAME,
