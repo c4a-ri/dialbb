@@ -18,7 +18,7 @@ import sphinx_rtd_theme
 
 # -- Project information -----------------------------------------------------
 
-project = 'DialBBドキュメント'
+project = 'DialBBドキュメント ver. 0.4'
 copyright = 'C4A Research Institute, Inc'
 author = 'Mikio Nakano'
 

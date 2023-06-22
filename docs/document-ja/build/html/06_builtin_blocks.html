@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>6. 組み込みブロッククラスの仕様 &mdash; DialBBドキュメント v0.4.0 ドキュメント</title>
+  <title>6. 組み込みブロッククラスの仕様 &mdash; DialBBドキュメント ver. 0.4 v0.4.0 ドキュメント</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -30,7 +30,7 @@
           
           
           <a href="index.html" class="icon icon-home">
-            DialBBドキュメント
+            DialBBドキュメント ver. 0.4
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -115,7 +115,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">DialBBドキュメント</a>
+          <a href="index.html">DialBBドキュメント ver. 0.4</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -530,7 +530,7 @@
 </div>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">final</span></code>: 対話終了かどうかのフラグ（ブール値）</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">aux_data</span></code>: 補助データ（辞書型）(ver. 0.3.1で変更）
+<li><p><code class="docutils literal notranslate"><span class="pre">aux_data</span></code>: 補助データ（辞書型）(ver. 0.4.0で変更）
 入力の補助データを，後述のアクション関数の中でアップデートしたものに，遷移した状態のIDを含めたもの．アクション関数の中でのアップデートは必ずしも行われるわけではない．遷移した状態は，以下の形式で付加される．</p>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nt">&quot;state&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;特定のラーメンが好き&quot;</span><span class="p">}</span>
 </pre></div>
@@ -557,7 +557,7 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">scenario_graph</span></code>: (ブール値．デフォルト値<code class="docutils literal notranslate"><span class="pre">False</span></code>）</p>
 <p>この値が<code class="docutils literal notranslate"><span class="pre">True</span></code>の場合，シナリオシートの<code class="docutils literal notranslate"><span class="pre">system</span> <span class="pre">utterance</span></code>カラムと<code class="docutils literal notranslate"><span class="pre">user</span> <span class="pre">utterance</span> <span class="pre">example</span></code>カラムの値を使って，グラフを作成します．これにより，シナリオ作成者が直感的に状態遷移ネットワークを確認できます．</p>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">repeat_when_no_available_transitions</span></code> （ブール値．デフォルト値<code class="docutils literal notranslate"><span class="pre">False</span></code>．ver. 0.3.1で追加）</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">repeat_when_no_available_transitions</span></code> （ブール値．デフォルト値<code class="docutils literal notranslate"><span class="pre">False</span></code>．ver. 0.4.0で追加）</p>
 <p>この値が<code class="docutils literal notranslate"><span class="pre">True</span></code>のとき，デフォルト遷移（後述）以外の遷移で条件に合う遷移がないとき，遷移せず同じ発話を繰り返します．</p>
 </li>
 </ul>
@@ -605,7 +605,7 @@
 <p>準備状態．この状態がある場合，対話が始まった時（クライアントから最初にアクセスがあった時）に，この状態からの遷移が試みられます．<code class="docutils literal notranslate"><span class="pre">state</span></code>カラムの値が<code class="docutils literal notranslate"><span class="pre">#prep</span></code>の行の<code class="docutils literal notranslate"><span class="pre">conditions</span></code>にある条件がすべて満たされるかどうかを調べ，満たされた場合に，その行の<code class="docutils literal notranslate"><span class="pre">actions</span></code>のアクションを実行してから，<code class="docutils literal notranslate"><span class="pre">next</span> <span class="pre">state</span></code>の状態に遷移し，その状態のシステム発話が出力されます．</p>
 <p>最初のシステム発話や状態を状況に応じて変更するときに使います．日本語サンプルアプリは，対話が行われる時間に応じて挨拶の内容を変更します．</p>
 <p>この準備状態はなくても構いません．</p>
-<p><code class="docutils literal notranslate"><span class="pre">#prep</span></code>からの遷移先は<code class="docutils literal notranslate"><span class="pre">#initial</span></code>でなくてもよくなりました．(ver. 0.3.1)</p>
+<p><code class="docutils literal notranslate"><span class="pre">#prep</span></code>からの遷移先は<code class="docutils literal notranslate"><span class="pre">#initial</span></code>でなくてもよくなりました．(ver. 0.4.0)</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">#initial</span></code></p>
 <p>初期状態．<code class="docutils literal notranslate"><span class="pre">#prep</span></code>状態がない場合，対話が始まった時（クライアントから最初にアクセスがあった時）この状態から始まり，この状態のシステム発話が<code class="docutils literal notranslate"><span class="pre">output_text</span></code>に入れられてメインプロセスに返されます．</p>
@@ -774,7 +774,7 @@
 </section>
 <section id="id25">
 <h3><span class="section-number">6.6.7. </span>音声入力を扱うための仕組み<a class="headerlink" href="#id25" title="この見出しへのパーマリンク"></a></h3>
-<p>ver. 0.3.1で，音声認識結果を入力として扱うときに生じる問題に対処するため，以下の変更が行われました．</p>
+<p>ver. 0.4.0で，音声認識結果を入力として扱うときに生じる問題に対処するため，以下の変更が行われました．</p>
 <section id="id26">
 <h4><span class="section-number">6.6.7.1. </span>ブロックコンフィギュレーションパラメータの追加<a class="headerlink" href="#id26" title="この見出しへのパーマリンク"></a></h4>
 <ul>
