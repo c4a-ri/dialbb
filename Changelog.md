@@ -1,9 +1,16 @@
 # Changelog
 
 
-## 0.5.0 (2023.6.29)
+## 0.5.0 (2023.6.30)
 
-- subdialogueの導入
+- STN Manager組み込みブロック
+
+  - subdialogueの導入
+  
+  - skip stateの導入
+  
+  - 確認発話要求の導入
+
 
 ## 0.4.0 (2023.6.4)
 

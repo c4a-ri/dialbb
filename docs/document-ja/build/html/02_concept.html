@@ -79,7 +79,7 @@
 <h1><span class="section-number">2. </span>DialBBの概要<a class="headerlink" href="#dialbb" title="この見出しへのパーマリンク"></a></h1>
 <p><a class="reference internal" href="01_intro.html#intro"><span class="std std-ref">はじめに</span></a>に書いたように，DialBBは対話システムを作るためのフレームワークです．</p>
 <p>フレームワークとは，それ単体でアプリケーションとして成立はしないが，データや追加のプログラムを与えることでアプリケーションを作成するものです．</p>
-<p>DialBBのアプリケーションは，ブロックと呼ぶモジュールが順に処理を行うことで，ユーザからの入力発話に対するシステム発話を作成し返します．以下に基本的なアーキテクチャを示します．</p>
+<p>以下にDialBBのアプリケーションの基本的なアーキテクチャを示します．</p>
 <p><img alt="dialbb-arch" src="_images/dialbb-arch.jpg" /></p>
 <p>メインモジュールは，対話の各ターンで入力されたデータ（ユーザ発話を含みます）を各ブロックに順次処理させることにより，システム発話を作成して返します．このデータのことをblackboard<a class="footnote-reference brackets" href="#fn" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> と呼びます．各ブロックは，blackboardの要素のいくつかを受け取り，辞書形式のデータを返します．返されたデータはblackboardに追加されます．すでに同じキーを持つ要素がblackboardにある場合は上書きされます．</p>
 <p>どのようなブロックを使うかは，コンフィギュレーションファイルで設定します．ブロックは，あらかじめDialBBが用意しているブロック（組み込みブロック）でもアプリケーション開発者が作成するブロックでも構いません．</p>

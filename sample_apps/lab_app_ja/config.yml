@@ -35,7 +35,7 @@ blocks:  # ブロックのリスト
       - Y
       - T
     sudachi_normalization: yes
-    num_candidates: 1
+    num_candidates: 3
   - name: manager
     block_class: dialbb.builtin_blocks.stn_management.stn_manager.Manager
     knowledge_file: lab_app_ja_knowledge.xlsx # 知識記述ファイル
