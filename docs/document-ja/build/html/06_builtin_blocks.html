@@ -775,7 +775,7 @@
 <section id="id26">
 <h4><span class="section-number">6.6.7.1. </span>ブロックコンフィギュレーションパラメータの追加<a class="headerlink" href="#id26" title="この見出しへのパーマリンク"></a></h4>
 <ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">input_confidence_threshold</span></code> （float．デフォルト値<code class="docutils literal notranslate"><span class="pre">1.0</span></code>）</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">input_confidence_threshold</span></code> （float．デフォルト値<code class="docutils literal notranslate"><span class="pre">0.0</span></code>）</p>
 <p>入力が音声認識結果の時，その確信度がこの値未満の場合に，確信度が低いとみなします．入力の確信度は，<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>の<code class="docutils literal notranslate"><span class="pre">confidence</span></code>の値です．<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>に<code class="docutils literal notranslate"><span class="pre">confidence</span></code>キーがないときは，確信度が高いとみなします．確信度が低い場合は，以下に述べるパラメータの値に応じて処理が変わります．</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">utterance_to_ask_repetition</span></code>（文字列）</p>
