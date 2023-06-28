@@ -306,6 +306,10 @@ class Manager(AbstractBlock):
                 self._dialogue_context[session_id][CONTEXT_KEY_DIALOGUE_HISTORY] = []
                 self._dialogue_context[session_id][CONTEXT_KEY_SUB_DIALOGUE_STACK] = []
                 self._dialogue_context[session_id][CONTEXT_KEY_REACTION] = ""
+
+                if type(nlu_result) == list:  # nbest result
+                    nlu_result = nlu_result[0]
+
                 # perform actions in the prep state prep状態のactionを実行する
                 prep_state: State = self._network.get_prep_state()
                 if prep_state:
@@ -314,7 +318,7 @@ class Manager(AbstractBlock):
                         #self._perform_actions(prep_actions, nlu_result, aux_data, user_id, session_id, sentence)
                         # find destination state  遷移先の状態を見つける
                         new_state_name: str = self._transition(prep_state.get_name(), nlu_result, aux_data,
-                                                                   user_id, session_id, sentence)
+                                                               user_id, session_id, sentence)
                         new_state_name = self._handle_sub_dialogue(new_state_name, session_id)
                         self._dialogue_context[session_id][CONTEXT_KEY_CURRENT_STATE_NAME] = new_state_name
                 else:
@@ -326,6 +330,8 @@ class Manager(AbstractBlock):
                 if DEBUG:  # logging for debug
                     self._log_dialogue_context_for_debug(session_id)
 
+                self._dialogue_context[session_id][CONTEXT_KEY_AUX_DATA] = aux_data
+
                 if aux_data.get(KEY_REWIND):  # revert
                     self.log_debug("Rewinding to the previous dialogue context.")
                     self._dialogue_context[session_id] = self._previous_dialogue_context[session_id]
@@ -335,7 +341,7 @@ class Manager(AbstractBlock):
 
                 # update dialogue history
                 self._dialogue_context[session_id][CONTEXT_KEY_DIALOGUE_HISTORY].append({"speaker": "user",
-                                                                                 "utterance": sentence})
+                                                                                         "utterance": sentence})
 
                 # find previous state
                 previous_state_name = self._dialogue_context[session_id].get(CONTEXT_KEY_CURRENT_STATE_NAME, "")
@@ -473,10 +479,7 @@ class Manager(AbstractBlock):
 
         self.log_debug("output: " + str(output), session_id=session_id)
         if DEBUG:
-            dialogue_context: Dict[str, Any] = copy.copy(self._dialogue_context[session_id])
-            del dialogue_context[CONTEXT_KEY_CONFIG]
-            del dialogue_context[CONTEXT_KEY_BLOCK_CONFIG]
-            self.log_debug("updated dialogue_context: " + str(dialogue_context), session_id=session_id)
+            self._log_dialogue_context_for_debug(session_id)
         return output
 
     def _log_dialogue_context_for_debug(self, session_id: str):
