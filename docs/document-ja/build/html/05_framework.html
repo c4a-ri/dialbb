@@ -120,7 +120,7 @@
 </pre></div>
 </div>
 </li>
-<li><p>pythonを立ち上げるか，DialBBを呼び出すアプリケーションの中で，以下のように<code class="docutils literal notranslate"><span class="pre">DialogueProcessor</span></code>のインスタンスを作成し，<code class="docutils literal notranslate"><span class="pre">process</span></code>メソッド<a class="footnote-reference brackets" href="#fn-process" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>を呼び出します．</p>
+<li><p>DialBBを呼び出すアプリケーションの中で，以下のように<code class="docutils literal notranslate"><span class="pre">DialogueProcessor</span></code>のインスタンスを作成し，<code class="docutils literal notranslate"><span class="pre">process</span></code>メソッド<a class="footnote-reference brackets" href="#fn-process" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>を呼び出します．</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">dialbb.main</span> <span class="kn">import</span> <span class="n">DialogueProcessor</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dialogue_processor</span> <span class="o">=</span> <span class="n">DialogueProcessor</span><span class="p">(</span><span class="o">&lt;</span><span class="n">コンフィギュレーションファイル</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">追加のコンフィギュレーション</span><span class="o">&gt;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">response</span> <span class="o">=</span> <span class="n">dialogue_processor</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="o">&lt;</span><span class="n">リクエスト</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">initial</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># 対話セッション開始時</span>
@@ -147,14 +147,14 @@
 <p>以下の形のJSONです．</p>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span>{
   &quot;user_id&quot;: &lt;ユーザID: 文字列&gt;,
-  &quot;aux_data&quot;: &lt;補助データ: データ型は任意&gt;
+  &quot;aux_data&quot;: &lt;補助データ: オブジェクト（値の型は任意）&gt;
 }
 </pre></div>
 </div>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">user_id</span></code>は必須で，<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>は任意です．</p></li>
 <li><p>&lt;ユーザID&gt;はユーザに関するユニークなIDです. 同じユーザが何度も対話する際に，以前の対話の内容をアプリが覚えておくために用います．</p></li>
-<li><p>&lt;補助データ&gt;は，クライアントの状態をアプリに送信するために用います．フォーマットは任意のJSONオブジェクトで，アプリ毎に決めます．</p></li>
+<li><p>&lt;補助データ&gt;は，クライアントの状態をアプリに送信するために用います．JSONオブジェクトで，内容はアプリ毎に決めます．</p></li>
 </ul>
 </section>
 <section id="id6">

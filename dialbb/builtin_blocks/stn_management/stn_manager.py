@@ -57,6 +57,7 @@ CONTEXT_KEY_CURRENT_STATE_NAME: str = "_current_state_name"
 CONTEXT_KEY_CONFIG: str = "_config"
 CONTEXT_KEY_DIALOGUE_HISTORY: str = '_dialogue_history'
 CONTEXT_KEY_SUB_DIALOGUE_STACK: str = '_sub_dialogue_stack'
+CONTEXT_KEY_REACTION: str = '_reaction'
 
 INPUT_KEY_AUX_DATA: str = "aux_data"
 INPUT_KEY_SENTENCE: str = "sentence"
@@ -304,6 +305,7 @@ class Manager(AbstractBlock):
                 self._dialogue_context[session_id][CONTEXT_KEY_AUX_DATA] = aux_data
                 self._dialogue_context[session_id][CONTEXT_KEY_DIALOGUE_HISTORY] = []
                 self._dialogue_context[session_id][CONTEXT_KEY_SUB_DIALOGUE_STACK] = []
+                self._dialogue_context[session_id][CONTEXT_KEY_REACTION] = ""
                 # perform actions in the prep state prep状態のactionを実行する
                 prep_state: State = self._network.get_prep_state()
                 if prep_state:
@@ -320,7 +322,7 @@ class Manager(AbstractBlock):
                     new_state_name = INITIAL_STATE_NAME
                     self._dialogue_context[session_id][CONTEXT_KEY_CURRENT_STATE_NAME] = new_state_name
                 self._previous_dialogue_context[session_id] = copy.deepcopy(self._dialogue_context[session_id])
-            else:
+            else: # non-first turn 2回目以降のターン
                 if DEBUG:  # logging for debug
                     self._log_dialogue_context_for_debug(session_id)
 
@@ -398,7 +400,7 @@ class Manager(AbstractBlock):
                                                                user_id, session_id, sentence)
                     new_state_name = self._handle_sub_dialogue(new_state_name, session_id)
 
-            # make another transition if new state is a skip state,
+            # make another transition if new state is a skip state
             if self._network.is_skip_state(new_state_name):
                 self.log_debug("Skip state. Making another transition.", session_id=session_id)
                 new_state_name = self._transition(new_state_name, nlu_result, aux_data,
@@ -415,7 +417,8 @@ class Manager(AbstractBlock):
                 else:
                     self.log_error(f"can't find state to move.", session_id=session_id)
                     # set cause of the error
-                    self._dialogue_context[session_id][CONTEXT_KEY_CAUSE] = f"can't find state to move: {new_state_name}"
+                    self._dialogue_context[session_id][CONTEXT_KEY_CAUSE] \
+                        = f"can't find state to move: {new_state_name}"
                     new_state_name = ERROR_STATE_NAME  # move to error state
                     new_state = self._network.get_state_from_state_name(new_state_name)
 
@@ -424,7 +427,8 @@ class Manager(AbstractBlock):
             if not new_state:  # state is not defined 遷移先が定義されていない
                 self.log_error(f"State moving to is not defined: " + new_state_name, session_id=session_id)
                 # set cause of the error
-                self._dialogue_context[session_id][CONTEXT_KEY_CAUSE] = f"State moving to is not defined: {new_state_name}"
+                self._dialogue_context[session_id][CONTEXT_KEY_CAUSE] \
+                    = f"State moving to is not defined: {new_state_name}"
                 new_state_name = ERROR_STATE_NAME  # move to error state
                 new_state = self._network.get_state_from_state_name(new_state_name)
 
@@ -441,9 +445,18 @@ class Manager(AbstractBlock):
                 output_text = new_state.get_one_system_utterance()
                 output_text = self._substitute_variables(output_text, session_id)  # replace variables
 
+            # add "_reaction" of dialogue context before output text
+            if self._dialogue_context[session_id][CONTEXT_KEY_REACTION]:
+                print(output_text)
+                print(self._dialogue_context[session_id][CONTEXT_KEY_REACTION])
+                output_text = f"{self._dialogue_context[session_id][CONTEXT_KEY_REACTION]} {output_text}"
+                print(output_text)
+
             self._dialogue_context[session_id][CONTEXT_KEY_PREVIOUS_SYSTEM_UTTERANCE] = output_text
             self._dialogue_context[session_id][CONTEXT_KEY_DIALOGUE_HISTORY].append({"speaker": "system",
-                                                                             "utterance": output_text})
+                                                                                     "utterance": output_text})
+            self._dialogue_context[session_id][CONTEXT_KEY_REACTION] = ""
+
 
             # check if the new state is a final state
             final: bool = False

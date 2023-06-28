@@ -120,3 +120,4 @@ def generate_confirmation_request(nlu_result: Dict[str, Any], context: Dict[str,
     else:
         return "もう一度言って頂けますか？"
 
+
