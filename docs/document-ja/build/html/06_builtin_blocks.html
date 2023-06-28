@@ -597,7 +597,7 @@
 </ul>
 <p>（メモとして利用するために）シートにこれ以外のカラムがあっても構いません．</p>
 <p>各行が表す遷移の<code class="docutils literal notranslate"><span class="pre">user</span> <span class="pre">utterance</span> <span class="pre">type</span></code>が空かもしくは言語理解結果と一致し，<code class="docutils literal notranslate"><span class="pre">conditions</span></code>が空か全部満たされた場合，遷移の条件を満たし，<code class="docutils literal notranslate"><span class="pre">next</span> <span class="pre">state</span></code>の状態に遷移します．その際，<code class="docutils literal notranslate"><span class="pre">actions</span></code>に書いてあるアクションが実行されます．</p>
-<p><code class="docutils literal notranslate"><span class="pre">state</span></code>カラムが同じ行（遷移元の状態が同じ遷移）は，上に書いてあるものから順に遷移の条件を満たしているかどうかをチェックします．</p>
+<p><code class="docutils literal notranslate"><span class="pre">state</span></code>カラムが同じ行（遷移元の状態が同じ遷移）は，<strong>上に書いてあるものから順に</strong>遷移の条件を満たしているかどうかをチェックします．</p>
 <p>デフォルト遷移（<code class="docutils literal notranslate"><span class="pre">user</span> <span class="pre">utterance</span> <span class="pre">type</span></code>カラムも<code class="docutils literal notranslate"><span class="pre">conditions</span></code>カラムも空の行）は，<code class="docutils literal notranslate"><span class="pre">state</span></code>カラムが同じ行の中で一番下に書かれていなくてはなりません．</p>
 </section>
 <section id="id17">
