@@ -105,7 +105,7 @@ def set_impression_of_dialogue(impression_key: str, context: Dict[str, Any]) -> 
         prompt += "の後、システムが感想を短く言う発話を生成してください。"
 
         generated_utterance: str = generate_with_openai_gpt(prompt)
-        impression = generated_utterance.replace("「", "").replace("」", "")
+        impression = generated_utterance.replace("システム「", "").replace("「", "").replace("」", "")
 
     else:
         impression = "そうなんですね"
@@ -113,8 +113,11 @@ def set_impression_of_dialogue(impression_key: str, context: Dict[str, Any]) -> 
     context[impression_key] = impression
 
 
+def generate_confirmation_request(nlu_result: Dict[str, Any], context: Dict[str, Any]) -> str:
 
-
-
+    if nlu_result.get("type") == "特定のラーメンが好き" and nlu_result["slots"].get("favorite_ramen"):
+        return f'{nlu_result["slots"]["favorite_ramen"]}がお好きなんですか？'
+    else:
+        return "もう一度言って頂けますか？"
 
 

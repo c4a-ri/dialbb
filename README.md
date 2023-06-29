@@ -1,6 +1,8 @@
 # DialBB: 対話システム構築フレームワーク
 
-ver.0.4.0
+ver.0.5.0
+
+English version is [here](README-en.md)
 
 DialBBは対話システムを構築するためのフレームワークです．
 非商用向けに公開しています．ライセンスの詳細は[ライセンス](LICENSE)をご覧ください．

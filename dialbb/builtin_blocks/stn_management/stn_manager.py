@@ -23,7 +23,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 from dialbb.builtin_blocks.stn_management.scenario_graph import create_scenario_graph
 from dialbb.builtin_blocks.stn_management.state_transition_network \
     import StateTransitionNetwork, State, Transition, Argument, Condition, Action, \
-    INITIAL_STATE_NAME, ERROR_STATE_NAME, FINAL_ABORT_STATE_NAME
+    INITIAL_STATE_NAME, ERROR_STATE_NAME, FINAL_ABORT_STATE_NAME, GOSUB, EXIT
 from dialbb.builtin_blocks.stn_management.stn_creator import create_stn
 from dialbb.abstract_block import AbstractBlock
 from dialbb.main import ANY_FLAG, DEBUG, CONFIG_KEY_FLAGS_TO_USE, CONFIG_DIR
@@ -37,25 +37,38 @@ CONFIG_KEY_KNOWLEDGE_FILE: str = "knowledge_file"
 CONFIG_KEY_SCENARIO_GRAPH: str = "scenario_graph"
 CONFIG_KEY_REPEAT_WHEN_NO_AVAILABLE_TRANSITIONS: str = "repeat_when_no_available_transitions"
 CONFIG_KEY_UTTERANCE_TO_ASK_REPETITION: str = "utterance_to_ask_repetition"
+CONFIG_KEY_CONFIRMATION_REQUEST: str = "confirmation_request"
 CONFIG_KEY_INPUT_CONFIDENCE_THRESHOLD: str = "input_confidence_threshold"
 CONFIG_KEY_IGNORE_OOC_BARGE_IN: str = "ignore_out_of_context_barge_in"
 CONFIG_KEY_REACTION_TO_SILENCE: str = "reaction_to_silence"
 CONFIG_KEY_ACTION: str = "action"
 CONFIG_KEY_DESTINATION: str = "destination"
+CONFIG_KEY_FUNCTION_TO_GENERATE_UTTERANCE: str = "function_to_generate_utterance"
+CONFIG_KEY_ACKNOWLEDGEMENT_UTTERANCE_TYPE: str = "acknowledgement_utterance_type"
+CONFIG_KEY_DENIAL_UTTERANCE_TYPE: str = "denial_utterance_type"
 
-KEY_CURRENT_STATE_NAME: str = "_current_state_name"
-KEY_CONFIG: str = "_config"
-KEY_BLOCK_CONFIG: str = "_block_config"
-KEY_AUX_DATA: str = "_aux_data"
-KEY_CAUSE: str = "_cause"
+CONTEXT_KEY_SAVED_NLU_RESULT: str = "_key_saved_nlu_result"
+CONTEXT_KEY_SAVED_AUX_DATA: str = "_key_saved_aux_data"
+CONTEXT_KEY_PREVIOUS_SYSTEM_UTTERANCE: str = '_previous_system_utterance'
+CONTEXT_KEY_BLOCK_CONFIG: str = "_block_config"
+CONTEXT_KEY_AUX_DATA: str = "_aux_data"
+CONTEXT_KEY_CAUSE: str = "_cause"
+CONTEXT_KEY_CURRENT_STATE_NAME: str = "_current_state_name"
+CONTEXT_KEY_CONFIG: str = "_config"
+CONTEXT_KEY_DIALOGUE_HISTORY: str = '_dialogue_history'
+CONTEXT_KEY_SUB_DIALOGUE_STACK: str = '_sub_dialogue_stack'
+CONTEXT_KEY_REACTION: str = '_reaction'
+
+INPUT_KEY_AUX_DATA: str = "aux_data"
+INPUT_KEY_SENTENCE: str = "sentence"
+
 KEY_STOP_DIALOGUE: str = "stop_dialogue"
 KEY_REWIND: str = 'rewind'
 KEY_CONFIDENCE: str = 'confidence'
 KEY_BARGE_IN: str = 'barge_in'
 KEY_BARGE_IN_IGNORED: str = "barge_in_ignored"
 KEY_LONG_SILENCE: str = "long_silence"
-KEY_PREVIOUS_SYSTEM_UTTERANCE: str = '_previous_system_utterance'
-KEY_DIALOGUE_HISTORY: str = '_dialogue_history'
+KEY_TYPE: str = 'type'
 
 SHEET_NAME_SCENARIO: str = "scenario"
 DEFAULT_UTTERANCE_ASKING_REPETITION: str = "Could you say that again?"
@@ -122,7 +135,29 @@ class Manager(AbstractBlock):
         self._ask_repetition_if_confidence_is_low: bool = False
         self._utterance_asking_repetition: str = self.block_config.get(CONFIG_KEY_UTTERANCE_TO_ASK_REPETITION)
         if self._utterance_asking_repetition:
-            self._ask_repetition_if_confidence_is_low: bool = True
+            self._ask_repetition_if_confidence_is_low = True
+
+        # read confirmation request information
+        # 確認発話要求に関するコンフィギュレーションの読み込み
+        self._request_confirmation_at_low_confidence: bool = False
+        confirmation_request_info: Dict[str, str] = self.block_config.get(CONFIG_KEY_CONFIRMATION_REQUEST)
+        if confirmation_request_info:
+            self._request_confirmation_at_low_confidence = True
+            if self._ask_repetition_if_confidence_is_low:
+                abort_during_building(f"Cannot specify both '{CONFIG_KEY_CONFIRMATION_REQUEST}' " +
+                                      f"and '{CONFIG_KEY_UTTERANCE_TO_ASK_REPETITION}'.")
+            self._confirmation_request_generation_function: str \
+                = confirmation_request_info.get(CONFIG_KEY_FUNCTION_TO_GENERATE_UTTERANCE)
+            if not self._confirmation_request_generation_function:
+                abort_during_building(f"confirmation request generation function is not specified.")
+            self._confirmation_request_acknowledgement_type: str \
+                = confirmation_request_info.get(CONFIG_KEY_ACKNOWLEDGEMENT_UTTERANCE_TYPE)
+            if not self._confirmation_request_acknowledgement_type:
+                abort_during_building(f"confirmation request acknowledge utterance type is not specified.")
+            self._confirmation_request_denial_type: str \
+                = confirmation_request_info.get(CONFIG_KEY_DENIAL_UTTERANCE_TYPE)
+            if not self._confirmation_request_denial_type:
+                abort_during_building(f"confirmation request denial utterance type is not specified.")
 
         # dialogue context for each dialogue session  session id -> {key -> value}
         # セッション毎の対話文脈
@@ -130,6 +165,8 @@ class Manager(AbstractBlock):
         # for rewinding  状態を元に戻す時のため
         self._previous_dialogue_context: Dict[str, Dict[str, Any]] = {}
 
+        # session id -> whether requesting confirmation or not
+        self._requesting_confirmation: Dict[str, bool] = {}
         # session id -> whether asking repetition or not
         self._asking_repetition: Dict[str, bool] = {}
 
@@ -150,7 +187,7 @@ class Manager(AbstractBlock):
         if self.block_config.get(CONFIG_KEY_SCENARIO_GRAPH, False):
             create_scenario_graph(scenario_df, CONFIG_DIR) # create graph for scenario writers
 
-        # check network
+        # check network 状態遷移ネットワークのチェックを行う
         if DEBUG:
             self._network.check_network(self._repeat_when_no_available_transitions)
 
@@ -208,22 +245,26 @@ class Manager(AbstractBlock):
         # reading slots sheet
         return df_all.get(scenario_sheet)
 
-    def _select_nlu_result(self, nlu_results: List[Dict[str,Any]], previous_state_name: str):
+    def _select_nlu_result(self, nlu_results: List[Dict[str,Any]], previous_state_name: str,
+                           additional_uu_types: List[str]):
         """
         selects nlu result among n-best results that matches one of the transitions.
         if none matches, returns the top result.
         N-best言語理解結果から遷移にマッチするものを選ぶ。どれもマッチしなければトップのものを返す。
         :param nlu_results: n-best nlu_results
         :param previous_state_name: the name of the previous state
+        :param additional_uu_types: the list of additional possible user utterance types
         :return: selected nlu result
         """
         previous_state: State = self._network.get_state_from_state_name(previous_state_name)
         for nlu_result in nlu_results:
-            uu_type = nlu_result.get("type", "unknown")
+            uu_type = nlu_result.get(KEY_TYPE, "unknown")
             for transition in previous_state.get_transitions():
                 if transition.get_user_utterance_type() == uu_type:
                     return nlu_result
-        result = nlu_results[0]  # top one
+            if uu_type in additional_uu_types:
+                return nlu_result
+        result = nlu_results[0]  # return the top one if no transition or additional uu_types matches
         return result
 
     def process(self, input_data: Dict[str, Any], session_id: str) -> Dict[str, Any]:
@@ -243,14 +284,14 @@ class Manager(AbstractBlock):
         """
 
         user_id: str = input_data['user_id']
-        nlu_result: Union[Dict[str, Any], List[Dict[str, Any]]] = input_data.get('nlu_result', {"type": "", "slots": {}})
-        aux_data: Dict[str, Any] = input_data.get('aux_data')
+        nlu_result: Union[Dict[str, Any], List[Dict[str, Any]]] = input_data.get('nlu_result', {KEY_TYPE: "", "slots": {}})
+        aux_data: Dict[str, Any] = input_data.get(INPUT_KEY_AUX_DATA)
         if aux_data is None:
             self.log_warning("aux_data is not included in the input", session_id=session_id)
             aux_data = {}
-        sentence = input_data.get("sentence", "")
+        sentence = input_data.get(INPUT_KEY_SENTENCE, "")
         previous_state_name: str = ""
-        current_state_name: str = ""
+        new_state_name: str = ""
 
         self._asking_repetition[session_id] = False
 
@@ -259,10 +300,16 @@ class Manager(AbstractBlock):
         try:
             if not self._dialogue_context.get(session_id):  # first turn 最初のターン
                 self._dialogue_context[session_id] = {}
-                self._dialogue_context[session_id][KEY_CONFIG] = copy.deepcopy(self.config)
-                self._dialogue_context[session_id][KEY_BLOCK_CONFIG] = copy.deepcopy(self.block_config)
-                self._dialogue_context[session_id][KEY_AUX_DATA] = aux_data
-                self._dialogue_context[session_id][KEY_DIALOGUE_HISTORY] = []
+                self._dialogue_context[session_id][CONTEXT_KEY_CONFIG] = copy.deepcopy(self.config)
+                self._dialogue_context[session_id][CONTEXT_KEY_BLOCK_CONFIG] = copy.deepcopy(self.block_config)
+                self._dialogue_context[session_id][CONTEXT_KEY_AUX_DATA] = aux_data
+                self._dialogue_context[session_id][CONTEXT_KEY_DIALOGUE_HISTORY] = []
+                self._dialogue_context[session_id][CONTEXT_KEY_SUB_DIALOGUE_STACK] = []
+                self._dialogue_context[session_id][CONTEXT_KEY_REACTION] = ""
+
+                if type(nlu_result) == list:  # nbest result
+                    nlu_result = nlu_result[0]
+
                 # perform actions in the prep state prep状態のactionを実行する
                 prep_state: State = self._network.get_prep_state()
                 if prep_state:
@@ -270,17 +317,20 @@ class Manager(AbstractBlock):
                     if prep_actions:
                         #self._perform_actions(prep_actions, nlu_result, aux_data, user_id, session_id, sentence)
                         # find destination state  遷移先の状態を見つける
-                        current_state_name: str = self._transition(prep_state.get_name(), nlu_result, aux_data,
-                                                                   user_id, session_id, sentence)
-                        self._dialogue_context[session_id][KEY_CURRENT_STATE_NAME] = current_state_name
+                        new_state_name: str = self._transition(prep_state.get_name(), nlu_result, aux_data,
+                                                               user_id, session_id, sentence)
+                        new_state_name = self._handle_sub_dialogue(new_state_name, session_id)
+                        self._dialogue_context[session_id][CONTEXT_KEY_CURRENT_STATE_NAME] = new_state_name
                 else:
                     # move to initial state
-                    current_state_name = INITIAL_STATE_NAME
-                    self._dialogue_context[session_id][KEY_CURRENT_STATE_NAME] = current_state_name
+                    new_state_name = INITIAL_STATE_NAME
+                    self._dialogue_context[session_id][CONTEXT_KEY_CURRENT_STATE_NAME] = new_state_name
                 self._previous_dialogue_context[session_id] = copy.deepcopy(self._dialogue_context[session_id])
-            else:
+            else: # non-first turn 2回目以降のターン
                 if DEBUG:  # logging for debug
                     self._log_dialogue_context_for_debug(session_id)
+
+                self._dialogue_context[session_id][CONTEXT_KEY_AUX_DATA] = aux_data
 
                 if aux_data.get(KEY_REWIND):  # revert
                     self.log_debug("Rewinding to the previous dialogue context.")
@@ -290,74 +340,136 @@ class Manager(AbstractBlock):
                     self._previous_dialogue_context[session_id] = copy.deepcopy(self._dialogue_context[session_id])
 
                 # update dialogue history
-                self._dialogue_context[session_id][KEY_DIALOGUE_HISTORY].append({"speaker": "user",
-                                                                                 "utterance": sentence})
+                self._dialogue_context[session_id][CONTEXT_KEY_DIALOGUE_HISTORY].append({"speaker": "user",
+                                                                                         "utterance": sentence})
 
                 # find previous state
-                previous_state_name = self._dialogue_context[session_id].get(KEY_CURRENT_STATE_NAME, "")
+                previous_state_name = self._dialogue_context[session_id].get(CONTEXT_KEY_CURRENT_STATE_NAME, "")
                 if previous_state_name == "":
                     self.log_error(f"can't find previous state for session.", session_id=session_id)
                     if DEBUG:
                         raise Exception()
                     else:
                         raise STNError()
-                if type(nlu_result) == list:
-                    nlu_result = self._select_nlu_result(nlu_result, previous_state_name)
+                if type(nlu_result) == list:   # select nlu result from n-best candidates
+                    additional_uu_types = []
+                    if self._request_confirmation_at_low_confidence:  # after confirmation request 確認要求後
+                        additional_uu_types = [self._confirmation_request_acknowledgement_type,
+                                               self._confirmation_request_denial_type]
+                    nlu_result = self._select_nlu_result(nlu_result, previous_state_name, additional_uu_types)
                     self.log_info(f"nlu result selected: {str(nlu_result)}", session_id=session_id)
 
-                #
-                if not aux_data.get(KEY_BARGE_IN) and self._ask_repetition_if_confidence_is_low \
+                # when requesting confirmation 確認要求発話の後のユーザ発話の処理
+                if self._requesting_confirmation.get(session_id):
+                    self._requesting_confirmation[session_id] = False
+                    if aux_data.get(KEY_CONFIDENCE, 1.0) < self._input_confidence_threshold:  # confidence is low
+                        new_state_name = previous_state_name  # no transition
+                    else:
+                        user_utterance_type: str = nlu_result.get(KEY_TYPE, "unknown")
+                        if user_utterance_type == self._confirmation_request_acknowledgement_type:
+                            self.log_debug("confirmation request is acknowledged.")
+                            saved_nlu_result: Dict[str, Any] = self._dialogue_context[session_id][CONTEXT_KEY_SAVED_NLU_RESULT]
+                            saved_aux_data: Dict[str, Any] = self._dialogue_context[session_id][CONTEXT_KEY_SAVED_AUX_DATA]
+                            self._dialogue_context[session_id][CONTEXT_KEY_AUX_DATA] = saved_aux_data
+                            new_state_name = self._transition(previous_state_name, saved_nlu_result, saved_aux_data,
+                                                              user_id, session_id, sentence)
+                        elif user_utterance_type == self._confirmation_request_denial_type:
+                            self.log_debug("confirmation request is denied.")
+                            new_state_name = previous_state_name
+                        else:
+                            new_state_name = self._transition(previous_state_name, nlu_result, aux_data,
+                                                              user_id, session_id, sentence)
+
+                # request confirmation if confidence is low 確信度が低い時、確認要求を行う
+                elif not aux_data.get(KEY_BARGE_IN) and self._request_confirmation_at_low_confidence \
+                        and aux_data.get(KEY_CONFIDENCE, 1.0) < self._input_confidence_threshold:
+
+                    # request confirmation
+                    self.log_debug("Requesting confirmation because input confidence is low.")
+                    new_state_name: str = previous_state_name
+                    self._requesting_confirmation[session_id] = True
+
+                    # saving nlu result to use when user acknowledges confirmation request
+                    self._dialogue_context[session_id][CONTEXT_KEY_SAVED_NLU_RESULT] = nlu_result
+                    self._dialogue_context[session_id][CONTEXT_KEY_SAVED_AUX_DATA] = aux_data
+
+                # ask repetition if confidence is low
+                elif not aux_data.get(KEY_BARGE_IN) and self._ask_repetition_if_confidence_is_low \
                         and aux_data.get(KEY_CONFIDENCE, 1.0) < self._input_confidence_threshold:
                     # repeat
                     self.log_debug("Asking repetition because input confidence is low.")
-                    current_state_name: str = previous_state_name
+                    new_state_name: str = previous_state_name
                     self._asking_repetition[session_id] = True
                 else:
                     # find destination state  遷移先の状態を見つける
-                    current_state_name: str = self._transition(previous_state_name, nlu_result, aux_data,
+                    new_state_name: str = self._transition(previous_state_name, nlu_result, aux_data,
                                                                user_id, session_id, sentence)
-                    self._dialogue_context[session_id][KEY_CURRENT_STATE_NAME] = current_state_name
+                    new_state_name = self._handle_sub_dialogue(new_state_name, session_id)
+
+            # make another transition if new state is a skip state
+            if self._network.is_skip_state(new_state_name):
+                self.log_debug("Skip state. Making another transition.", session_id=session_id)
+                new_state_name = self._transition(new_state_name, nlu_result, aux_data,
+                                                          user_id, session_id, sentence)
 
             # when no transition found 遷移がみつからなかった場合
-            if current_state_name == "":
+            if new_state_name == "":
                 # when configured to repeat utterance instead of default transition
                 if self._repeat_when_no_available_transitions:
                     self.log_debug("Making no transition since there are no available transitions.",
                                    session_id=session_id)
-                    current_state_name: str = previous_state_name
-                    new_state = self._network.get_state_from_state_name(current_state_name)
+                    new_state_name: str = previous_state_name
+                    new_state = self._network.get_state_from_state_name(new_state_name)
                 else:
                     self.log_error(f"can't find state to move.", session_id=session_id)
                     # set cause of the error
-                    self._dialogue_context[session_id][KEY_CAUSE] = f"can't find state to move: {current_state_name}"
-                    current_state_name = ERROR_STATE_NAME  # move to error state
-                    new_state = self._network.get_state_from_state_name(current_state_name)
+                    self._dialogue_context[session_id][CONTEXT_KEY_CAUSE] \
+                        = f"can't find state to move: {new_state_name}"
+                    new_state_name = ERROR_STATE_NAME  # move to error state
+                    new_state = self._network.get_state_from_state_name(new_state_name)
 
-            new_state: State = self._network.get_state_from_state_name(current_state_name)
+            new_state: State = self._network.get_state_from_state_name(new_state_name)
+
             if not new_state:  # state is not defined 遷移先が定義されていない
-                self.log_error(f"State moving to is not defined: " + current_state_name, session_id=session_id)
+                self.log_error(f"State moving to is not defined: " + new_state_name, session_id=session_id)
                 # set cause of the error
-                self._dialogue_context[session_id][KEY_CAUSE] = f"State moving to is not defined: {current_state_name}"
-                current_state_name = ERROR_STATE_NAME  # move to error state
-                new_state = self._network.get_state_from_state_name(current_state_name)
+                self._dialogue_context[session_id][CONTEXT_KEY_CAUSE] \
+                    = f"State moving to is not defined: {new_state_name}"
+                new_state_name = ERROR_STATE_NAME  # move to error state
+                new_state = self._network.get_state_from_state_name(new_state_name)
+
+            self._dialogue_context[session_id][CONTEXT_KEY_CURRENT_STATE_NAME] = new_state_name
 
             # select utterance システム発話を選択
-            if self._asking_repetition[session_id]:  # when asking repetition
+            if self._requesting_confirmation.get(session_id):  # when requesting confirmation
+                output_text = self._generate_confirmation_request(self._confirmation_request_generation_function,
+                                                                  nlu_result,
+                                                                  session_id)
+            elif self._asking_repetition.get(session_id):  # when asking repetition
                 output_text = self._utterance_asking_repetition
             else:
                 output_text = new_state.get_one_system_utterance()
                 output_text = self._substitute_variables(output_text, session_id)  # replace variables
 
-            self._dialogue_context[session_id][KEY_PREVIOUS_SYSTEM_UTTERANCE] = output_text
-            self._dialogue_context[session_id][KEY_DIALOGUE_HISTORY].append({"speaker": "system",
-                                                                             "utterance": output_text})
+            # add "_reaction" of dialogue context before output text
+            if self._dialogue_context[session_id][CONTEXT_KEY_REACTION]:
+                print(output_text)
+                print(self._dialogue_context[session_id][CONTEXT_KEY_REACTION])
+                output_text = f"{self._dialogue_context[session_id][CONTEXT_KEY_REACTION]} {output_text}"
+                print(output_text)
+
+            self._dialogue_context[session_id][CONTEXT_KEY_PREVIOUS_SYSTEM_UTTERANCE] = output_text
+            self._dialogue_context[session_id][CONTEXT_KEY_DIALOGUE_HISTORY].append({"speaker": "system",
+                                                                                     "utterance": output_text})
+            self._dialogue_context[session_id][CONTEXT_KEY_REACTION] = ""
+
 
             # check if the new state is a final state
             final: bool = False
-            if self._network.is_final_state_or_error_state(current_state_name):
+            if self._network.is_final_state_or_error_state(new_state_name):
                 final = True
 
-            aux_data['state'] = current_state_name  # add new state to aux_data
+            aux_data['state'] = new_state_name  # add new state to aux_data
 
             # create output data
             output = {"output_text": output_text, "final": final, "aux_data": aux_data}
@@ -367,17 +479,14 @@ class Manager(AbstractBlock):
 
         self.log_debug("output: " + str(output), session_id=session_id)
         if DEBUG:
-            dialogue_context: Dict[str, Any] = copy.copy(self._dialogue_context[session_id])
-            del dialogue_context[KEY_CONFIG]
-            del dialogue_context[KEY_BLOCK_CONFIG]
-            self.log_debug("updated dialogue_context: " + str(dialogue_context), session_id=session_id)
+            self._log_dialogue_context_for_debug(session_id)
         return output
 
     def _log_dialogue_context_for_debug(self, session_id: str):
         dialogue_context: Dict[str, Any] = copy.copy(self._dialogue_context[session_id])
-        del dialogue_context[KEY_CONFIG]  # delete lengthy values
-        del dialogue_context[KEY_BLOCK_CONFIG]
-        del dialogue_context[KEY_DIALOGUE_HISTORY]
+        del dialogue_context[CONTEXT_KEY_CONFIG]  # delete lengthy values
+        del dialogue_context[CONTEXT_KEY_BLOCK_CONFIG]
+        del dialogue_context[CONTEXT_KEY_DIALOGUE_HISTORY]
         self.log_debug("dialogue_context: " + str(dialogue_context), session_id=session_id)
 
     def _substitute_variables(self, text: str, session_id: str) -> str:
@@ -398,6 +507,32 @@ class Manager(AbstractBlock):
                     raise Exception()
         return result
 
+    def _handle_sub_dialogue(self, destination_state_string: str, session_id: str) -> str:
+        """
+        If destination string is sub-dialogue information, return the destination state after stacking the return state,
+        Else return as is
+        :param destination_state_string:  #gosub:<destination>:<state to return>
+        :param session_id: session id string
+        :return: destination state name
+        """
+
+        if destination_state_string == EXIT:
+            print(self._dialogue_context[session_id][CONTEXT_KEY_SUB_DIALOGUE_STACK])
+            destination: str = self._dialogue_context[session_id][CONTEXT_KEY_SUB_DIALOGUE_STACK].pop()
+            self.log_debug("Exiting from sub-dialogue. Returning to: " + destination, session_id=session_id)
+            return destination
+        elif destination_state_string.startswith(GOSUB):
+            states: List[str] = re.split("[:：]", destination_state_string)
+            destination: str = states[1].strip()
+            state_to_return: str = states[2].strip()
+            self._dialogue_context[session_id][CONTEXT_KEY_SUB_DIALOGUE_STACK].append(state_to_return)
+            self.log_debug(f"Entering sub-dialogue at state '{destination}'. "
+                           + f"Pushing the return point '{state_to_return}' onto the stack",
+                           session_id=session_id)
+            return destination
+        else:
+            return destination_state_string
+
     def _transition(self, previous_state_name: str, nlu_result: Dict[str, Any], aux_data: Dict[str, Any],
                     user_id: str, session_id: str, sentence: str) -> str:
         """
@@ -416,8 +551,8 @@ class Manager(AbstractBlock):
         if self._network.is_final_state_or_error_state(previous_state_name):
             self.log_error("no available transitions found from state: " + previous_state_name,
                            session_id=session_id)
-            self._dialogue_context[session_id][KEY_CAUSE] = f"no available transitions found from state: " \
-                                                            + previous_state_name
+            self._dialogue_context[session_id][CONTEXT_KEY_CAUSE] = f"no available transitions found from state: " \
+                                                                    + previous_state_name
             return ERROR_STATE_NAME
 
         # if aux data's stop_dialogue value is True, go to #final_abort state
@@ -428,7 +563,7 @@ class Manager(AbstractBlock):
         previous_state: State = self._network.get_state_from_state_name(previous_state_name)
         if not previous_state:  # can't find previous state
             self.log_error("can't find previous state: " + previous_state_name, session_id=session_id)
-            self._dialogue_context[session_id][KEY_CAUSE] = f"can't find previous state: " + previous_state_name
+            self._dialogue_context[session_id][CONTEXT_KEY_CAUSE] = f"can't find previous state: " + previous_state_name
             return ERROR_STATE_NAME
         self.log_debug("trying to find transition from state: " + previous_state_name, session_id=session_id)
 
@@ -462,6 +597,7 @@ class Manager(AbstractBlock):
                 destination_state_name: str = transition.get_destination()
                 self._perform_actions(transition.get_actions(), nlu_result, aux_data, user_id, session_id, sentence)
                 self.log_debug("moving to state: " + destination_state_name, session_id=session_id)
+
                 return destination_state_name
 
         # when no available transitions 適用可能な遷移がなかった
@@ -471,8 +607,8 @@ class Manager(AbstractBlock):
         # judge as an error
         self.log_error("no available transitions found from state: " + previous_state_name,
                        session_id=session_id)
-        self._dialogue_context[session_id][KEY_CAUSE] = f"no available transitions found from state: " \
-                                                        + previous_state_name
+        self._dialogue_context[session_id][CONTEXT_KEY_CAUSE] = f"no available transitions found from state: " \
+                                                                + previous_state_name
         return ERROR_STATE_NAME
 
     def _check_one_condition(self, condition: Condition, nlu_result: Dict[str, Any], aux_data: Dict[str, Any],
@@ -504,7 +640,7 @@ class Manager(AbstractBlock):
             return False
         else:
             argument_names: List[str] = ["arg" + str(i) for i in range(len(condition.get_arguments()))]
-            # realize variables
+            # realize variables 変数の具体化
             argument_values: List[Any] \
                 = [self._realize_argument(argument, nlu_result, aux_data, user_id, session_id, sentence)
                    for argument in condition.get_arguments()]
@@ -514,7 +650,7 @@ class Manager(AbstractBlock):
                                session_id=session_id)
             argument_names.append("context")  # add context to the arguments 対話文脈を引数に加える
             argument_values.append(self._dialogue_context[session_id])
-            args: Dict[str,str] = dict(zip(argument_names, argument_values))
+            args: Dict[str, str] = dict(zip(argument_names, argument_values))
             args["func"] = condition_function
             expression = "func(" + ','.join(argument_names) + ")"
             try:
@@ -544,7 +680,7 @@ class Manager(AbstractBlock):
         :return: True if transition is possible, False otherwise
         """
         uu_type: str = transition.get_user_utterance_type()
-        if uu_type != "" and uu_type != nlu_result['type']:
+        if uu_type != "" and uu_type != nlu_result[KEY_TYPE]:
             self.log_debug(f"user utterance type does not match with '{uu_type}'.", session_id=session_id)
             return False
         for condition in transition.get_conditions():
@@ -628,7 +764,7 @@ class Manager(AbstractBlock):
                     action_function = function
                     break
             if not action_function:  # action function is not defined
-                self.log_error(f"action function can't find: {command_name}", session_id=session_id)
+                self.log_error(f"can't find action function: {command_name}", session_id=session_id)
             else:
                 argument_names: List[str] = ["arg" + str(i) for i in range(len(action.get_arguments()))]
                 argument_values: List[Any] = [self._realize_argument(argument, nlu_result, aux_data,
@@ -650,3 +786,37 @@ class Manager(AbstractBlock):
                                      session_id=session_id)
                     if DEBUG:
                         raise Exception(e)
+
+    def _generate_confirmation_request(self, function_name: str, nlu_result: Dict[str, Any], session_id: str) -> str:
+
+        self.log_debug(f"generating confirmation request: {str(function_name)}", session_id=session_id)
+
+        # search confirmation request function in function modules
+        # confirmation request functionをfunction moduleの中から探す
+        generation_function = None
+        for function_module in self._function_modules:
+            function = getattr(function_module, function_name, None)
+            if function is None:  # if command is not in the module
+                continue
+            else:
+                generation_function = function
+                break
+        if not generation_function:  # action function is not defined
+            self.log_error(f"can't find confirmation request function: {function_name}", session_id=session_id)
+        else:
+            argument_names: List[str] = ["nlu_result", "context"]
+            argument_values: List[Any] = [nlu_result, self._dialogue_context[session_id]]
+            args: Dict[str,str] = dict(zip(argument_names, argument_values))
+            args["func"] = generation_function
+            expression = "func(" + ','.join(argument_names) + ")"
+            result = ""
+            try:
+                result: str = eval(expression, {}, args)
+            except Exception as e:
+                self.log_warning(f"Exception occurred during generating confirmation request " +
+                                 f"{str(generation_function)}: {str(e)}",
+                                 session_id=session_id)
+                if DEBUG:
+                    raise Exception(e)
+            return result
+

@@ -8,7 +8,7 @@
         },
         {
             "user_utterance": "はい",
-            "aux_data": {"confidence": 0.9}
+            "aux_data": {"confidence": 0.2}
         },
         {
             "user_utterance": "",
@@ -23,11 +23,11 @@
             "aux_data": {"confidence": 0.2}
         },
         {
-            "user_utterance": "み",
+            "user_utterance": "いいえ",
             "aux_data": {"confidence": 0.9}
         },
         {
-            "user_utterance": "味噌ラーメンです",
+            "user_utterance": "豚骨ラーメン",
             "aux_data": {"rewind": true, "confidence": 0.8}
         },
         {
