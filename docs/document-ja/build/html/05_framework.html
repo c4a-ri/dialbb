@@ -164,7 +164,7 @@
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span>{&quot;user_id&quot;: &lt;ユーザID: 文字列&gt;,
  &quot;session_id&quot;: &lt;セッションID: 文字列&gt;,
  &quot;user_utterance&quot;: &lt;ユーザ発話文字列: 文字列&gt;,
- &quot;aux_data&quot;:&lt;補助データ: データ型は任意&gt;}
+ &quot;aux_data&quot;:&lt;補助データ: オブジェクト (値の型は任意&gt;}
 </pre></div>
 </div>
 <ul class="simple">
@@ -181,12 +181,12 @@
   &quot;system_utterance&quot;: &lt;システム発話文字列: 文字列&gt;, 
   &quot;user_id&quot;:&lt;ユーザID: 文字列&gt;, 
   &quot;final&quot;: &lt;対話終了フラグ: ブール値&gt; 
-  &quot;aux_data&quot;:&lt;補助データ: データ型は任意&gt;
+  &quot;aux_data&quot;:&lt;補助データ: オブジェクト（値の型は任意&gt;
 }
 </pre></div>
 </div>
 <ul class="simple">
-<li><p>&lt;セッションID&gt;は，対話のセッションのIDです．このURIにPOSTする度に新しいセッションIDが生成されます．</p></li>
+<li><p>&lt;セッションID&gt;は，対話のセッションのIDです．対話開始のリクエストを送信した際に新しいセッションIDが生成されます．</p></li>
 <li><p>&lt;システム発話文字列&gt;は，システムの最初の発話（プロンプト）です．</p></li>
 <li><p>&lt;ユーザID&gt;は，リクエストで送られたユーザのIDです．</p></li>
 <li><p>&lt;対話終了フラグ&gt;は，対話が終了したかどうかを表すブール値です．</p></li>
