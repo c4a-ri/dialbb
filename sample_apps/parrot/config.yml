@@ -1,12 +1,10 @@
 # configuration file for a simple app that echoes user utterances
 
-language: en
-
 blocks:
   - name: parrot
     block_class: parrot.Parrot
     input:
-      input_text: user_utterance  # argument for this block : attribute name in the payload
+      input_text: user_utterance  # argument for this block : attribute name in the blackboard
       input_aux_data: aux_data
     output:
       output_text: system_utterance

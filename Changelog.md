@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.0 
+
+- ChatGPT組み込みブロックを追加
+
+- requirements.txtをサンプル毎に用意
+
 ## 0.5.0 (2023.6.29)
 
 - STN Manager組み込みブロック

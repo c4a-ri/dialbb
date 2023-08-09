@@ -1,0 +1,19 @@
+# configuration file for a chatgpt-based Japanese application
+
+blocks:
+  - name: chatgpt
+    block_class: dialbb.builtin_blocks.chatgpt.chatgpt_ja.ChatGPT_Ja
+    input:
+      user_id: user_id
+      user_utterance: user_utterance
+      aux_data: aux_data
+    output:
+      system_utterance: system_utterance
+      aux_data: aux_data
+      final: final
+    first_system_utterance: "こんにちは。楽しくお話しましょう。何についてお話しますか？"
+    prompt_prefix: "システムはユーザと親しく話せます。"
+    prompt_postfix: "に続くシステムの発話を最大100文字で生成してください。"
+    gpt_model: gpt-4
+    
+
