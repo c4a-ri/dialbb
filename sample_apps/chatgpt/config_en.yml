@@ -1,0 +1,19 @@
+# configuration file for a chatgpt-based English application
+
+blocks:
+  - name: chatgpt
+    block_class: dialbb.builtin_blocks.chatgpt.chatgpt_en.ChatGPT_En
+    input:
+      user_id: user_id
+      user_utterance: user_utterance
+      aux_data: aux_data
+    output:
+      system_utterance: system_utterance
+      aux_data: aux_data
+      final: final
+    first_system_utterance: "Hello! Let's talk. What would you like to talk about?"
+    prompt_prefix: "The system behaves as a good friend of the user."
+    prompt_postfix: "Please generate the system utterance that follows."
+    gpt_model: gpt-4
+    
+

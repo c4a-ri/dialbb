@@ -39,51 +39,11 @@ $ git clone https://github.com/c4a-ri/dialbb.git <ディレクトリ名>
   $ venv/bin/activate   # 仮想環境に入る
   ```
 
-- 次に以下を実行してください．
+- 次に以下を実行して，最低限のライブラリをインストールします．
 
-
-  ```sh
+  ```python
   $ pip install -r requirements.txt 
-  $ python -m snips_nlu download en # 英語アプリケーションを作成・利用する場合
-  $ python -m snips_nlu download ja # 日本語アプリケーションを作成・利用する場合
   ```
-
-
-  注意
-
- - 途中でエラーになり，Rustなどの追加のソフトウェアのインストールを求められる場合があります．その場合，指示にしがってインストールしてください．うまくいかない場合はREADMEに書いてある連絡先に連絡してください．
-
-  - python3.9以上の場合，
-  
-    ```
-	ModuleNotFoundError: No module named 'setuptools_rust'
-    ```
-	などのエラーが出るかもしれません．その場合，以下のコマンドで解決する可能性があります．
-	
-	```
-	pip install --upgrade pip setuptools wheel
-    ```
-
-     その他，エラーメッセージに応じて必要なライブラリをインストールしてください．不明点があったりうまくいかなったりした場合は連絡してください．
-	 
-
-
-  - Windows上のAnacondaを用いて実行する場合，Anaconda Promptを管理者モードで起動しないといけない可能性があります．
-
-  - pyenvを使っている場合，以下のエラーが出る可能性があります．
-
-    ```
-    ModuleNotFoundError: No module named '_bz2' 
-    ```
-    
-    それに対する対処法は[この記事](https://qiita.com/kasajei/items/5e22161b62f4b84787bc)などを参照ください．
-
-
-## Graphvizのインストール
-
-[Graphvizのサイト](https://graphviz.org/download/)などを参考にGraphvizをインストールします．
-ただ，Graphvizがなくてもアプリケーションを動作させることは可能です．
-
 
 ## オウム返しサンプルアプリケーションのサーバの起動
 
@@ -133,11 +93,67 @@ curlをインストールしていない場合は，「{ref}`test_with_browser`�
    "user_id":"user1"}
   ```
 
-## 組み込みブロックを用いたサンプルアプリケーションの起動
+## SNIPS言語理解と状態遷移ネットワークベースの対話管理を用いたサンプルアプリケーション
 
-DialBBには，あらかじめ作成してあるブロック（組み込みブロック）を用いたサンプルアプリケーションがあります．
+DialBBには，あらかじめ作成してあるブロック（組み込みブロック）を用いたサンプルアプリケーションがいくつかあります．ここでは、SNIPS言語理解と状態遷移ネットワークベースの対話管理を用いたサンプルアプリケーションの起動の仕方を説明します。
+
+
+### 必要なPythonライブラリのインストール
+
+  本アプリケーションを使用しない場合は、以下の手順はスキップして構いません。
+  
+  以下を実行します。
+
+  ```sh
+  # 以下のどちらかを実行
+  $ pip install -r sample_apps/network_ja/requirements.txt 
+  $ pip install -r sample_apps/network_en/requirements.txt 
+
+  # 英語アプリケーションを作成・利用する場合
+  $ python -m snips_nlu download en 
+
+  # 日本語アプリケーションを作成・利用する場合
+  $ python -m snips_nlu download ja 
+  ```
+
+  注意
+
+ - 途中でエラーになり，Rustなどの追加のソフトウェアのインストールを求められる場合があります．その場合，指示にしがってインストールしてください．うまくいかない場合はREADMEに書いてある連絡先に連絡してください．
+
+  - python3.9以上の場合，
+  
+    ```
+	ModuleNotFoundError: No module named 'setuptools_rust'
+    ```
+	などのエラーが出るかもしれません．その場合，以下のコマンドで解決する可能性があります．
+	
+	```
+	pip install --upgrade pip setuptools wheel
+    ```
+
+     その他，エラーメッセージに応じて必要なライブラリをインストールしてください．不明点があったりうまくいかなったりした場合は連絡してください．
+	 
+
+
+  - Windows上のAnacondaを用いて実行する場合，Anaconda Promptを管理者モードで起動しないといけない可能性があります．
+
+  - pyenvを使っている場合，以下のエラーが出る可能性があります．
+
+    ```
+    ModuleNotFoundError: No module named '_bz2' 
+    ```
+    
+    それに対する対処法は[この記事](https://qiita.com/kasajei/items/5e22161b62f4b84787bc)などを参照ください．
+
+
+### Graphvizのインストール
+
+[Graphvizのサイト](https://graphviz.org/download/)などを参考にGraphvizをインストールします．
+ただ，Graphvizがなくてもアプリケーションを動作させることは可能です．
+
 
 ### 起動
+
 
 以下のコマンドで起動します．
 
@@ -193,7 +209,39 @@ http://<hostname>:8080/test
 
 ​    `sample_apps/network_ja/_test_outputs.txt`に対話のやりとりが書き込まれます．
 
-### 実験用アプリケーション
+## SNIPS言語理解と状態遷移ネットワークベースの対話管理を用いたサンプルアプリケーションの実験版
 
-`sample_apps/lab_app_ja/`に実験用アプリケーションがあります．組み込みブロックの様々な機能を試すためのアプリケーションです．詳細は`sample_apps/lab_app_ja/README.md`を参照してください．
+`sample_apps/lab_app_ja/`に、SNIPS言語理解と状態遷移ネットワークベースの対話管理を用いた、アプリケーションの実験版があります（日本語のみ）．組み込みブロックの様々な機能を試すためのアプリケーションです．
+
+詳細は`sample_apps/lab_app_ja/README.md`を参照してください．
+
+## ChatGPTを用いたアプリケーション
+
+`sample_apps/chatgpt/`にChatGPTのみを用いて対話を行うアプリケーションがあります。
+
+
+### Pythonライブラリのインストール
+
+  以下を実行します。
+
+  ```sh
+  $ pip install -r sample_apps/chatgpt/requirements.txt 
+  ```
+
+### 起動方法
+
+  日本語版
+
+  ```sh
+  $ python run_server.py sample_apps/chatgpt/config_ja.yml 
+  ```
+
+  英語版
+
+  ```sh
+  $ python run_server.py sample_apps/chatgpt/config_en.yml 
+  ```
+
+
+
 

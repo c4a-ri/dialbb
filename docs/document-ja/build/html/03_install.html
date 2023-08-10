@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>3. インストールとサンプルアプリケーションの実行の仕方 &mdash; DialBBドキュメント ver. 0.5 v0.5.0 ドキュメント</title>
+  <title>3. インストールとサンプルアプリケーションの実行の仕方 &mdash; DialBBドキュメント ver. 0.6 v0.6.0 ドキュメント</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -31,7 +31,7 @@
           
           
           <a href="index.html" class="icon icon-home">
-            DialBBドキュメント ver. 0.5
+            DialBBドキュメント ver. 0.6
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -49,16 +49,22 @@
 <li class="toctree-l2"><a class="reference internal" href="#id2">3.1. 実行環境</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#dialbb">3.2. DialBBのインストール</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#python">3.3. Pythonライブラリのインストール</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#graphviz">3.4. Graphvizのインストール</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id3">3.5. オウム返しサンプルアプリケーションのサーバの起動</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id4">3.5.1. 動作確認</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id3">3.4. オウム返しサンプルアプリケーションのサーバの起動</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id4">3.4.1. 動作確認</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#id5">3.6. 組み込みブロックを用いたサンプルアプリケーションの起動</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id6">3.6.1. 起動</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#test-with-browser">3.6.2. 動作確認</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id8">3.6.3. テストセットを用いた動作確認</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id9">3.6.4. 実験用アプリケーション</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#snips">3.5. SNIPS言語理解と状態遷移ネットワークベースの対話管理を用いたサンプルアプリケーション</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id5">3.5.1. 必要なPythonライブラリのインストール</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphviz">3.5.2. Graphvizのインストール</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id6">3.5.3. 起動</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#test-with-browser">3.5.4. 動作確認</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id8">3.5.5. テストセットを用いた動作確認</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id9">3.6. SNIPS言語理解と状態遷移ネットワークベースの対話管理を用いたサンプルアプリケーションの実験版</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#chatgpt">3.7. ChatGPTを用いたアプリケーション</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id10">3.7.1. Pythonライブラリのインストール</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id11">3.7.2. 起動方法</a></li>
 </ul>
 </li>
 </ul>
@@ -74,7 +80,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">DialBBドキュメント ver. 0.5</a>
+          <a href="index.html">DialBBドキュメント ver. 0.6</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -123,47 +129,21 @@ $<span class="w"> </span>venv/bin/activate<span class="w">   </span><span class=
 </pre></div>
 </div>
 </li>
-<li><p>次に以下を実行してください．</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt<span class="w"> </span>
-$<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>snips_nlu<span class="w"> </span>download<span class="w"> </span>en<span class="w"> </span><span class="c1"># 英語アプリケーションを作成・利用する場合</span>
-$<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>snips_nlu<span class="w"> </span>download<span class="w"> </span>ja<span class="w"> </span><span class="c1"># 日本語アプリケーションを作成・利用する場合</span>
+<li><p>次に以下を実行して，最低限のライブラリをインストールします．</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>$ pip install -r requirements.txt 
 </pre></div>
 </div>
-<p>注意</p>
-</li>
-<li><p>途中でエラーになり，Rustなどの追加のソフトウェアのインストールを求められる場合があります．その場合，指示にしがってインストールしてください．うまくいかない場合はREADMEに書いてある連絡先に連絡してください．</p></li>
-<li><p>python3.9以上の場合，</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="ne">ModuleNotFoundError</span><span class="p">:</span> <span class="n">No</span> <span class="n">module</span> <span class="n">named</span> <span class="s1">&#39;setuptools_rust&#39;</span>
-</pre></div>
-</div>
-<p>などのエラーが出るかもしれません．その場合，以下のコマンドで解決する可能性があります．</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">upgrade</span> <span class="n">pip</span> <span class="n">setuptools</span> <span class="n">wheel</span>
-</pre></div>
-</div>
-<p>その他，エラーメッセージに応じて必要なライブラリをインストールしてください．不明点があったりうまくいかなったりした場合は連絡してください．</p>
-</li>
-<li><p>Windows上のAnacondaを用いて実行する場合，Anaconda Promptを管理者モードで起動しないといけない可能性があります．</p></li>
-<li><p>pyenvを使っている場合，以下のエラーが出る可能性があります．</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="ne">ModuleNotFoundError</span><span class="p">:</span> <span class="n">No</span> <span class="n">module</span> <span class="n">named</span> <span class="s1">&#39;_bz2&#39;</span> 
-</pre></div>
-</div>
-<p>それに対する対処法は<a class="reference external" href="https://qiita.com/kasajei/items/5e22161b62f4b84787bc">この記事</a>などを参照ください．</p>
 </li>
 </ul>
 </section>
-<section id="graphviz">
-<h2><span class="section-number">3.4. </span>Graphvizのインストール<a class="headerlink" href="#graphviz" title="この見出しへのパーマリンク"></a></h2>
-<p><a class="reference external" href="https://graphviz.org/download/">Graphvizのサイト</a>などを参考にGraphvizをインストールします．
-ただ，Graphvizがなくてもアプリケーションを動作させることは可能です．</p>
-</section>
 <section id="id3">
-<h2><span class="section-number">3.5. </span>オウム返しサンプルアプリケーションのサーバの起動<a class="headerlink" href="#id3" title="この見出しへのパーマリンク"></a></h2>
+<h2><span class="section-number">3.4. </span>オウム返しサンプルアプリケーションのサーバの起動<a class="headerlink" href="#id3" title="この見出しへのパーマリンク"></a></h2>
 <p>ただオウム返しを行うアプリケーションです．</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python<span class="w"> </span>run_server.py<span class="w"> </span>sample_apps/parrot/config.yml
 </pre></div>
 </div>
 <section id="id4">
-<h3><span class="section-number">3.5.1. </span>動作確認<a class="headerlink" href="#id4" title="この見出しへのパーマリンク"></a></h3>
+<h3><span class="section-number">3.4.1. </span>動作確認<a class="headerlink" href="#id4" title="この見出しへのパーマリンク"></a></h3>
 <p>別のターミナルから以下を実行してください．
 curlをインストールしていない場合は，「<a class="reference internal" href="#test-with-browser"><span class="std std-ref">動作確認</span></a>」に書いてある方法でテストしてくださ
 い．</p>
@@ -199,11 +179,53 @@ curlをインストールしていない場合は，「<a class="reference inter
 </ul>
 </section>
 </section>
+<section id="snips">
+<h2><span class="section-number">3.5. </span>SNIPS言語理解と状態遷移ネットワークベースの対話管理を用いたサンプルアプリケーション<a class="headerlink" href="#snips" title="この見出しへのパーマリンク"></a></h2>
+<p>DialBBには，あらかじめ作成してあるブロック（組み込みブロック）を用いたサンプルアプリケーションがいくつかあります．ここでは、SNIPS言語理解と状態遷移ネットワークベースの対話管理を用いたサンプルアプリケーションの起動の仕方を説明します。</p>
 <section id="id5">
-<h2><span class="section-number">3.6. </span>組み込みブロックを用いたサンプルアプリケーションの起動<a class="headerlink" href="#id5" title="この見出しへのパーマリンク"></a></h2>
-<p>DialBBには，あらかじめ作成してあるブロック（組み込みブロック）を用いたサンプルアプリケーションがあります．</p>
+<h3><span class="section-number">3.5.1. </span>必要なPythonライブラリのインストール<a class="headerlink" href="#id5" title="この見出しへのパーマリンク"></a></h3>
+<p>本アプリケーションを使用しない場合は、以下の手順はスキップして構いません。</p>
+<p>以下を実行します。</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="c1"># 以下のどちらかを実行</span>
+$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>sample_apps/network_ja/requirements.txt<span class="w"> </span>
+$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>sample_apps/network_en/requirements.txt<span class="w"> </span>
+
+<span class="c1"># 英語アプリケーションを作成・利用する場合</span>
+$<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>snips_nlu<span class="w"> </span>download<span class="w"> </span>en<span class="w"> </span>
+
+<span class="c1"># 日本語アプリケーションを作成・利用する場合</span>
+$<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>snips_nlu<span class="w"> </span>download<span class="w"> </span>ja<span class="w"> </span>
+</pre></div>
+</div>
+<p>注意</p>
+<ul>
+<li><p>途中でエラーになり，Rustなどの追加のソフトウェアのインストールを求められる場合があります．その場合，指示にしがってインストールしてください．うまくいかない場合はREADMEに書いてある連絡先に連絡してください．</p></li>
+<li><p>python3.9以上の場合，</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="ne">ModuleNotFoundError</span><span class="p">:</span> <span class="n">No</span> <span class="n">module</span> <span class="n">named</span> <span class="s1">&#39;setuptools_rust&#39;</span>
+</pre></div>
+</div>
+<p>などのエラーが出るかもしれません．その場合，以下のコマンドで解決する可能性があります．</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">upgrade</span> <span class="n">pip</span> <span class="n">setuptools</span> <span class="n">wheel</span>
+</pre></div>
+</div>
+<p>その他，エラーメッセージに応じて必要なライブラリをインストールしてください．不明点があったりうまくいかなったりした場合は連絡してください．</p>
+</li>
+<li><p>Windows上のAnacondaを用いて実行する場合，Anaconda Promptを管理者モードで起動しないといけない可能性があります．</p></li>
+<li><p>pyenvを使っている場合，以下のエラーが出る可能性があります．</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="ne">ModuleNotFoundError</span><span class="p">:</span> <span class="n">No</span> <span class="n">module</span> <span class="n">named</span> <span class="s1">&#39;_bz2&#39;</span> 
+</pre></div>
+</div>
+<p>それに対する対処法は<a class="reference external" href="https://qiita.com/kasajei/items/5e22161b62f4b84787bc">この記事</a>などを参照ください．</p>
+</li>
+</ul>
+</section>
+<section id="graphviz">
+<h3><span class="section-number">3.5.2. </span>Graphvizのインストール<a class="headerlink" href="#graphviz" title="この見出しへのパーマリンク"></a></h3>
+<p><a class="reference external" href="https://graphviz.org/download/">Graphvizのサイト</a>などを参考にGraphvizをインストールします．
+ただ，Graphvizがなくてもアプリケーションを動作させることは可能です．</p>
+</section>
 <section id="id6">
-<h3><span class="section-number">3.6.1. </span>起動<a class="headerlink" href="#id6" title="この見出しへのパーマリンク"></a></h3>
+<h3><span class="section-number">3.5.3. </span>起動<a class="headerlink" href="#id6" title="この見出しへのパーマリンク"></a></h3>
 <p>以下のコマンドで起動します．</p>
 <ul>
 <li><p>英語アプリケーション</p>
@@ -219,7 +241,7 @@ curlをインストールしていない場合は，「<a class="reference inter
 </ul>
 </section>
 <section id="test-with-browser">
-<span id="id7"></span><h3><span class="section-number">3.6.2. </span>動作確認<a class="headerlink" href="#test-with-browser" title="この見出しへのパーマリンク"></a></h3>
+<span id="id7"></span><h3><span class="section-number">3.5.4. </span>動作確認<a class="headerlink" href="#test-with-browser" title="この見出しへのパーマリンク"></a></h3>
 <p>上記でアプリケーションを起動したサーバのホスト名かIPアドレスを<code class="docutils literal notranslate"><span class="pre">&lt;hostname&gt;</span></code>としたとき，ブラウザから以下のURLに接続すると対話画面が現れますので，そこで対話してみてください．</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">http</span><span class="p">:</span><span class="o">//&lt;</span><span class="n">hostname</span><span class="o">&gt;</span><span class="p">:</span><span class="mi">8080</span> 
 </pre></div>
@@ -230,7 +252,7 @@ curlをインストールしていない場合は，「<a class="reference inter
 </div>
 </section>
 <section id="id8">
-<h3><span class="section-number">3.6.3. </span>テストセットを用いた動作確認<a class="headerlink" href="#id8" title="この見出しへのパーマリンク"></a></h3>
+<h3><span class="section-number">3.5.5. </span>テストセットを用いた動作確認<a class="headerlink" href="#id8" title="この見出しへのパーマリンク"></a></h3>
 <p>以下のコマンドで，ユーザ発話を順に処理して対話するテストを行うことができます．</p>
 <ul class="simple">
 <li><p>英語</p></li>
@@ -251,9 +273,32 @@ sample_apps/network_ja/_test_outputs.txt
 </div>
 <p>​    <code class="docutils literal notranslate"><span class="pre">sample_apps/network_ja/_test_outputs.txt</span></code>に対話のやりとりが書き込まれます．</p>
 </section>
+</section>
 <section id="id9">
-<h3><span class="section-number">3.6.4. </span>実験用アプリケーション<a class="headerlink" href="#id9" title="この見出しへのパーマリンク"></a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">sample_apps/lab_app_ja/</span></code>に実験用アプリケーションがあります．組み込みブロックの様々な機能を試すためのアプリケーションです．詳細は<code class="docutils literal notranslate"><span class="pre">sample_apps/lab_app_ja/README.md</span></code>を参照してください．</p>
+<h2><span class="section-number">3.6. </span>SNIPS言語理解と状態遷移ネットワークベースの対話管理を用いたサンプルアプリケーションの実験版<a class="headerlink" href="#id9" title="この見出しへのパーマリンク"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">sample_apps/lab_app_ja/</span></code>に、SNIPS言語理解と状態遷移ネットワークベースの対話管理を用いた、アプリケーションの実験版があります（日本語のみ）．組み込みブロックの様々な機能を試すためのアプリケーションです．</p>
+<p>詳細は<code class="docutils literal notranslate"><span class="pre">sample_apps/lab_app_ja/README.md</span></code>を参照してください．</p>
+</section>
+<section id="chatgpt">
+<h2><span class="section-number">3.7. </span>ChatGPTを用いたアプリケーション<a class="headerlink" href="#chatgpt" title="この見出しへのパーマリンク"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">sample_apps/chatgpt/</span></code>にChatGPTのみを用いて対話を行うアプリケーションがあります。</p>
+<section id="id10">
+<h3><span class="section-number">3.7.1. </span>Pythonライブラリのインストール<a class="headerlink" href="#id10" title="この見出しへのパーマリンク"></a></h3>
+<p>以下を実行します。</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>sample_apps/chatgpt/requirements.txt<span class="w"> </span>
+</pre></div>
+</div>
+</section>
+<section id="id11">
+<h3><span class="section-number">3.7.2. </span>起動方法<a class="headerlink" href="#id11" title="この見出しへのパーマリンク"></a></h3>
+<p>日本語版</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python<span class="w"> </span>run_server.py<span class="w"> </span>sample_apps/chatgpt/config_ja.yml<span class="w"> </span>
+</pre></div>
+</div>
+<p>英語版</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python<span class="w"> </span>run_server.py<span class="w"> </span>sample_apps/chatgpt/config_en.yml<span class="w"> </span>
+</pre></div>
+</div>
 </section>
 </section>
 </section>

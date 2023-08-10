@@ -24,7 +24,7 @@ import argparse
 from dialbb.main import DialogueProcessor
 from dialbb.util.logger import get_logger
 
-DIALBB_HOME = os.path.dirname(__file__)
+DIALBB_HOME = os.path.dirname(os.path.abspath(__file__))
 
 # read json schema files
 init_request_schema_file: str = os.path.join(DIALBB_HOME, "schemata/init_request.jsd")
@@ -37,6 +37,7 @@ with open(init_request_schema_file) as fp:
 with open(dialogue_request_schema_file) as fp:
     dialogue_request_schema = json.load(fp)
 
+print(os.path.join(DIALBB_HOME, 'static/new'))
 app = Flask(__name__, template_folder=os.path.join(DIALBB_HOME, 'static/new'),
             static_folder=os.path.join(DIALBB_HOME, 'static/new/assets'))
 # app = Flask(__name__, template_folder=os.path.join(DIALBB_HOME, 'static/new'))

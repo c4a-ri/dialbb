@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>6. 組み込みブロッククラスの仕様 &mdash; DialBBドキュメント ver. 0.5 v0.5.0 ドキュメント</title>
+  <title>6. 組み込みブロッククラスの仕様 &mdash; DialBBドキュメント ver. 0.6 v0.6.0 ドキュメント</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -30,7 +30,7 @@
           
           
           <a href="index.html" class="icon icon-home">
-            DialBBドキュメント ver. 0.5
+            DialBBドキュメント ver. 0.6
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -108,6 +108,13 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#chatgpt-dialogue-manager-chatgpt">6.7. ChatGPT Dialogue Manager （ChatGPTベースの対話ブロック）</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id31">6.7.1. 入出力</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id32">6.7.2. ブロックコンフィギュレーションのパラメータ</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id33">6.7.3. 処理内容</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id34">6.7.4. 拡張方法</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -118,7 +125,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">DialBBドキュメント ver. 0.5</a>
+          <a href="index.html">DialBBドキュメント ver. 0.6</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -535,7 +542,7 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">final</span></code>: 対話終了かどうかのフラグ（ブール値）</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">aux_data</span></code>: 補助データ（辞書型）(ver. 0.4.0で変更）
 入力の補助データを，後述のアクション関数の中でアップデートしたものに，遷移した状態のIDを含めたもの．アクション関数の中でのアップデートは必ずしも行われるわけではない．遷移した状態は，以下の形式で付加される．</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nt">&quot;state&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;特定のラーメンが好き&quot;</span><span class="p">}</span>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="w">   </span><span class="p">{</span><span class="nt">&quot;state&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;特定のラーメンが好き&quot;</span><span class="p">}</span>
 </pre></div>
 </div>
 </li>
@@ -855,6 +862,146 @@
 <p>音声認識の際に，ユーザ発話を間違って途中で分割してしまい，前半だけに対する応答を行ってしまった場合に用います．</p>
 <p>対話文脈は元に戻りますが，アクション関数の中でグローバル変数の値を変更していたり，外部データベースの内容を変更していた場合にはもとに戻らないことに注意してください．</p>
 </section>
+</section>
+</section>
+<section id="chatgpt-dialogue-manager-chatgpt">
+<h2><span class="section-number">6.7. </span>ChatGPT Dialogue Manager （ChatGPTベースの対話ブロック）<a class="headerlink" href="#chatgpt-dialogue-manager-chatgpt" title="この見出しへのパーマリンク"></a></h2>
+<p>(<code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.chatgpt.chatgpt_ja.ChatGPT_Ja</span></code>, （日本語用）<code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.chatgpt.chatgpt_ja.ChatGPT_En</span></code>（英語用）)</p>
+<p>Open AIのChatGPTを用いて対話を行います．</p>
+<p>これらのクラスは<code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.chatgpt.chatgpt.ChatGPT</span></code>のサブクラスです．<code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.chatgpt.chatgpt.ChatGPT</span></code>のサブクラスを新たに作ることで，ChatGPTを使った新たなブロックを作ることができます．</p>
+<section id="id31">
+<h3><span class="section-number">6.7.1. </span>入出力<a class="headerlink" href="#id31" title="この見出しへのパーマリンク"></a></h3>
+<ul class="simple">
+<li><p>入力</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">user_utterance</span></code>: 入力文字列（文字列）</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aux_data</span></code>: 補助データ（辞書型）</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">user_id</span></code>: 補助データ（辞書型）</p></li>
+</ul>
+</li>
+<li><p>出力</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">system_utterance</span></code>: 入力文字列（文字列）</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aux_data</span></code>: 補助データ（辞書型）</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">final</span></code>: 対話終了かどうかのフラグ（ブール値）</p></li>
+</ul>
+</li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">ChatGPT_Ja</span></code>, <code class="docutils literal notranslate"><span class="pre">ChatGPT_En</span></code>では，入力の<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>, <code class="docutils literal notranslate"><span class="pre">user_id</span></code>利用せず，
+出力の<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>は入力の<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>と同じもので，<code class="docutils literal notranslate"><span class="pre">final</span></code>は常に<code class="docutils literal notranslate"><span class="pre">False</span></code>ですが，
+<code class="docutils literal notranslate"><span class="pre">ChatGPT</span></code>のサブクラスを新しく作る時に変更することができます．</p>
+<p>これらのブロックを使う時には，環境変数<code class="docutils literal notranslate"><span class="pre">OPENAI_KEY</span></code>にOpenAIのライセンスキーを設定する必要があります．</p>
+</section>
+<section id="id32">
+<h3><span class="section-number">6.7.2. </span>ブロックコンフィギュレーションのパラメータ<a class="headerlink" href="#id32" title="この見出しへのパーマリンク"></a></h3>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">first_system_utterance</span></code> （文字列，デフォルト値は<code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code>）</p>
+<p>対話の最初のシステム発話です．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">prompt_prefix</span></code> （文字列，デフォルト値は<code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code>）</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">prompt_postfix</span></code> （文字列，デフォルト値は<code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code>）</p>
+<p>ChatGPTのプロンプトに使う文字列です．以下で説明します．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gpt_model</span></code> （文字列，デフォルト値は<code class="docutils literal notranslate"><span class="pre">gpt-3.5-turbo</span></code>）</p>
+<p>Open AI GPTのモデルです．<code class="docutils literal notranslate"><span class="pre">gpt-4</span></code>などが指定できます．</p>
+</li>
+</ul>
+</section>
+<section id="id33">
+<h3><span class="section-number">6.7.3. </span>処理内容<a class="headerlink" href="#id33" title="この見出しへのパーマリンク"></a></h3>
+<ul>
+<li><p>対話の最初はブロックコンフィギュレーションの<code class="docutils literal notranslate"><span class="pre">first_system_utterance</span></code>の値をシステム発話として返します．</p></li>
+<li><p>2回目以降のターンでは，以下のプロンプトをChatGPTに与え，返ってきたものをシステム発話として返します．</p>
+<p>日本語の場合</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&lt;prompt_prefixの値&gt;
+システム「&lt;システムの1番目の発話&gt;」
+ユーザ「&lt;ユーザの1番目の発話&gt;」
+システム「&lt;システムの2番目の発話&gt;」
+ユーザ「&lt;ユーザの2番目の発話&gt;」
+...
+システム「&lt;システムの最新の発話&gt;」
+ユーザ「&lt;ユーザの最新の発話&gt;」
+&lt;prompt_prefixの値&gt;
+</pre></div>
+</div>
+<p>英語の場合</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">prompt_prefixの値</span><span class="o">&gt;</span>
+<span class="n">System</span><span class="p">:</span> <span class="s2">&quot;&lt;システムの1番目の発話&gt;&quot;</span>
+<span class="n">User</span><span class="p">:</span> <span class="s2">&quot;&lt;ユーザの1番目の発話&gt;&quot;</span>
+<span class="n">System</span><span class="p">:</span> <span class="s2">&quot;&lt;システムの2番目の発話&gt;&quot;</span>
+<span class="n">User</span><span class="p">:</span> <span class="s2">&quot;&lt;ユーザの2番目の発話&gt;&quot;</span>
+<span class="o">...</span>
+<span class="n">System</span><span class="p">:</span> <span class="s2">&quot;&lt;システムの最新の発話&gt;&quot;</span>
+<span class="n">User</span><span class="p">:</span> <span class="s2">&quot;&lt;ユーザの最新の発話&gt;&quot;</span>
+<span class="o">&lt;</span><span class="n">prompt_prefixの値</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>例として以下のようなプロンプトが与えられます．</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>システムはユーザと親しく話せます．システム「こんにちは．楽しくお話しましょう．何についてお話しますか？」
+ユーザー「映画について話したいです」
+システム「素晴らしいですね．映画について大好きです．最近見た映画やお気に入りのジャンルがあれば教えてください．」
+ユーザー「宮崎駿監督の最新作を見ました」
+に続くシステムの発話を最大100文字で生成してください．
+</pre></div>
+</div>
+<p>ChatGPTの応答は以下のようなものになります．</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span> システム「それは素晴らしいですね．宮崎駿監督の作品は常に素晴らしいです．その映画についてどんな感想を持ちましたか？」
+</pre></div>
+</div>
+<p>これから以下の文字列を取り出して，システム発話として返します．</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>それは素晴らしいですね．宮崎駿監督の作品は常に素晴らしいです．その映画についてどんな感想を持ちましたか？
+</pre></div>
+</div>
+</li>
+</ul>
+</section>
+<section id="id34">
+<h3><span class="section-number">6.7.4. </span>拡張方法<a class="headerlink" href="#id34" title="この見出しへのパーマリンク"></a></h3>
+<p>先に述べたように，<code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.chatgpt.chatgpt.ChatGPT</span></code>のサブクラスを作り，自作ブロックとして利用することで，柔軟に制御を変更することができます．</p>
+<p>サブクラスを作る際には、以下のメソッドを実装します。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">_generate_system_utterance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dialogue_history</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]],</span>
+                                 <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                                 <span class="n">aux_data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="nb">bool</span><span class="p">]:</span>
+</pre></div>
+</div>
+<ul>
+<li><p>引数</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">dialogue_history</span></code>（辞書型のリスト）</p>
+<p>以下のような配列で表された対話の履歴</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span>[
+    {&quot;speaker&quot;: &quot;system&quot;, &quot;utterance&quot;: &lt;システム発話文字列&gt;},
+    {&quot;speaker&quot;: &quot;user&quot;, &quot;utterance&quot;: &lt;ユーザ発話文字列&gt;} 
+    ...
+]
+</pre></div>
+</div>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">session_id</span></code> （文字列）</p>
+<p>セッションID</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">user_id</span></code> （文字列）</p>
+<p>ユーザID</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aux_data</span></code> (辞書型）</p>
+<p>メインプロセスから受け取った補助データ</p>
+</li>
+</ul>
+</li>
+<li><p>返り値は以下のTuple</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">system_utterance</span></code> （文字列）</p>
+<p>システム発話</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aux_data</span></code> (辞書型）</p>
+<p>アップデートした補助データ</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">final</span></code> (ブール値)</p>
+<p>対話の終わりかどうか</p>
+</li>
+</ul>
+</li>
+</ul>
 </section>
 </section>
 </section>
