@@ -721,7 +721,7 @@ class Manager(AbstractBlock):
                 return aux_data[slot_name]
             else:
                 self.log_warning(f"special variable #{str(argument.get_name())} is not realized.", session_id=session_id)
-                return slot_name  # do not realize
+                return ""  # do not realize
         elif argument.is_variable():  # realize
             variable_name: str = argument.get_name()
             if variable_name not in self._dialogue_context[session_id]:

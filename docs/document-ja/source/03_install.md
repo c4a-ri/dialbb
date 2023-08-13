@@ -45,9 +45,11 @@ $ git clone https://github.com/c4a-ri/dialbb.git <ディレクトリ名>
   $ pip install -r requirements.txt 
   ```
 
-## オウム返しサンプルアプリケーションのサーバの起動
+## オウム返しサンプルアプリケーション
 
-ただオウム返しを行うアプリケーションです．
+### 起動
+
+ただオウム返しを行うアプリケーションです．組み込みブロッククラスは使っていません．
 
 ```sh
 $ python run_server.py sample_apps/parrot/config.yml
@@ -93,16 +95,32 @@ curlをインストールしていない場合は，「{ref}`test_with_browser`�
    "user_id":"user1"}
   ```
 
-## SNIPS言語理解と状態遷移ネットワークベースの対話管理を用いたサンプルアプリケーション
+(snips_network_app)=
+## SNIPS+ネットワークベース対話管理アプリケーション
 
-DialBBには，あらかじめ作成してあるブロック（組み込みブロック）を用いたサンプルアプリケーションがいくつかあります．ここでは、SNIPS言語理解と状態遷移ネットワークベースの対話管理を用いたサンプルアプリケーションの起動の仕方を説明します。
+以下の組み込みブロックを用いたサンプルアプリケーションです．
+`sample_apps/network_ja/`に日本語版が，`sample_apps/network_en/`に英語があります．
+
+- 日本語アプリケーション
+
+  - {ref}`japanese_canonicalizer`
+  - {ref}`sudachi_tokenizer`
+  - {ref}`snips_understander`
+  - {ref}`stn_manager`
+
+- 英語アプリケーション
+
+  - {ref}`simple_canonicalizer`
+  - {ref}`whitespace_tokenizer`
+  - {ref}`snips_understander`
+  - {ref}`stn_manager`
 
 
 ### 必要なPythonライブラリのインストール
 
-  本アプリケーションを使用しない場合は、以下の手順はスキップして構いません。
+  本アプリケーションを使用しない場合は，以下の手順はスキップして構いません．
   
-  以下を実行します。
+  以下を実行します．
 
   ```sh
   # 以下のどちらかを実行
@@ -209,25 +227,75 @@ http://<hostname>:8080/test
 
 ​    `sample_apps/network_ja/_test_outputs.txt`に対話のやりとりが書き込まれます．
 
-## SNIPS言語理解と状態遷移ネットワークベースの対話管理を用いたサンプルアプリケーションの実験版
+## 実験アプリケーション
 
-`sample_apps/lab_app_ja/`に、SNIPS言語理解と状態遷移ネットワークベースの対話管理を用いた、アプリケーションの実験版があります（日本語のみ）．組み込みブロックの様々な機能を試すためのアプリケーションです．
+`sample_apps/lab_app_ja/`に実験的なアプリケーションがあります（日本語のみ）．組み込みブロックの様々な機能を試すためのアプリケーションです．以下の組み込みブロックを用いています．
 
-詳細は`sample_apps/lab_app_ja/README.md`を参照してください．
+
+- {ref}`japanese_canonicalizer`
+- {ref}`sudachi_tokenizer`
+- {ref}`snips_understander`
+- {ref}`spacy_ner`
+- {ref}`stn_manager`
+
+### Pythonライブラリのインストール
+
+  以下を実行します．
+
+  ```sh
+  $ pip install -r sample_apps/lab_app_ja/requirements.txt 
+  ```
+
+### 環境変数の設定
+
+本アプリケーションではOpenAIのChatGPTを使うことができます．ChatGPTを使うためには，環境変数`OPENAI_KEY`にOpenAIのAPIキーを設定します．以下はbashの例です．
+
+```sh
+$ export OPENAI_KEY=<OpenAIのAPIキー>
+```
+
+環境変数`OPENAI_KEY`が指定されていない場合，ChatGPTを使わずに動作します．
+  
+### 起動方法
+
+  ```sh
+  $ python run_server.py sample_apps/lab_app_ja/config_ja.yml 
+  ```
+
+### テスト方法
+
+以下のコマンドで、{ref}`snips_network_app`では使用していない機能をテストすることができます。
+
+  ```sh
+  $ cd sample_apps/lab_app_ja
+  $ export DIALBB_HOME=<DialBBのホームディレクトリ>
+  $ export PYTHONPATH=$DIALBB_HOME:$PYTHONPATH
+  $ python $DIALBB_HOME/dialbb/util/send_test_request.py config.yml test_requests.json
+  ```
 
 ## ChatGPTを用いたアプリケーション
 
-`sample_apps/chatgpt/`にChatGPTのみを用いて対話を行うアプリケーションがあります。
+以下の組み込みブロックを用い，OpenAIのChatGPTを用いて対話を行います．
+
+- {ref}`chatgpt_dialogue`
 
 
 ### Pythonライブラリのインストール
 
-  以下を実行します。
+  以下を実行します．
 
   ```sh
   $ pip install -r sample_apps/chatgpt/requirements.txt 
   ```
 
+### 環境変数の設定
+
+環境変数OPENAI_KEYにOpenAIのAPIキーを設定します．以下はbashの例です．
+
+```sh
+$ export OPENAI_KEY=<OpenAIのAPIキー>
+```
+  
 ### 起動方法
 
   日本語版
@@ -241,7 +309,6 @@ http://<hostname>:8080/test
   ```sh
   $ python run_server.py sample_apps/chatgpt/config_en.yml 
   ```
-
 
 
 

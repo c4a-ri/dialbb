@@ -36,6 +36,53 @@ blocks:  # ブロックのリスト
       - T
     sudachi_normalization: yes
     num_candidates: 3
+  - name: ner
+    block_class: dialbb.builtin_blocks.ner_with_spacy.ne_recognizer.SpaCyNER
+    input:
+      input_text: user_utterance
+      aux_data: aux_data
+    output:
+      aux_data: aux_data
+    model: ja_ginza_electra
+    patterns:
+      - label: Date
+        pattern: 昨日
+      - label: Date
+        pattern: きのう
+      - label: Date
+        pattern: 今日
+      - label: Date
+        pattern: 明日
+      - label: Date
+        pattern: あした
+      - label: Date
+        pattern: 明後日
+      - label: Date
+        pattern: あさって
+      - label: Date
+        pattern: 一昨日
+      - label: Date
+        pattern: おととい
+      - label: Date
+        pattern: 先週
+      - label: Date
+        pattern: 今週
+      - label: Date
+        pattern: 来週
+      - label: Date
+        pattern: 先月
+      - label: Date
+        pattern: 今月
+      - label: Date
+        pattern: 来月
+      - label: Date
+        pattern: 昨年
+      - label: Date
+        pattern: 今年
+      - label: Date
+        pattern: 来年
+      - label: Date
+        pattern: 年
   - name: manager
     block_class: dialbb.builtin_blocks.stn_management.stn_manager.Manager
     knowledge_file: lab_app_ja_knowledge.xlsx # 知識記述ファイル
