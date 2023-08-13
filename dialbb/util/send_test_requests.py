@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# send_test_request.py
+# send_test_requests.py
 #   automatically sends test requests
 #   自動でリクエストを送る
 

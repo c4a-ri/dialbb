@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>4. 日本語サンプルアプリケーションの説明 &mdash; DialBBドキュメント ver. 0.6 v0.6.0 ドキュメント</title>
+  <title>4. 日本語SNIPS+ネットワークベース対話管理アプリケーションの説明 &mdash; DialBBドキュメント ver. 0.6 v0.6.0 ドキュメント</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -46,13 +46,13 @@
 <li class="toctree-l1"><a class="reference internal" href="01_intro.html">1. はじめに</a></li>
 <li class="toctree-l1"><a class="reference internal" href="02_concept.html">2. DialBBの概要</a></li>
 <li class="toctree-l1"><a class="reference internal" href="03_install.html">3. インストールとサンプルアプリケーションの実行の仕方</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">4. 日本語サンプルアプリケーションの説明</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#id2">4.1. システム構成</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id3">4.2. アプリケーションを構成するファイル</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">4. 日本語SNIPS+ネットワークベース対話管理アプリケーションの説明</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id1">4.1. システム構成</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id2">4.2. アプリケーションを構成するファイル</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#snips-understander">4.3. SNIPS Understanderブロック</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id4">4.3.1. 言語理解結果</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id5">4.3.2. 言語理解知識</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#snips">4.3.3. SNIPS用の訓練データ</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id3">4.3.1. 言語理解結果</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id4">4.3.2. 言語理解知識</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id5">4.3.3. SNIPS用の訓練データ</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#stn-manager">4.4. STN Managerブロック</a></li>
@@ -76,7 +76,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active"><span class="section-number">4. </span>日本語サンプルアプリケーションの説明</li>
+      <li class="breadcrumb-item active"><span class="section-number">4. </span>日本語SNIPS+ネットワークベース対話管理アプリケーションの説明</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/04_sample_app.md.txt" rel="nofollow"> View page source</a>
       </li>
@@ -86,15 +86,14 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="id1">
-<h1><span class="section-number">4. </span>日本語サンプルアプリケーションの説明<a class="headerlink" href="#id1" title="この見出しへのパーマリンク"></a></h1>
-<p>本節では，日本語サンプルアプリケーションを通して，DialBBアプリケーションの構成を説明します．</p>
-<section id="id2">
-<h2><span class="section-number">4.1. </span>システム構成<a class="headerlink" href="#id2" title="この見出しへのパーマリンク"></a></h2>
+  <section id="snips">
+<h1><span class="section-number">4. </span>日本語SNIPS+ネットワークベース対話管理アプリケーションの説明<a class="headerlink" href="#snips" title="この見出しへのパーマリンク"></a></h1>
+<p>本節では，日本語SNIPS+ネットワークベース対話管理アプリケーションを通して，DialBBアプリケーションの構成を説明します．</p>
+<section id="id1">
+<h2><span class="section-number">4.1. </span>システム構成<a class="headerlink" href="#id1" title="この見出しへのパーマリンク"></a></h2>
 <p>本アプリケーションは以下のようなシステム構成をしています．</p>
 <p><img alt="sample-arch" src="_images/sample-arch.jpg" /></p>
-<p>本アプリケーションでは，以下のつの組み込みブロックを利用しています．
-なお，組み込みブロックとは，DialBBにあらかじめ含まれているブロックです．これらの組み込みブロックの詳細は，「<a class="reference internal" href="06_builtin_blocks.html#builtin-blocks"><span class="std std-ref">組み込みブロッククラスの仕様</span></a>」で説明します．</p>
+<p>本アプリケーションでは，以下のつの組み込みブロックを利用しています．なお，組み込みブロックとは，DialBBにあらかじめ含まれているブロックです．これらの組み込みブロックの詳細は，「<a class="reference internal" href="06_builtin_blocks.html#builtin-blocks"><span class="std std-ref">組み込みブロッククラスの仕様</span></a>」で説明します．</p>
 <ul class="simple">
 <li><p>Japanese Canonicalizer: ユーザ入力文の正規化（大文字→小文字，全角→半角の変換，Unicode正規化など）を行います．</p></li>
 <li><p>Sudachi Tokenizer: 正規化されたユーザ入力文を単語に分割します．形態素解析器<a class="reference external" href="https://github.com/WorksApplications/Sudachi">Sudachi</a>を用います．</p></li>
@@ -103,8 +102,8 @@
 </ul>
 <p>メインモジュールとブロックを結ぶ矢印の上の記号は，左側がメインモジュールのblackboardにおけるキーで，右側がブロックの入出力におけるキーです．</p>
 </section>
-<section id="id3">
-<h2><span class="section-number">4.2. </span>アプリケーションを構成するファイル<a class="headerlink" href="#id3" title="この見出しへのパーマリンク"></a></h2>
+<section id="id2">
+<h2><span class="section-number">4.2. </span>アプリケーションを構成するファイル<a class="headerlink" href="#id2" title="この見出しへのパーマリンク"></a></h2>
 <p>本アプリケーションを構成するファイルは<code class="docutils literal notranslate"><span class="pre">sample_apps/network_ja</span></code>ディレクトリ（フォルダ）にあります．ここにあるファイルを変更することで，どのようにすればアプリケーションを変更することができるかを知ることができます．ファイルを大幅に変更すれば全く異なる対話システムも作ることができます．</p>
 <p>sample_apps/network_jaには以下のファイルが含まれています．</p>
 <ul>
@@ -130,8 +129,8 @@
 </section>
 <section id="snips-understander">
 <h2><span class="section-number">4.3. </span>SNIPS Understanderブロック<a class="headerlink" href="#snips-understander" title="この見出しへのパーマリンク"></a></h2>
-<section id="id4">
-<h3><span class="section-number">4.3.1. </span>言語理解結果<a class="headerlink" href="#id4" title="この見出しへのパーマリンク"></a></h3>
+<section id="id3">
+<h3><span class="section-number">4.3.1. </span>言語理解結果<a class="headerlink" href="#id3" title="この見出しへのパーマリンク"></a></h3>
 <p>SNIPS Understanderブロックは，入力発話を解析し，言語理解結果を出力します．
 言語理解結果はタイプとスロットの集合からなります．</p>
 <p>例えば，「好きなのは醤油」の言語理解結果は次のようになります．</p>
@@ -140,8 +139,8 @@
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">&quot;特定のラーメンが好き&quot;</span></code>がタイプで，<code class="docutils literal notranslate"><span class="pre">&quot;favarite_ramen&quot;</span></code>スロットの値が<code class="docutils literal notranslate"><span class="pre">&quot;醤油ラーメン&quot;</span></code>です．複数のスロットを持つような発話もあり得ます．</p>
 </section>
-<section id="id5">
-<h3><span class="section-number">4.3.2. </span>言語理解知識<a class="headerlink" href="#id5" title="この見出しへのパーマリンク"></a></h3>
+<section id="id4">
+<h3><span class="section-number">4.3.2. </span>言語理解知識<a class="headerlink" href="#id4" title="この見出しへのパーマリンク"></a></h3>
 <p>SNIPS Understanderブロックが用いる言語理解用の知識は，<code class="docutils literal notranslate"><span class="pre">sample-knowledge-ja.xlsx</span></code>に書かれています．</p>
 <p>言語理解知識は，以下の４つのシートからなります．</p>
 <table class="docutils align-default">
@@ -167,8 +166,8 @@
 </table>
 <p>これらの詳細は「<a class="reference internal" href="06_builtin_blocks.html#nlu-knowledge"><span class="std std-ref">言語理解知識</span></a>」を参照してください．</p>
 </section>
-<section id="snips">
-<h3><span class="section-number">4.3.3. </span>SNIPS用の訓練データ<a class="headerlink" href="#snips" title="この見出しへのパーマリンク"></a></h3>
+<section id="id5">
+<h3><span class="section-number">4.3.3. </span>SNIPS用の訓練データ<a class="headerlink" href="#id5" title="この見出しへのパーマリンク"></a></h3>
 <p>アプリを立ち上げると上記の知識はSNIPS用の訓練データに変換され，モデルが作られます．</p>
 <p>SNIPS用の訓練データはアプリのディレクトリの<code class="docutils literal notranslate"><span class="pre">_training_data.json</span></code>です．このファイルを見ることで，うまく変換されているかどうかを確認できます．</p>
 </section>
