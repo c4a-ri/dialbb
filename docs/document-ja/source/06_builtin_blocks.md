@@ -6,6 +6,7 @@
 ver0.3で正規化ブロッククラスが変更になりました．また，新たに単語分割のブロッククラスが導入されました．
 それに伴い，SNIPS言語理解の入力も変更になっています．
 
+(japanese_canonicalizer)=
 ## Japanese canonicalizer （日本語文字列正規化ブロック）
 
 (`dialbb.builtin_blocks.preprocess.japanese_canonicalizer.JapaneseCanonicalizer`)
@@ -33,6 +34,7 @@ ver0.3で正規化ブロッククラスが変更になりました．また，�
 - スペースの削除
 - Unicode正規化（NFKC）
 
+(simple_canonicalizer)=
 ## Simple canonicalizer （単純文字列正規化ブロック）
 
 (`dialbb.builtin_blocks.preprocess.simple_canonicalizer.SimpleCanonicalizer`)
@@ -59,6 +61,7 @@ ver0.3で正規化ブロッククラスが変更になりました．また，�
 - スペースの連続を一つのスペースに変換
 
 
+(sudachi_tokenizer)=
 ## Sudachi tokenizer （Sudachiベースの日本語単語分割ブロック）
 
 (`dialbb.builtin_blocks.tokenization.sudachi_tokenizer.SudachiTokenizer`)
@@ -83,6 +86,7 @@ Sudachiの`SplitMode.C`を用いて単語分割します．
 ブロックコンフィギュレーションの`sudachi_normalization`の値が`True`の時，Sudachi正規化を行います．
 デフォルト値は`False`です．
 
+(whitespace_tokenizer)=
 ## Whitespace tokenizer （空白ベースの単語分割ブロック）
 
 (`dialbb.builtin_blocks.tokenization.whitespace_tokenizer.WhitespaceTokenizer`)
@@ -105,6 +109,7 @@ Sudachiの`SplitMode.C`を用いて単語分割します．
 単純正規化ブロックで正規化された入力を空白で区切って単語に分割します．
 
 
+(snips_understander)=
 ## SNIPS understander （SNIPSを用いた言語理解ブロック）
 
 (`dialbb.builtin_blocks.understanding_with_snips.snips_understander.Understander`)  
@@ -725,7 +730,8 @@ ver. 0.4.0で，音声認識結果を入力として扱うときに生じる問�
 
 
 
-## ChatGPT Dialogue Manager （ChatGPTベースの対話ブロック）
+(chatgpt_dialogue)=
+## ChatGPT Dialogue （ChatGPTベースの対話ブロック）
 
 (`dialbb.builtin_blocks.chatgpt.chatgpt_ja.ChatGPT_Ja`, （日本語用）`dialbb.builtin_blocks.chatgpt.chatgpt_ja.ChatGPT_En`（英語用）)
 
@@ -828,7 +834,7 @@ Open AIのChatGPTを用いて対話を行います．
 
 先に述べたように，`dialbb.builtin_blocks.chatgpt.chatgpt.ChatGPT`のサブクラスを作り，自作ブロックとして利用することで，柔軟に制御を変更することができます．
 
-サブクラスを作る際には、以下のメソッドを実装します。
+サブクラスを作る際には，以下のメソッドを実装します．
 
 ```python 
 _generate_system_utterance(self, dialogue_history: List[Dict[str, str]],
@@ -876,16 +882,63 @@ _generate_system_utterance(self, dialogue_history: List[Dict[str, str]],
      対話の終わりかどうか
   
   
+(spacy_ner)=
+## spaCy-Based Named Entity Recognizer （spaCyを用いた固有表現抽出ブロック）
+(`dialbb.builtin_blocks.ner_with_spacy.ne_recognizer.SpaCyNER`)
 
+[spaCy](https://spacy.io)および[GiNZA](https://megagonlabs.github.io/ginza/)を用いて固有表現抽出を行います．
+
+### 入出力
+
+- 入力
+  - `input_text`: 入力文字列（文字列）
+  - `aux_data`: 補助データ（辞書型）
   
-  
-  
-  
-  
+- 出力
+  - `aux_data`: 補助データ（辞書型）
+     
+     入力された`aux_data`に固有表現抽出結果を加えたものです．
 
+	 固有表現抽出結果は，以下の形です．
 
+	 ```json
+	 {"NE_<ラベル>": "<固有表現>", "NE_<ラベル>": "<固有表現>", ...}
+	 ```
+     <ラベル>は固有表現のクラスです．固有表現は見つかった固有表現で，`input_text`の部分文字列です．同じクラスの固有表現が複数見つかった場合，`:`で連結します．
 
+     例
+	 
+	 ```json
+	 {"NE_Person": "田中:鈴木", "NE_Dish": "味噌ラーメン"}
+	 ```
 
+     固有表現のクラスについては，spaCy/GiNZAのモデルのサイトを参照してください．
+	 
+	 - `ja-ginza-electra` (5.1.2):，https://pypi.org/project/ja-ginza-electra/ 
+	 - `en_core_web_trf` (3.5.0):，https://huggingface.co/spacy/en_core_web_trfhttps://pypi.org/project/ja-ginza-electra/ 
+	 
 
+### ブロックコンフィギュレーションのパラメータ
 
+- `model` (文字列．必須）
 
+   spaCy/GiNZAのモデルの名前です．`ja_ginza_electra` (日本語），`en_core_web_trf` (英語）などを指定できます．
+
+- `patterns` (オブジェクト．任意）
+
+   ルールベースの固有表現抽出パターンを記述します．パターンは，[spaCyのパターンの説明](https://spacy.io/usage/rule-based-matching)に書いてあるものをYAML形式にしたものです．
+   
+   以下が日本語の例です．
+   
+   ```yaml
+   patterns: 
+     - label: Date
+       pattern: 昨日
+     - label: Date
+       pattern: きのう
+   ```
+            
+
+### 処理内容
+
+spaCy/GiNZAを用いて`input_text`中の固有表現を抽出し，`aux_data`にその結果を入力して返します．
