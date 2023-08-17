@@ -77,7 +77,7 @@ ver0.3で正規化ブロッククラスが変更になりました．また，�
 - 出力
   - `tokens`: トークンのリスト（文字列のリスト）
     - 例：['私','は','ラーメン','が','食べ','たい']
-  - `tokens_with_indices`: トークン情報のリスト（`dialbb.tokenization.abstract_tokenizer.TokenWIthIndices`クラスのオブジェクトのリスト）．トークン情報には，トークンに加えてそのトークンの開始位置が元の文字列の何文字目から何文字目までなのかの情報も含まれている．
+  - `tokens_with_indices`: トークン情報のリスト（`dialbb.tokenization.abstract_tokenizer.TokenWIthIndices`クラスのオブジェクトのリスト）．トークン情報には，トークンに加えてそのトークンが元の文字列の何文字目から何文字目までなのかの情報も含まれています．
 
 ### 処理内容
 
@@ -117,7 +117,6 @@ Sudachiの`SplitMode.C`を用いて単語分割します．
 [SNIPS_NLU](https://snips-nlu.readthedocs.io/en/latest/)を利用して，ユーザ発話タイプ（インテントとも呼びます）の決定とスロットの抽出を行います．
 
 コンフィギュレーションの`language`要素が`ja`の場合は日本語，`en`の場合は英語の言語理解を行います．
-日本語の場合は，SNIPSを適用する前にを用いて形態素解析を行います．
 
 本ブロックは，起動時にExcelで記述した言語理解用知識を読み込み，SNIPSの訓練データに変更し，SNIPSのモデルを構築します．
 
@@ -735,7 +734,7 @@ ver. 0.4.0で，音声認識結果を入力として扱うときに生じる問�
 
 (`dialbb.builtin_blocks.chatgpt.chatgpt_ja.ChatGPT_Ja`, （日本語用）`dialbb.builtin_blocks.chatgpt.chatgpt_ja.ChatGPT_En`（英語用）)
 
-Open AIのChatGPTを用いて対話を行います．
+OpenAI社のChatGPTを用いて対話を行います．
 
 これらのクラスは`dialbb.builtin_blocks.chatgpt.chatgpt.ChatGPT`のサブクラスです．`dialbb.builtin_blocks.chatgpt.chatgpt.ChatGPT`のサブクラスを新たに作ることで，ChatGPTを使った新たなブロックを作ることができます．
 

@@ -45,7 +45,7 @@
 <li class="toctree-l1"><a class="reference internal" href="01_intro.html">1. はじめに</a></li>
 <li class="toctree-l1"><a class="reference internal" href="02_concept.html">2. DialBBの概要</a></li>
 <li class="toctree-l1"><a class="reference internal" href="03_install.html">3. インストールとサンプルアプリケーションの実行の仕方</a></li>
-<li class="toctree-l1"><a class="reference internal" href="04_sample_app.html">4. 日本語サンプルアプリケーションの説明</a></li>
+<li class="toctree-l1"><a class="reference internal" href="04_sample_app.html">4. 日本語SNIPS+ネットワークベース対話管理アプリケーションの説明</a></li>
 <li class="toctree-l1"><a class="reference internal" href="05_framework.html">5. フレームワーク仕様</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">6. 組み込みブロッククラスの仕様</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#japanese-canonicalizer">6.1. Japanese canonicalizer （日本語文字列正規化ブロック）</a><ul>
@@ -255,7 +255,7 @@
 <li><p>例：['私','は','ラーメン','が','食べ','たい']</p></li>
 </ul>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">tokens_with_indices</span></code>: トークン情報のリスト（<code class="docutils literal notranslate"><span class="pre">dialbb.tokenization.abstract_tokenizer.TokenWIthIndices</span></code>クラスのオブジェクトのリスト）．トークン情報には，トークンに加えてそのトークンの開始位置が元の文字列の何文字目から何文字目までなのかの情報も含まれている．</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tokens_with_indices</span></code>: トークン情報のリスト（<code class="docutils literal notranslate"><span class="pre">dialbb.tokenization.abstract_tokenizer.TokenWIthIndices</span></code>クラスのオブジェクトのリスト）．トークン情報には，トークンに加えてそのトークンが元の文字列の何文字目から何文字目までなのかの情報も含まれています．</p></li>
 </ul>
 </li>
 </ul>
@@ -304,8 +304,7 @@
 <span id="snips-understander"></span><h2><span class="section-number">6.5. </span>SNIPS understander （SNIPSを用いた言語理解ブロック）<a class="headerlink" href="#snips-understander-snips" title="この見出しへのパーマリンク"></a></h2>
 <p>(<code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.understanding_with_snips.snips_understander.Understander</span></code>)</p>
 <p><a class="reference external" href="https://snips-nlu.readthedocs.io/en/latest/">SNIPS_NLU</a>を利用して，ユーザ発話タイプ（インテントとも呼びます）の決定とスロットの抽出を行います．</p>
-<p>コンフィギュレーションの<code class="docutils literal notranslate"><span class="pre">language</span></code>要素が<code class="docutils literal notranslate"><span class="pre">ja</span></code>の場合は日本語，<code class="docutils literal notranslate"><span class="pre">en</span></code>の場合は英語の言語理解を行います．
-日本語の場合は，SNIPSを適用する前にを用いて形態素解析を行います．</p>
+<p>コンフィギュレーションの<code class="docutils literal notranslate"><span class="pre">language</span></code>要素が<code class="docutils literal notranslate"><span class="pre">ja</span></code>の場合は日本語，<code class="docutils literal notranslate"><span class="pre">en</span></code>の場合は英語の言語理解を行います．</p>
 <p>本ブロックは，起動時にExcelで記述した言語理解用知識を読み込み，SNIPSの訓練データに変更し，SNIPSのモデルを構築します．</p>
 <p>実行時はSNIPSのモデルを用いて言語理解を行います．</p>
 <section id="id13">
@@ -873,7 +872,7 @@
 <section id="chatgpt-dialogue-chatgpt">
 <span id="chatgpt-dialogue"></span><h2><span class="section-number">6.7. </span>ChatGPT Dialogue （ChatGPTベースの対話ブロック）<a class="headerlink" href="#chatgpt-dialogue-chatgpt" title="この見出しへのパーマリンク"></a></h2>
 <p>(<code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.chatgpt.chatgpt_ja.ChatGPT_Ja</span></code>, （日本語用）<code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.chatgpt.chatgpt_ja.ChatGPT_En</span></code>（英語用）)</p>
-<p>Open AIのChatGPTを用いて対話を行います．</p>
+<p>OpenAI社のChatGPTを用いて対話を行います．</p>
 <p>これらのクラスは<code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.chatgpt.chatgpt.ChatGPT</span></code>のサブクラスです．<code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.chatgpt.chatgpt.ChatGPT</span></code>のサブクラスを新たに作ることで，ChatGPTを使った新たなブロックを作ることができます．</p>
 <section id="id34">
 <h3><span class="section-number">6.7.1. </span>入出力<a class="headerlink" href="#id34" title="この見出しへのパーマリンク"></a></h3>
