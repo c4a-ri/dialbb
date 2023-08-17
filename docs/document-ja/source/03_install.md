@@ -248,7 +248,7 @@ http://<hostname>:8080/test
 
 ### 環境変数の設定
 
-本アプリケーションではOpenAIのChatGPTを使うことができます．ChatGPTを使うためには，環境変数`OPENAI_KEY`にOpenAIのAPIキーを設定します．以下はbashの例です．
+本アプリケーションではOpenAI社のChatGPTを使うことができます．ChatGPTを使うためには，環境変数`OPENAI_KEY`にOpenAIのAPIキーを設定します．以下はbashの例です．
 
 ```sh
 $ export OPENAI_KEY=<OpenAIのAPIキー>

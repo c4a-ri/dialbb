@@ -735,7 +735,7 @@ ver. 0.4.0で，音声認識結果を入力として扱うときに生じる問�
 
 (`dialbb.builtin_blocks.chatgpt.chatgpt_ja.ChatGPT_Ja`, （日本語用）`dialbb.builtin_blocks.chatgpt.chatgpt_ja.ChatGPT_En`（英語用）)
 
-Open AIのChatGPTを用いて対話を行います．
+OpenAI社のChatGPTを用いて対話を行います．
 
 これらのクラスは`dialbb.builtin_blocks.chatgpt.chatgpt.ChatGPT`のサブクラスです．`dialbb.builtin_blocks.chatgpt.chatgpt.ChatGPT`のサブクラスを新たに作ることで，ChatGPTを使った新たなブロックを作ることができます．
 
