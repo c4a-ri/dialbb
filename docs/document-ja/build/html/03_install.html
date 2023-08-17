@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>3. インストールとサンプルアプリケーションの実行の仕方 &mdash; DialBBドキュメント ver. 0.5 v0.5.1 ドキュメント</title>
+  <title>3. インストールとサンプルアプリケーションの実行の仕方 &mdash; DialBBドキュメント ver. 0.6 v0.6.0 ドキュメント</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -18,7 +18,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="索引" href="genindex.html" />
     <link rel="search" title="検索" href="search.html" />
-    <link rel="next" title="4. 日本語サンプルアプリケーションの説明" href="04_sample_app.html" />
+    <link rel="next" title="4. 日本語SNIPS+ネットワークベース対話管理アプリケーションの説明" href="04_sample_app.html" />
     <link rel="prev" title="2. DialBBの概要" href="02_concept.html" /> 
 </head>
 
@@ -31,7 +31,7 @@
           
           
           <a href="index.html" class="icon icon-home">
-            DialBBドキュメント ver. 0.5
+            DialBBドキュメント ver. 0.6
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -49,21 +49,35 @@
 <li class="toctree-l2"><a class="reference internal" href="#id2">3.1. 実行環境</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#dialbb">3.2. DialBBのインストール</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#python">3.3. Pythonライブラリのインストール</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#graphviz">3.4. Graphvizのインストール</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id3">3.5. オウム返しサンプルアプリケーションのサーバの起動</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id4">3.5.1. 動作確認</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id3">3.4. オウム返しサンプルアプリケーション</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id4">3.4.1. 起動</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id5">3.4.2. 動作確認</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#id5">3.6. 組み込みブロックを用いたサンプルアプリケーションの起動</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id6">3.6.1. 起動</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#test-with-browser">3.6.2. 動作確認</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id8">3.6.3. テストセットを用いた動作確認</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id9">3.6.4. 実験用アプリケーション</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#snips">3.5. SNIPS+ネットワークベース対話管理アプリケーション</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id6">3.5.1. 必要なPythonライブラリのインストール</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphviz">3.5.2. Graphvizのインストール</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id7">3.5.3. 起動</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#test-with-browser">3.5.4. 動作確認</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id9">3.5.5. テストセットを用いた動作確認</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id10">3.6. 実験アプリケーション</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id11">3.6.1. Pythonライブラリのインストール</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id12">3.6.2. 環境変数の設定</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id13">3.6.3. 起動方法</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id14">3.6.4. テスト方法</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#chatgpt">3.7. ChatGPTを用いたアプリケーション</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id15">3.7.1. Pythonライブラリのインストール</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id16">3.7.2. 環境変数の設定</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id17">3.7.3. 起動方法</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="04_sample_app.html">4. 日本語サンプルアプリケーションの説明</a></li>
+<li class="toctree-l1"><a class="reference internal" href="04_sample_app.html">4. 日本語SNIPS+ネットワークベース対話管理アプリケーションの説明</a></li>
 <li class="toctree-l1"><a class="reference internal" href="05_framework.html">5. フレームワーク仕様</a></li>
 <li class="toctree-l1"><a class="reference internal" href="06_builtin_blocks.html">6. 組み込みブロッククラスの仕様</a></li>
 </ul>
@@ -74,7 +88,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">DialBBドキュメント ver. 0.5</a>
+          <a href="index.html">DialBBドキュメント ver. 0.6</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -123,47 +137,24 @@ $<span class="w"> </span>venv/bin/activate<span class="w">   </span><span class=
 </pre></div>
 </div>
 </li>
-<li><p>次に以下を実行してください．</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt<span class="w"> </span>
-$<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>snips_nlu<span class="w"> </span>download<span class="w"> </span>en<span class="w"> </span><span class="c1"># 英語アプリケーションを作成・利用する場合</span>
-$<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>snips_nlu<span class="w"> </span>download<span class="w"> </span>ja<span class="w"> </span><span class="c1"># 日本語アプリケーションを作成・利用する場合</span>
+<li><p>次に以下を実行して，最低限のライブラリをインストールします．</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>$ pip install -r requirements.txt 
 </pre></div>
 </div>
-<p>注意</p>
-</li>
-<li><p>途中でエラーになり，Rustなどの追加のソフトウェアのインストールを求められる場合があります．その場合，指示にしがってインストールしてください．うまくいかない場合はREADMEに書いてある連絡先に連絡してください．</p></li>
-<li><p>python3.9以上の場合，</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="ne">ModuleNotFoundError</span><span class="p">:</span> <span class="n">No</span> <span class="n">module</span> <span class="n">named</span> <span class="s1">&#39;setuptools_rust&#39;</span>
-</pre></div>
-</div>
-<p>などのエラーが出るかもしれません．その場合，以下のコマンドで解決する可能性があります．</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">upgrade</span> <span class="n">pip</span> <span class="n">setuptools</span> <span class="n">wheel</span>
-</pre></div>
-</div>
-<p>その他，エラーメッセージに応じて必要なライブラリをインストールしてください．不明点があったりうまくいかなったりした場合は連絡してください．</p>
-</li>
-<li><p>Windows上のAnacondaを用いて実行する場合，Anaconda Promptを管理者モードで起動しないといけない可能性があります．</p></li>
-<li><p>pyenvを使っている場合，以下のエラーが出る可能性があります．</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="ne">ModuleNotFoundError</span><span class="p">:</span> <span class="n">No</span> <span class="n">module</span> <span class="n">named</span> <span class="s1">&#39;_bz2&#39;</span> 
-</pre></div>
-</div>
-<p>それに対する対処法は<a class="reference external" href="https://qiita.com/kasajei/items/5e22161b62f4b84787bc">この記事</a>などを参照ください．</p>
 </li>
 </ul>
 </section>
-<section id="graphviz">
-<h2><span class="section-number">3.4. </span>Graphvizのインストール<a class="headerlink" href="#graphviz" title="この見出しへのパーマリンク"></a></h2>
-<p><a class="reference external" href="https://graphviz.org/download/">Graphvizのサイト</a>などを参考にGraphvizをインストールします．
-ただ，Graphvizがなくてもアプリケーションを動作させることは可能です．</p>
-</section>
 <section id="id3">
-<h2><span class="section-number">3.5. </span>オウム返しサンプルアプリケーションのサーバの起動<a class="headerlink" href="#id3" title="この見出しへのパーマリンク"></a></h2>
-<p>ただオウム返しを行うアプリケーションです．</p>
+<h2><span class="section-number">3.4. </span>オウム返しサンプルアプリケーション<a class="headerlink" href="#id3" title="この見出しへのパーマリンク"></a></h2>
+<section id="id4">
+<h3><span class="section-number">3.4.1. </span>起動<a class="headerlink" href="#id4" title="この見出しへのパーマリンク"></a></h3>
+<p>ただオウム返しを行うアプリケーションです．組み込みブロッククラスは使っていません．</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python<span class="w"> </span>run_server.py<span class="w"> </span>sample_apps/parrot/config.yml
 </pre></div>
 </div>
-<section id="id4">
-<h3><span class="section-number">3.5.1. </span>動作確認<a class="headerlink" href="#id4" title="この見出しへのパーマリンク"></a></h3>
+</section>
+<section id="id5">
+<h3><span class="section-number">3.4.2. </span>動作確認<a class="headerlink" href="#id5" title="この見出しへのパーマリンク"></a></h3>
 <p>別のターミナルから以下を実行してください．
 curlをインストールしていない場合は，「<a class="reference internal" href="#test-with-browser"><span class="std std-ref">動作確認</span></a>」に書いてある方法でテストしてくださ
 い．</p>
@@ -199,11 +190,72 @@ curlをインストールしていない場合は，「<a class="reference inter
 </ul>
 </section>
 </section>
-<section id="id5">
-<h2><span class="section-number">3.6. </span>組み込みブロックを用いたサンプルアプリケーションの起動<a class="headerlink" href="#id5" title="この見出しへのパーマリンク"></a></h2>
-<p>DialBBには，あらかじめ作成してあるブロック（組み込みブロック）を用いたサンプルアプリケーションがあります．</p>
+<section id="snips">
+<span id="snips-network-app"></span><h2><span class="section-number">3.5. </span>SNIPS+ネットワークベース対話管理アプリケーション<a class="headerlink" href="#snips" title="この見出しへのパーマリンク"></a></h2>
+<p>以下の組み込みブロックを用いたサンプルアプリケーションです．
+<code class="docutils literal notranslate"><span class="pre">sample_apps/network_ja/</span></code>に日本語版が，<code class="docutils literal notranslate"><span class="pre">sample_apps/network_en/</span></code>に英語があります．</p>
+<ul class="simple">
+<li><p>日本語アプリケーション</p>
+<ul>
+<li><p><a class="reference internal" href="06_builtin_blocks.html#japanese-canonicalizer"><span class="std std-ref">Japanese canonicalizer （日本語文字列正規化ブロック）</span></a></p></li>
+<li><p><a class="reference internal" href="06_builtin_blocks.html#sudachi-tokenizer"><span class="std std-ref">Sudachi tokenizer （Sudachiベースの日本語単語分割ブロック）</span></a></p></li>
+<li><p><a class="reference internal" href="06_builtin_blocks.html#snips-understander"><span class="std std-ref">SNIPS understander （SNIPSを用いた言語理解ブロック）</span></a></p></li>
+<li><p><a class="reference internal" href="06_builtin_blocks.html#stn-manager"><span class="std std-ref">STN manager （状態遷移ネットワークベースの対話管理ブロック）</span></a></p></li>
+</ul>
+</li>
+<li><p>英語アプリケーション</p>
+<ul>
+<li><p><a class="reference internal" href="06_builtin_blocks.html#simple-canonicalizer"><span class="std std-ref">Simple canonicalizer （単純文字列正規化ブロック）</span></a></p></li>
+<li><p><a class="reference internal" href="06_builtin_blocks.html#whitespace-tokenizer"><span class="std std-ref">Whitespace tokenizer （空白ベースの単語分割ブロック）</span></a></p></li>
+<li><p><a class="reference internal" href="06_builtin_blocks.html#snips-understander"><span class="std std-ref">SNIPS understander （SNIPSを用いた言語理解ブロック）</span></a></p></li>
+<li><p><a class="reference internal" href="06_builtin_blocks.html#stn-manager"><span class="std std-ref">STN manager （状態遷移ネットワークベースの対話管理ブロック）</span></a></p></li>
+</ul>
+</li>
+</ul>
 <section id="id6">
-<h3><span class="section-number">3.6.1. </span>起動<a class="headerlink" href="#id6" title="この見出しへのパーマリンク"></a></h3>
+<h3><span class="section-number">3.5.1. </span>必要なPythonライブラリのインストール<a class="headerlink" href="#id6" title="この見出しへのパーマリンク"></a></h3>
+<p>本アプリケーションを使用しない場合は，以下の手順はスキップして構いません．</p>
+<p>以下を実行します．</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="c1"># 以下のどちらかを実行</span>
+$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>sample_apps/network_ja/requirements.txt<span class="w"> </span>
+$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>sample_apps/network_en/requirements.txt<span class="w"> </span>
+
+<span class="c1"># 英語アプリケーションを作成・利用する場合</span>
+$<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>snips_nlu<span class="w"> </span>download<span class="w"> </span>en<span class="w"> </span>
+
+<span class="c1"># 日本語アプリケーションを作成・利用する場合</span>
+$<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>snips_nlu<span class="w"> </span>download<span class="w"> </span>ja<span class="w"> </span>
+</pre></div>
+</div>
+<p>注意</p>
+<ul>
+<li><p>途中でエラーになり，Rustなどの追加のソフトウェアのインストールを求められる場合があります．その場合，指示にしがってインストールしてください．うまくいかない場合はREADMEに書いてある連絡先に連絡してください．</p></li>
+<li><p>python3.9以上の場合，</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="ne">ModuleNotFoundError</span><span class="p">:</span> <span class="n">No</span> <span class="n">module</span> <span class="n">named</span> <span class="s1">&#39;setuptools_rust&#39;</span>
+</pre></div>
+</div>
+<p>などのエラーが出るかもしれません．その場合，以下のコマンドで解決する可能性があります．</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">upgrade</span> <span class="n">pip</span> <span class="n">setuptools</span> <span class="n">wheel</span>
+</pre></div>
+</div>
+<p>その他，エラーメッセージに応じて必要なライブラリをインストールしてください．不明点があったりうまくいかなったりした場合は連絡してください．</p>
+</li>
+<li><p>Windows上のAnacondaを用いて実行する場合，Anaconda Promptを管理者モードで起動しないといけない可能性があります．</p></li>
+<li><p>pyenvを使っている場合，以下のエラーが出る可能性があります．</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="ne">ModuleNotFoundError</span><span class="p">:</span> <span class="n">No</span> <span class="n">module</span> <span class="n">named</span> <span class="s1">&#39;_bz2&#39;</span> 
+</pre></div>
+</div>
+<p>それに対する対処法は<a class="reference external" href="https://qiita.com/kasajei/items/5e22161b62f4b84787bc">この記事</a>などを参照ください．</p>
+</li>
+</ul>
+</section>
+<section id="graphviz">
+<h3><span class="section-number">3.5.2. </span>Graphvizのインストール<a class="headerlink" href="#graphviz" title="この見出しへのパーマリンク"></a></h3>
+<p><a class="reference external" href="https://graphviz.org/download/">Graphvizのサイト</a>などを参考にGraphvizをインストールします．
+ただ，Graphvizがなくてもアプリケーションを動作させることは可能です．</p>
+</section>
+<section id="id7">
+<h3><span class="section-number">3.5.3. </span>起動<a class="headerlink" href="#id7" title="この見出しへのパーマリンク"></a></h3>
 <p>以下のコマンドで起動します．</p>
 <ul>
 <li><p>英語アプリケーション</p>
@@ -219,7 +271,7 @@ curlをインストールしていない場合は，「<a class="reference inter
 </ul>
 </section>
 <section id="test-with-browser">
-<span id="id7"></span><h3><span class="section-number">3.6.2. </span>動作確認<a class="headerlink" href="#test-with-browser" title="この見出しへのパーマリンク"></a></h3>
+<span id="id8"></span><h3><span class="section-number">3.5.4. </span>動作確認<a class="headerlink" href="#test-with-browser" title="この見出しへのパーマリンク"></a></h3>
 <p>上記でアプリケーションを起動したサーバのホスト名かIPアドレスを<code class="docutils literal notranslate"><span class="pre">&lt;hostname&gt;</span></code>としたとき，ブラウザから以下のURLに接続すると対話画面が現れますので，そこで対話してみてください．</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">http</span><span class="p">:</span><span class="o">//&lt;</span><span class="n">hostname</span><span class="o">&gt;</span><span class="p">:</span><span class="mi">8080</span> 
 </pre></div>
@@ -229,8 +281,8 @@ curlをインストールしていない場合は，「<a class="reference inter
 </pre></div>
 </div>
 </section>
-<section id="id8">
-<h3><span class="section-number">3.6.3. </span>テストセットを用いた動作確認<a class="headerlink" href="#id8" title="この見出しへのパーマリンク"></a></h3>
+<section id="id9">
+<h3><span class="section-number">3.5.5. </span>テストセットを用いた動作確認<a class="headerlink" href="#id9" title="この見出しへのパーマリンク"></a></h3>
 <p>以下のコマンドで，ユーザ発話を順に処理して対話するテストを行うことができます．</p>
 <ul class="simple">
 <li><p>英語</p></li>
@@ -251,9 +303,79 @@ sample_apps/network_ja/_test_outputs.txt
 </div>
 <p>​    <code class="docutils literal notranslate"><span class="pre">sample_apps/network_ja/_test_outputs.txt</span></code>に対話のやりとりが書き込まれます．</p>
 </section>
-<section id="id9">
-<h3><span class="section-number">3.6.4. </span>実験用アプリケーション<a class="headerlink" href="#id9" title="この見出しへのパーマリンク"></a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">sample_apps/lab_app_ja/</span></code>に実験用アプリケーションがあります．組み込みブロックの様々な機能を試すためのアプリケーションです．詳細は<code class="docutils literal notranslate"><span class="pre">sample_apps/lab_app_ja/README.md</span></code>を参照してください．</p>
+</section>
+<section id="id10">
+<h2><span class="section-number">3.6. </span>実験アプリケーション<a class="headerlink" href="#id10" title="この見出しへのパーマリンク"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">sample_apps/lab_app_ja/</span></code>に実験的なアプリケーションがあります（日本語のみ）．組み込みブロックの様々な機能を試すためのアプリケーションです．以下の組み込みブロックを用いています．</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="06_builtin_blocks.html#japanese-canonicalizer"><span class="std std-ref">Japanese canonicalizer （日本語文字列正規化ブロック）</span></a></p></li>
+<li><p><a class="reference internal" href="06_builtin_blocks.html#sudachi-tokenizer"><span class="std std-ref">Sudachi tokenizer （Sudachiベースの日本語単語分割ブロック）</span></a></p></li>
+<li><p><a class="reference internal" href="06_builtin_blocks.html#snips-understander"><span class="std std-ref">SNIPS understander （SNIPSを用いた言語理解ブロック）</span></a></p></li>
+<li><p><a class="reference internal" href="06_builtin_blocks.html#spacy-ner"><span class="std std-ref">spaCy-Based Named Entity Recognizer （spaCyを用いた固有表現抽出ブロック）</span></a></p></li>
+<li><p><a class="reference internal" href="06_builtin_blocks.html#stn-manager"><span class="std std-ref">STN manager （状態遷移ネットワークベースの対話管理ブロック）</span></a></p></li>
+</ul>
+<section id="id11">
+<h3><span class="section-number">3.6.1. </span>Pythonライブラリのインストール<a class="headerlink" href="#id11" title="この見出しへのパーマリンク"></a></h3>
+<p>以下を実行します．</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>sample_apps/lab_app_ja/requirements.txt<span class="w"> </span>
+</pre></div>
+</div>
+</section>
+<section id="id12">
+<h3><span class="section-number">3.6.2. </span>環境変数の設定<a class="headerlink" href="#id12" title="この見出しへのパーマリンク"></a></h3>
+<p>本アプリケーションではOpenAI社のChatGPTを使うことができます．ChatGPTを使うためには，環境変数<code class="docutils literal notranslate"><span class="pre">OPENAI_KEY</span></code>にOpenAIのAPIキーを設定します．以下はbashの例です．</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span><span class="nb">export</span><span class="w"> </span><span class="nv">OPENAI_KEY</span><span class="o">=</span>&lt;OpenAIのAPIキー&gt;
+</pre></div>
+</div>
+<p>環境変数<code class="docutils literal notranslate"><span class="pre">OPENAI_KEY</span></code>が指定されていない場合，ChatGPTを使わずに動作します．</p>
+</section>
+<section id="id13">
+<h3><span class="section-number">3.6.3. </span>起動方法<a class="headerlink" href="#id13" title="この見出しへのパーマリンク"></a></h3>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python<span class="w"> </span>run_server.py<span class="w"> </span>sample_apps/lab_app_ja/config_ja.yml<span class="w"> </span>
+</pre></div>
+</div>
+</section>
+<section id="id14">
+<h3><span class="section-number">3.6.4. </span>テスト方法<a class="headerlink" href="#id14" title="この見出しへのパーマリンク"></a></h3>
+<p>以下のコマンドで、<a class="reference internal" href="#snips-network-app"><span class="std std-ref">SNIPS+ネットワークベース対話管理アプリケーション</span></a>では使用していない機能をテストすることができます。</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>sample_apps/lab_app_ja
+$<span class="w"> </span><span class="nb">export</span><span class="w"> </span><span class="nv">DIALBB_HOME</span><span class="o">=</span>&lt;DialBBのホームディレクトリ&gt;
+$<span class="w"> </span><span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span><span class="nv">$DIALBB_HOME</span>:<span class="nv">$PYTHONPATH</span>
+$<span class="w"> </span>python<span class="w"> </span><span class="nv">$DIALBB_HOME</span>/dialbb/util/send_test_request.py<span class="w"> </span>config.yml<span class="w"> </span>test_requests.json
+</pre></div>
+</div>
+</section>
+</section>
+<section id="chatgpt">
+<h2><span class="section-number">3.7. </span>ChatGPTを用いたアプリケーション<a class="headerlink" href="#chatgpt" title="この見出しへのパーマリンク"></a></h2>
+<p>以下の組み込みブロックを用い，OpenAIのChatGPTを用いて対話を行います．</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="06_builtin_blocks.html#chatgpt-dialogue"><span class="std std-ref">ChatGPT Dialogue （ChatGPTベースの対話ブロック）</span></a></p></li>
+</ul>
+<section id="id15">
+<h3><span class="section-number">3.7.1. </span>Pythonライブラリのインストール<a class="headerlink" href="#id15" title="この見出しへのパーマリンク"></a></h3>
+<p>以下を実行します．</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>sample_apps/chatgpt/requirements.txt<span class="w"> </span>
+</pre></div>
+</div>
+</section>
+<section id="id16">
+<h3><span class="section-number">3.7.2. </span>環境変数の設定<a class="headerlink" href="#id16" title="この見出しへのパーマリンク"></a></h3>
+<p>環境変数OPENAI_KEYにOpenAIのAPIキーを設定します．以下はbashの例です．</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span><span class="nb">export</span><span class="w"> </span><span class="nv">OPENAI_KEY</span><span class="o">=</span>&lt;OpenAIのAPIキー&gt;
+</pre></div>
+</div>
+</section>
+<section id="id17">
+<h3><span class="section-number">3.7.3. </span>起動方法<a class="headerlink" href="#id17" title="この見出しへのパーマリンク"></a></h3>
+<p>日本語版</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python<span class="w"> </span>run_server.py<span class="w"> </span>sample_apps/chatgpt/config_ja.yml<span class="w"> </span>
+</pre></div>
+</div>
+<p>英語版</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python<span class="w"> </span>run_server.py<span class="w"> </span>sample_apps/chatgpt/config_en.yml<span class="w"> </span>
+</pre></div>
+</div>
 </section>
 </section>
 </section>
@@ -263,7 +385,7 @@ sample_apps/network_ja/_test_outputs.txt
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="02_concept.html" class="btn btn-neutral float-left" title="2. DialBBの概要" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="04_sample_app.html" class="btn btn-neutral float-right" title="4. 日本語サンプルアプリケーションの説明" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="04_sample_app.html" class="btn btn-neutral float-right" title="4. 日本語SNIPS+ネットワークベース対話管理アプリケーションの説明" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

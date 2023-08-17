@@ -6,6 +6,7 @@
 ver0.3で正規化ブロッククラスが変更になりました．また，新たに単語分割のブロッククラスが導入されました．
 それに伴い，SNIPS言語理解の入力も変更になっています．
 
+(japanese_canonicalizer)=
 ## Japanese canonicalizer （日本語文字列正規化ブロック）
 
 (`dialbb.builtin_blocks.preprocess.japanese_canonicalizer.JapaneseCanonicalizer`)
@@ -33,6 +34,7 @@ ver0.3で正規化ブロッククラスが変更になりました．また，�
 - スペースの削除
 - Unicode正規化（NFKC）
 
+(simple_canonicalizer)=
 ## Simple canonicalizer （単純文字列正規化ブロック）
 
 (`dialbb.builtin_blocks.preprocess.simple_canonicalizer.SimpleCanonicalizer`)
@@ -59,6 +61,7 @@ ver0.3で正規化ブロッククラスが変更になりました．また，�
 - スペースの連続を一つのスペースに変換
 
 
+(sudachi_tokenizer)=
 ## Sudachi tokenizer （Sudachiベースの日本語単語分割ブロック）
 
 (`dialbb.builtin_blocks.tokenization.sudachi_tokenizer.SudachiTokenizer`)
@@ -83,6 +86,7 @@ Sudachiの`SplitMode.C`を用いて単語分割します．
 ブロックコンフィギュレーションの`sudachi_normalization`の値が`True`の時，Sudachi正規化を行います．
 デフォルト値は`False`です．
 
+(whitespace_tokenizer)=
 ## Whitespace tokenizer （空白ベースの単語分割ブロック）
 
 (`dialbb.builtin_blocks.tokenization.whitespace_tokenizer.WhitespaceTokenizer`)
@@ -105,6 +109,7 @@ Sudachiの`SplitMode.C`を用いて単語分割します．
 単純正規化ブロックで正規化された入力を空白で区切って単語に分割します．
 
 
+(snips_understander)=
 ## SNIPS understander （SNIPSを用いた言語理解ブロック）
 
 (`dialbb.builtin_blocks.understanding_with_snips.snips_understander.Understander`)  
@@ -170,7 +175,7 @@ Sudachiの`SplitMode.C`を用いて単語分割します．
    - `class`
    
       正規化のブロックのクラスを指定します．基本的にアプリケーションで用いる正規化のブロックと同じものを指定します．
-	  
+	
 - `tokenizer` 
 
    言語理解知識をSNIPSの訓練データに変換する際に行う単語分割の情報を指定します．
@@ -355,7 +360,7 @@ SNIPSの訓練データはアプリのディレクトリの`_training_data.json`
   - `aux_data`: 補助データ（辞書型）(ver. 0.4.0で変更）
      入力の補助データを，後述のアクション関数の中でアップデートしたものに，遷移した状態のIDを含めたもの．アクション関数の中でのアップデートは必ずしも行われるわけではない．遷移した状態は，以下の形式で付加される．
      ```json
-	 {"state": "特定のラーメンが好き"}
+	    {"state": "特定のラーメンが好き"}
      ```
      
 ### ブロックコンフィギュレーションのパラメータ
@@ -450,6 +455,7 @@ SNIPSの訓練データはアプリのディレクトリの`_training_data.json`
 
   初期状態．`#prep`状態がない場合，対話が始まった時（クライアントから最初にアクセスがあった時）この状態から始まり，この状態のシステム発話が`output_text`に入れられてメインプロセスに返されます．
   
+
 `#prep`状態または`#initial`状態のどちらかがなくてはなりません．
 
 - `#error`
@@ -676,7 +682,6 @@ ver. 0.4.0で，音声認識結果を入力として扱うときに生じる問�
    ただし，入力がバージイン発話の場合（`aux_data`に`barge_in`要素があり，その値が`True`の場合）はこの処理を行いません．
    
    `function_to_generate_utterance`で指定する関数は，ブロックコンフィギュレーションの`function_definitions`で指定したモジュールで定義します．この関数の引数は，このブロックの入力の`nlu_result`と文脈情報です．返り値はシステム発話の文字列です．
-      
    
 - `utterance_to_ask_repetition`（文字列）
 
@@ -709,7 +714,6 @@ ver. 0.4.0で，音声認識結果を入力として扱うときに生じる問�
 
    入力の`aux_data`の`confidence`の値がコンフィギュレーションの`input_confidence_threshold`の値以下の場合にTrueを返します．
 
-   
 -  `_is_long_silence()`
 
     入力の`aux_data`の`long_silence`の値が`True`の場合に`True`を返します．
@@ -725,9 +729,215 @@ ver. 0.4.0で，音声認識結果を入力として扱うときに生じる問�
 
 
 
+(chatgpt_dialogue)=
+## ChatGPT Dialogue （ChatGPTベースの対話ブロック）
+
+(`dialbb.builtin_blocks.chatgpt.chatgpt_ja.ChatGPT_Ja`, （日本語用）`dialbb.builtin_blocks.chatgpt.chatgpt_ja.ChatGPT_En`（英語用）)
+
+OpenAI社のChatGPTを用いて対話を行います．
+
+これらのクラスは`dialbb.builtin_blocks.chatgpt.chatgpt.ChatGPT`のサブクラスです．`dialbb.builtin_blocks.chatgpt.chatgpt.ChatGPT`のサブクラスを新たに作ることで，ChatGPTを使った新たなブロックを作ることができます．
 
 
+### 入出力
+
+- 入力
+  - `user_utterance`: 入力文字列（文字列）
+  - `aux_data`: 補助データ（辞書型）
+  - `user_id`: 補助データ（辞書型）
+  
+- 出力
+  - `system_utterance`: 入力文字列（文字列）
+  - `aux_data`: 補助データ（辞書型）
+  - `final`: 対話終了かどうかのフラグ（ブール値）
 
 
+`ChatGPT_Ja`, `ChatGPT_En`では，入力の`aux_data`, `user_id`利用せず，
+出力の`aux_data`は入力の`aux_data`と同じもので，`final`は常に`False`ですが，
+`ChatGPT`のサブクラスを新しく作る時に変更することができます．
 
+これらのブロックを使う時には，環境変数`OPENAI_KEY`にOpenAIのライセンスキーを設定する必要があります．
 
+### ブロックコンフィギュレーションのパラメータ
+
+- `first_system_utterance` （文字列，デフォルト値は`""`）
+
+   対話の最初のシステム発話です．
+  
+- `prompt_prefix` （文字列，デフォルト値は`""`）
+- `prompt_postfix` （文字列，デフォルト値は`""`）
+
+   ChatGPTのプロンプトに使う文字列です．以下で説明します．
+
+- `gpt_model` （文字列，デフォルト値は`gpt-3.5-turbo`）
+
+   Open AI GPTのモデルです．`gpt-4`などが指定できます．
+
+### 処理内容
+
+- 対話の最初はブロックコンフィギュレーションの`first_system_utterance`の値をシステム発話として返します．
+  
+- 2回目以降のターンでは，以下のプロンプトをChatGPTに与え，返ってきたものをシステム発話として返します．
+
+  日本語の場合
+
+  ```
+  <prompt_prefixの値>
+  システム「<システムの1番目の発話>」
+  ユーザ「<ユーザの1番目の発話>」
+  システム「<システムの2番目の発話>」
+  ユーザ「<ユーザの2番目の発話>」
+  ...
+  システム「<システムの最新の発話>」
+  ユーザ「<ユーザの最新の発話>」
+  <prompt_prefixの値>
+  ```
+  
+  英語の場合
+
+  ```
+  <prompt_prefixの値>
+  System: "<システムの1番目の発話>"
+  User: "<ユーザの1番目の発話>"
+  System: "<システムの2番目の発話>"
+  User: "<ユーザの2番目の発話>"
+  ...
+  System: "<システムの最新の発話>"
+  User: "<ユーザの最新の発話>"
+  <prompt_prefixの値>
+  ```
+  
+   例として以下のようなプロンプトが与えられます．
+  
+  ```
+  システムはユーザと親しく話せます．システム「こんにちは．楽しくお話しましょう．何についてお話しますか？」
+  ユーザー「映画について話したいです」
+  システム「素晴らしいですね．映画について大好きです．最近見た映画やお気に入りのジャンルがあれば教えてください．」
+  ユーザー「宮崎駿監督の最新作を見ました」
+  に続くシステムの発話を最大100文字で生成してください．
+  ```
+
+   ChatGPTの応答は以下のようなものになります．
+  
+  ```
+   システム「それは素晴らしいですね．宮崎駿監督の作品は常に素晴らしいです．その映画についてどんな感想を持ちましたか？」
+  ```
+  
+   これから以下の文字列を取り出して，システム発話として返します．
+
+  ```
+  それは素晴らしいですね．宮崎駿監督の作品は常に素晴らしいです．その映画についてどんな感想を持ちましたか？
+  ```
+
+### 拡張方法
+
+先に述べたように，`dialbb.builtin_blocks.chatgpt.chatgpt.ChatGPT`のサブクラスを作り，自作ブロックとして利用することで，柔軟に制御を変更することができます．
+
+サブクラスを作る際には，以下のメソッドを実装します．
+
+```python 
+_generate_system_utterance(self, dialogue_history: List[Dict[str, str]],
+                                 session_id: str, user_id: str,
+                                 aux_data: Dict[str, Any]) -> Tuple[str, Dict[str, Any], bool]:
+```
+
+- 引数
+
+  - `dialogue_history`（辞書型のリスト）
+  
+     以下のような配列で表された対話の履歴
+     ```json
+     [
+	     {"speaker": "system", "utterance": <システム発話文字列>},
+	     {"speaker": "user", "utterance": <ユーザ発話文字列>} 
+	     ...
+     ]
+     ```
+
+  - `session_id` （文字列）
+  
+     セッションID
+  
+  - `user_id` （文字列）
+  
+     ユーザID
+  
+  - `aux_data` (辞書型）
+  
+     メインプロセスから受け取った補助データ
+  
+- 返り値は以下のTuple
+
+  - `system_utterance` （文字列）
+  
+    システム発話
+
+  - `aux_data` (辞書型）
+  
+     アップデートした補助データ
+  
+  - `final` (ブール値)
+  
+     対話の終わりかどうか
+  
+  
+(spacy_ner)=
+## spaCy-Based Named Entity Recognizer （spaCyを用いた固有表現抽出ブロック）
+(`dialbb.builtin_blocks.ner_with_spacy.ne_recognizer.SpaCyNER`)
+
+[spaCy](https://spacy.io)および[GiNZA](https://megagonlabs.github.io/ginza/)を用いて固有表現抽出を行います．
+
+### 入出力
+
+- 入力
+  - `input_text`: 入力文字列（文字列）
+  - `aux_data`: 補助データ（辞書型）
+  
+- 出力
+  - `aux_data`: 補助データ（辞書型）
+     
+     入力された`aux_data`に固有表現抽出結果を加えたものです．
+
+	 固有表現抽出結果は，以下の形です．
+
+	 ```json
+	 {"NE_<ラベル>": "<固有表現>", "NE_<ラベル>": "<固有表現>", ...}
+	 ```
+     <ラベル>は固有表現のクラスです．固有表現は見つかった固有表現で，`input_text`の部分文字列です．同じクラスの固有表現が複数見つかった場合，`:`で連結します．
+
+     例
+	 
+	 ```json
+	 {"NE_Person": "田中:鈴木", "NE_Dish": "味噌ラーメン"}
+	 ```
+
+     固有表現のクラスについては，spaCy/GiNZAのモデルのサイトを参照してください．
+	 
+	 - `ja-ginza-electra` (5.1.2):，https://pypi.org/project/ja-ginza-electra/ 
+	 - `en_core_web_trf` (3.5.0):，https://huggingface.co/spacy/en_core_web_trfhttps://pypi.org/project/ja-ginza-electra/ 
+	 
+
+### ブロックコンフィギュレーションのパラメータ
+
+- `model` (文字列．必須）
+
+   spaCy/GiNZAのモデルの名前です．`ja_ginza_electra` (日本語），`en_core_web_trf` (英語）などを指定できます．
+
+- `patterns` (オブジェクト．任意）
+
+   ルールベースの固有表現抽出パターンを記述します．パターンは，[spaCyのパターンの説明](https://spacy.io/usage/rule-based-matching)に書いてあるものをYAML形式にしたものです．
+   
+   以下が日本語の例です．
+   
+   ```yaml
+   patterns: 
+     - label: Date
+       pattern: 昨日
+     - label: Date
+       pattern: きのう
+   ```
+            
+
+### 処理内容
+
+spaCy/GiNZAを用いて`input_text`中の固有表現を抽出し，`aux_data`にその結果を入力して返します．

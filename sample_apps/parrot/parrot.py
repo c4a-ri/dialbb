@@ -22,7 +22,8 @@ class Parrot(AbstractBlock):
     def process(self, input: Dict[str, Any], session_id: str) -> Dict[str, Any]:
         """
         :param input. keys: "input_text", "input_aux_data"
-        :return: output. keyss: "output_text", "output_aux_data"
+        :param session_id: session id string.
+        :return: output. keys: "output_text", "output_aux_data"
         """
 
         self.log_debug("input: " + str(input))

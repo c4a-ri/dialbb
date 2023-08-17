@@ -39,55 +39,17 @@ $ git clone https://github.com/c4a-ri/dialbb.git <ディレクトリ名>
   $ venv/bin/activate   # 仮想環境に入る
   ```
 
-- 次に以下を実行してください．
+- 次に以下を実行して，最低限のライブラリをインストールします．
 
-
-  ```sh
+  ```python
   $ pip install -r requirements.txt 
-  $ python -m snips_nlu download en # 英語アプリケーションを作成・利用する場合
-  $ python -m snips_nlu download ja # 日本語アプリケーションを作成・利用する場合
   ```
 
+## オウム返しサンプルアプリケーション
 
-  注意
+### 起動
 
- - 途中でエラーになり，Rustなどの追加のソフトウェアのインストールを求められる場合があります．その場合，指示にしがってインストールしてください．うまくいかない場合はREADMEに書いてある連絡先に連絡してください．
-
-  - python3.9以上の場合，
-  
-    ```
-	ModuleNotFoundError: No module named 'setuptools_rust'
-    ```
-	などのエラーが出るかもしれません．その場合，以下のコマンドで解決する可能性があります．
-	
-	```
-	pip install --upgrade pip setuptools wheel
-    ```
-
-     その他，エラーメッセージに応じて必要なライブラリをインストールしてください．不明点があったりうまくいかなったりした場合は連絡してください．
-	 
-
-
-  - Windows上のAnacondaを用いて実行する場合，Anaconda Promptを管理者モードで起動しないといけない可能性があります．
-
-  - pyenvを使っている場合，以下のエラーが出る可能性があります．
-
-    ```
-    ModuleNotFoundError: No module named '_bz2' 
-    ```
-    
-    それに対する対処法は[この記事](https://qiita.com/kasajei/items/5e22161b62f4b84787bc)などを参照ください．
-
-
-## Graphvizのインストール
-
-[Graphvizのサイト](https://graphviz.org/download/)などを参考にGraphvizをインストールします．
-ただ，Graphvizがなくてもアプリケーションを動作させることは可能です．
-
-
-## オウム返しサンプルアプリケーションのサーバの起動
-
-ただオウム返しを行うアプリケーションです．
+ただオウム返しを行うアプリケーションです．組み込みブロッククラスは使っていません．
 
 ```sh
 $ python run_server.py sample_apps/parrot/config.yml
@@ -133,11 +95,83 @@ curlをインストールしていない場合は，「{ref}`test_with_browser`�
    "user_id":"user1"}
   ```
 
-## 組み込みブロックを用いたサンプルアプリケーションの起動
+(snips_network_app)=
+## SNIPS+ネットワークベース対話管理アプリケーション
 
-DialBBには，あらかじめ作成してあるブロック（組み込みブロック）を用いたサンプルアプリケーションがあります．
+以下の組み込みブロックを用いたサンプルアプリケーションです．
+`sample_apps/network_ja/`に日本語版が，`sample_apps/network_en/`に英語があります．
+
+- 日本語アプリケーション
+
+  - {ref}`japanese_canonicalizer`
+  - {ref}`sudachi_tokenizer`
+  - {ref}`snips_understander`
+  - {ref}`stn_manager`
+
+- 英語アプリケーション
+
+  - {ref}`simple_canonicalizer`
+  - {ref}`whitespace_tokenizer`
+  - {ref}`snips_understander`
+  - {ref}`stn_manager`
+
+
+### 必要なPythonライブラリのインストール
+
+  本アプリケーションを使用しない場合は，以下の手順はスキップして構いません．
+  
+  以下を実行します．
+
+  ```sh
+  # 以下のどちらかを実行
+  $ pip install -r sample_apps/network_ja/requirements.txt 
+  $ pip install -r sample_apps/network_en/requirements.txt 
+
+  # 英語アプリケーションを作成・利用する場合
+  $ python -m snips_nlu download en 
+
+  # 日本語アプリケーションを作成・利用する場合
+  $ python -m snips_nlu download ja 
+  ```
+
+  注意
+
+ - 途中でエラーになり，Rustなどの追加のソフトウェアのインストールを求められる場合があります．その場合，指示にしがってインストールしてください．うまくいかない場合はREADMEに書いてある連絡先に連絡してください．
+
+  - python3.9以上の場合，
+  
+    ```
+	ModuleNotFoundError: No module named 'setuptools_rust'
+    ```
+	などのエラーが出るかもしれません．その場合，以下のコマンドで解決する可能性があります．
+	
+	```
+	pip install --upgrade pip setuptools wheel
+    ```
+
+     その他，エラーメッセージに応じて必要なライブラリをインストールしてください．不明点があったりうまくいかなったりした場合は連絡してください．
+	 
+
+
+  - Windows上のAnacondaを用いて実行する場合，Anaconda Promptを管理者モードで起動しないといけない可能性があります．
+
+  - pyenvを使っている場合，以下のエラーが出る可能性があります．
+
+    ```
+    ModuleNotFoundError: No module named '_bz2' 
+    ```
+    
+    それに対する対処法は[この記事](https://qiita.com/kasajei/items/5e22161b62f4b84787bc)などを参照ください．
+
+
+### Graphvizのインストール
+
+[Graphvizのサイト](https://graphviz.org/download/)などを参考にGraphvizをインストールします．
+ただ，Graphvizがなくてもアプリケーションを動作させることは可能です．
+
 
 ### 起動
+
 
 以下のコマンドで起動します．
 
@@ -193,7 +227,88 @@ http://<hostname>:8080/test
 
 ​    `sample_apps/network_ja/_test_outputs.txt`に対話のやりとりが書き込まれます．
 
-### 実験用アプリケーション
+## 実験アプリケーション
 
-`sample_apps/lab_app_ja/`に実験用アプリケーションがあります．組み込みブロックの様々な機能を試すためのアプリケーションです．詳細は`sample_apps/lab_app_ja/README.md`を参照してください．
+`sample_apps/lab_app_ja/`に実験的なアプリケーションがあります（日本語のみ）．組み込みブロックの様々な機能を試すためのアプリケーションです．以下の組み込みブロックを用いています．
+
+
+- {ref}`japanese_canonicalizer`
+- {ref}`sudachi_tokenizer`
+- {ref}`snips_understander`
+- {ref}`spacy_ner`
+- {ref}`stn_manager`
+
+### Pythonライブラリのインストール
+
+  以下を実行します．
+
+  ```sh
+  $ pip install -r sample_apps/lab_app_ja/requirements.txt 
+  ```
+
+### 環境変数の設定
+
+本アプリケーションではOpenAI社のChatGPTを使うことができます．ChatGPTを使うためには，環境変数`OPENAI_KEY`にOpenAIのAPIキーを設定します．以下はbashの例です．
+
+```sh
+$ export OPENAI_KEY=<OpenAIのAPIキー>
+```
+
+環境変数`OPENAI_KEY`が指定されていない場合，ChatGPTを使わずに動作します．
+  
+### 起動方法
+
+  ```sh
+  $ python run_server.py sample_apps/lab_app_ja/config_ja.yml 
+  ```
+
+### テスト方法
+
+以下のコマンドで、{ref}`snips_network_app`では使用していない機能をテストすることができます。
+
+  ```sh
+  $ cd sample_apps/lab_app_ja
+  $ export DIALBB_HOME=<DialBBのホームディレクトリ>
+  $ export PYTHONPATH=$DIALBB_HOME:$PYTHONPATH
+  $ python $DIALBB_HOME/dialbb/util/send_test_request.py config.yml test_requests.json
+  ```
+
+## ChatGPTを用いたアプリケーション
+
+以下の組み込みブロックを用い，OpenAIのChatGPTを用いて対話を行います．
+
+- {ref}`chatgpt_dialogue`
+
+
+### Pythonライブラリのインストール
+
+  以下を実行します．
+
+  ```sh
+  $ pip install -r sample_apps/chatgpt/requirements.txt 
+  ```
+
+### 環境変数の設定
+
+環境変数OPENAI_KEYにOpenAIのAPIキーを設定します．以下はbashの例です．
+
+```sh
+$ export OPENAI_KEY=<OpenAIのAPIキー>
+```
+  
+### 起動方法
+
+  日本語版
+
+  ```sh
+  $ python run_server.py sample_apps/chatgpt/config_ja.yml 
+  ```
+
+  英語版
+
+  ```sh
+  $ python run_server.py sample_apps/chatgpt/config_en.yml 
+  ```
+
+
 
