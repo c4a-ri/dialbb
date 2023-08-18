@@ -3,10 +3,18 @@
 ## 0.6.0 (2023.8.17)
 
 - spaCy/GiNZAを用いた固有表現抽出の組み込みブロックを追加
+  
+  - sample_apps/lab_app_ja に利用例を追加
 
 - ChatGPT組み込みブロックを追加
 
 - requirements.txtをサンプルアプリ毎に用意
+
+- dialbb/util/send_test_request.pyをdialbb/util/send_test_requests.pyにrename
+
+- run_server.pyをDIALBB_HOME以外のディレクトリで起動しても良いようにした．
+
+- sample_apps/lab_app_ja/README.mdの内容をドキュメントに統合
 
 ## 0.5.1 (2023.8.13)
 
@@ -29,17 +37,17 @@
 
 ## 0.4.0 (2023.6.4)
 
-- クラスAPIの場合、requestは破壊的に操作しない
+- クラスAPIの場合，requestは破壊的に操作しない
 
 - STN Manager組み込みブロック
 
-  - もしリクエストのaux_dataのstop_dialogueの値がTrueなら、#final_abort状態に遷移する
+  - もしリクエストのaux_dataのstop_dialogueの値がTrueなら，#final_abort状態に遷移する
 
-  - リクエストの"aux_data"の"rewind"の値がTrueの場合、対話の状態を直前のものに戻し、対話文脈を戻す
+  - リクエストの"aux_data"の"rewind"の値がTrueの場合，対話の状態を直前のものに戻し，対話文脈を戻す
 
   - デフォルト遷移の代わりに遷移しないことをオプションで選択可能に変更
 
-  - リクエストの"aux_data"の"confidence"の値がコンフィギュレーションの"ask_repetition"の"confidence_threshold"の値以下の場合に、状態遷移をおこなわず、"ask_repetition"の"utterance"の値をシステム発話とする。
+  - リクエストの"aux_data"の"confidence"の値がコンフィギュレーションの"ask_repetition"の"confidence_threshold"の値以下の場合に，状態遷移をおこなわず，"ask_repetition"の"utterance"の値をシステム発話とする．
 
   - 入力がlong silenceの場合に，コンフィギュレーションのreaction_to_silenceに応じて動作を変更する
 
@@ -56,7 +64,7 @@
   
 ## 0.3.0 (2023.4.13)
 
-- 組み込みの単語分割ブロッククラスを追加。それに伴い、SNIPS Understanderの入力が文字列からトークン列に変更（後方互換性なし）
+- 組み込みの単語分割ブロッククラスを追加．それに伴い，SNIPS Understanderの入力が文字列からトークン列に変更（後方互換性なし）
 
 ## 0.2.1 (2022.12.1)
 
