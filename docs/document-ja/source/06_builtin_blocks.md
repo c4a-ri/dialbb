@@ -721,16 +721,18 @@ ver. 0.4.0で，音声認識結果を入力として扱うときに生じる問�
 #### 直前の誤った入力を無視する
 
 入力の`aux_data`の`rewind`の値が`True`の場合，直前のレスポンスを行う前の状態から遷移を行います．
-直前のレスポンスを行った際に実行したアクションによる対話文脈の変更も元に戻されます．
+直前のレスポンスを行った際に実行したアクションによる文脈情報の変更も元に戻されます．
 
 音声認識の際に，ユーザ発話を間違って途中で分割してしまい，前半だけに対する応答を行ってしまった場合に用います．
 
-対話文脈は元に戻りますが，アクション関数の中でグローバル変数の値を変更していたり，外部データベースの内容を変更していた場合にはもとに戻らないことに注意してください．
+文脈情報は元に戻りますが，アクション関数の中でグローバル変数の値を変更していたり，外部データベースの内容を変更していた場合にはもとに戻らないことに注意してください．
 
 
 
 (chatgpt_dialogue)=
 ## ChatGPT Dialogue （ChatGPTベースの対話ブロック）
+
+(ver0.6で追加）
 
 (`dialbb.builtin_blocks.chatgpt.chatgpt_ja.ChatGPT_Ja`, （日本語用）`dialbb.builtin_blocks.chatgpt.chatgpt_ja.ChatGPT_En`（英語用）)
 
@@ -790,7 +792,7 @@ OpenAI社のChatGPTを用いて対話を行います．
   ...
   システム「<システムの最新の発話>」
   ユーザ「<ユーザの最新の発話>」
-  <prompt_prefixの値>
+  <prompt_postfixの値>
   ```
   
   英語の場合
@@ -804,7 +806,7 @@ OpenAI社のChatGPTを用いて対話を行います．
   ...
   System: "<システムの最新の発話>"
   User: "<ユーザの最新の発話>"
-  <prompt_prefixの値>
+  <prompt_postfixの値>
   ```
   
    例として以下のようなプロンプトが与えられます．
@@ -884,6 +886,8 @@ _generate_system_utterance(self, dialogue_history: List[Dict[str, str]],
 (spacy_ner)=
 ## spaCy-Based Named Entity Recognizer （spaCyを用いた固有表現抽出ブロック）
 (`dialbb.builtin_blocks.ner_with_spacy.ne_recognizer.SpaCyNER`)
+
+(ver0.6で追加）
 
 [spaCy](https://spacy.io)および[GiNZA](https://megagonlabs.github.io/ginza/)を用いて固有表現抽出を行います．
 
