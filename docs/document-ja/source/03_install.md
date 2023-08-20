@@ -39,7 +39,7 @@ $ git clone https://github.com/c4a-ri/dialbb.git <ディレクトリ名>
   $ venv/bin/activate   # 仮想環境に入る
   ```
 
-- 次に以下を実行して，最低限のライブラリをインストールします．
+- 次に以下を実行して，最低限のライブラリをインストールします．(ver. 0.6からトップディレクトリの`requirements.txt`には最低限のライブラリのみを書くようにしました．）
 
   ```python
   $ pip install -r requirements.txt 
@@ -264,16 +264,20 @@ $ export OPENAI_KEY=<OpenAIのAPIキー>
 
 ### テスト方法
 
-以下のコマンドで、{ref}`snips_network_app`では使用していない機能をテストすることができます。
+以下のコマンドで，{ref}`snips_network_app`では使用していない機能をテストすることができます．
 
   ```sh
   $ cd sample_apps/lab_app_ja
   $ export DIALBB_HOME=<DialBBのホームディレクトリ>
   $ export PYTHONPATH=$DIALBB_HOME:$PYTHONPATH
-  $ python $DIALBB_HOME/dialbb/util/send_test_request.py config.yml test_requests.json
+  $ python $DIALBB_HOME/dialbb/util/send_test_requests.py config.yml test_requests.json
   ```
 
+(ver. 0.6で`send_test_request.py`を`send_test_requests.py`にrenameしました．）
+
 ## ChatGPTを用いたアプリケーション
+
+(ver. 0.6で追加）
 
 以下の組み込みブロックを用い，OpenAIのChatGPTを用いて対話を行います．
 

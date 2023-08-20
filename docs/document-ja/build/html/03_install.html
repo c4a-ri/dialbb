@@ -137,7 +137,7 @@ $<span class="w"> </span>venv/bin/activate<span class="w">   </span><span class=
 </pre></div>
 </div>
 </li>
-<li><p>次に以下を実行して，最低限のライブラリをインストールします．</p>
+<li><p>次に以下を実行して，最低限のライブラリをインストールします．(ver. 0.6からトップディレクトリの<code class="docutils literal notranslate"><span class="pre">requirements.txt</span></code>には最低限のライブラリのみを書くようにしました．）</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span>$ pip install -r requirements.txt 
 </pre></div>
 </div>
@@ -337,17 +337,19 @@ sample_apps/network_ja/_test_outputs.txt
 </section>
 <section id="id14">
 <h3><span class="section-number">3.6.4. </span>テスト方法<a class="headerlink" href="#id14" title="この見出しへのパーマリンク"></a></h3>
-<p>以下のコマンドで、<a class="reference internal" href="#snips-network-app"><span class="std std-ref">SNIPS+ネットワークベース対話管理アプリケーション</span></a>では使用していない機能をテストすることができます。</p>
+<p>以下のコマンドで，<a class="reference internal" href="#snips-network-app"><span class="std std-ref">SNIPS+ネットワークベース対話管理アプリケーション</span></a>では使用していない機能をテストすることができます．</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>sample_apps/lab_app_ja
 $<span class="w"> </span><span class="nb">export</span><span class="w"> </span><span class="nv">DIALBB_HOME</span><span class="o">=</span>&lt;DialBBのホームディレクトリ&gt;
 $<span class="w"> </span><span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span><span class="nv">$DIALBB_HOME</span>:<span class="nv">$PYTHONPATH</span>
-$<span class="w"> </span>python<span class="w"> </span><span class="nv">$DIALBB_HOME</span>/dialbb/util/send_test_request.py<span class="w"> </span>config.yml<span class="w"> </span>test_requests.json
+$<span class="w"> </span>python<span class="w"> </span><span class="nv">$DIALBB_HOME</span>/dialbb/util/send_test_requests.py<span class="w"> </span>config.yml<span class="w"> </span>test_requests.json
 </pre></div>
 </div>
+<p>(ver. 0.6で<code class="docutils literal notranslate"><span class="pre">send_test_request.py</span></code>を<code class="docutils literal notranslate"><span class="pre">send_test_requests.py</span></code>にrenameしました．）</p>
 </section>
 </section>
 <section id="chatgpt">
 <h2><span class="section-number">3.7. </span>ChatGPTを用いたアプリケーション<a class="headerlink" href="#chatgpt" title="この見出しへのパーマリンク"></a></h2>
+<p>(ver. 0.6で追加）</p>
 <p>以下の組み込みブロックを用い，OpenAIのChatGPTを用いて対話を行います．</p>
 <ul class="simple">
 <li><p><a class="reference internal" href="06_builtin_blocks.html#chatgpt-dialogue"><span class="std std-ref">ChatGPT Dialogue （ChatGPTベースの対話ブロック）</span></a></p></li>

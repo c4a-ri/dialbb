@@ -863,14 +863,15 @@
 <section id="id33">
 <h4><span class="section-number">6.6.10.3. </span>直前の誤った入力を無視する<a class="headerlink" href="#id33" title="この見出しへのパーマリンク"></a></h4>
 <p>入力の<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>の<code class="docutils literal notranslate"><span class="pre">rewind</span></code>の値が<code class="docutils literal notranslate"><span class="pre">True</span></code>の場合，直前のレスポンスを行う前の状態から遷移を行います．
-直前のレスポンスを行った際に実行したアクションによる対話文脈の変更も元に戻されます．</p>
+直前のレスポンスを行った際に実行したアクションによる文脈情報の変更も元に戻されます．</p>
 <p>音声認識の際に，ユーザ発話を間違って途中で分割してしまい，前半だけに対する応答を行ってしまった場合に用います．</p>
-<p>対話文脈は元に戻りますが，アクション関数の中でグローバル変数の値を変更していたり，外部データベースの内容を変更していた場合にはもとに戻らないことに注意してください．</p>
+<p>文脈情報は元に戻りますが，アクション関数の中でグローバル変数の値を変更していたり，外部データベースの内容を変更していた場合にはもとに戻らないことに注意してください．</p>
 </section>
 </section>
 </section>
 <section id="chatgpt-dialogue-chatgpt">
 <span id="chatgpt-dialogue"></span><h2><span class="section-number">6.7. </span>ChatGPT Dialogue （ChatGPTベースの対話ブロック）<a class="headerlink" href="#chatgpt-dialogue-chatgpt" title="この見出しへのパーマリンク"></a></h2>
+<p>(ver0.6で追加）</p>
 <p>(<code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.chatgpt.chatgpt_ja.ChatGPT_Ja</span></code>, （日本語用）<code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.chatgpt.chatgpt_ja.ChatGPT_En</span></code>（英語用）)</p>
 <p>OpenAI社のChatGPTを用いて対話を行います．</p>
 <p>これらのクラスは<code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.chatgpt.chatgpt.ChatGPT</span></code>のサブクラスです．<code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.chatgpt.chatgpt.ChatGPT</span></code>のサブクラスを新たに作ることで，ChatGPTを使った新たなブロックを作ることができます．</p>
@@ -926,7 +927,7 @@
 ...
 システム「&lt;システムの最新の発話&gt;」
 ユーザ「&lt;ユーザの最新の発話&gt;」
-&lt;prompt_prefixの値&gt;
+&lt;prompt_postfixの値&gt;
 </pre></div>
 </div>
 <p>英語の場合</p>
@@ -938,7 +939,7 @@
 <span class="o">...</span>
 <span class="n">System</span><span class="p">:</span> <span class="s2">&quot;&lt;システムの最新の発話&gt;&quot;</span>
 <span class="n">User</span><span class="p">:</span> <span class="s2">&quot;&lt;ユーザの最新の発話&gt;&quot;</span>
-<span class="o">&lt;</span><span class="n">prompt_prefixの値</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">prompt_postfixの値</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 <p>例として以下のようなプロンプトが与えられます．</p>
@@ -1012,6 +1013,7 @@
 <section id="spacy-based-named-entity-recognizer-spacy">
 <span id="spacy-ner"></span><h2><span class="section-number">6.8. </span>spaCy-Based Named Entity Recognizer （spaCyを用いた固有表現抽出ブロック）<a class="headerlink" href="#spacy-based-named-entity-recognizer-spacy" title="この見出しへのパーマリンク"></a></h2>
 <p>(<code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.ner_with_spacy.ne_recognizer.SpaCyNER</span></code>)</p>
+<p>(ver0.6で追加）</p>
 <p><a class="reference external" href="https://spacy.io">spaCy</a>および<a class="reference external" href="https://megagonlabs.github.io/ginza/">GiNZA</a>を用いて固有表現抽出を行います．</p>
 <section id="id38">
 <h3><span class="section-number">6.8.1. </span>入出力<a class="headerlink" href="#id38" title="この見出しへのパーマリンク"></a></h3>
