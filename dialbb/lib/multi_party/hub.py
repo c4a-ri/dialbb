@@ -35,21 +35,23 @@ def disconnect(sid):
 
 @sio.on('join')
 def on_utterance(sid, data):
-    print(f"{data['participant_name']} joined.", flush=True)
-    participants_who_joined.append(data['participant_name'])
+    print(f"{data['speaker']} joined.", flush=True)
+    participants_who_joined.append(data['speaker'])
     everyone_is_here = True
     for participant in participant_info.keys():
         if not participant in participants_who_joined:
             everyone_is_here = False
             break
     if everyone_is_here:
+        print('Everyone is here.')
         sio.emit('start_conversation', {})
 
 
 @sio.on('utterance')
 def on_utterance(sid, data):
-    print (f"utterance received from {data['participant_name']}: {data['utterance']}", flush=True)
-    sio.emit('broadcast_utterance', {'particpant_name': data['participant_name'], 'utterance': data['utterance']})
+    print(str(data))
+    print(f"utterance received from {data['speaker']}: {data['utterance']}", flush=True)
+    sio.emit('broadcast_utterance', {'speaker': data['speaker'], 'utterance': data['utterance']})
 
 
 if __name__ == '__main__':

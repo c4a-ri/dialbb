@@ -1,0 +1,20 @@
+# configuration file for a chatgpt-based Japanese application
+
+blocks:
+  - name: mp1
+    block_class: dialbb.builtin_blocks.chatgpt_mp.chatgpt_mp.ChatGptMp
+    language: ja
+    input:
+      user_id: user_id
+      user_utterance: user_utterance
+      aux_data: aux_data
+    output:
+      system_utterance: system_utterance
+      aux_data: aux_data
+      final: final
+    system_personality: "40代女性です。あなたはハンバーガーが好きです。とくに新しいタイプのハンバーガーが好きです。"
+    postfix: "あなたは次に話しますか？話すとすると何を話しますか？話すときは、短い発話を返してください。話さない場合は「黙る」と答えてください。"
+    silence: 黙る
+    gpt_model: gpt-3.5-turbo
+    
+
