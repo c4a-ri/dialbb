@@ -10,6 +10,7 @@ import argparse
 
 
 sio = socketio.Client()
+my_name: str = ""
 
 
 @sio.event
@@ -23,25 +24,26 @@ def disconnect():
 
 @sio.on('broadcast_utterance')
 def receive_utterance(data):
-    print(f"\r{data['participant']}:{data['utterance']}> \nyou>", flush=True)
+    print(f"\r{data['speaker']}:{data['utterance']}> \nyou>", flush=True, end='')
 
 
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('port', type=int)
-    parser.add_argument('participant_id', type=str)
+    parser.add_argument('my_name', type=str)
     args = parser.parse_args()
 
-    participant_id = args.participant_id
+    my_name = args.my_name
 
     sio.connect('http://localhost:5000')
 
+    # join the conversation
     initial_utterance: str = input('press enter to join the conversation>')
-    sio.emit('join', {'participant_id': participant_id, 'utterance': ""})
+    sio.emit('join', {'speaker': my_name, 'utterance': ""})
+
     while True:
         input_utterance: str = input('you>')
-        sio.emit('utterance', {'participant_id': participant_id, 'utterance': input_utterance})
+        sio.emit('utterance', {'speaker': my_name, 'utterance': input_utterance})
 
 
 

@@ -2,8 +2,5 @@
 
 participants:
   - name: 田中
-    type: dialbb
-#  - name: 鈴木
-#    type: dialbb
-#  - name: 山田
-#    type: human
+  - name: 鈴木
+  - name: 山田

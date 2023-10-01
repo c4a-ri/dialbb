@@ -69,8 +69,9 @@ class ChatGptMp(AbstractBlock):
             aux_data = input_data['aux_data']
             final = False
         else:  # second turn and after
-            self._dialogue_history[session_id].append({"speaker": input_data["user_id"],
-                                                       "utterance": input_data["user_utterance"]})
+            if input_data["user_utterance"]:
+                self._dialogue_history[session_id].append({"speaker": input_data["user_id"],
+                                                           "utterance": input_data["user_utterance"]})
             system_utterance, aux_data, final \
                 = self.generate_system_utterance(self._dialogue_history[session_id],
                                                  session_id,
@@ -78,7 +79,7 @@ class ChatGptMp(AbstractBlock):
                                                  input_data["aux_data"])
         if system_utterance == self._silence:
             system_utterance = ""
-        else:
+        if system_utterance:
             self._dialogue_history[session_id].append({"speaker": "あなた", "utterance": system_utterance})
         return {"system_utterance": system_utterance,
                 "aux_data": aux_data,

@@ -1,9 +1,0 @@
-# config file for dialbb mp
-
-participants:
-  - name: 田中
-    type: dialbb
-  - name: 鈴木
-    type: dialbb
-  - name: 山田
-    type: dialbb

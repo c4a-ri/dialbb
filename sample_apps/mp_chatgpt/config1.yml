@@ -2,7 +2,7 @@
 
 blocks:
   - name: mp1
-    block_class: dialbb.builtin_blocks.chatgpt_mp.chatgpt_mp.ChatGPT
+    block_class: dialbb.builtin_blocks.chatgpt_mp.chatgpt_mp.ChatGptMp
     language: ja
     input:
       user_id: user_id
@@ -12,9 +12,10 @@ blocks:
       system_utterance: system_utterance
       aux_data: aux_data
       final: final
-    participant_id: "田中"
-    system_personality: "あなたは田中です。あなたは寿司が好きで、せっかちで、良くしゃべります"
-    postfix: "あなたは次に話しますか？話すとすると何を話しますか？話さない場合は「黙る」と答えてください。"
+    system_personality: "50代男性です。あなたは寿司が好きで、せっかちで、良くしゃべります"
+    initial_utterance: "好きな食べ物について話しましょう"
+    postfix: "あなたは次に話しますか？話すとすると何を話しますか？話すときは、短い発話を返してください。話さない場合は「黙る」と答えてください。"
+    silence: 黙る
     gpt_model: gpt-3.5-turbo
     
 

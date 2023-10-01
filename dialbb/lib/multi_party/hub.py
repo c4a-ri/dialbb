@@ -13,20 +13,24 @@ import sys
 import eventlet
 import socketio
 import yaml
+from typing import List
 
 sio = socketio.Server()
 app = socketio.WSGIApp(sio)
 
-participants_who_joined = []
-participant_info = {}
+participants: List[str] = []
+participants_who_joined: List[str] = []
+
 
 @sio.event
 def connect(sid, environ):
     print('connect ', sid)
 
+
 @sio.event
 def my_message(sid, data):
     print('message ', data)
+
 
 @sio.event
 def disconnect(sid):
@@ -37,8 +41,10 @@ def disconnect(sid):
 def on_utterance(sid, data):
     print(f"{data['speaker']} joined.", flush=True)
     participants_who_joined.append(data['speaker'])
+
+    # check every participant joined
     everyone_is_here = True
-    for participant in participant_info.keys():
+    for participant in participants:
         if not participant in participants_who_joined:
             everyone_is_here = False
             break
@@ -66,7 +72,7 @@ if __name__ == '__main__':
         print("no participant information in the config.")
         sys.exit(1)
     for participant in config['participants']:
-        participant_info[participant['name']] = participant['type']
+        participants.append(participant['name'])
         participants_who_joined = []  # initialize
 
     eventlet.wsgi.server(eventlet.listen(('', 5000)), app)
