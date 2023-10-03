@@ -55,7 +55,7 @@
   export DIALBB_DEBUG=yes
   export DIALBB_HOME=../..
   export PYTHONPATH=$DIALBB_HOME
-  python $DIALBB_HOME/dialbb/lib/multi_party/user_spoke.py 山田
+  python $DIALBB_HOME/dialbb/lib/multi_party/user_spoke_gui.py 山田
   ```
 
 - 参加者3もDialBBアプリの場合
