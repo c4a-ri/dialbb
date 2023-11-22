@@ -1,36 +1,42 @@
-# DialBB: 対話システム構築フレームワーク
+# DialBB: A Framework for Building Dialogue Systems
 
 ver.0.6.0
 
-English version is [here](README-en.md)
+[日本語版はここにあります．](README-ja.md)
 
-DialBBは対話システムを構築するためのフレームワークです．
+DialBB is a framework for building dialogue systems.
 
-非商用向けに公開しています．ライセンスの詳細は[ライセンス](LICENSE)をご覧ください．
+This software is released for non-commercial use. For details of the license, please see [License](LICENSE-en).
 
-詳細およびインストールの仕方は[ドキュメント](https://c4a-ri.github.io/dialbb/document-ja/build/html/)を参照して下さい．最新バージョン以外のドキュメントは[リンク集](https://c4a-ri.github.io/dialbb/)にあります．
+Refer to the [document](https://c4a-ri.github.io/dialbb/document-en/build/html/) for details and installation instructions (currently only in Japanese). Documentation for other than the latest version can be found in the [Links](https://c4a-ri.github.io/dialbb/) section.
+
+## Overview
+
+The main module of DialBB application receives a user utterance input in JSON format via method calls or via the Web API returns a system utterance in JSON format.
 
 
-## DialBBの概要
+The main module works by calling several submodules, called blocks, in sequence.
 
-DialBBのメインモジュールは，メソッド呼び出しまたはWeb API経由で，
-ユーザ発話の入力をJSON形式で受けとり，システム発話をJSON形式で返します．
+Each block takes JSON format (data in Python dict) and returns the data in JSON format.
 
-メインモジュールは，ブロックと呼ぶいくつかのサブモジュールを順に呼び出すことによって動作します．
-各ブロックはJSON形式(pythonのdictのデータ)を受け取り，JSON形式のデータを返します．
 
-各ブロックのクラスや入出力仕様はアプリケーション毎のコンフィギュレーションファイルで規定します．
+The class and input/output of each block are specified in the configuration file for
+each application.
 
-![dialbb-arch](docs/images/dialbb-arch.jpg)
 
-## 要望・質問・バグ報告
+![dialbb-arch-en](docs/images/dialbb-arch-en.jpg)
 
-DialBBに関するご要望・ご質問・バグ報告は以下のところに気軽にお寄せください．些細なことや漠然とした質問でも構いません．
+## Requests, Questions, and Bug Reports
 
-  - バグ報告・ドキュメントの不備指摘など: [GitHub Issues](https://github.com/c4a-ri/dialbb/issues)
+Please feel free to send your requests, questions, and bug reports about DialBB to the following
+address. Even if it is a trivial or vague question, feel free to send it.
 
-  - 長期的な開発方針など：[GitHub Discussions](https://github.com/c4a-ri/dialbb/discussions)
-  
-  - 何でも：`dialbbあっとc4a.jp`
+
+- Report bugs, point out missing documentation, etc.: [GitHub Issues](https://github.com/c4a-ri/dialbb/issues)
+
+- Long-term development policy, etc.: [GitHub Discussions](https://github.com/c4a-ri/dialbb/discussions)
+
+- Anything: `dialbb at c4a.jp`
 
 (c) C4A Research Institute, Inc.
+
