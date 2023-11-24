@@ -6,7 +6,7 @@ A framework does not stand alone as an application, but forms an application by 
 
 The basic architecture of a DialBB application is shown below.
 
-![dialbb-arch](../../images/dialbb-arch.jpg)
+![dialbb-arch](../../images/dialbb-arch-en.jpg)
 
 The main module creates and returns a system utterance by making modules called blocks sequentially
 process the data (including user utterances) input at each turn of the dialog. The data is called blackboard [^fn]. Each block takes some of the elements of the blackboard and returns data in
