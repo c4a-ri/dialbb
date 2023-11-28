@@ -1,19 +1,5 @@
 # DialBB: A Framework for Building Dialogue Systems
 
-## Tabler of Contents
-
-## Introduction
-
-## Getting Started
-
-## Issues and Discussions
-
-## License
-
-## Citation
-
-
-
 ver.0.6.0
 
 [日本語版はここにあります．](README-ja.md)
@@ -53,7 +39,4 @@ address. Even if it is a trivial or vague question, feel free to send it.
 - Anything: `dialbb at c4a.jp`
 
 (c) C4A Research Institute, Inc.
-
-
-
 
