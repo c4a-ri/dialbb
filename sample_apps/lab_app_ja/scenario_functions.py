@@ -82,14 +82,27 @@ def decide_greeting(greeting_variable: str, context: Dict[str, Any]) -> None:
 
 
 def generate_with_openai_gpt(prompt: str):
-    response = openai.ChatCompletion.create(
-        #model="gpt-4",
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "user", "content": prompt}
-        ]
-    )
-    return response.choices[0]['message']['content']
+
+    chat_completion = None
+    while True:
+        try:
+            chat_completion = self._openai_client.with_options(timeout=10).chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.7,
+            )
+        except openai.APITimeoutError:
+            continue
+        except Exception as e:
+            self.log_error("OpenAI Error: " + traceback.format_exc())
+            sys.exit(1)
+        finally:
+            if not chat_completion:
+                continue
+            else:
+                break
+    generated_utterance: str = chat_completion.choices[0].message.content
+    return generated_utterance
 
 
 def set_impression_of_dialogue(impression_key: str, context: Dict[str, Any]) -> None:

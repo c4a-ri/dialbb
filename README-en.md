@@ -1,6 +1,6 @@
 # DialBB: A Framework for Building Dialogue Systems
 
-ver.0.6.0
+ver.0.6.1
 
 DialBB is a framework for building dialogue systems.
 
@@ -8,7 +8,17 @@ This software is released for non-commercial use. For details of the license, pl
 
 Refer to the [document](https://c4a-ri.github.io/dialbb/document-en/build/html/) for details and installation instructions. Documentation for other than the latest version can be found in the [Links](https://c4a-ri.github.io/dialbb/) section.
 
-## Overview
+## Tabler of Contents
+
+## Introduction
+
+## Getting Started
+
+## Issues and Discussions
+
+## License
+
+## Citation
 
 The main module of DialBB application recives a user utterance input in JSON format via method calls or via the Web API returns a system utterance in JSON format.
 
@@ -35,6 +45,8 @@ address. Even if it is a trivial or vague question, feel free to send it.
 - Long-term development policy, etc.: [GitHub Discussions](https://github.com/c4a-ri/dialbb/discussions)
 
 - Anything: `dialbb at c4a.jp`
+
+## Acknowledgements
 
 (c) C4A Research Institute, Inc.
 
