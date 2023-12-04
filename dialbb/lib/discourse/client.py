@@ -162,11 +162,24 @@ if __name__ == '__main__':
                                               "aux_data": {"participants": participants,
                                                            "no_response_required": no_response_required}},
                                              initial=False)
-            system_utterance: str = response['system_utterance']
-            if system_utterance:
-                print("Posting utterance: " + system_utterance)
-                res = post_in_topic(system_utterance, topic_id)
-                print("Response is: " + str(res))
+        else:  # no new posts
+            if DEBUG:
+                print("no new posts")
+            response: Dict[str, Any] \
+                = dialogue_processor.process({"user_id": "",
+                                              "session_id": session_id,
+                                              "user_utterance": "",
+                                              "aux_data": {"participants": participants}},
+                                             initial=False)
+
+        system_utterance: str = response['system_utterance']
+        if system_utterance:
+            print("Posting utterance: " + system_utterance)
+            res = post_in_topic(system_utterance, topic_id)
+            print("Response is: " + str(res))
+
+
+
 
 
 

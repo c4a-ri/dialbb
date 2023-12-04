@@ -41,7 +41,6 @@ class ChatGptMp(AbstractBlock):
             abort_during_building("OPENAI_KEY is not defined")
         self._openai_client = openai.OpenAI(api_key=openai_key)
 
-
         # read prefix and postfix
         self._system_personality: str = self.block_config.get("system_personality", "")
         self._prompt_prefix: str = self.block_config.get("prompt_prefix", "")
@@ -51,7 +50,7 @@ class ChatGptMp(AbstractBlock):
         if not self._my_name:
             abort_during_building("name of this participant is not given")
 
-        # {"sesion1" : [{"speaker": "user", "utterance": <user utterance>},
+        # {"session1" : [{"speaker": "user", "utterance": <user utterance>},
         #                {"speaker": "system", "utterance": <system utterance>},
         #                ....]
         # ...}
@@ -106,6 +105,8 @@ class ChatGptMp(AbstractBlock):
             self._remember_who_spoke(input_data['user_id'])
             if aux_data.get("no_response_required"):  # no system response required
                 system_utterance = ""
+            elif not input_data["user_utterance"]:  # no one make utterance
+                system_utterance = ""  # don't speak
             elif self._turn_taking_strategy == "wait_n_turns" and self._turns_after_my_utterance < self._turns_to_wait:
                 system_utterance = ""  # don't speak
             elif self._turn_taking_strategy == "after_all_other_speak" and not self._all_other_spoke():

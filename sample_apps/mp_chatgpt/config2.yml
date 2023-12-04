@@ -16,5 +16,6 @@ blocks:
     postfix: "あなたは次に話しますか？話すとすると何を話しますか？話すときは、短い発話を返してください。話さない場合は「黙る」と答えてください。"
     silence: 黙る
     gpt_model: gpt-3.5-turbo
-    
+    turn_taking_strategy: every_n_turns
+    tuns_to_wait: 2
 
