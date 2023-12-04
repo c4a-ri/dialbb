@@ -2,37 +2,44 @@
 # -*- coding: utf-8 -*-
 #
 # user_spoke.py
-#   user spoke for a multi-party dialogue system
+#   User spoke for a multi-party dialogue system
+#   This works on a command line
 #
-import os
+
 import socketio
 import argparse
 
-
+#  socket io client
 sio = socketio.Client()
 my_name: str = ""
 
 
+# connected
 @sio.event
 def connect():
     print('connection established')
 
+
+# disconnection
 @sio.event
 def disconnect():
     print('disconnected from server')
 
 
+# disconnection
 @sio.on('broadcast_utterance')
 def receive_utterance(data):
     print(f"\r{data['speaker']}:{data['utterance']}> \nyou>", flush=True, end='')
 
 
+# main process
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('my_name', type=str)
     args = parser.parse_args()
 
+    # participant name
     my_name = args.my_name
 
     sio.connect('http://localhost:5000')

@@ -4,8 +4,8 @@
 # spoke_with_dialbb.py
 #   spoke for multi-party dialogue that uses a DialBB app
 #
-import sys
-from typing import Dict, Any
+
+from typing import Dict, Any, List
 
 import socketio
 import argparse
@@ -26,8 +26,11 @@ def connect():
 def receive_utterance(data):
     global session_id
     print('conversation started', flush=True)
-    initial_response: Dict[str, Any] = dialogue_processor.process({"user_id": ""}, initial=True)
-    session_id= initial_response['session_id']
+    participants: List[str] = data['participants']
+    initial_response: Dict[str, Any] = dialogue_processor.process({"user_id": "",
+                                                                   "aux_data": {"participants": participants}},
+                                                                  initial=True)
+    session_id = initial_response['session_id']
     system_utterance: str = initial_response['system_utterance']
     if initial_response['system_utterance']:
         sio.emit('utterance', {'speaker': my_name, 'utterance': system_utterance})

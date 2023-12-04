@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# chatgpt.py
-#   performs dialogue using ChatGPT
-#   ChatGPTを用いた対話
+# chatgpt_mp.py
+#   performs a multi-party conversation using ChatGPT
+#   ChatGPTを用いた多人数対話
 
 __version__ = '0.1'
 __author__ = 'Mikio Nakano'
@@ -11,6 +11,8 @@ __copyright__ = 'C4A Research Institute, Inc.'
 
 import os
 import re
+import sys
+import traceback
 from typing import Dict, Any, List, Union, Tuple
 import openai
 from dialbb.abstract_block import AbstractBlock
@@ -21,7 +23,7 @@ DEFAULT_GPT_MODEL: str = "gpt-3.5-turbo"
 
 class ChatGptMp(AbstractBlock):
     """
-    performs dialogue using ChatGPT
+    performs a multi-party conversation using ChatGPT
     """
 
     def __init__(self, *args):
@@ -34,10 +36,17 @@ class ChatGptMp(AbstractBlock):
         openai.api_key = openai_key
         self._gpt_model = self.block_config.get("gpt_model", DEFAULT_GPT_MODEL)
 
+        openai_key: str = os.environ.get('OPENAI_KEY', "")
+        if not openai_key:
+            abort_during_building("OPENAI_KEY is not defined")
+        self._openai_client = openai.OpenAI(api_key=openai_key)
+
+
         # read prefix and postfix
         self._system_personality: str = self.block_config.get("system_personality", "")
+        self._prompt_prefix: str = self.block_config.get("prompt_prefix", "")
         self._prompt_postfix: str = self.block_config.get("prompt_postfix", "")
-        self._silence: str = self.block_config.get("silence", "")
+        self._silence: str = self.block_config.get("silence", "")  # reply of chatgpt when it wants to be quiet
         self._my_name = self.config.get('my_name')
         if not self._my_name:
             abort_during_building("name of this participant is not given")
@@ -48,8 +57,21 @@ class ChatGptMp(AbstractBlock):
         # ...}
         self._dialogue_history: Dict[str, List[Dict[str, str]]] = {}
         self._utterance_pattern = re.compile(r'「([^」]+)」')
+        self._other_participants = []
+        self._participants_who_spoke = []
+        self._turn_taking_strategy = self.config.get("turn_taking_strategy", "after_all_other_speak")
+        if self._turn_taking_strategy == "wait_n_turns":
+            self._turns_to_wait: int = self.config.get("turns_to_wait", 1)
+        self._turns_after_my_utterance = 0
 
-
+    def _update_other_participants(self, new_participant_list: List[str]):
+        """
+        add new participants to the list of other participants
+        """
+        for participant in new_participant_list:
+            if participant != self._my_name and participant not in self._other_participants:
+                self._other_participants.append(participant)
+                self.log_debug("other participant list updated: " + str(self._other_participants))
 
     def process(self, input_data: Dict[str, Any], session_id: str) -> Union[Dict[str, Union[dict, Any]], str]:
         """
@@ -60,30 +82,67 @@ class ChatGptMp(AbstractBlock):
         :return: output from the block. The keys are "system utterance" (str), "aux_data" (dict), and "final" (bool).
         """
 
+        aux_data: Dict[str, Any] = input_data.get('aux_data', {})
+        if not aux_data:  # aux_data might be None
+            aux_data = {}
+
+        final = False
+
         if session_id not in self._dialogue_history.keys():  # first turn
             self._dialogue_history[session_id] = []
             system_utterance = self.block_config.get("initial_utterance", "")
-            if system_utterance:
-                self._dialogue_history[session_id].append({"speaker": "あなた",
-                                                           "utterance": system_utterance})
-            aux_data = input_data['aux_data']
+            all_participants = aux_data.get('participants', [])
+            self._update_other_participants(all_participants)  # update participant list
             final = False
         else:  # second turn and after
+            if aux_data.get("participants"):
+                self._update_other_participants(aux_data['participants'])  # update participant list
             if input_data["user_utterance"]:
-                self._dialogue_history[session_id].append({"speaker": input_data["user_id"],
+                speaker = input_data["user_id"]
+                if speaker == self._my_name:
+                    speaker = "あなた"
+                self._dialogue_history[session_id].append({"speaker": speaker,
                                                            "utterance": input_data["user_utterance"]})
-            system_utterance, aux_data, final \
-                = self.generate_system_utterance(self._dialogue_history[session_id],
-                                                 session_id,
-                                                 self._my_name,
-                                                 input_data["aux_data"])
+            self._remember_who_spoke(input_data['user_id'])
+            if aux_data.get("no_response_required"):  # no system response required
+                system_utterance = ""
+            elif self._turn_taking_strategy == "wait_n_turns" and self._turns_after_my_utterance < self._turns_to_wait:
+                system_utterance = ""  # don't speak
+            elif self._turn_taking_strategy == "after_all_other_speak" and not self._all_other_spoke():
+                system_utterance = ""  # don't speak
+            else:
+                system_utterance, aux_data, final \
+                    = self.generate_system_utterance(self._dialogue_history[session_id],
+                                                     session_id,
+                                                     self._my_name,
+                                                     input_data["aux_data"])
         if system_utterance == self._silence:
             system_utterance = ""
         if system_utterance:
-            self._dialogue_history[session_id].append({"speaker": "あなた", "utterance": system_utterance})
+            self._clear_list_of_participants_who_spoke()
+            self._turns_after_my_utterance = 0
         return {"system_utterance": system_utterance,
                 "aux_data": aux_data,
                 "final": final}
+
+    def _remember_who_spoke(self, participant: str) -> None:
+
+        if participant not in self._participants_who_spoke:
+            self._participants_who_spoke.append(participant)
+
+    def _all_other_spoke(self) -> bool:
+        """
+        if all other participants spoke after this bot made an utterance
+        """
+
+        if not self._other_participants:
+            return False
+        else:
+            return len(self._other_participants) <= len(self._participants_who_spoke)
+
+    def _clear_list_of_participants_who_spoke(self) -> None:
+
+        self._participants_who_spoke.clear()
 
     def _generate_with_openai_gpt(self, prompt: str) -> str:
 
@@ -95,13 +154,26 @@ class ChatGptMp(AbstractBlock):
         :return: generated string
         """
 
-        # call OpenAI API
-        response = openai.ChatCompletion.create(
-            model=self._gpt_model,
-            messages=[
-                {"role": "user", "content": prompt}]
-        )
-        return response.choices[0]['message']['content']
+        chat_completion = None
+        while True:
+            try:
+                chat_completion = self._openai_client.with_options(timeout=10).chat.completions.create(
+                    model=self._gpt_model,
+                    messages=[{"role": "user", "content": prompt}],
+                    temperature=0.0,
+                    )
+            except openai.APITimeoutError:
+                continue
+            except Exception as e:
+                self.log_error("OpenAI Error: " + traceback.format_exc())
+                sys.exit(1)
+            finally:
+                if not chat_completion:
+                    continue
+                else:
+                    break
+        system_utterance: str = chat_completion.choices[0].message.content
+        return system_utterance
 
     def generate_system_utterance(self, dialogue_history: List[Dict[str, str]],
                                   session_id: str, my_name: str,
@@ -116,10 +188,11 @@ class ChatGptMp(AbstractBlock):
         :param aux_data: auxiliary data received from main
         :return: a tuple of system utterance string, aux_data as is, and final flag (always False)
         """
-        prompt = f"あなたの名前は{my_name}です。" + self._system_personality
+        prompt = f"あなたの名前は{my_name}です。" + self._system_personality + "\n"
+        prompt += "\n" + self._prompt_prefix + "\n"
         for turn in dialogue_history:
             prompt += f"{turn['speaker']}「{turn['utterance']}」\n"
-        prompt += self._prompt_postfix
+        prompt += "\n" + self._prompt_postfix
 
         self.log_debug("prompt: " + prompt, session_id=session_id)
         generated_utterance: str = self._generate_with_openai_gpt(prompt)

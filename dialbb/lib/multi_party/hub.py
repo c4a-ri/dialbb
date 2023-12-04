@@ -50,7 +50,7 @@ def on_utterance(sid, data):
             break
     if everyone_is_here:
         print('Everyone is here.')
-        sio.emit('start_conversation', {})
+        sio.emit('start_conversation', {"participants": participants})
 
 
 @sio.on('utterance')
