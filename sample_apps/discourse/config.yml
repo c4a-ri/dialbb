@@ -12,11 +12,11 @@ blocks:
       system_utterance: system_utterance
       aux_data: aux_data
       final: final
-    system_personality: "あなたは50代男性です。あなたは寿司が好きで、せっかちで、良くしゃべります。"
-    initial_utterance: "好きな食べ物について話しましょう"
-    prompt_prefix: ""
-    prompt_postfix: "あなたは次に話しますか？話すとすると何を話しますか？話すときは、短い発話を返してください。話さない場合は「黙る」と答えてください。"
-    silence: 黙る
-    gpt_model: gpt-3.5-turbo
+    system_personality: "あなたは50代男性です。あなたは寿司が好きで、せっかちで、良くしゃべります。"  # system personality
+    prompt_prefix: ""  # the part of the prompt before the dialogue log
+    prompt_postfix: "あなたは次に話しますか？話すとすると何を話しますか？話すときは、短い発話を返してください。話さない場合は「黙る」と答えてください。"  #  the part of the prompt after the dialogue log
+    silence: 黙る  # the word indicating silence in the prompt
+    initial_utterance: "好きな食べ物について話しましょう" # the first utterance when connected (as a moderator). This can be empty.
+    gpt_model: gpt-3.5-turbo # GPT model name
     turn_taking_strategy: after_all_other_speak
 
