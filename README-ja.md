@@ -14,7 +14,7 @@ DialBBのメインモジュールは，メソッド呼び出しまたはWeb API�
 
 ## ドキュメント
 
-詳細は[ドキュメント](https://c4a-ri.github.io/dialbb/document-ja/build/html/)を参照して下さい．最新バージョン以外のドキュメントは[リンク集](https://c4a-ri.github.io/dialbb/)にあります．
+詳細な仕様やアプリケーションの構築法は[ドキュメント](https://c4a-ri.github.io/dialbb/document-ja/build/html/)を参照して下さい．最新バージョン以外のドキュメントは[リンク集](https://c4a-ri.github.io/dialbb/)にあります．
 
 ## ライセンス
 
@@ -270,7 +270,7 @@ $ export OPENAI_KEY=<OpenAIのAPIキー>
 
 #### テスト方法
 
-以下のコマンドで，{ref}`snips_network_app`では使用していない機能をテストすることができます．
+以下のコマンドで，Snips+STNアプリケーションでは使用していない機能をテストすることができます．
 
   ```sh
   $ cd sample_apps/lab_app_ja
@@ -279,11 +279,11 @@ $ export OPENAI_KEY=<OpenAIのAPIキー>
   $ python $DIALBB_HOME/dialbb/util/send_test_requests.py config.yml test_requests.json
   ```
 
-### ChatGPTを用いたアプリケーション
+### ChatGPT対話アプリケーション
 
 以下の組み込みブロックを用い，OpenAIのChatGPTを用いて対話を行います．
 
-- {ref}`chatgpt_dialogue`
+- ChatGPT Dialogue Block
 
 
 #### Pythonライブラリのインストール

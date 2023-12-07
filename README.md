@@ -131,7 +131,7 @@ If the server is running on Windows, the dialog screen may not appear in your br
 http://<hostname>:8080/test
 ```
 
-### SNIPS-STN Applications
+### Snips-STN Applications
 
 This is a sample application using the following built-in blocks. The English version is available in `sample_apps/network_en/` and Japanese version is available in `sample_apps/network_ja/`.
 
@@ -139,13 +139,13 @@ This is a sample application using the following built-in blocks. The English ve
 
   - Simple Canonicalizer Block
   - Whitespace Tokenizer Block
-  - SNIPS Understander Block (language understanding based on [Snips NLU](https://snips-nlu.readthedocs.io/en/latest/))
+  - Snips Understander Block (language understanding based on [Snips NLU](https://snips-nlu.readthedocs.io/en/latest/))
   - STN Manager Block (state transition network-based dialogue manager)
 - Japanese Application
 
   - Japanese Canonicalizer Block
   - Sudachi Tokenizer  Block (Japanese tokenizer using [Sudachi](https://github.com/WorksApplications/SudachiPy))
-  - SNIPS Understander  Block
+  - Snips Understander  Block
   - STN Manager  Block
 
 #### Installing Required Python Libraries
@@ -282,7 +282,7 @@ If the environment variable `OPENAI_KEY` is not specified, it works without Chat
 
 #### Test Method
 
-The following commands allow you to test features not used in Sample Transition Network Application.
+The following commands allow you to test features not used in the Snips+STN ApplicatiSNIon.
 
   ```sh
   $ cd sample_apps/lab_app_en

@@ -1,11 +1,57 @@
-# English Sample Application 
+# Sample Applications
+
+## Sample Applications Included in DialBB
+
+### Parroting application
+
+It is an application that just parrots back and forth. No built-in block classes are used.
+
+### Snips+STN Applications
+
+Applications using the following blocks.
+
+- Japanese Application
+
+  - {ref}`japanese_canonicalizer`
+  - {ref}`sudachi_tokenizer`
+  - {ref}`snips_understander`
+  - {ref}`stn_manager`
+
+- English Application
+
+  - {ref}`simple_canonicalizer`
+  - {ref}`whitespace_tokenizer`
+  - {ref}`snips_understander`
+  - {ref}`stn_manager`
+
+The Japanese version is available in `sample_apps/network_en/` and the English version is available in `sample_apps/network_en/`.
+
+### Experimental Application
+
+This application is based on the Snips+STN application, and is used to test various functions of the built-in blocks. It uses the following built-in blocks. (Japanese only). 
+
+- {ref}`japanese_canonicalizer`
+- {ref}`sudachi_tokenizer`
+- {ref}`snips_understander`
+- {ref}`spacy_ner`
+- {ref}`stn_manager`
+
+It is `sample_apps/lab_app_ja/` 
+
+## ChatGPT Dialogue Application
+
+It uses the following built-in blocks to engage in dialogue using OpenAI's ChatGPT.
+
+- {ref}`chatgpt_dialogue`
+
+
+## Exaplanation of Snips+STN Appplication
 
 This section describes the structure of a DialBB application through a English sample application.
 
-## System Architecture
+### System Architecture
 
 Below is the system architecture of the application.
-
 
 ![sample-arch-en](../../images/sample-arch-en.jpg)
 
@@ -27,7 +73,7 @@ types (also called intents) and extract slots.
 The symbols on the arrows connecting the main module and the blocks are the keys on the blackboard of the main module on the left side and the keys on the input/output of the blocks on the right side.
 
 
-## Files comprising the application
+### Files comprising the application
 
 The files comprising this application are located in the directory (folder) `sample_apps/network_en`. By
 modifying these files, you can see how the application will change. By making significant changes to the
@@ -59,9 +105,9 @@ files, you can create a completely different dialogue system.
 
   Test scenarios used in system testing.
 
-## SNIPS Understander Block
+### SNIPS Understander Block
 
-### Language understanding results
+#### Language understanding results
 
 The SNIPS Understander block analyzes input utterance and outputs language understanding results. The result consists of a type and a set of slots. For example, the language understanding result of "I like chicken salad sandwich" is as follows.
 
@@ -72,7 +118,7 @@ The SNIPS Understander block analyzes input utterance and outputs language under
 The type is `"tell-like-specific-sandwich"` and the value of the `"favarite_sandwich"` slot is `"chicken salad sandwich"`. It is possible to have multiple slots.
 
 
-### Language understanding knowledge
+#### Language understanding knowledge
 
 The knowledge for language understanding used by the SNIPS Understander block is written in `sample-knowledge-ja.xlsx`.
 
@@ -87,13 +133,13 @@ The language understanding knowledge consisits of the following four sheets.
 
 For more information on these, see "{ref}`nlu_knowledge`.
 
-### Training data for SNIPS
+#### Training data for SNIPS
 
 When the application is launched, the above knowledge is converted into training data for SNIPS and a model is created. 
 
 The training data for SNIPS is `_training_data.json` in the application directory. You can check if the conversion is successful by looking at this file.
 
-## STN Manager Block 
+### STN Manager Block 
 
 The dialogue management knowledge (scenario) is the `scenario` sheet in the `sample-knowledge-en.xlsx` file. 
 

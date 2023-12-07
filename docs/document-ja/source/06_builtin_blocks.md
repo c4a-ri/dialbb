@@ -4,7 +4,7 @@
 組み込みブロッククラスとは，DialBBにあらかじめ含まれているブロッククラスです．
 
 ver0.3で正規化ブロッククラスが変更になりました．また，新たに単語分割のブロッククラスが導入されました．
-それに伴い，SNIPS言語理解の入力も変更になっています．
+それに伴い，Snips言語理解の入力も変更になっています．
 
 (japanese_canonicalizer)=
 ## Japanese canonicalizer （日本語文字列正規化ブロック）
@@ -45,11 +45,11 @@ ver0.3で正規化ブロッククラスが変更になりました．また，�
 
 - 入力
   - `input_text`: 入力文字列（文字列）
-    - 例：" I  like ramen"
+    - 例：`" I  like ramen"`
 
 - 出力
   - `output_text`: 正規化後の文字列（文字列）
-    - 例："i like ramen"
+    - 例：`"i like ramen"`
 
 ### 処理内容
 
@@ -76,7 +76,7 @@ ver0.3で正規化ブロッククラスが変更になりました．また，�
 
 - 出力
   - `tokens`: トークンのリスト（文字列のリスト）
-    - 例：['私','は','ラーメン','が','食べ','たい']
+    - 例：`['私','は','ラーメン','が','食べ','たい']`
   - `tokens_with_indices`: トークン情報のリスト（`dialbb.tokenization.abstract_tokenizer.TokenWIthIndices`クラスのオブジェクトのリスト）．トークン情報には，トークンに加えてそのトークンが元の文字列の何文字目から何文字目までなのかの情報も含まれています．
 
 ### 処理内容
@@ -97,11 +97,11 @@ Sudachiの`SplitMode.C`を用いて単語分割します．
 
 - 入力
   - `input_text`: 入力文字列（文字列）
-    - 例："i like ramen"
+    - 例：`"i like ramen"`
 
 - 出力
   - `tokens`: トークンのリスト（文字列のリスト）
-    - 例：['i','like','ramen']
+    - 例：`['i', 'like', 'ramen']`
   - `tokens_with_indices`: トークン情報のリスト（`dialbb.tokenization.abstract_tokenizer.TokenWIthIndices`クラスのオブジェクトのリスト）．トークン情報には，トークンに加えてそのトークンの開始位置が元の文字列の何文字目から何文字目までなのかの情報も含まれています．
 
 ### 処理内容
@@ -110,17 +110,17 @@ Sudachiの`SplitMode.C`を用いて単語分割します．
 
 
 (snips_understander)=
-## SNIPS understander （SNIPSを用いた言語理解ブロック）
+## Snips understander （Snipsを用いた言語理解ブロック）
 
 (`dialbb.builtin_blocks.understanding_with_snips.snips_understander.Understander`)  
 
-[SNIPS_NLU](https://snips-nlu.readthedocs.io/en/latest/)を利用して，ユーザ発話タイプ（インテントとも呼びます）の決定とスロットの抽出を行います．
+[Snips_NLU](https://snips-nlu.readthedocs.io/en/latest/)を利用して，ユーザ発話タイプ（インテントとも呼びます）の決定とスロットの抽出を行います．
 
 コンフィギュレーションの`language`要素が`ja`の場合は日本語，`en`の場合は英語の言語理解を行います．
 
-本ブロックは，起動時にExcelで記述した言語理解用知識を読み込み，SNIPSの訓練データに変更し，SNIPSのモデルを構築します．
+本ブロックは，起動時にExcelで記述した言語理解用知識を読み込み，Snipsの訓練データに変更し，Snipsのモデルを構築します．
 
-実行時はSNIPSのモデルを用いて言語理解を行います．
+実行時は，構築されたSnipsのモデルを用いて言語理解を行います．
 
 ### 入出力
 
@@ -131,27 +131,52 @@ Sudachiの`SplitMode.C`を用いて単語分割します．
 - 出力
   - `nlu_result`: 言語理解結果（辞書型または辞書型のリスト）
     
-	  - 後述のブロックコンフィギュレーションのパラメータ`num_candidates`が1の場合，言語理解結果は辞書型で以下のような形式です．
+	  - 後述のブロックコンフィギュレーションのパラメータ`num_candidates`が`1`の場合，言語理解結果は辞書型で以下のような形式です．
 	
 	    ```json
-	     {"type": <ユーザ発話タイプ（インテント）>, 
-	      "slots": {<スロット名>: <スロット値>, ..., <スロット名>: <スロット値>}}
+	     {
+		   "type": <ユーザ発話タイプ（インテント）>, 
+	       "slots": {
+		      <スロット名>: <スロット値>, 
+			  ..., 
+			  <スロット名>: <スロット値>
+		   }
+	    }
 	    ```
 	  
 	    以下が例です．
 	  
 	    ```json
-	     {"type": "特定のラーメンが好き", "slots": {"favorite_ramen": "醤油ラーメン"}}
+	     {
+		   "type": "特定のラーメンが好き", 
+		   "slots": {
+		      "favorite_ramen": "醤油ラーメン"
+		   }
+	     }
 	    ```
 	  
 	  - `num_candidates`が2以上の場合，複数の理解結果候補のリストになります．
 	  
 	    ```json
-	     [{"type": <ユーザ発話タイプ（インテント）>, 
-	       "slots": {<スロット名>: <スロット値>, ..., <スロット名>: <スロット値>}},
-	      {"type": <ユーザ発話タイプ（インテント）>, 
-	       "slots": {<スロット名>: <スロット値>, ..., <スロット名>: <スロット値>}},
-	      ....]
+	     [
+		   {
+		     "type": <ユーザ発話タイプ（インテント）>, 
+	         "slots": {
+			     <スロット名>: <スロット値>, 
+				 ..., 
+				 <スロット名>: <スロット値>
+			 }
+		  },
+	      {
+		    "type": <ユーザ発話タイプ（インテント）>, 
+	        "slots": {
+			  <スロット名>: <スロット値>, 
+			  ..., 
+			  <スロット名>: <スロット値>
+		    }
+		  },
+	      ....
+	    ]
 	    ```
 
 ### ブロックコンフィギュレーションのパラメータ
@@ -170,17 +195,17 @@ Sudachiの`SplitMode.C`を用いて単語分割します．
 
 - `canonicalizer` 
 
-   言語理解知識をSNIPSの訓練データに変換する際に行う正規化の情報を指定します．
+   言語理解知識をSnipsの訓練データに変換する際に行う正規化の情報を指定します．
 
-   - `class`
+   - `class` （文字列）
    
       正規化のブロックのクラスを指定します．基本的にアプリケーションで用いる正規化のブロックと同じものを指定します．
 	
 - `tokenizer` 
 
-   言語理解知識をSNIPSの訓練データに変換する際に行う単語分割の情報を指定します．
+   言語理解知識をSnipsの訓練データに変換する際に行う単語分割の情報を指定します．
 
-   - `class`
+   - `class` （文字列）
    
       単語分割のブロックのクラスを指定します．基本的にアプリケーションで用いる単語分割のブロックと同じものを指定します．
 	  
@@ -188,7 +213,7 @@ Sudachiの`SplitMode.C`を用いて単語分割します．
 
       単語分割にSudachi Tokenizerを用いる場合，この値が`True`の時には，Sudachi正規化を行います．
 
-- `num_candidates`（Integer. デフォルト値`1`）
+- `num_candidates`（整数．デフォルト値`1`）
 
    言語理解結果の最大数（n-bestのn）を指定します．
 
@@ -229,7 +254,7 @@ Sudachiの`SplitMode.C`を用いて単語分割します．
 
 - `flag`      
 
-   利用するかどうかを決めるフラグ．Y: yes, T: testなどを書くことが多いです．どのフラグの行を利用するかはコンフィギュレーションに記述します．サンプルアプリのコンフィギュレーションでは，すべての行を使う設定になっています． 
+   利用するかどうかを決めるフラグ．`Y` (yes), `T` (test)などを書くことが多いです．どのフラグの行を利用するかはコンフィギュレーションに記述します．サンプルアプリのコンフィギュレーションでは，すべての行を使う設定になっています． 
 
 - `type`     
 
@@ -237,7 +262,7 @@ Sudachiの`SplitMode.C`を用いて単語分割します．
 
 - `utterance` 
 
-   発話例．スロットを`(豚骨ラーメン)[favorite_ramen]が好きです`のように`(<スロットに対応する言語表現>)[<スロット名>]`で表現します．スロットに対応する言語表現＝言語理解結果に表れる（すなわちmanagerに送られる）スロット値ではないことに注意．言語表現が`dictionary`シートの`synonyms`カラムにあるものの場合，スロット値は，`dictionary`シートの`entity`カラムに書かれたものになります． 
+   発話例．スロットを`(豚骨ラーメン)[favorite_ramen]が好きです`のように`(<スロットに対応する言語表現>)[<スロット名>]`で表現します．スロットに対応する言語表現＝言語理解結果に表れる（すなわちmanagerに送られる）スロット値ではないことに注意して下さい．言語表現が`dictionary`シートの`synonyms`カラムにあるものの場合，スロット値は，`dictionary`シートの`entity`カラムに書かれたものになります． 
 
 utterancesシートのみならずこのブロックで使うシートにこれ以外のカラムがあっても構いません．
 
@@ -257,15 +282,15 @@ utterancesシートのみならずこのブロックで使うシートにこれ�
 
   エンティティクラス名．スロットの値がどのようなタイプの名詞句なのかを表します．異なるスロットが同じエンティティクラスを持つ場合があります．例えば，`(東京)[source_station]から(京都)[destination_station]までの特急券を買いたい`のように，`source_station, destination_station`とも`station`クラスのエンティティを取ります．
   `entity class`カラムの値として辞書関数（`dialbb/<関数名>`の形）を使うことができます．これにより，dictionaryシートに辞書情報を記述する代わりに，関数呼び出しで辞書記述を得ることができます．（例: `dialbb/location`）関数は以下の「{ref}`dictionary_function`」で説明します．
-  またentity classカラムの値は，SNIPSの[builtin entity](https://snips-nlu.readthedocs.io/en/latest/builtin_entities.html)でも構いません．（例: `snips/city`）
+  またentity classカラムの値は，Snipsの[builtin entity](https://snips-nlu.readthedocs.io/en/latest/builtin_entities.html)でも構いません．（例: `snips/city`）
 
-  SNIPSのbuiltin entityを用いる場合，以下のようにしてインストールする必要があります．
+  Snipsのbuiltin entityを用いる場合，以下のようにしてインストールする必要があります．
 
-```sh
-	$ snips-nlu download-entity snips/city ja
-```
+  ```sh
+  $ snips-nlu download-entity snips/city ja
+  ```
 
-​	SNIPSのbuiltin entityを用いた場合の精度などの検証は不十分です．
+​  Snipsのbuiltin entityを用いた場合の精度などの検証は不十分です．
 
 #### entitiesシート
 
@@ -309,7 +334,7 @@ utterancesシートのみならずこのブロックで使うシートにこれ�
 
 - `synonyms`
 
-   同義語を`,`または `，`または`，`で連結したもの
+   同義語を`','`または `'，'`または`'，'`で連結したもの
 
 (dictionary_function)=
 #### 開発者による辞書関数の定義
@@ -332,11 +357,11 @@ def location(config: Dict[str, Any], block_config: Dict[str, Any]) \
             {"value": "徳島"}]
 ```
 
-#### SNIPSの訓練データ
+#### Snipsの訓練データ
 
-アプリを立ち上げると上記の知識はSNIPSの訓練データに変換され，モデルが作られます．
+アプリを立ち上げると上記の知識はSnipsの訓練データに変換され，モデルが作られます．
 
-SNIPSの訓練データはアプリのディレクトリの`_training_data.json`です．このファイルを見ることで，うまく変換されているかどうかを確認できます．
+Snipsの訓練データはアプリのディレクトリの`_training_data.json`です．このファイルを見ることで，うまく変換されているかどうかを確認できます．
 
 (stn_manager)=
 ## STN manager （状態遷移ネットワークベースの対話管理ブロック）
@@ -379,7 +404,7 @@ SNIPSの訓練データはアプリのディレクトリの`_training_data.json`
 
 - `knowledge_google_sheet` (ハッシュ)
 
-  SNIPS Understanderと同じです．
+  Snips Understanderと同じです．
 
 - `scenario_graph`: (ブール値．デフォルト値`False`）
 
@@ -418,7 +443,7 @@ SNIPSの訓練データはアプリのディレクトリの`_training_data.json`
 
 - `conditions`
 
-  条件（の並び）．遷移の条件を表す関数呼び出し．複数あっても構いません．複数ある場合は，`;`で連結します．各条件は`<関数名>(<引数1>, <引数2>, ..., <引数n>)`の形をしています．引数は0個でも構いません．各条件で使える引数については，{ref}`arguments`を参照してください．
+  条件（の並び）．遷移の条件を表す関数呼び出し．複数あっても構いません．複数ある場合は，`';'`で連結します．各条件は`<関数名>(<引数1>, <引数2>, ..., <引数n>)`の形をしています．引数は0個でも構いません．各条件で使える引数については，「{ref}`arguments`」を参照してください．
 
 - `actions`
 
@@ -490,14 +515,22 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
 
 ```python
 [
-  {"speaker": "user",
-   utterance": <正規化後のユーザ発話(文字列)>},
-  {"speaker": "system",
-   utterance": <システム発話>},
-  {"speaker": "user",
-   utterance": <正規化後のユーザ発話(文字列)>},
-  {"speaker": "system",
-   utterance": <システム発話>},
+  {
+    "speaker": "user",
+    "utterance": <正規化後のユーザ発話(文字列)>
+  },
+  {
+    "speaker": "system",
+    "utterance": <システム発話>
+  },
+  {
+    "speaker": "user",
+    "utterance": <正規化後のユーザ発話(文字列)>
+  },
+  {
+    "speaker": "system",
+    "utterance": <システム発話>
+  },
   ...
 ]
 ```
@@ -516,12 +549,19 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
   以下の種類があります．
 
   - `#<スロット名>`
+
     直前のユーザ発話の言語理解結果（入力の`nlu_result`の値）のスロット値．スロット値が空の場合は空文字列になります．
+
   - `#<補助データのキー>`
-    入力のaux_dataの中のこのキーの値．例えば`#emotion`の場合，`aux_data['emotion']`の値．このキーがない場合は，空文字列になります．
+
+    入力の`aux_data`の中のこのキーの値．例えば`#emotion`の場合，`aux_data['emotion']`の値．このキーがない場合は，空文字列になります．
+
   - `#sentence`
+  
     直前のユーザ発話（正規化したもの）
+
   - `#user_id`
+
     ユーザID（文字列）
 
 - 変数（`*`で始まる文字列）
@@ -602,7 +642,7 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
 
 #### 開発者による関数定義
 
-開発者が関数定義を行うときには，アプリケーションディレクトリのscenario_functions.pyを編集します．
+開発者が関数定義を行うときには，コンフィギュレーションファイルのブロックコンフィギュレーションの`function_definition`で指定されているモジュールのファイル（Snips+STN Managerアプリでは`scenario_functions.py`）を編集します．
 
 ```python
 def get_ramen_location(ramen: str, variable: str, context: Dict[str, Any]) -> None:
@@ -616,7 +656,7 @@ def get_ramen_location(ramen: str, variable: str, context: Dict[str, Any]) -> No
 
 引数には，特殊変数・変数の場合，その値が渡されます．
 
-また，変数参照の場合は'`&`'を除いた変数名が，定数の場合は，`""`の中の文字列が渡されます．
+また，変数参照の場合は`'&'`を除いた変数名が，定数の場合は，`""`の中の文字列が渡されます．
 
 
 ### 連続遷移
@@ -696,7 +736,7 @@ ver. 0.4.0で，音声認識結果を入力として扱うときに生じる問�
 
 - `reaction_to_silence` （オブジェクト）
 
-   `action` 要素を持ちます．`action` キーの値は文字列で`repeat`か`transition`です．`action` 要素の値が`transition`の場合，`action` キーが必須です．その値は文字列です．
+  `action`要素を必ず持ちます．`action` 要素の値は文字列で`"repeat"`か`"transition"`です．`action` 要素の値が`transition`の場合，`destination` 要素が必須です．その値は状態名（文字列）です．
 
    入力の`aux_data`が`long_silence`キーを持ちその値が`True`の場合で，かつ，デフォルト遷移以外の遷移の条件を満たさなかった場合，このパラメータに応じて以下のように動作します．
 
@@ -734,7 +774,7 @@ ver. 0.4.0で，音声認識結果を入力として扱うときに生じる問�
 
 (ver0.6で追加）
 
-(`dialbb.builtin_blocks.chatgpt.chatgpt_ja.ChatGPT_Ja`, （日本語用）`dialbb.builtin_blocks.chatgpt.chatgpt_ja.ChatGPT_En`（英語用）)
+(`dialbb.builtin_blocks.chatgpt.chatgpt_ja.ChatGPT_Ja`（日本語用），`dialbb.builtin_blocks.chatgpt.chatgpt_ja.ChatGPT_En`（英語用）)
 
 OpenAI社のChatGPTを用いて対話を行います．
 
@@ -767,6 +807,9 @@ OpenAI社のChatGPTを用いて対話を行います．
    対話の最初のシステム発話です．
   
 - `prompt_prefix` （文字列，デフォルト値は`""`）
+
+   ChatGPTのプロンプトに使う文字列です．以下で説明します．
+   
 - `prompt_postfix` （文字列，デフォルト値は`""`）
 
    ChatGPTのプロンプトに使う文字列です．以下で説明します．

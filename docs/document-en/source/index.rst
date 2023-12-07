@@ -13,7 +13,6 @@ DialBB Document
 
    01_intro
    02_concept
-   03_install
    04_sample_app
    05_framework
    06_builtin_blocks
