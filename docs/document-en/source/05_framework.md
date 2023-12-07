@@ -3,15 +3,15 @@
 
 This section describes the specifications of DialBB as a framework. 
 
-We assume that the reader has some knowledge of Python programming.
+We assume that the reader has knowledge of Python programming.
 
 ## Input and Output
 
-The main module of DialBB has the class API (method invocation), which accepts user speech in JSON format and returns system speech in JSON format.
+The main module of DialBB has the class API (method call), which accepts user utterance and auxiliary information in JSON format and returns system utterance and auxiliary information in JSON format.
 
-The main module works by calling blocks in sequence. Each block is formatted in JSON (Python dictionary type) and returns the data in JSON format.
+The main module works by calling blocks in sequence. Each block receives data  formatted in JSON (Python dictionary type) and returns the data in JSON format.
 
-The class and input/output specifications of each block are specified in a configuration file for each application.
+The class and input/output specifications of each block are specified in the configuration file for each application.
 
 ### The DialogueProcessor Class
 
@@ -26,17 +26,15 @@ This is done by the following procedure.
   export PYTHONPATH=<DialBB directory>:$PYTHONPATH
   ```
 
-- In an application that calls DialBB, use the following DialogueProcessor
-  and calls process method[^fn-process].
+- In the application that uses DialBB, use the following DialogueProcessor
+  and calls process method.
 
   ```python
-  >>> from dialbb.main import DialogueProcessor
-  >>> dialogue_processor = DialogueProcessor(<configuration file> <additional configuration>)
-  >>> response = dialogue_processor.process(<request>, initial=True)  # at the start of a dialogue session
-  >>> response = dialogue_processor.process(<request>) # when session continues
+  from dialbb.main import DialogueProcessor
+  dialogue_processor = DialogueProcessor(<configuration file> <additional configuration>)
+  response = dialogue_processor.process(<request>, initial=True)  # at the start of a dialogue session
+  response = dialogue_processor.process(<request>) # when session continues
   ```
-  
-  [^fn-process]: The specification of the process method was changed in v0.2.0.
   
   `<additional configuration>` is data in dictionary form, where keys must be a string, such as
   
@@ -51,7 +49,9 @@ This is done by the following procedure.
   This is used in addition to the data read from the configuration file. If the same key is used in the
   configuration file and in the additional configuration, the value of the additional configuration is used.
   
-   <request> and `response` are dictionary type data, described below.
+   `<request>` and `response` are dictionary type data, described below.
+
+   Note that `DialogueProcessor.process` is **not** thread safe.
 
 ### Request
 
@@ -68,9 +68,9 @@ JSON in the following form.
 
   - `user_id` is mandatory and `aux_data` is optional
 
-  - <user id> is a unique ID for a user. This is used for remembering the contents of previous interactions when the same user interacts with the application multiple times.
+  - `<user id>` is a unique ID for a user. This is used for remembering the contents of previous interactions when the same user interacts with the application multiple times.
 
-  - <auxiliary data> is used to send client status to the application. It is an JSON object and its contents are decided on an application-by-application basis.
+  - `<auxiliary data>` is used to send client status to the application. It is an JSON object and its contents are decided on an application-by-application basis.
 
   
 
@@ -79,15 +79,18 @@ JSON in the following form.
 JSON in the following form.
 
   ```json
-  {"user_id": <user id: string>,
-   "session_id": <session id: string>,
-   "user_utterance": <user utterance string: string>,
-   "aux_data": <auxiliary data: object (types of values are arbitrary)>}
+  {
+    "user_id": <user id: string>,
+    "session_id": <session id: string>,
+    "user_utterance": <user utterance string: string>,
+    "aux_data": <auxiliary data: object (types of values are arbitrary)>
+  }
   ```
 
   - `user_id`, `session_id`, and `user_utterance` are mandatory, and `aux_data` is optional.
-  - <session id> is the session ID included in the responses.
-  - <user utterance string> is the utterance made by the user.
+  - `<session id>` is the session ID included in the responses.
+
+  - `<user utterance string>` is the utterance made by the user.
 
 
 ### Response
@@ -98,15 +101,15 @@ JSON in the following form.
     "system_utterance": <system utterance string: string>, 
     "user_id":<user id: string>, 
     "final": <end-of-dialogue flag: bool> 
-    "aux_data": <auxiliary data: object (types of values are arbitrary)>}
+    "aux_data": <auxiliary data: object (types of values are arbitrary)>
   }
 
   ```
-  - <session id> is the ID of the dialog session. Each POST to this URI returns a new session ID is generated.
-  - <system utterance string> is the first utterance (prompt) of the system.
-  - <user id> is the ID of the user sent in the request.
-  - <end-of-dialog flag> is a boolean value indicating whether the dialog has ended or not.
-    -<auxiliary data> is data that the application sends to the client. It is used to send
+  - `<session id>` is the ID of the dialog session. A new session ID is generated when new session starts.
+  - `<system utterance string>` is the utterance of the system.
+  - `<user id>` is the ID of the user sent in the request.
+  - `<end-of-dialog flag>` is a boolean value indicating whether the dialog has ended or not.
+  - `<auxiliary data>` is data that the application sends to the client. It is used to send
     information such as server status. 
 
 
@@ -114,8 +117,7 @@ JSON in the following form.
 
 Applications can also be accessed via WebAPI.
 
-### Server startup
-
+### Server Startup
 
 
 Set the PYTHONPATH environment variable.
@@ -128,13 +130,13 @@ export PYTHONPATH=<DialBB directory>:$PYTHONPATH
 Start the server by specifying a configuration file.
 
 ```sh
-$ python <DialBB directory>/run_server.py [--port <port>] <config file>
+python <DialBB directory>/run_server.py [--port <port>] <config file>
 ```
 
 The default port number is 8080.
 
 
-### Connection from client (at start of session)
+### Connection from Client (At Start of Session)
 
 - URI
 
@@ -157,10 +159,11 @@ The default port number is 8080.
 
   The data is in the same JSON format as the response in the case of the class API.
   
-### Connection from client (after session started)
+### Connection from Client (After Session Started)
 
 
 - URI
+
   ```
   http://<server>:<port>/dialogue
   ```
@@ -180,7 +183,7 @@ The default port number is 8080.
   The data is in the same JSON format as the response in the case of the class API.
 
 (configuration)=
-## configuration
+## Configuration
 
 The configuration is data in dictionary format and is assumed to be provided with a yaml file.
 
@@ -202,19 +205,18 @@ The following are the mandatory elements of each block configuration.
 
 - `block_class`
 
-The class name of the block. The path to search for the module (one of the elements of `sys.path`, including the path set in the `PYTHONPATH` environment variable). The path is relative to the path set in the `PYTHONPATH` environment variable.
+  The class name of the block. This should be written as a realtive path from a module search path (an element of `sys.path`. Paths set to `PYTHONPATH` environment variable are included in it).
 
 
-The directory containing the configuration files is automatically registered in the path (an element of `sys.path`) where the module is searched.
+  The directory containing the configuration files is automatically registered in the path (an element of `sys.path`) where the module is searched.
 
 
-Built-in classes should be specified in the form `dialbb.built-in_blocks.<module name>.<class name>.` Relative paths from `dialbb.builtin_blocks` are also allowed, but are deprecated.
+  Built-in classes should be specified in the form `dialbb.built-in_blocks.<module name>.<class name>.` Relative paths from `dialbb.builtin_blocks` are also allowed, but are deprecated.
 
 - `input`
 
-This defines the input from the main module to the block. It is a dictionary type data, where key is used for references within the block and value is used for references in the blackboard (data stored in the main module). For example, if the following is in a block configuration, 
+  This defines the input from the main module to the block. It is a dictionary type data, where keys are used for references within the block and values are used for references in the blackboard (data stored in the main module). For example, if the following is in a block configuration, 
 then what can be referenced by `input['sentence']` in the block is `blackboard['canonicalized_user_utterance']` in the main module.
-
 
   ```yaml
   input: 
@@ -223,26 +225,27 @@ then what can be referenced by `input['sentence']` in the block is `blackboard['
 
 - `output`
 
-Like `input`, it is data of dictionary type, where key is used for references within the block and value is used for references on the blackboard. If the following is specified:
+  Like `input`, it is data of dictionary type, where keys are used for references within the block and values are used for references on the blackboard. If the following is specified:
 
   ```yaml
   output:
     output_text: system_utterance
   ```
 
-and if the output from the block is `output`, then the following process is performed.
+  and if the output from the block is `output`, then the following process is performed.
 
   ```python
 	blackboard['system_utterance'] = output['output_text']
   ```
 
-If `blackboard` already has `system_utterance` as a key, the value is overwritten.
+  If `blackboard` already has `system_utterance` as a key, the value is overwritten.
 
 
 ## How to make your own blocks
 
 Developers can create their own blocks.
-The block class must be a descendant class of `diabb.abstract_block.AbstractBlock`
+
+The block class must be a descendant of `diabb.abstract_block.AbstractBlock`.
 
 
 ### Methods to be implemented
@@ -262,24 +265,24 @@ The block class must be a descendant class of `diabb.abstract_block.AbstractBloc
 - `process(self, input: Dict[str, Any], session_id: str = False) -> Dict[str, Any]`
 
   Processes input and returns output. The relationship between input, output and the main module's
-blackboard is defined by the configuration (see "{ref}`configuration`") `session_id` is a string passed from the main module that is unique for each dialog session.
+blackboard is defined by the configuration (see "{ref}`configuration`"). `session_id` is a string passed from the main module that is unique for each dialog session.
 
 
 ### Available Variables
 
-- `self.config` 
+- `self.config` (dictionary)
 
    This is a dictionary type data of the contents of the configuration. By referring to this data, it is possible to read in elements that have been added by the user.
    
-- `self.block_config`
+- `self.block_config` (dictionary)
 
    The contents of the block configuration are dictionary type data. By referring to this data, it is possible to load elements that have been added independently.
    
-- `self.name`
+- `self.name` (string)
 
-   The name of the block as written in the configuration. (string)
+   The name of the block as written in the configuration. 
 
-- `self.config_dir`
+- `self.config_dir` (string)
 
    The directory containing the configuration files. It is sometimes called the application directory.
 
@@ -287,20 +290,20 @@ blackboard is defined by the configuration (see "{ref}`configuration`") `session
 
 The following logging methods are available
 
-- `log_debug(self, message: str, session_id: str = "unknown")`
+- `log_debug(self, message: str, session_id: str="unknown")`
 
   
-  Outputs debug-level logs to standard error output. `session_id` can be specified a s a session ID to be included in the log.
+  Outputs debug-level logs to standard error output. `session_id` can be specified as a session ID to be included in the log.
 
-- `log_info(self, message: str, session_id: str = "unknown")`
+- `log_info(self, message: str, session_id: str="unknown")`
 
   Outputs info level logs to standard error output.
   
-- `log_warning(self, message: str, session_id: str = "unknown")`
+- `log_warning(self, message: str, session_id: str="unknown")`
 
   Outputs warning-level logs to standard error output.
 
-- `log_error(self, message: str, session_id: str = "unknown")`
+- `log_error(self, message: str, session_id: str="unknown")`
 
   Outputs error-level logs to standard error output.
 
@@ -347,9 +350,9 @@ System: <system utterance>
 
 ```
 
-<session separation> is a string stareging with `----init`.
+`<session separation>` is a string stareging with `----init`.
 
-The test script receives system utterance by inputting <user speech> to the application in turn. If the system utterances differ from the script's system utterances, a warning is issued. When the test is finished, the dialog can be output in the same format as the test scenario, including the output system utterances. By comparing the test scenario with the output file, changes in responses can be examined.
+The test script receives system utterance by inputting `<user speech>` to the application in turn. If the system utterances differ from the script's system utterances, a warning is issued. When the test is finished, the dialogues can be output in the same format as the test scenario, including the output system utterances. By comparing the test scenario with the output file, changes in responses can be examined.
 
 
 

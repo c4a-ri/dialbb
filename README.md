@@ -252,7 +252,7 @@ An experimental application is available at `sample_apps/lab_app_ja/` (Japanese 
 
 - Japanese Canonicalizer Block
 - Sudachi Tokenizer Block
-- SNIPS Understander Block
+- Snips Understander Block
 - Spacy NER Block (NER using [spaCy](https://spacy.io/)/[GiNZA](https://megagonlabs.github.io/ginza/))
 - STN Manager Block
 
