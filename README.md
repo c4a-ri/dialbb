@@ -15,7 +15,7 @@ The main module of DialBB application receives a user utterance input in JSON fo
 
 ## Documents
 
-Refer to the [document](https://c4a-ri.github.io/dialbb/document-en/build/html/) for detailed specification and the way of application development. Documentation for other than the latest version can be found in the [Links](https://c4a-ri.github.io/dialbb/) section.
+Refer to the [document (under construction)](https://c4a-ri.github.io/dialbb/document-en/build/html/) for detailed specification and the way of application development. Documentation for other than the latest version can be found in the [Links](https://c4a-ri.github.io/dialbb/) section.
 
 ## License
 
