@@ -26,10 +26,10 @@ DialBBのメインモジュールは，クラスAPI（メソッド呼び出し�
 - DialBBを利用するアプリケーションの中で，以下のように`DialogueProcessor`のインスタンスを作成し，`process`メソッド[^fn-process]を呼び出します．
   
   ```python
-  >>> from dialbb.main import DialogueProcessor
-  >>> dialogue_processor = DialogueProcessor(<コンフィギュレーションファイル> <追加のコンフィギュレーション>)
-  >>> response = dialogue_processor.process(<リクエスト>, initial=True)  # 対話セッション開始時
-  >>> response = dialogue_processor.process(<リクエスト>) # セッション継続時
+  from dialbb.main import DialogueProcessor
+  dialogue_processor = DialogueProcessor(<コンフィギュレーションファイル> <追加のコンフィギュレーション>)
+  response = dialogue_processor.process(<リクエスト>, initial=True)  # 対話セッション開始時
+  response = dialogue_processor.process(<リクエスト>) # セッション継続時
   ```
   
   [^fn-process]: processメソッドの仕様はv0.2.0で変更になりました．
@@ -46,7 +46,7 @@ DialBBのメインモジュールは，クラスAPI（メソッド呼び出し�
   ```
   これは，コンフィギュレーションファイルから読み込んだデータに追加して用いられます．もし，コンフィギュレーションファイルと追加のコンフィギュレーションで同じkeyが用いられていた場合，追加のコンフィギュレーションの値が用いられます．
   
-  <リクエスト>と`response`（レスポンス）は辞書型のデータで，以下で説明します．
+  `<リクエスト>`と`response`（レスポンス）は辞書型のデータで，以下で説明します．
   
   `DialogueProcessor.process`は**スレッドセーフではありません．**
 
