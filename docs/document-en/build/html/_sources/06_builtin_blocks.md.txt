@@ -31,6 +31,7 @@ Performs the following processing on the input string.
 - Deletes line breaks.
 - Converts a sequence of spaces into a single space.
 
+(whitespace_tokenizer)=
 ## Whitespace Tokenizer (Whitespace-based Word Segmentation Block)
 
 (`dialbb.builtin_blocks.tokenization.whitespace_tokenizer.WhitespaceTokenizer`)
@@ -206,15 +207,15 @@ Each row consists of the following columns.
   
   The function (e.g. `dialbb/location`) is described in "{ref}`dictionary_function`" below.
 
-  The value of the entity class column can also be a [Snips builtin entity](https://snips-nlu.readthedocs.io/en/latest/builtin_entities.html). (e.g. `snips/city`)
+  The value of the entity class column can also be a [Snips built-in entity](https://snips-nlu.readthedocs.io/en/latest/builtin_entities.html). (e.g. `snips/city`)
 
-  When you use Snips builtin entities, you need to install it as follows
+  When you use Snips built-in entities, you need to install it as follows
 
   ```sh
   $ snips-nlu download-entity snips/city en
   ```
 
-  Accuracy and other aspects of the Snips builtin entities have not been fully verified.
+  Accuracy and other aspects of the Snips built-in entities have not been fully verified.
 
 #### entities sheet
 
@@ -861,7 +862,7 @@ Performs named entity recognition using [spaCy](https://spacy.io) and [GiNZA](ht
     
      The inputted `aux_data` plus the named entity recognition results.
 
-The result of eigenexpression extraction is as follows.
+The result of named entity recognition is as follows.
 
 ```json
 { 
@@ -882,7 +883,7 @@ Example:
 }
 ```
 
-See the spaCy/GiNZA model website for more information on the class of eigenexpression.
+See the spaCy/GiNZA model website for more information on the class of named entities.
 	 
 - `en-ginza-electra` (5.1.2):, https://pypi.org/project/ja-ginza-electra/
 
@@ -897,7 +898,7 @@ See the spaCy/GiNZA model website for more information on the class of eigenexpr
 
 - `patterns` (object; Optional)
 
-   Describes a rule-based eigenexpression extraction pattern. The pattern is a YAML format of the one described in [spaCy Pattern Description](https://spacy.io/usage/rule-based-matching).
+   Describes a rule-based named entity extraction pattern. The pattern is a YAML format of the one described in [spaCy Pattern Description](https://spacy.io/usage/rule-based-matching).
 
    
    The following is an example in Japanese.
@@ -912,4 +913,5 @@ See the spaCy/GiNZA model website for more information on the class of eigenexpr
 
 ### Process Details
 
-Extracts the eigenexpression in `input_text` using spaCy/GiNZA and returns the result in `aux_data`.
+Extracts the named entities in `input_text` using spaCy/GiNZA and returns the result in `aux_data`.
+

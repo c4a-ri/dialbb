@@ -178,7 +178,7 @@
 </section>
 </section>
 <section id="whitespace-tokenizer-whitespace-based-word-segmentation-block">
-<h2><span class="section-number">5.2. </span>Whitespace Tokenizer (Whitespace-based Word Segmentation Block)<a class="headerlink" href="#whitespace-tokenizer-whitespace-based-word-segmentation-block" title="Permalink to this heading"></a></h2>
+<span id="whitespace-tokenizer"></span><h2><span class="section-number">5.2. </span>Whitespace Tokenizer (Whitespace-based Word Segmentation Block)<a class="headerlink" href="#whitespace-tokenizer-whitespace-based-word-segmentation-block" title="Permalink to this heading"></a></h2>
 <p>(<code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.tokenization.whitespace_tokenizer.WhitespaceTokenizer</span></code>)</p>
 <p>Splits input into words separated by spaces. This is mainly for English.</p>
 <section id="id1">
@@ -365,12 +365,12 @@
 <p>Entity class name. This indicates what type of noun phrase the slot value is. Different slots may have the same entity class. For example, <code class="docutils literal notranslate"><span class="pre">I</span> <span class="pre">want</span> <span class="pre">to</span> <span class="pre">buy</span> <span class="pre">an</span> <span class="pre">express</span> <span class="pre">ticket</span> <span class="pre">from</span> <span class="pre">(Tokyo)[source_station]</span> <span class="pre">to</span> <span class="pre">(Kyoto)[destination_station]</span></code>, both <code class="docutils literal notranslate"><span class="pre">source_station</span></code> and <code class="docutils literal notranslate"><span class="pre">destination_station</span></code> have entity of class <code class="docutils literal notranslate"><span class="pre">station</span></code>.</p>
 <p>You can use a dictionary function (of the form <code class="docutils literal notranslate"><span class="pre">dialbb/&lt;function</span> <span class="pre">name&gt;</span></code>) as the value of the   <code class="docutils literal notranslate"><span class="pre">entity</span> <span class="pre">class</span></code> column. This allows you to obtain a dictionary description with a function call instead of writing the dictionary information on a dictionary sheet (e.g. <code class="docutils literal notranslate"><span class="pre">dialbb/location</span></code>).</p>
 <p>The function (e.g. <code class="docutils literal notranslate"><span class="pre">dialbb/location</span></code>) is described in “<a class="reference internal" href="#dictionary-function"><span class="std std-ref">Dictionary Function Definitions by Developers</span></a>” below.</p>
-<p>The value of the entity class column can also be a <a class="reference external" href="https://snips-nlu.readthedocs.io/en/latest/builtin_entities.html">Snips builtin entity</a>. (e.g. <code class="docutils literal notranslate"><span class="pre">snips/city</span></code>)</p>
-<p>When you use Snips builtin entities, you need to install it as follows</p>
+<p>The value of the entity class column can also be a <a class="reference external" href="https://snips-nlu.readthedocs.io/en/latest/builtin_entities.html">Snips built-in entity</a>. (e.g. <code class="docutils literal notranslate"><span class="pre">snips/city</span></code>)</p>
+<p>When you use Snips built-in entities, you need to install it as follows</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ snips-nlu download-entity snips/city en
 </pre></div>
 </div>
-<p>Accuracy and other aspects of the Snips builtin entities have not been fully verified.</p>
+<p>Accuracy and other aspects of the Snips built-in entities have not been fully verified.</p>
 </li>
 </ul>
 </section>
@@ -929,7 +929,7 @@ you can change this when you create a new subclass of <code class="docutils lite
 </ul>
 </li>
 </ul>
-<p>The result of eigenexpression extraction is as follows.</p>
+<p>The result of named entity recognition is as follows.</p>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span>{ 
   &quot;NE_&lt;label&gt;&quot;: &quot;&lt;named entity&gt;&quot;, 
   &quot;NE_&lt;label&gt;&quot;: &quot;&lt;named entity&gt;&quot;, 
@@ -945,7 +945,7 @@ you can change this when you create a new subclass of <code class="docutils lite
 <span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
-<p>See the spaCy/GiNZA model website for more information on the class of eigenexpression.</p>
+<p>See the spaCy/GiNZA model website for more information on the class of named entities.</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">en-ginza-electra</span></code> (5.1.2):, https://pypi.org/project/ja-ginza-electra/</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">en_core_web_trf</span></code> (3.5.0):, https://huggingface.co/spacy/en_core_web_trfhttps://pypi.org/project/ja-ginza-electra/</p></li>
@@ -958,7 +958,7 @@ you can change this when you create a new subclass of <code class="docutils lite
 <p>The name of the spaCy/GiNZA model. It can be <code class="docutils literal notranslate"><span class="pre">en_ginza_electra</span></code> (Japanese), <code class="docutils literal notranslate"><span class="pre">en_core_web_trf</span></code> (English), etc.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">patterns</span></code> (object; Optional)</p>
-<p>Describes a rule-based eigenexpression extraction pattern. The pattern is a YAML format of the one described in <a class="reference external" href="https://spacy.io/usage/rule-based-matching">spaCy Pattern Description</a>.</p>
+<p>Describes a rule-based named entity extraction pattern. The pattern is a YAML format of the one described in <a class="reference external" href="https://spacy.io/usage/rule-based-matching">spaCy Pattern Description</a>.</p>
 <p>The following is an example in Japanese.</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">patterns</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Date</span><span class="w"></span>
 <span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">- label</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Date</span><span class="w"></span>
@@ -972,7 +972,7 @@ you can change this when you create a new subclass of <code class="docutils lite
 </section>
 <section id="id10">
 <h3><span class="section-number">5.6.3. </span>Process Details<a class="headerlink" href="#id10" title="Permalink to this heading"></a></h3>
-<p>Extracts the eigenexpression in <code class="docutils literal notranslate"><span class="pre">input_text</span></code> using spaCy/GiNZA and returns the result in <code class="docutils literal notranslate"><span class="pre">aux_data</span></code>.</p>
+<p>Extracts the named entities in <code class="docutils literal notranslate"><span class="pre">input_text</span></code> using spaCy/GiNZA and returns the result in <code class="docutils literal notranslate"><span class="pre">aux_data</span></code>.</p>
 </section>
 </section>
 </section>
