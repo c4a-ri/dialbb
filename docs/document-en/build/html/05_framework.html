@@ -56,13 +56,13 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#webapi">4.2. WebAPI</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#server-startup">4.2.1. Server Startup</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#connection-from-client-at-start-of-session">4.2.2. Connection from Client (At Start of Session)</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#connection-from-client-after-session-started">4.2.3. Connection from Client (After Session Started)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#connection-from-client-at-the-start-of-a-session">4.2.2. Connection from Client (At the Start of a Session)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#connection-from-client-after-the-session-started">4.2.3. Connection from Client (After the Session Started)</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#configuration">4.3. Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#how-to-make-your-own-blocks">4.4. How to make your own blocks</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#methods-to-be-implemented">4.4.1. Methods to be implemented</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#methods-to-be-implemented">4.4.1. Methods to be Implemented</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#available-variables">4.4.2. Available Variables</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#available-methods">4.4.3. Available Methods</a></li>
 </ul>
@@ -212,8 +212,8 @@ information such as server status.</p></li>
 </div>
 <p>The default port number is 8080.</p>
 </section>
-<section id="connection-from-client-at-start-of-session">
-<h3><span class="section-number">4.2.2. </span>Connection from Client (At Start of Session)<a class="headerlink" href="#connection-from-client-at-start-of-session" title="Permalink to this heading"></a></h3>
+<section id="connection-from-client-at-the-start-of-a-session">
+<h3><span class="section-number">4.2.2. </span>Connection from Client (At the Start of a Session)<a class="headerlink" href="#connection-from-client-at-the-start-of-a-session" title="Permalink to this heading"></a></h3>
 <ul>
 <li><p>URI</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">http</span><span class="p">:</span><span class="o">//&lt;</span><span class="n">server</span><span class="o">&gt;</span><span class="p">:</span><span class="o">&lt;</span><span class="n">port</span><span class="o">&gt;/</span><span class="n">init</span>
@@ -233,8 +233,8 @@ information such as server status.</p></li>
 </li>
 </ul>
 </section>
-<section id="connection-from-client-after-session-started">
-<h3><span class="section-number">4.2.3. </span>Connection from Client (After Session Started)<a class="headerlink" href="#connection-from-client-after-session-started" title="Permalink to this heading"></a></h3>
+<section id="connection-from-client-after-the-session-started">
+<h3><span class="section-number">4.2.3. </span>Connection from Client (After the Session Started)<a class="headerlink" href="#connection-from-client-after-the-session-started" title="Permalink to this heading"></a></h3>
 <ul>
 <li><p>URI</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">http</span><span class="p">:</span><span class="o">//&lt;</span><span class="n">server</span><span class="o">&gt;</span><span class="p">:</span><span class="o">&lt;</span><span class="n">port</span><span class="o">&gt;/</span><span class="n">dialogue</span>
@@ -303,7 +303,7 @@ then what can be referenced by <code class="docutils literal notranslate"><span 
 <p>Developers can create their own blocks.</p>
 <p>The block class must be a descendant of <code class="docutils literal notranslate"><span class="pre">diabb.abstract_block.AbstractBlock</span></code>.</p>
 <section id="methods-to-be-implemented">
-<h3><span class="section-number">4.4.1. </span>Methods to be implemented<a class="headerlink" href="#methods-to-be-implemented" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">4.4.1. </span>Methods to be Implemented<a class="headerlink" href="#methods-to-be-implemented" title="Permalink to this heading"></a></h3>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">__init__(self,</span> <span class="pre">*args)</span></code></p>
 <p>Constructor. It is defined as follows:</p>

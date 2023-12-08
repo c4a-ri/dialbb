@@ -136,7 +136,7 @@ python <DialBB directory>/run_server.py [--port <port>] <config file>
 The default port number is 8080.
 
 
-### Connection from Client (At Start of Session)
+### Connection from Client (At the Start of a Session)
 
 - URI
 
@@ -159,7 +159,7 @@ The default port number is 8080.
 
   The data is in the same JSON format as the response in the case of the class API.
   
-### Connection from Client (After Session Started)
+### Connection from Client (After the Session Started)
 
 
 - URI
@@ -248,7 +248,7 @@ Developers can create their own blocks.
 The block class must be a descendant of `diabb.abstract_block.AbstractBlock`.
 
 
-### Methods to be implemented
+### Methods to be Implemented
 
 - `__init__(self, *args)`
   
