@@ -54,7 +54,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#id2">5.2.2. Process Details</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#snips-understander-language-understanding-block-using-snips">5.3. Snips understander (language understanding block using Snips)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#snips-understander-language-understanding-block-using-snips">5.3. Snips Understander (Language Understanding Block using Snips)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#id3">5.3.1. Input/Output</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#block-configuration-parameters">5.3.2. Block Configuration Parameters</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#language-understanding-knowledge">5.3.3. Language Understanding Knowledge</a><ul>
@@ -62,7 +62,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#slots-sheet">5.3.3.2. slots sheet</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#entities-sheet">5.3.3.3. entities sheet</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#dictionary-sheet">5.3.3.4. dictionary sheet</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#dictionary-function-definitions-by-developers">5.3.3.5. Dictionary Function Definitions by Developers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dictionary-function-definitions-by-developers">5.3.3.5. Dictionary function definitions by developers</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#snips-training-data">5.3.3.6. Snips training data</a></li>
 </ul>
 </li>
@@ -86,7 +86,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#continuous-transition">5.4.7. Continuous Transition</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#dealing-with-multiple-language-understanding-results">5.4.8. Dealing with Multiple Language Understanding Results</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#subdialogue">5.4.9. Subdialogue</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#mechanisms-for-handling-voice-input">5.4.10. Mechanisms for handling voice input</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#advanced-mechanisms-for-handling-speech-input">5.4.10. Advanced Mechanisms for Handling Speech Input</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#additional-block-configuration-parameters">5.4.10.1. Additional block configuration parameters</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#adding-built-in-condition-functions">5.4.10.2. Adding built-in condition functions</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ignoring-the-last-incorrect-input">5.4.10.3. Ignoring the last incorrect input</a></li>
@@ -211,7 +211,7 @@
 </section>
 </section>
 <section id="snips-understander-language-understanding-block-using-snips">
-<span id="snips-understander"></span><h2><span class="section-number">5.3. </span>Snips understander (language understanding block using Snips)<a class="headerlink" href="#snips-understander-language-understanding-block-using-snips" title="Permalink to this heading"></a></h2>
+<span id="snips-understander"></span><h2><span class="section-number">5.3. </span>Snips Understander (Language Understanding Block using Snips)<a class="headerlink" href="#snips-understander-language-understanding-block-using-snips" title="Permalink to this heading"></a></h2>
 <p>(<code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.understanding_with_snips.snips_understander.Understander</span></code>)</p>
 <p>Determines the user utterance type (also called intent) and extracts the slots using <a class="reference external" href="https://snips-nlu.readthedocs.io/en/latest/">Snips_NLU</a>.</p>
 <p>Performs language understanding in Japanese if the <code class="docutils literal notranslate"><span class="pre">language</span></code> element of the configuration is <code class="docutils literal notranslate"><span class="pre">ja</span></code>, and language understanding in English if it is <code class="docutils literal notranslate"><span class="pre">en</span></code>.</p>
@@ -270,7 +270,7 @@
 <p>Specifies the Excel file that describes the knowledge. The file path must be relative to the directory where the configuration file is located.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">function_definitions</span></code> (string)</p>
-<p>Specifies the name of the module that defines the dictionary functions (see <a class="reference internal" href="#dictionary-function"><span class="std std-ref">Dictionary Function Definitions by Developers</span></a>). If there are multiple modules, connect them with <code class="docutils literal notranslate"><span class="pre">':'</span></code>. The module must be in the module search path. (The directory of the configuration file is in the module search path.)</p>
+<p>Specifies the name of the module that defines the dictionary functions (see <a class="reference internal" href="#dictionary-function"><span class="std std-ref">Dictionary function definitions by developers</span></a>). If there are multiple modules, connect them with <code class="docutils literal notranslate"><span class="pre">':'</span></code>. The module must be in the module search path. (The directory of the configuration file is in the module search path.)</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">flags_to_use</span></code> (list of strings)</p>
 <p>Specifies the flags to be used. If one of these values is written in the <code class="docutils literal notranslate"><span class="pre">flag</span></code> column of each sheet, it is read. If this parameter is not set, all rows are read.</p>
@@ -364,7 +364,7 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">entity</span> <span class="pre">class</span></code></p>
 <p>Entity class name. This indicates what type of noun phrase the slot value is. Different slots may have the same entity class. For example, <code class="docutils literal notranslate"><span class="pre">I</span> <span class="pre">want</span> <span class="pre">to</span> <span class="pre">buy</span> <span class="pre">an</span> <span class="pre">express</span> <span class="pre">ticket</span> <span class="pre">from</span> <span class="pre">(Tokyo)[source_station]</span> <span class="pre">to</span> <span class="pre">(Kyoto)[destination_station]</span></code>, both <code class="docutils literal notranslate"><span class="pre">source_station</span></code> and <code class="docutils literal notranslate"><span class="pre">destination_station</span></code> have entity of class <code class="docutils literal notranslate"><span class="pre">station</span></code>.</p>
 <p>You can use a dictionary function (of the form <code class="docutils literal notranslate"><span class="pre">dialbb/&lt;function</span> <span class="pre">name&gt;</span></code>) as the value of the   <code class="docutils literal notranslate"><span class="pre">entity</span> <span class="pre">class</span></code> column. This allows you to obtain a dictionary description with a function call instead of writing the dictionary information on a dictionary sheet (e.g. <code class="docutils literal notranslate"><span class="pre">dialbb/location</span></code>).</p>
-<p>The function (e.g. <code class="docutils literal notranslate"><span class="pre">dialbb/location</span></code>) is described in “<a class="reference internal" href="#dictionary-function"><span class="std std-ref">Dictionary Function Definitions by Developers</span></a>” below.</p>
+<p>The function (e.g. <code class="docutils literal notranslate"><span class="pre">dialbb/location</span></code>) is described in “<a class="reference internal" href="#dictionary-function"><span class="std std-ref">Dictionary function definitions by developers</span></a>” below.</p>
 <p>The value of the entity class column can also be a <a class="reference external" href="https://snips-nlu.readthedocs.io/en/latest/builtin_entities.html">Snips built-in entity</a>. (e.g. <code class="docutils literal notranslate"><span class="pre">snips/city</span></code>)</p>
 <p>When you use Snips built-in entities, you need to install it as follows</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ snips-nlu download-entity snips/city en
@@ -414,7 +414,7 @@
 </ul>
 </section>
 <section id="dictionary-function-definitions-by-developers">
-<span id="dictionary-function"></span><h4><span class="section-number">5.3.3.5. </span>Dictionary Function Definitions by Developers<a class="headerlink" href="#dictionary-function-definitions-by-developers" title="Permalink to this heading"></a></h4>
+<span id="dictionary-function"></span><h4><span class="section-number">5.3.3.5. </span>Dictionary function definitions by developers<a class="headerlink" href="#dictionary-function-definitions-by-developers" title="Permalink to this heading"></a></h4>
 <p>Dictionary functions are mainly used to retrieve dictionary information from external databases.</p>
 <p>Dictionary functions are defined in the module specified by <code class="docutils literal notranslate"><span class="pre">dictionary_function</span></code> in the block configuration.</p>
 <p>The dictionary function takes configuration and block configuration as arguments. It is assumed that the these contain connection information to external databases.</p>
@@ -473,7 +473,7 @@
 <p>Specifies an Excel file describing the scenario. It is a relative path from the directory wherer  the configuration file exists.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">function_definitions</span></code> (string)</p>
-<p>The name of the module that defines the scenario function (see <a class="reference internal" href="#dictionary-function"><span class="std std-ref">Dictionary Function Definitions by Developers</span></a>). If there are multiple modules, connect them with <code class="docutils literal notranslate"><span class="pre">':'</span></code>. The module must be in the Python module search path. (The directory containing the configuration file is in the module search path.)</p>
+<p>The name of the module that defines the scenario function (see <a class="reference internal" href="#dictionary-function"><span class="std std-ref">Dictionary function definitions by developers</span></a>). If there are multiple modules, connect them with <code class="docutils literal notranslate"><span class="pre">':'</span></code>. The module must be in the Python module search path. (The directory containing the configuration file is in the module search path.)</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">flags_to_use</span></code> (list of strings)</p>
 <p>Same as the Snips Understander.</p>
@@ -716,8 +716,8 @@ In the case of a variable reference, the variable name without the <code class="
 For example, if the destination state name is of the form <code class="docutils literal notranslate"><span class="pre">#gosub:request_confirmation:confirmed</span></code>, a subdialogue starting with <code class="docutils literal notranslate"><span class="pre">request_confirmatin</span></code> is executed, and when the destination state becomes <code class="docutils literal notranslate"><span class="pre">:exit</span></code>, it returns to <code class="docutils literal notranslate"><span class="pre">confirmed</span></code>. When the destination becomes <code class="docutils literal notranslate"><span class="pre">:exit</span></code>, it returns to <code class="docutils literal notranslate"><span class="pre">confirmed</span></code>.
 It is also possible to transition to a subdialogue within a subdialogue.</p>
 </section>
-<section id="mechanisms-for-handling-voice-input">
-<h3><span class="section-number">5.4.10. </span>Mechanisms for handling voice input<a class="headerlink" href="#mechanisms-for-handling-voice-input" title="Permalink to this heading"></a></h3>
+<section id="advanced-mechanisms-for-handling-speech-input">
+<h3><span class="section-number">5.4.10. </span>Advanced Mechanisms for Handling Speech Input<a class="headerlink" href="#advanced-mechanisms-for-handling-speech-input" title="Permalink to this heading"></a></h3>
 <section id="additional-block-configuration-parameters">
 <h4><span class="section-number">5.4.10.1. </span>Additional block configuration parameters<a class="headerlink" href="#additional-block-configuration-parameters" title="Permalink to this heading"></a></h4>
 <ul>

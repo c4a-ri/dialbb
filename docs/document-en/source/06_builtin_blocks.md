@@ -54,7 +54,7 @@ Splits input into words separated by spaces. This is mainly for English.
 Splits the input string canonicalized by the simple canonicalizer by whitespace.
 
 (snips_understander)=
-## Snips understander (language understanding block using Snips)
+## Snips Understander (Language Understanding Block using Snips)
 
 (`dialbb.builtin_blocks.understanding_with_snips.snips_understander.Understander`)  
 
@@ -264,7 +264,7 @@ Each row consists of the following columns
 
 
 (dictionary_function)=
-#### Dictionary Function Definitions by Developers
+#### Dictionary function definitions by developers
 
 Dictionary functions are mainly used to retrieve dictionary information from external databases.
 
@@ -623,7 +623,7 @@ If the destination state name is of the form `#gosub:<state name1>:<state name2>
 For example, if the destination state name is of the form `#gosub:request_confirmation:confirmed`, a subdialogue starting with `request_confirmatin` is executed, and when the destination state becomes `:exit`, it returns to `confirmed`. When the destination becomes `:exit`, it returns to `confirmed`.
 It is also possible to transition to a subdialogue within a subdialogue.
 
-### Mechanisms for handling voice input
+### Advanced Mechanisms for Handling Speech Input
 
 #### Additional block configuration parameters
 
