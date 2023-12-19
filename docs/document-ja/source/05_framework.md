@@ -210,6 +210,8 @@ blocks:
   ```
 
   のように指定されていたとすると，ブロック内で`input['sentence']`で参照できるものは，メインモジュールの`blackboard['canonicalized_user_utterance']`です．
+  
+  指定されたキーがblackboardにない場合、該当するinputの要素は`None`になります。
 
 - `output`
 

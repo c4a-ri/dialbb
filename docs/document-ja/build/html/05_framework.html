@@ -279,6 +279,7 @@
 </pre></div>
 </div>
 <p>のように指定されていたとすると，ブロック内で<code class="docutils literal notranslate"><span class="pre">input['sentence']</span></code>で参照できるものは，メインモジュールの<code class="docutils literal notranslate"><span class="pre">blackboard['canonicalized_user_utterance']</span></code>です．</p>
+<p>指定されたキーがblackboardにない場合、該当するinputの要素は<code class="docutils literal notranslate"><span class="pre">None</span></code>になります。</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">output</span></code></p>
 <p>ブロックからメインモジュールへの出力を規定します．<code class="docutils literal notranslate"><span class="pre">input</span></code>同様，辞書型のデータで，keyがブロック内での参照に用いられ，valueがblackboardでの参照に用いられます．</p>
