@@ -223,6 +223,8 @@ then what can be referenced by `input['sentence']` in the block is `blackboard['
     sentence: canonicalized_user_utterance
   ```
 
+  If the specified key is not in the blackboard, the corresponding element of the input becomes `None`.
+
 - `output`
 
   Like `input`, it is data of dictionary type, where keys are used for references within the block and values are used for references on the blackboard. If the following is specified:
