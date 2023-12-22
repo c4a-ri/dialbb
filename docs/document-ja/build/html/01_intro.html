@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="ja" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>1. はじめに &mdash; DialBBドキュメント ver. 0.6 v0.6.0 ドキュメント</title>
@@ -12,8 +12,10 @@
   <![endif]-->
   
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
         <script src="_static/translations.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="索引" href="genindex.html" />
@@ -27,15 +29,11 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-
-          
-          
-          <a href="index.html" class="icon icon-home">
-            DialBBドキュメント ver. 0.6
+            <a href="index.html" class="icon icon-home"> DialBBドキュメント ver. 0.6
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -45,10 +43,9 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">1. はじめに</a></li>
 <li class="toctree-l1"><a class="reference internal" href="02_concept.html">2. DialBBの概要</a></li>
-<li class="toctree-l1"><a class="reference internal" href="03_install.html">3. インストールとサンプルアプリケーションの実行の仕方</a></li>
-<li class="toctree-l1"><a class="reference internal" href="04_sample_app.html">4. 日本語SNIPS+ネットワークベース対話管理アプリケーションの説明</a></li>
-<li class="toctree-l1"><a class="reference internal" href="05_framework.html">5. フレームワーク仕様</a></li>
-<li class="toctree-l1"><a class="reference internal" href="06_builtin_blocks.html">6. 組み込みブロッククラスの仕様</a></li>
+<li class="toctree-l1"><a class="reference internal" href="04_sample_app.html">3. サンプルアプリケーション</a></li>
+<li class="toctree-l1"><a class="reference internal" href="05_framework.html">4. フレームワーク仕様</a></li>
+<li class="toctree-l1"><a class="reference internal" href="06_builtin_blocks.html">5. 組み込みブロッククラスの仕様</a></li>
 </ul>
 
         </div>
@@ -64,8 +61,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active"><span class="section-number">1. </span>はじめに</li>
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><span class="section-number">1. </span>はじめに</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/01_intro.md.txt" rel="nofollow"> View page source</a>
       </li>
@@ -78,11 +75,12 @@
   <section id="intro">
 <span id="id1"></span><h1><span class="section-number">1. </span>はじめに<a class="headerlink" href="#intro" title="この見出しへのパーマリンク"></a></h1>
 <p><a class="reference external" href="https://github.com/c4a-ri/dialbb">DialBB (<em>Dial</em>ogue System Development Framework with <em>B</em>uilding <em>B</em>locks)</a>は対話システムを構築するためのフレームワークです．</p>
-<p>対話システムは情報分野の様々な技術を統合して構築されます．本フレームワークを用いることで，対話システム技術の知識や情報システム開発経験の少ない人でも対話システムが構築でき，様々な情報技術を学ぶことができることを目指しています．また，アーキテクチャのわかりやすさ，拡張性の高さ，コードの読みやすさなどを重視し，プログラミング・システム開発教育の教材にしてもらえることも目指しています．DialBB開発の目的については、<a class="reference external" href="https://www.jstage.jst.go.jp/article/jsaislud/96/0/96_39/_article/-char/ja">人工知能学会SLUD研究会の論文</a>に書きましたので、そちらも合わせてご参照ください。</p>
+<p>対話システムは情報分野の様々な技術を統合して構築されます．本フレームワークを用いることで，対話システム技術の知識や情報システム開発経験の少ない人でも対話システムが構築でき，様々な情報技術を学ぶことができることを目指しています．また，アーキテクチャのわかりやすさ，拡張性の高さ，コードの読みやすさなどを重視し，プログラミング・システム開発教育の教材にしてもらえることも目指しています．DialBB開発の目的については，<a class="reference external" href="https://www.jstage.jst.go.jp/article/pjsai/JSAI2023/0/JSAI2023_4A2GS604/_article/-char/ja/">人工知能学会全国大会の論文</a>に書きましたので，そちらも合わせてご参照ください．</p>
 <p>DialBBで対話システムを構築するには，Pythonを動かす環境が必要です．もし，Pythonを動かす環境がないなら，<a class="reference external" href="https://www.python.jp/install/install.html">Python環境構築ガイド</a>などを参考に，環境構築を行ってください．</p>
+<p>DialBBのインストールの仕方とサンプルアプリケーションの動かし方は<a class="reference external" href="https://github.com/c4a-ri/dialbb/blob/main/README-ja.md">README</a>を見てください．</p>
 <p>対話システムの一般向けの解説として，<a class="reference external" href="https://www.kadokawa.co.jp/product/321902000134/">東中竜一郎著：AIの雑談力</a>や<a class="reference external" href="https://www.c4a.jp/wp-content/uploads/2021/09/%E6%83%85%E5%A0%B1%E5%87%A6%E7%90%86-2021-10-%E5%AF%BE%E8%A9%B1%E3%82%B7%E3%82%B9%E3%83%86%E3%83%A0%E3%82%92%E7%9F%A5%E3%82%8D%E3%81%86.pdf">情報処理学会誌の解説記事「対話システムを知ろう」</a>があります．</p>
 <p>また，<a class="reference external" href="https://www.amazon.co.jp/Python%E3%81%A7%E3%81%A4%E3%81%8F%E3%82%8B%E5%AF%BE%E8%A9%B1%E3%82%B7%E3%82%B9%E3%83%86%E3%83%A0-%E6%9D%B1%E4%B8%AD-%E7%AB%9C%E4%B8%80%E9%83%8E/dp/4274224791">東中，稲葉，水上著：Pythonでつくる対話システム</a>は，対話システムの実装の仕方についてPythonのコードを用いて説明しています．</p>
-<p>DialBBは<a class="reference external" href="https://www.c4a.jp">株式会社C4A研究所</a>が著作権を保有し，非商用向けに公開しています．詳しくは<a class="reference external" href="https://github.com/c4a-ri/LICENSE">ライセンス</a>を参照ください．</p>
+<p>DialBBは<a class="reference external" href="https://www.c4a.jp">株式会社C4A研究所</a>が開発し，著作権を保有し，非商用向けに公開しています．詳しくは<a class="reference external" href="https://github.com/c4a-ri/dialbb/blob/main/LICENSE">ライセンス</a>を参照ください．</p>
 </section>
 
 
