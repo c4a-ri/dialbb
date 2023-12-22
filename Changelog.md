@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.1 (2023.12.22)
+
+- STN Manager ブロックがnlu_result=Noneを受け取ったときのバグをfix
+
 ## 0.6.0 (2023.8.17)
 
 - spaCy/GiNZAを用いた固有表現抽出の組み込みブロックを追加

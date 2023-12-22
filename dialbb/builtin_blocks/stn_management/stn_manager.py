@@ -285,6 +285,8 @@ class Manager(AbstractBlock):
 
         user_id: str = input_data['user_id']
         nlu_result: Union[Dict[str, Any], List[Dict[str, Any]]] = input_data.get('nlu_result', {KEY_TYPE: "", "slots": {}})
+        if not nlu_result:
+            nlu_result = {KEY_TYPE: "", "slots": {}}
         aux_data: Dict[str, Any] = input_data.get(INPUT_KEY_AUX_DATA)
         if aux_data is None:
             self.log_warning("aux_data is not included in the input", session_id=session_id)
