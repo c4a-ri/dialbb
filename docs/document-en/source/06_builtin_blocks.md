@@ -467,13 +467,16 @@ The dialog history is in the following form.
     "speaker": "system",
     "utterance": <canonicalized user utterance (string)
   },
+  ...
   {
+
     "speaker": "user",
     "utterance": <canonicalized user utterance (string)
   },
-  ...
 ]
 ```
+
+It inculdes the latest user utterance.
 
 In addition to these, new key/value pairs can be added within the action function.
 
