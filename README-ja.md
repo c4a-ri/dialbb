@@ -18,7 +18,7 @@ DialBBのメインモジュールは，メソッド呼び出しまたはWeb API�
 
 ## チュートリアル
 
-DialBBを簡単に説明した[チュートリアルスライド](docs/Introduction-to-DialBB-ja-v0.6.pdf)があります。
+DialBBを簡単に説明した[チュートリアルスライド](docs/tutorial-slides/Introduction-to-DialBB-ja-v0.6.pdf)があります。
 
 ## ライセンス
 
