@@ -16,6 +16,10 @@ DialBBのメインモジュールは，メソッド呼び出しまたはWeb API�
 
 詳細な仕様やアプリケーションの構築法は[ドキュメント](https://c4a-ri.github.io/dialbb/document-ja/build/html/)を参照して下さい．最新バージョン以外のドキュメントは[リンク集](https://c4a-ri.github.io/dialbb/)にあります．
 
+## チュートリアル
+
+DialBBを簡単に説明した[チュートリアルスライド](docs/tutorial-slides/Introduction-to-DialBB-ja-v0.6.pdf)があります。
+
 ## ライセンス
 
 DialBBは非商用向けに公開されています．ライセンスの詳細は[ライセンス](LICENSE)をご覧ください．
