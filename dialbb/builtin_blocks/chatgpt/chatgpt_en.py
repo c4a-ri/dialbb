@@ -18,6 +18,8 @@ class ChatGPT_En(ChatGPT):
     def __init__(self, *args):
 
         super().__init__(*args)
+        self.user_name: str = self.block_config.get("user_name", "User")
+        self.system_name: str = self.block_config.get("system_name", "System")
 
     def generate_system_utterance(self, dialogue_history: List[Dict[str, str]],
                                   session_id: str, user_id: str,
@@ -37,15 +39,15 @@ class ChatGPT_En(ChatGPT):
 
         for turn in dialogue_history:
             if turn["speaker"] == 'user':
-                prompt += f"User: \"{turn['utterance']}\"\n"
+                prompt += f"{self.user_name}: \"{turn['utterance']}\"\n"
             else:
-                prompt += f"System: \"{turn['utterance']}\"\n"
+                prompt += f"{self.system_name}: \"{turn['utterance']}\"\n"
         prompt += self._prompt_postfix
 
         self.log_debug("prompt: " + prompt, session_id=session_id)
         generated_utterance: str = self._generate_with_openai_gpt(prompt)
         self.log_debug("generated system utterance: " + generated_utterance, session_id=session_id)
-        system_utterance: str = generated_utterance.replace(f"System:", "").replace('\"', "").replace("'", "").strip()
+        system_utterance: str = generated_utterance.replace(f"{self.system_name}:", "").replace('\"', "").replace("'", "").strip()
         self.log_debug("final system utterance: " + system_utterance, session_id=session_id)
 
         return system_utterance, aux_data, False

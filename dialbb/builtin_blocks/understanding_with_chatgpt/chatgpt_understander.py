@@ -1,19 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# snips_understander.py
-#   understand input text using snips nlu
+# chatgpt_understander.py
+#   understand input text using ChatGPT
 
 __version__ = '0.1'
 __author__ = 'Mikio Nakano'
 __copyright__ = 'C4A Research Institute, Inc.'
 
-import importlib
-from types import ModuleType
-
+import traceback
+import openai
 import pandas as pd
 from pandas import DataFrame
-from dialbb.builtin_blocks.understanding_with_snips.knowledge_converter import convert_nlu_knowledge
+from dialbb.builtin_blocks.understanding_with_chatgpt.knowledge_converter import convert_nlu_knowledge
 from dialbb.abstract_block import AbstractBlock
 from dialbb.main import CONFIG_KEY_FLAGS_TO_USE, CONFIG_KEY_LANGUAGE
 from typing import Any, Dict, List, Tuple
@@ -28,9 +27,8 @@ from snips_nlu.default_configs import CONFIG_EN, CONFIG_JA
 
 from dialbb.main import ANY_FLAG, KEY_SESSION_ID
 from dialbb.util.error_handlers import abort_during_building
+from dialbb.builtin_blocks.understanding_with_chatgpt.prompt_templates_ja import PROMPT_TEMPLATE_JA, PROMPT_TEMPLATE_EN
 
-
-SNIPS_SEED = 42  # from SNIPS tutorial
 
 CONFIG_KEY_KNOWLEDGE_GOOGLE_SHEET: str = "knowledge_google_sheet"  # google sheet info
 CONFIG_KEY_SHEET_ID: str = "sheet_id"  # google sheet id
@@ -40,23 +38,32 @@ CONFIG_KEY_UTTERANCE_SHEET: str = "utterances_sheet"
 CONFIG_KEY_SLOTS_SHEET: str = "slots_sheet"
 CONFIG_KEY_ENTITIES_SHEET: str = "entities_sheet"
 CONFIG_KEY_DICTIONARY_SHEET: str = "dictionary_sheet"
-CONFIG_KEY_SUDACHI_NORMALIZATION: str = "sudachi_normalization"
-CONFIG_KEY_NUM_CANDIDATES: str = "num_candidates"
+CONFIG_KEY_PROMPT_TEMPLATE: str = "prompt_template"
+CONFIG_KEY_GPT_MODEL: str = "gpt_model"
 
-KEY_TOKENS: str = "tokens"
+KEY_INPUT_TEXT: str = "input_text"
 KEY_NLU_RESULT: str = "nlu_result"
+
+DEFAULT_GPT_MODEL: str = "gpt-3.5-turbo"
 
 SCOPES = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
 
 
 class Understander(AbstractBlock):
     """
-    SNIPS based understander
+    ChatGPT based understander
     """
 
     def __init__(self, *args):
 
         super().__init__(*args)
+
+        # chatgpt setting
+        openai_key: str = os.environ.get('OPENAI_KEY', "")
+        if not openai_key:
+            abort_during_building("OPENAI_KEY is not defined")
+        self._openai_client = openai.OpenAI(api_key=openai_key)
+        self._gpt_model = self.block_config.get(CONFIG_KEY_GPT_MODEL, DEFAULT_GPT_MODEL)
 
         # which rows to use
         flags_to_use = self.block_config.get(CONFIG_KEY_FLAGS_TO_USE, [ANY_FLAG])
@@ -64,62 +71,61 @@ class Understander(AbstractBlock):
         # sheets in spreadsheet
         utterances_sheet = self.block_config.get(CONFIG_KEY_UTTERANCE_SHEET, "utterances")
         slots_sheet = self.block_config.get(CONFIG_KEY_SLOTS_SHEET, "slots")
-        entities_sheet = self.block_config.get(CONFIG_KEY_ENTITIES_SHEET, "entities")
         dictionary_sheet = self.block_config.get(CONFIG_KEY_DICTIONARY_SHEET, "dictionary")
 
         # language: "en" or "ja"
-        self._language = self.config.get(CONFIG_KEY_LANGUAGE, "en")
+        self._language = self.config.get(CONFIG_KEY_LANGUAGE, 'en')
+        if self._language not in ('en', 'ja'):
+            abort_during_building("unsupported language: " + self._language)
 
-        # how many NLU candidates will be sent to the dialogue manager
-        self._num_candidates = self.block_config.get(CONFIG_KEY_NUM_CANDIDATES, 1)
-        if type(self._num_candidates) != int or self._num_candidates < 1:
-            abort_during_building(f"value of {CONFIG_KEY_NUM_CANDIDATES} must be a natural number.")
+        prompt_template_file: str = self.config.get(CONFIG_KEY_PROMPT_TEMPLATE)
+        if prompt_template_file:
+            prompt_template_file = os.path.join(self.config_dir, prompt_template_file)
+            prompt_template: str = self._read_prompt_template(prompt_template_file)
+        else:
+            if self._language == 'ja':
+                prompt_template = PROMPT_TEMPLATE_JA
+            else: # english
+                prompt_template = PROMPT_TEMPLATE_EN
 
         google_sheet_config: Dict[str, str] = self.block_config.get(CONFIG_KEY_KNOWLEDGE_GOOGLE_SHEET)
         if google_sheet_config:  # get knowledge from google sheet
-            utterances_df, slots_df, entities_df, dictionary_df \
-                = self._get_dfs_from_gs(google_sheet_config, utterances_sheet, slots_sheet,
-                                        entities_sheet, dictionary_sheet)
+            utterances_df, slots_df, dictionary_df \
+                = self._get_dfs_from_gs(google_sheet_config, utterances_sheet, slots_sheet, dictionary_sheet)
         else:  # get knowledge from excel
             excel_file = self.block_config.get(CONFIG_KEY_KNOWLEDGE_FILE)
             if not excel_file:
                 abort_during_building(
                     f"Neither knowledge file nor google sheet info is not specified for the block {self.name}.")
-            utterances_df, slots_df, entities_df, dictionary_df \
-                = self._get_dfs_from_excel(excel_file, utterances_sheet, slots_sheet, entities_sheet, dictionary_sheet)
+            utterances_df, slots_df, dictionary_df \
+                = self._get_dfs_from_excel(excel_file, utterances_sheet, slots_sheet, dictionary_sheet)
 
-        # importing dictionary function modules
-        function_modules: List[ModuleType] = []
-        function_definitions: str = self.block_config.get("function_definitions")  # module name(s) in config
-        if function_definitions:
-            for function_definition in function_definitions.split(':'):
-                function_definition_module: str = function_definition.strip()
-                function_modules.append(importlib.import_module(function_definition_module))  # developer specified
+        # convert nlu knowledge to type and slot definitions
+        types, slot_definitions, examples, self.entities2synonyms \
+            = convert_nlu_knowledge(utterances_df, slots_df, flags_to_use, language=self._language)
+        self._prompt_template = prompt_template.replace('@examples', examples).replace('@types', types)\
+            .replace('@slot_definitions', slot_definitions)
 
-        # convert nlu knowledge dataframes to JSON in SNIPS format
-        nlu_knowledge_json = convert_nlu_knowledge(utterances_df, slots_df, entities_df, dictionary_df,
-                                                   flags_to_use, function_modules, self.config, self.block_config,
-                                                   language=self._language)
-        # write training file 訓練データファイルを書き出す
-        with open(os.path.join(self.config_dir, "_training_data.json"), "w", encoding='utf-8') as fp:
-            fp.write(json.dumps(nlu_knowledge_json, indent=2, ensure_ascii=False))
-        if self._language == 'en':
-            self._nlu_engine = SnipsNLUEngine(config=CONFIG_EN, random_state=SNIPS_SEED)
-        elif self._language == 'ja':
-            self._nlu_engine = SnipsNLUEngine(config=CONFIG_JA, random_state=SNIPS_SEED)
-        self._nlu_engine.fit(nlu_knowledge_json)  # train NLU model
+    def _read_prompt_template(self, file_path: str) -> str:
+        """
+        read a file into one string
+        :return: the content of the file
+        """
+
+        with open(file_path, 'r', encoding='utf-8') as file:
+            file_contents: str = file.read()
+        return file_contents
 
     def _get_dfs_from_gs(self, google_sheet_config: Dict[str, str],
                          utterances_sheet: str, slots_sheet: str,
-                         entities_sheet: str, dictionary_sheet: str) \
-            -> Tuple[DataFrame, DataFrame, DataFrame, DataFrame]:
+                         dictionary_sheet: str) \
+            -> Tuple[DataFrame, DataFrame, DataFrame]:
         """
         Get DataFrames for each sheet in knowledge in google sheets
         Google sheetに書かれた知識からDataframeを取得する。
         :param google_sheet_config: configuration for accessing google sheet
         :param utterances_sheet: utterances sheet name
         :param slots_sheet: slots sheet name
-        :param entities_sheet: entities sheet name
         :param dictionary_sheet: dictionary sheet name
         :return: (utterances dataframe, slots dataframe, entities dataframe, dictionary dataframe)
         """
@@ -132,15 +138,12 @@ class Understander(AbstractBlock):
         workbook = gc.open_by_key(google_sheet_id)
         utterances_data = workbook.worksheet(utterances_sheet).get_all_values()
         slots_data = workbook.worksheet(slots_sheet).get_all_values()
-        entities_data = workbook.worksheet(entities_sheet).get_all_values()
         dictionary_data = workbook.worksheet(dictionary_sheet).get_all_values()
         return pd.DataFrame(utterances_data[1:], columns=utterances_data[0]), \
                pd.DataFrame(slots_data[1:], columns=slots_data[0]), \
-               pd.DataFrame(entities_data[1:], columns=entities_data[0]), \
                pd.DataFrame(dictionary_data[1:], columns=dictionary_data[0])
 
-    def _get_dfs_from_excel(self, excel_file: str, utterances_sheet: str, slots_sheet: str,
-                            entities_sheet: str, dictionary_sheet: str):
+    def _get_dfs_from_excel(self, excel_file: str, utterances_sheet: str, slots_sheet: str, dictionary_sheet: str):
 
         """
         Get DataFrames for each sheet in knowledge in Excel
@@ -148,7 +151,6 @@ class Understander(AbstractBlock):
         :param excel_file: knowledge file excel
         :param utterances_sheet: utterances sheet name
         :param slots_sheet: slots sheet name
-        :param entities_sheet: entities sheet name
         :param dictionary_sheet: dictionary sheet name
         :return: (utterances dataframe, slots dataframe, entities dataframe, dictionary dataframe)
         """
@@ -157,11 +159,10 @@ class Understander(AbstractBlock):
         print(f"reading excel file: {excel_file_path}", file=sys.stderr)
         try:
             df_all: Dict[str, DataFrame] = pd.read_excel(excel_file_path, sheet_name=None)  # read all sheets
+            # reading slots sheet
+            return df_all.get(utterances_sheet), df_all.get(slots_sheet), df_all.get(dictionary_sheet)
         except Exception as e:
             abort_during_building(f"failed to read excel file: {excel_file_path}. {str(e)}")
-        # reading slots sheet
-        return df_all.get(utterances_sheet), df_all.get(slots_sheet), \
-               df_all.get(entities_sheet), df_all.get(dictionary_sheet)
 
     def process(self, input: Dict[str, Any], session_id: str) -> Dict[str, Any]:
         """
@@ -185,51 +186,76 @@ class Understander(AbstractBlock):
 
         session_id: str = input.get(KEY_SESSION_ID, "undecided")
         self.log_debug("input: " + str(input), session_id=session_id)
-
-        tokens = input[KEY_TOKENS]
-        if not tokens:  # if input is empty
-            if self._num_candidates == 1:  # non n-best mode
-                nlu_result: Dict[str, Any] = {"type": "", "slots": {}}
-            else:  # n-best mode
-                nlu_result: List[Dict[str, Any]] = [{"type": "", "slots": {}}]
+        input_text = input.get(KEY_INPUT_TEXT, "")
+        if input_text == "":
+            nlu_result: Dict[str, Any] = {"type": "", "slots": {}}
         else:
-            input_to_nlu = " ".join(tokens)  # concatenate tokens into a string
-            if self._num_candidates == 1:  # non n-best mode
-                snips_result: Dict[str, Any] = self._nlu_engine.parse(input_to_nlu)
-                nlu_result: Dict[str, Any] = self._one_snips_result_to_nlu_result(snips_result)
-            else:  # n-best mode
-                snips_results: List[Dict[str, Any]] = self._nlu_engine.parse(input_to_nlu, top_n=self._num_candidates)
-                nlu_result: List[Dict[str, Any]] = [self._one_snips_result_to_nlu_result(snips_result)
-                                                    for snips_result in snips_results]
+            nlu_result = self._understand_with_chatgpt(input_text)
+
         output = {KEY_NLU_RESULT: nlu_result}
         self.log_debug("output: " + str(output), session_id=session_id)
 
         return output
 
-    def _one_snips_result_to_nlu_result(self, snips_result: Dict[str, Any]) -> Dict[str, Any]:
+    def _understand_with_chatgpt(self, input_text: str) -> Dict[str, Any]:
         """
-        get nlu result in dialbb format from one snips nlu result
-        SNIPSの言語理解結果からDialBBフォーマットの言語理解結果を得る
-        :param snips_result: snips nlu result (one result when n-best results are obtained)
-        :return: nlu result in DialBB format: {"type": "...", "slots":, {...}}
+        understand input text using chatgpt
+        :param input_text:
+        :return:
         """
-        intent = snips_result["intent"]["intentName"]
-        if intent is None:
-            intent = "failure"
-        slots = {}
-        for snips_slot in snips_result["slots"]:
-            if type(snips_slot["value"]) == dict:
-                slots[snips_slot["slotName"]] \
-                    = self._snips_slot_value_to_dialbb_slot_value(snips_slot["value"]["value"])
-            else:
-                slots[snips_slot["slotName"]] \
-                    = self._snips_slot_value_to_dialbb_slot_value(snips_slot["value"])
-        nlu_result = {"type": intent, "slots": slots}
-        return nlu_result
 
-    def _snips_slot_value_to_dialbb_slot_value(self, value: str) -> str:
-        if self._language == 'ja':
-            result = value.replace(' ', '')  # 辞書にないスロット値はスペースを含んでいる場合がある
-        else:
-            result = value
+        prompt: str = self._prompt_template.replace('@input', input_text)
+        chat_completion = None
+        while True:
+            try:
+                chat_completion = self._openai_client.with_options(timeout=10).chat.completions.create(
+                    model=self._gpt_model,
+                    messages=[{"role": "user", "content": prompt}],
+                    temperature=0.0,
+                    )
+            except openai.APITimeoutError:
+                continue
+            except Exception as e:
+                self.log_error("OpenAI Error: " + traceback.format_exc())
+                sys.exit(1)
+            finally:
+                if not chat_completion:
+                    continue
+                else:
+                    break
+        chatgpt_result_string: str = chat_completion.choices[0].message.content
+
+        try:
+            result: Dict[str, Any] = json.loads(chatgpt_result_string)
+            if not result.get("type"):
+                raise Exception("result doesn't have type")
+            if not result.get("slots") or type(result.get("slots")) != dict:
+                raise Exception("result doesn't have valid slots")
+        except Exception:
+            self.log_warning("ChatGPT's output is not a valid understanding result: " + chatgpt_result_string)
+            result: Dict[str, Any] = {"type": "", "slots": {}}  # default result
         return result
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

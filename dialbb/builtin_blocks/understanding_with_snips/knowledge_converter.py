@@ -92,7 +92,6 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, entitie
     :param config: application configuration
     :param block_config: block configuration
     :param language: language of this app ('en' or 'ja')
-    :param sudachi_normalization: whether to perform sudachi normalization
     :return: SNIPS training data (to be saved as a JSON file)
     """
 
