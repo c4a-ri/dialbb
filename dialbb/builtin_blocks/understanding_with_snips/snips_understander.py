@@ -169,7 +169,7 @@ class Understander(AbstractBlock):
         n-best results are returned
         SNIPSを用いて言語理解を行う
         コンフィギュレーションのnum_candidatesが2以上なら、n-bestの言語理解結果が返される
-        :param input: e.g. {"sentence": "I love egg salad sandwiches"}
+        :param input: e.g. {"tokens": ["I", "love", "egg", "salad", "sandwiches"]}
         :param session_id: session id sent from client
         :return: {"nlu_result": <nlu result in DialBB format>} or
                  {"nlu_result": <list of nlu results in DialBB format>}

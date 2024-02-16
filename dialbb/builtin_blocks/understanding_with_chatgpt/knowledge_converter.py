@@ -57,7 +57,7 @@ def check_columns(required_columns: List[str], df: DataFrame, sheet: str) -> boo
 
 
 def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, flags: List[str],
-                          language='ja') -> Tuple[str, str, str, Dict[str, List[str]]]
+                          language='ja') -> Tuple[str, str, str, Dict[str, List[str]]]:
 
     """
     converts nlu knowledge to parts of prompt
@@ -66,7 +66,8 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, flags: 
     :param slots_df: slots sheet dataframe
     :param flags: list of flags to use
     :param language: language of this app ('en' or 'ja')
-    :return: types_in_prompt, slot_definitions_in_prompt, examples_in_prompt, entities2synonyms
+    :return: list of types for prompt, slot definitions for prompt, examples for prompt,
+             dict from entities synonym list
     """
 
     slot_names2entities: Dict[str, List[str]] = {}
@@ -102,7 +103,7 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, flags: 
         abort_during_building(f"Warning: no utterances sheet.")
     else:
         utterances_df.fillna('', inplace=True)
-        check_columns([COLUMN_FLAG, COLUMN_TYPE, COLUMN_UTTERANCE, COLUMN_SLOTS], slots_df, "utterances")
+        check_columns([COLUMN_FLAG, COLUMN_TYPE, COLUMN_UTTERANCE, COLUMN_SLOTS], utterances_df, "utterances")
         for index, row in utterances_df.iterrows():
             if row[COLUMN_FLAG].strip() not in flags and ANY_FLAG not in flags:
                 continue
@@ -112,11 +113,15 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, flags: 
                 types2utterances[utterance_type] = []
             types2utterances[utterance_type].append(utterance)
 
-            slots_str: List[str] = [x.strip() for x in re.split('[,，、]', row[COLUMN_SLOTS])]
             slots: Dict[str, str] = {}
-            for slot_str in slots_str:
-                pair: List[str] = [x.strip() for x in re.split('[=＝]', slot_str)]
-                slots[pair[0]] = pair[1]  # name -> value
+            slots_cell: str = row[COLUMN_SLOTS].strip()
+            if slots_cell:
+                slots_str: List[str] = [x.strip() for x in re.split('[,，、]', slots_cell)]
+                for slot_str in slots_str:
+                    pair: List[str] = [x.strip() for x in re.split('[=＝]', slot_str)]
+                    if len(pair) != 2:
+                        abort_during_building("illegal slot description: " + str(slots_str))
+                    slots[pair[0]] = pair[1]  # name -> value
             understanding_results = {"type": utterance_type, "slots": slots}
             utterances2understanding_results[utterance] = understanding_results
 

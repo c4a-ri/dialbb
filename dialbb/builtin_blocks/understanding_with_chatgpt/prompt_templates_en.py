@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# prompt_templates_ja.py
+# prompt_templates_en.py
 #   defines prompt templates for chatgpt understander
 
 
-PROMPT_TEMPLATE_JA: str = '''
+PROMPT_TEMPLATE_EN: str = '''
 # タスク
 
 入力発話を発話タイプに分類するとともに、スロットを抽出してJSON形式で返してください。

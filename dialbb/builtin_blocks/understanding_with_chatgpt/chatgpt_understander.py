@@ -27,7 +27,8 @@ from snips_nlu.default_configs import CONFIG_EN, CONFIG_JA
 
 from dialbb.main import ANY_FLAG, KEY_SESSION_ID
 from dialbb.util.error_handlers import abort_during_building
-from dialbb.builtin_blocks.understanding_with_chatgpt.prompt_templates_ja import PROMPT_TEMPLATE_JA, PROMPT_TEMPLATE_EN
+from dialbb.builtin_blocks.understanding_with_chatgpt.prompt_templates_ja import PROMPT_TEMPLATE_JA
+from dialbb.builtin_blocks.understanding_with_chatgpt.prompt_templates_en import PROMPT_TEMPLATE_EN
 
 
 CONFIG_KEY_KNOWLEDGE_GOOGLE_SHEET: str = "knowledge_google_sheet"  # google sheet info
@@ -166,10 +167,7 @@ class Understander(AbstractBlock):
 
     def process(self, input: Dict[str, Any], session_id: str) -> Dict[str, Any]:
         """
-        understand input sentence using SNIPS. when num_candidates in config is more than 1,
-        n-best results are returned
-        SNIPSを用いて言語理解を行う
-        コンフィギュレーションのnum_candidatesが2以上なら、n-bestの言語理解結果が返される
+        understand input sentence using ChatGPT
         :param input: e.g. {"sentence": "I love egg salad sandwiches"}
         :param session_id: session id sent from client
         :return: {"nlu_result": <nlu result in DialBB format>} or
@@ -205,6 +203,9 @@ class Understander(AbstractBlock):
         """
 
         prompt: str = self._prompt_template.replace('@input', input_text)
+        self.log_debug("prompt " + prompt)
+
+
         chat_completion = None
         while True:
             try:
@@ -224,7 +225,7 @@ class Understander(AbstractBlock):
                 else:
                     break
         chatgpt_result_string: str = chat_completion.choices[0].message.content
-
+        self.log_debug("chatgpt result: " + chatgpt_result_string)
         try:
             result: Dict[str, Any] = json.loads(chatgpt_result_string)
             if not result.get("type"):
