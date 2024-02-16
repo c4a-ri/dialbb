@@ -5,7 +5,7 @@
 
 ## 入出力
 
-DialBBのメインモジュールは，クラスAPI（メソッド呼び出し）で，ユーザ発話をJSON形式で受けとり，システム発話をJSON形式で返します．
+DialBBのメインモジュールは，クラスAPI（メソッド呼び出し）で，ユーザ発話と付加情報をJSON形式で受けとり，システム発話と付加情報をJSON形式で返します．
 
 メインモジュールは，ブロックを順に呼び出すことによって動作します．各ブロックはJSON形式（pythonの辞書型）のデータを受け取り，JSON形式のデータを返します．
 
@@ -23,13 +23,13 @@ DialBBのメインモジュールは，クラスAPI（メソッド呼び出し�
   export PYTHONPATH=<DialBBのディレクトリ>:$PYTHONPATH
   ```
 
-- DialBBを呼び出すアプリケーションの中で，以下のように`DialogueProcessor`のインスタンスを作成し，`process`メソッド[^fn-process]を呼び出します．
+- DialBBを利用するアプリケーションの中で，以下のように`DialogueProcessor`のインスタンスを作成し，`process`メソッド[^fn-process]を呼び出します．
   
   ```python
-  >>> from dialbb.main import DialogueProcessor
-  >>> dialogue_processor = DialogueProcessor(<コンフィギュレーションファイル> <追加のコンフィギュレーション>)
-  >>> response = dialogue_processor.process(<リクエスト>, initial=True)  # 対話セッション開始時
-  >>> response = dialogue_processor.process(<リクエスト>) # セッション継続時
+  from dialbb.main import DialogueProcessor
+  dialogue_processor = DialogueProcessor(<コンフィギュレーションファイル> <追加のコンフィギュレーション>)
+  response = dialogue_processor.process(<リクエスト>, initial=True)  # 対話セッション開始時
+  response = dialogue_processor.process(<リクエスト>) # セッション継続時
   ```
   
   [^fn-process]: processメソッドの仕様はv0.2.0で変更になりました．
@@ -46,7 +46,7 @@ DialBBのメインモジュールは，クラスAPI（メソッド呼び出し�
   ```
   これは，コンフィギュレーションファイルから読み込んだデータに追加して用いられます．もし，コンフィギュレーションファイルと追加のコンフィギュレーションで同じkeyが用いられていた場合，追加のコンフィギュレーションの値が用いられます．
   
-  <リクエスト>と`response`（レスポンス）は辞書型のデータで，以下で説明します．
+  `<リクエスト>`と`response`（レスポンス）は辞書型のデータで，以下で説明します．
   
   `DialogueProcessor.process`は**スレッドセーフではありません．**
 
@@ -74,14 +74,16 @@ DialBBのメインモジュールは，クラスAPI（メソッド呼び出し�
 以下の形のJSONです．
 
   ```json
-  {"user_id": <ユーザID: 文字列>,
-   "session_id": <セッションID: 文字列>,
-   "user_utterance": <ユーザ発話文字列: 文字列>,
-   "aux_data":<補助データ: オブジェクト (値の型は任意>}
+  {
+    "user_id": <ユーザID: 文字列>,
+    "session_id": <セッションID: 文字列>,
+    "user_utterance": <ユーザ発話文字列: 文字列>,
+    "aux_data":<補助データ: オブジェクト (値の型は任意>
+  }
   ```
 
   - `user_id`, `session_id`, `user_utterance`は必須．`aux_data`は任意です．
-  - <セッションID>は，サーバから送られたセッションIDです．
+  - <セッションID>は，サーバのレスポンスに含まれているセッションIDです．
   - <ユーザ発話文字列>は，ユーザが入力した発話文字列です．
 
 
@@ -98,7 +100,7 @@ DialBBのメインモジュールは，クラスAPI（メソッド呼び出し�
   ```
 
   - <セッションID>は，対話のセッションのIDです．対話開始のリクエストを送信した際に新しいセッションIDが生成されます．
-  - <システム発話文字列>は，システムの最初の発話（プロンプト）です．
+  - <システム発話文字列>は，システムの発話です．
   - <ユーザID>は，リクエストで送られたユーザのIDです．
   - <対話終了フラグ>は，対話が終了したかどうかを表すブール値です．
   - <補助データ>は，対話アプリがクライアントに送信するデータです．サーバの状態などを送信するのに使います．
@@ -208,6 +210,8 @@ blocks:
   ```
 
   のように指定されていたとすると，ブロック内で`input['sentence']`で参照できるものは，メインモジュールの`blackboard['canonicalized_user_utterance']`です．
+  
+  指定されたキーがblackboardにない場合、該当するinputの要素は`None`になります。
 
 - `output`
 
@@ -248,25 +252,25 @@ blocks:
 
 - `process(self, input: Dict[str, Any], session_id: str = False) -> Dict[str, Any]`
 
-  入力inputを処理し，出力を返します．入力，出力とメインモジュールのblackboardの関係はコンフィギュレーションで規定されます．（「{ref}`configuration`」を参照）
+  入力inputを処理し，出力を返します．入力，出力とメインモジュールのblackboardの関係はコンフィギュレーションで規定されます（「{ref}`configuration`」を参照）．
   `session_id`はメインモジュールから渡される文字列で，対話のセッション毎にユニークなものです．
 
 
 ### 利用できる変数
 
-- `self.config` 
+- `self.config` (辞書型)
 
    コンフィギュレーションの内容を辞書型データにしたものです．これを参照することで，独自に付け加えた要素を読みこむことが可能です．
    
-- `self.block_config`
+- `self.block_config` (辞書型)
 
    ブロックコンフィギュレーションの内容を辞書型データにしたものです．これを参照することで，独自に付け加えた要素を読みこむことが可能です．
    
-- `self.name`
+- `self.name` (文字列)
 
-   コンフィギュレーションに書いてあるブロックの名前です．(文字列)
+   コンフィギュレーションに書いてあるブロックの名前です．
 
-- `self.config_dir`
+- `self.config_dir` (文字列)
 
    コンフィギュレーションファイルのあるディレクトリです．アプリケーションディレクトリと呼ぶこともあります．
 
@@ -311,7 +315,7 @@ $ python dialbb/util/test.py <アプリケーションコンフィギュレー�
 
 ```
 <対話の区切り>
-<System: <システム発話>
+System: <システム発話>
 User: <ユーザ発話>
 System: <システム発話>
 User: <ユーザ発話>
@@ -320,7 +324,7 @@ System: <システム発話>
 User: <ユーザ発話>
 System: <システム発話>
 <対話の区切り>
-<System: <システム発話>
+System: <システム発話>
 User: <ユーザ発話>
 System: <システム発話>
 User: <ユーザ発話>

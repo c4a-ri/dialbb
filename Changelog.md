@@ -1,90 +1,85 @@
 # Changelog
 
+## 0.6.1 (2023.12.22)
+
+- Fixed a bug where the STN Manager block received nlu_result=None
+
+- Supported update of OpenAI library (1.3.5)
+
 ## 0.6.0 (2023.8.17)
 
-- spaCy/GiNZAを用いた固有表現抽出の組み込みブロックを追加
+- Added built-in block for named entity extraction using spaCy/GiNZA
+  - Added a usage example to sample_apps/lab_app_ja
 
-- ChatGPT組み込みブロックを追加
+- Added ChatGPT built-in block
 
-- requirements.txtをサンプルアプリ毎に用意
+- Prepared requirements.txt for each sample app
+
+- Renamed dialbb/util/send_test_request.py to dialbb/util/send_test_requests.py
+
+- Made it possible to launch run_server.py from directories other than DIALBB_HOME.
+
+- Integrated the contents of sample_apps/lab_app_ja/README.md into the documentation
 
 ## 0.5.1 (2023.8.13)
 
-- STN Manager組み込みブロック
+- STN Manager built-in block
 
-  - \#で始まる変数を具体化できなかった時に空文字列を返すようになっていなかったバグをfix
-  
+- Fixed a bug where a variable starting with \\# was not returning an empty string when it could not be instantiated
+
 ## 0.5.0 (2023.6.29)
 
-- STN Manager組み込みブロック
-
-  - subdialogueの導入
-  
-  - skip stateの導入
-  
-  - 確認発話要求の導入
-  
-  - リアクションの導入
-
+- STN Manager built-in block
+  - Introduction of subdialogue
+  - Introduction of skip state
+  - Introduction of request for confirmation utterance
+  - Introduction of reactions
 
 ## 0.4.0 (2023.6.4)
 
-- クラスAPIの場合、requestは破壊的に操作しない
+- In the case of class API, do not modify the request destructively
 
-- STN Manager組み込みブロック
-
-  - もしリクエストのaux_dataのstop_dialogueの値がTrueなら、#final_abort状態に遷移する
-
-  - リクエストの"aux_data"の"rewind"の値がTrueの場合、対話の状態を直前のものに戻し、対話文脈を戻す
-
-  - デフォルト遷移の代わりに遷移しないことをオプションで選択可能に変更
-
-  - リクエストの"aux_data"の"confidence"の値がコンフィギュレーションの"ask_repetition"の"confidence_threshold"の値以下の場合に、状態遷移をおこなわず、"ask_repetition"の"utterance"の値をシステム発話とする。
-
-  - 入力がlong silenceの場合に，コンフィギュレーションのreaction_to_silenceに応じて動作を変更する
-
-  - 組み込みシナリオ関数 _confidence_is_low, _is_long_silenceを実装
-
-  - prep stateからinitialではないstateに遷移可能
-
-  - 文脈情報にaux_dataを自動的に付加
-
-  - 直前のシステム発話を文脈情報に付加
-
-  - condition functionの引数が0の場合にエラーになるバグを修正
-
+- Changes in STN Manager built-in block
+  - If the value of stop_dialogue in the request's aux_data is True, transition to #final_abort state
+  - If the value of "rewind" in the request's "aux_data" is True, revert the dialogue state to the previous one and rewind the dialogue context
+  - Changed to optionally select not to transition instead of default transition
+  - If the value of "confidence" in the request's "aux_data" is below the "confidence_threshold" value in the configuration's "ask_repetition",
+  - In cases where the confidence is below the threshold, do not perform a state transition, and use the utterance value of "ask_repetition" as the system utterance.
   
+  - Change the behavior according to the configuration's reaction_to_silence when the input is a long silence
+  
+  - Implemented built-in scenario functions _confidence_is_low, _is_long_silence
+  
+  - Allow transition from prep state to a state that is not initial
+  
+  - Automatically add aux_data to context information
+  
+  - Add the most recent system utterance to context information
+  
+  - Fixed a bug where condition function with 0 arguments results in an error
+  
+
 ## 0.3.0 (2023.4.13)
 
-- 組み込みの単語分割ブロッククラスを追加。それに伴い、SNIPS Understanderの入力が文字列からトークン列に変更（後方互換性なし）
+- Added built-in word segmentation block class. Consequently, the input to SNIPS Understander changed from strings to token sequences (not backward compatible)
 
 ## 0.2.1 (2022.12.1)
 
-- ドキュメントの間違いを修正(5.2.2)
+- Corrected mistakes in the documentation (5.2.2)
 
 ## 0.2.0 (2022.12.1)
 
-- AbstractBlockのインタフェースの変更（後方互換性なし）
-
-  - processメソッドの引数の変更を変更
-  
-- デフォルト言語を日本語に
-
-- STN Managerブロックの変更
-
-  - シナリオグラフの書き出し
-  
-  - 準備状態の導入
-  
-- Google Sheetsが利用できるように変更
-
-- テストシナリオのフォーマットを変更（後方互換性なし）
-
-- SNIPS Understander用知識記述のカラム名変更（後方互換性なし）
-
-- SNIPS Understanderのn-best出力に対応
+- Interface changes in AbstractBlock (not backward compatible)
+  - Changes to the arguments of the process method
+- Set default language to Japanese
+- Changes to the STN Manager block
+  - Exporting scenario graphs
+  - Introduction of preparation state
+- Enabled the use of Google Sheets
+- Changed the test scenario format (not backward compatible)
+- Column name changes for knowledge description for SNIPS Understander (not backward compatible)
+- Support for n-best outputs in SNIPS Understander
 
 ## 0.1 (2022.8.9)
 
 initial public version
-
