@@ -894,7 +894,7 @@ See the spaCy/GiNZA model website for more information on the class of named ent
 
 - `model` (String: Required)
 
-   The name of the spaCy/GiNZA model. It can be `en_ginza_electra` (Japanese), `en_core_web_trf` (English), etc.
+   The name of the spaCy/GiNZA model. It can be `ja_ginza_electra` (Japanese), `en_core_web_trf` (English), etc.
 
 - `patterns` (object; Optional)
 
