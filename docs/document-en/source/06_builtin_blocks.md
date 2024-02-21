@@ -901,10 +901,10 @@ See the spaCy/GiNZA model website for more information on the class of named ent
    Describes a rule-based named entity extraction pattern. The pattern is a YAML format of the one described in [spaCy Pattern Description](https://spacy.io/usage/rule-based-matching).
 
    
-   The following is an example in Japanese.
+   The following is an example.
    
    ```yaml
-   patterns: Date
+   patterns: 
      - label: Date
        pattern: yesterday
      - label: Date

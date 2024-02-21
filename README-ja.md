@@ -1,6 +1,6 @@
 # DialBB: 対話システム構築フレームワーク
 
-ver.0.6.1
+ver.0.6.2
 
 [English](README.md)
 
@@ -154,15 +154,13 @@ http://<hostname>:8080/test
   以下を実行します．
 
   ```sh
-  # 以下のどちらかを実行
+  # 日本語アプリケーションを作成・利用する場合
   $ pip install -r sample_apps/network_ja/requirements.txt 
-  $ pip install -r sample_apps/network_en/requirements.txt 
+  $ python -m snips_nlu download ja 
 
   # 英語アプリケーションを作成・利用する場合
+  $ pip install -r sample_apps/network_en/requirements.txt 
   $ python -m snips_nlu download en 
-
-  # 日本語アプリケーションを作成・利用する場合
-  $ python -m snips_nlu download ja 
   ```
 
   注意
@@ -269,7 +267,7 @@ $ export OPENAI_KEY=<OpenAIのAPIキー>
 #### 起動方法
 
   ```sh
-  $ python run_server.py sample_apps/lab_app_ja/config_ja.yml 
+  $ python run_server.py sample_apps/lab_app_ja/config.yml 
   ```
 
 #### テスト方法

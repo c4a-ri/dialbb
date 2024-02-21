@@ -959,12 +959,12 @@ you can change this when you create a new subclass of <code class="docutils lite
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">patterns</span></code> (object; Optional)</p>
 <p>Describes a rule-based named entity extraction pattern. The pattern is a YAML format of the one described in <a class="reference external" href="https://spacy.io/usage/rule-based-matching">spaCy Pattern Description</a>.</p>
-<p>The following is an example in Japanese.</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">patterns</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Date</span><span class="w"></span>
-<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">- label</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Date</span><span class="w"></span>
-<span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">pattern</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">yesterday</span><span class="w"></span>
-<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">- label</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Date</span><span class="w"></span>
-<span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">pattern</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">The day before yesterday</span><span class="w"></span>
+<p>The following is an example.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">patterns</span><span class="p">:</span><span class="w"> </span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Date</span><span class="w"></span>
+<span class="w">    </span><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">yesterday</span><span class="w"></span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Date</span><span class="w"></span>
+<span class="w">    </span><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">The day before yesterday</span><span class="w"></span>
 </pre></div>
 </div>
 </li>
