@@ -1,6 +1,6 @@
 # DialBB: A Framework for Building Dialogue Systems
 
-ver.0.6.1
+ver.0.6.2
 
 [日本語版](README-ja.md)
 
@@ -155,15 +155,13 @@ This is a sample application using the following built-in blocks. The English ve
   Do the following:
 
   ```sh
-  # Run one of the following
-  $ pip install -r sample_apps/network_en/requirements.txt
-  $ pip install -r sample_apps/network_en/requirements.txt
-
   # To create and use an English application
+  $ pip install -r sample_apps/network_ja/requirements.txt
   $ python -m snips_nlu download en
 
   # To create and use a Japanese language application
   $ python -m snips_nlu download ja
+  $ pip install -r sample_apps/network_en/requirements.txt
   ```
 
 Note:
@@ -277,7 +275,7 @@ If the environment variable `OPENAI_KEY` is not specified, it works without Chat
 #### Startup
 
   ```sh
-  $ python run_server.py sample_apps/lab_app_en/config_en.yml
+  $ python run_server.py sample_apps/lab_app_ja/config.yml
   ```
 
 #### Test Method
