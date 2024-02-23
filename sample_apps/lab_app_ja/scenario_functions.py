@@ -9,6 +9,8 @@ __version__ = '0.1'
 __author__ = 'Mikio Nakano'
 __copyright__ = 'C4A Research Institute, Inc.'
 
+import sys
+import traceback
 from datetime import datetime
 from typing import Dict, Any
 import os
@@ -20,6 +22,7 @@ if openai_key:
     import openai
     use_openai = True
     openai.api_key = openai_key
+    openai_client = openai.OpenAI(api_key=openai_key)
 
 
 # 知っているラーメンの種類
@@ -86,7 +89,7 @@ def generate_with_openai_gpt(prompt: str):
     chat_completion = None
     while True:
         try:
-            chat_completion = self._openai_client.with_options(timeout=10).chat.completions.create(
+            chat_completion = openai_client.with_options(timeout=10).chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.7,
@@ -94,7 +97,7 @@ def generate_with_openai_gpt(prompt: str):
         except openai.APITimeoutError:
             continue
         except Exception as e:
-            self.log_error("OpenAI Error: " + traceback.format_exc())
+            print("OpenAI Error: " + traceback.format_exc())
             sys.exit(1)
         finally:
             if not chat_completion:
