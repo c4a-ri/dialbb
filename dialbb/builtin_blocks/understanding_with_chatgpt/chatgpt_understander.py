@@ -14,7 +14,7 @@ import pandas as pd
 from pandas import DataFrame
 from dialbb.builtin_blocks.understanding_with_chatgpt.knowledge_converter import convert_nlu_knowledge
 from dialbb.abstract_block import AbstractBlock
-from dialbb.main import CONFIG_KEY_FLAGS_TO_USE, CONFIG_KEY_LANGUAGE
+from dialbb.main import CONFIG_KEY_LANGUAGE
 from typing import Any, Dict, List, Tuple
 import os
 import json
@@ -22,8 +22,6 @@ import sys
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
-from snips_nlu import SnipsNLUEngine
-from snips_nlu.default_configs import CONFIG_EN, CONFIG_JA
 
 from dialbb.main import ANY_FLAG, KEY_SESSION_ID
 from dialbb.util.error_handlers import abort_during_building
@@ -66,9 +64,6 @@ class Understander(AbstractBlock):
         self._openai_client = openai.OpenAI(api_key=openai_key)
         self._gpt_model = self.block_config.get(CONFIG_KEY_GPT_MODEL, DEFAULT_GPT_MODEL)
 
-        # which rows to use
-        flags_to_use = self.block_config.get(CONFIG_KEY_FLAGS_TO_USE, [ANY_FLAG])
-
         # sheets in spreadsheet
         utterances_sheet = self.block_config.get(CONFIG_KEY_UTTERANCE_SHEET, "utterances")
         slots_sheet = self.block_config.get(CONFIG_KEY_SLOTS_SHEET, "slots")
@@ -103,7 +98,7 @@ class Understander(AbstractBlock):
 
         # convert nlu knowledge to type and slot definitions
         types, slot_definitions, examples, self.entities2synonyms \
-            = convert_nlu_knowledge(utterances_df, slots_df, flags_to_use, language=self._language)
+            = convert_nlu_knowledge(utterances_df, slots_df, self.block_config, language=self._language)
         self._prompt_template = prompt_template.replace('@examples', examples).replace('@types', types)\
             .replace('@slot_definitions', slot_definitions)
 
@@ -186,14 +181,30 @@ class Understander(AbstractBlock):
         self.log_debug("input: " + str(input), session_id=session_id)
         input_text = input.get(KEY_INPUT_TEXT, "")
         if input_text == "":
-            nlu_result: Dict[str, Any] = {"type": "", "slots": {}}
+            tentative_result: Dict[str, Any] = {"type": "", "slots": {}}
         else:
-            nlu_result = self._understand_with_chatgpt(input_text)
+            tentative_result = self._understand_with_chatgpt(input_text)
+
+        nlu_result: Dict[str, Any] = {"type": tentative_result["type"], "slots": {}}
+        for slot_name in tentative_result["slots"].keys():
+            nlu_result["slots"][slot_name] = self._get_entity(tentative_result["slots"][slot_name])
 
         output = {KEY_NLU_RESULT: nlu_result}
         self.log_debug("output: " + str(output), session_id=session_id)
 
         return output
+
+    def _get_entity(self, expression: str) -> str:
+        """
+        return entity if expression is its synonym, otherwise expression as is
+        :param expression:
+        :return: entity or expression
+        """
+
+        for entity in self.entities2synonyms.keys():
+            if expression in self.entities2synonyms[entity]:
+                return entity
+        return expression
 
     def _understand_with_chatgpt(self, input_text: str) -> Dict[str, Any]:
         """
@@ -205,7 +216,6 @@ class Understander(AbstractBlock):
         prompt: str = self._prompt_template.replace('@input', input_text)
         self.log_debug("prompt " + prompt)
 
-
         chat_completion = None
         while True:
             try:
@@ -213,6 +223,7 @@ class Understander(AbstractBlock):
                     model=self._gpt_model,
                     messages=[{"role": "user", "content": prompt}],
                     temperature=0.0,
+                    response_format={"type": "json_object"}
                     )
             except openai.APITimeoutError:
                 continue
@@ -228,12 +239,14 @@ class Understander(AbstractBlock):
         self.log_debug("chatgpt result: " + chatgpt_result_string)
         try:
             result: Dict[str, Any] = json.loads(chatgpt_result_string)
+            print(str(result))
             if not result.get("type"):
                 raise Exception("result doesn't have type")
-            if not result.get("slots") or type(result.get("slots")) != dict:
+            if result.get("slots", None) is None or type(result.get("slots")) != dict:
                 raise Exception("result doesn't have valid slots")
-        except Exception:
-            self.log_warning("ChatGPT's output is not a valid understanding result: " + chatgpt_result_string)
+        except Exception as e:
+            self.log_warning("ChatGPT's output is not a valid understanding result: " + chatgpt_result_string
+                             + "Error:" + str(e))
             result: Dict[str, Any] = {"type": "", "slots": {}}  # default result
         return result
 

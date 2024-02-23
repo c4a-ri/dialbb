@@ -9,17 +9,16 @@ __version__ = '0.1'
 __author__ = 'Mikio Nakano'
 __copyright__ = 'C4A Research Institute, Inc.'
 
-import importlib
-from types import ModuleType
 from typing import Dict, List, Any, Union, Tuple
 import sys
 import re
 from pandas import DataFrame
 
-
+from dialbb.builtin_blocks.preprocess.abstract_canonicalizer import AbstractCanonicalizer
+from dialbb.util.builtin_block_utils import create_block_object
 from dialbb.util.error_handlers import abort_during_building, warn_during_building
 from dialbb.main import ANY_FLAG
-from dialbb.builtin_blocks.tokenization.abstract_tokenizer import TokenWithIndices
+from dialbb.main import CONFIG_KEY_FLAGS_TO_USE
 
 COLUMN_FLAG: str = "flag"
 COLUMN_TYPE: str = "type"
@@ -31,12 +30,11 @@ COLUMN_SLOTS: str = "slots"
 
 KEY_CLASS: str = "class"
 KEY_CANONICALIZER: str = "canonicalizer"
-KEY_TOKENIZER: str = "tokenizer"
-KEY_TOKENS_WITH_INDICES: str = "tokens_with_indices"
 
 ETC_STR = {"ja": "など", "en": " etc."}
 INPUT_STR = {"ja": "入力", "en": "input"}
 OUTPUT_STR = {"ja": "出力", "en": "output"}
+
 
 def check_columns(required_columns: List[str], df: DataFrame, sheet: str) -> bool:
     """
@@ -56,15 +54,15 @@ def check_columns(required_columns: List[str], df: DataFrame, sheet: str) -> boo
     return True
 
 
-def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, flags: List[str],
-                          language='ja') -> Tuple[str, str, str, Dict[str, List[str]]]:
+def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame,
+                          block_config: Dict[str, Any], language='ja') -> Tuple[str, str, str, Dict[str, List[str]]]:
 
     """
     converts nlu knowledge to parts of prompt
     言語理解知識をプロンプトの素材に変換する
     :param utterances_df: utterances sheet dataframe
     :param slots_df: slots sheet dataframe
-    :param flags: list of flags to use
+    :param block_config: block configuration
     :param language: language of this app ('en' or 'ja')
     :return: list of types for prompt, slot definitions for prompt, examples for prompt,
              dict from entities synonym list
@@ -76,6 +74,15 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, flags: 
     utterances2understanding_results: Dict[str, Dict[str, Any]] = {}
 
     print(f"converting nlu knowledge.")
+
+    # which rows to use
+    flags: List[str] = block_config.get(CONFIG_KEY_FLAGS_TO_USE, [ANY_FLAG])
+
+    # canonicalizer
+    canonicalizer_config: Dict[str, Any] = block_config.get(KEY_CANONICALIZER)
+    if not canonicalizer_config:
+        abort_during_building("Canonicalizer is not specified in the config of SNIPS understander.")
+    canonicalizer: AbstractCanonicalizer = create_block_object(canonicalizer_config)
 
     # when there is no slot sheet
     # slot sheetがない時
@@ -91,11 +98,13 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, flags: 
                 continue
             slot_name: str = row[COLUMN_SLOT_NAME].strip()
             entity: str = row[COLUMN_ENTITY].strip()
+            entity = canonicalizer.canonicalize(entity)
             if not slot_names2entities.get(slot_name):
                 slot_names2entities[slot_name] = []
             slot_names2entities[slot_name].append(entity)
 
-            synonyms: List[str] = [x.strip() for x in re.split('[,，、]', row[COLUMN_SYNONYMS])]  # split synonym cell
+            synonyms: List[str] = [canonicalizer.canonicalize(x.strip())
+                                   for x in re.split('[,，、]', row[COLUMN_SYNONYMS])]  # split synonym cell
             entities2synonyms[entity] = synonyms
 
     # read utterances sheet
