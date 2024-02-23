@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="ja" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>4. フレームワーク仕様 &mdash; DialBBドキュメント ver. 0.6 v0.6.0 ドキュメント</title>
@@ -12,10 +12,8 @@
   <![endif]-->
   
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
         <script src="_static/translations.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="索引" href="genindex.html" />
@@ -29,11 +27,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> DialBBドキュメント ver. 0.6
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            DialBBドキュメント ver. 0.6
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -88,8 +90,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li><span class="section-number">4. </span>フレームワーク仕様</li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active"><span class="section-number">4. </span>フレームワーク仕様</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/05_framework.md.txt" rel="nofollow"> View page source</a>
       </li>
@@ -113,11 +115,11 @@
 <p>これは以下の手順で行います．</p>
 <ul>
 <li><p>環境変数PYTHONPATHにDialBBのディレクトリを追加します．</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">PYTHONPATH</span><span class="o">=</span>&lt;DialBBのディレクトリ&gt;:<span class="nv">$PYTHONPATH</span>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span>&lt;DialBBのディレクトリ&gt;:<span class="nv">$PYTHONPATH</span>
 </pre></div>
 </div>
 </li>
-<li><p>DialBBを利用するアプリケーションの中で，以下のように<code class="docutils literal notranslate"><span class="pre">DialogueProcessor</span></code>のインスタンスを作成し，<code class="docutils literal notranslate"><span class="pre">process</span></code>メソッド<a class="footnote-reference brackets" href="#fn-process" id="id3">1</a>を呼び出します．</p>
+<li><p>DialBBを利用するアプリケーションの中で，以下のように<code class="docutils literal notranslate"><span class="pre">DialogueProcessor</span></code>のインスタンスを作成し，<code class="docutils literal notranslate"><span class="pre">process</span></code>メソッド<a class="footnote-reference brackets" href="#fn-process" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>を呼び出します．</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">dialbb.main</span> <span class="kn">import</span> <span class="n">DialogueProcessor</span>
 <span class="n">dialogue_processor</span> <span class="o">=</span> <span class="n">DialogueProcessor</span><span class="p">(</span><span class="o">&lt;</span><span class="n">コンフィギュレーションファイル</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">追加のコンフィギュレーション</span><span class="o">&gt;</span><span class="p">)</span>
 <span class="n">response</span> <span class="o">=</span> <span class="n">dialogue_processor</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="o">&lt;</span><span class="n">リクエスト</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">initial</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># 対話セッション開始時</span>
@@ -199,11 +201,11 @@
 <section id="id8">
 <h3><span class="section-number">4.2.1. </span>サーバの起動<a class="headerlink" href="#id8" title="この見出しへのパーマリンク"></a></h3>
 <p>環境変数<code class="docutils literal notranslate"><span class="pre">PYTHONPATH</span></code>を設定します．</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">PYTHONPATH</span><span class="o">=</span>&lt;DialBBのディレクトリ&gt;:<span class="nv">$PYTHONPATH</span>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span>&lt;DialBBのディレクトリ&gt;:<span class="nv">$PYTHONPATH</span>
 </pre></div>
 </div>
 <p>コンフィギュレーションファイルを指定してサーバを起動します．</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ python &lt;DialBBのディレクトリ&gt;/run_server.py <span class="o">[</span>--port &lt;port&gt;<span class="o">]</span> &lt;config file&gt;
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python<span class="w"> </span>&lt;DialBBのディレクトリ&gt;/run_server.py<span class="w"> </span><span class="o">[</span>--port<span class="w"> </span>&lt;port&gt;<span class="o">]</span><span class="w"> </span>&lt;config<span class="w"> </span>file&gt;
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">port</span></code>（ポート番号）のデフォルトは8080です．</p>
@@ -275,7 +277,7 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">input</span></code></p>
 <p>メインモジュールからブロックへの入力を規定します．辞書型のデータで，keyがブロック内での参照に用いられ，valueがblackboard（メインモジュールで保持されるデータ）での参照に用いられます．例えば，</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">input</span><span class="p">:</span><span class="w"> </span>
-<span class="w">  </span><span class="nt">sentence</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">canonicalized_user_utterance</span><span class="w"></span>
+<span class="w">  </span><span class="nt">sentence</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">canonicalized_user_utterance</span>
 </pre></div>
 </div>
 <p>のように指定されていたとすると，ブロック内で<code class="docutils literal notranslate"><span class="pre">input['sentence']</span></code>で参照できるものは，メインモジュールの<code class="docutils literal notranslate"><span class="pre">blackboard['canonicalized_user_utterance']</span></code>です．</p>
@@ -283,8 +285,8 @@
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">output</span></code></p>
 <p>ブロックからメインモジュールへの出力を規定します．<code class="docutils literal notranslate"><span class="pre">input</span></code>同様，辞書型のデータで，keyがブロック内での参照に用いられ，valueがblackboardでの参照に用いられます．</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">output</span><span class="p">:</span><span class="w"></span>
-<span class="w">  </span><span class="nt">output_text</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">system_utterance</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">output</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">output_text</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">system_utterance</span>
 </pre></div>
 </div>
 <p>の場合，ブロックからの出力を<code class="docutils literal notranslate"><span class="pre">output</span></code>とすると，</p>
@@ -363,8 +365,8 @@
 <section id="id17">
 <h2><span class="section-number">4.6. </span>テストシナリオを用いたテスト<a class="headerlink" href="#id17" title="この見出しへのパーマリンク"></a></h2>
 <p>以下のコマンドでテストシナリオを用いたテストができます．</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ python dialbb/util/test.py &lt;アプリケーションコンフィギュレーション&gt; <span class="se">\</span>
-  &lt;テストシナリオ&gt; <span class="o">[</span>--output &lt;出力ファイル&gt;<span class="o">]</span>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python<span class="w"> </span>dialbb/util/test.py<span class="w"> </span>&lt;アプリケーションコンフィギュレーション&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>&lt;テストシナリオ&gt;<span class="w"> </span><span class="o">[</span>--output<span class="w"> </span>&lt;出力ファイル&gt;<span class="o">]</span>
 </pre></div>
 </div>
 <p>テストシナリオは以下の形式のテキストファイルです．</p>
@@ -394,11 +396,12 @@
 <p>&lt;対話の区切り&gt;は，&quot;----init&quot;で始まる文字列です．</p>
 <p>テストスクリプトは，&lt;ユーザ発話&gt;を順番にアプリケーションに入力して，システム発話を受け取ります．システム発話がスクリプトのシステム発話と異なる場合はwarningを出します．テストが終了すると，出力されたシステム発話を含め，テストシナリオと同じ形式で対話を出力することができます．テストシナリオと出力ファイルを比較することで，応答の変化を調べることができます．</p>
 <hr class="footnotes docutils" />
-<dl class="footnote brackets">
-<dt class="label" id="fn-process"><span class="brackets"><a class="fn-backref" href="#id3">1</a></span></dt>
-<dd><p>processメソッドの仕様はv0.2.0で変更になりました．</p>
-</dd>
-</dl>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="fn-process" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">1</a><span class="fn-bracket">]</span></span>
+<p>processメソッドの仕様はv0.2.0で変更になりました．</p>
+</aside>
+</aside>
 </section>
 </section>
 
