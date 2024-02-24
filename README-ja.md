@@ -1,6 +1,6 @@
 # DialBB: 対話システム構築フレームワーク
 
-ver.0.6.1
+ver.0.7.0
 
 [English](README.md)
 
@@ -206,11 +206,30 @@ http://<hostname>:8080/test
   ```sh
   $ python run_server.py sample_apps/network_en/config.yml 
   ```
+  
+  アプリケーションディレクトリで起動する場合は以下のようにします。
+
+  ```sh
+  $ export DIALBB_HOME=<DialBBのホームディレクトリ>
+  $ export PYTHONPATH=$DIALBB_HOME:$PYTHONPATH
+  $ cd sample_apps/network_en  # アプリケーションディレクトリに移動
+  $ python $DIALBB_HOME/run_server.py config.yml 
+  ```
+
 
 - 日本語アプリケーション
 
   ```sh
   $ python run_server.py sample_apps/network_ja/config.yml 
+  ```
+
+  アプリケーションディレクトリで起動する場合は以下のようにします。
+
+  ```sh
+  $ export DIALBB_HOME=<DialBBのホームディレクトリ>
+  $ export PYTHONPATH=$DIALBB_HOME:$PYTHONPATH
+  $ cd sample_apps/network_ja  # アプリケーションディレクトリに移動
+  $ python $DIALBB_HOME/run_server.py config.yml 
   ```
 
 #### テストセットを用いた動作確認
@@ -258,11 +277,11 @@ http://<hostname>:8080/test
 
 #### 環境変数の設定
 
-本アプリケーションではOpenAI社のChatGPTを使うことができます．ChatGPTを使うためには，環境変数`OPENAI_KEY`にOpenAIのAPIキーを設定します．以下はbashの例です．
+  本アプリケーションではOpenAI社のChatGPTを使うことができます．ChatGPTを使うためには，環境変数`OPENAI_KEY`にOpenAIのAPIキーを設定します．以下はbashの例です．
 
-```sh
-$ export OPENAI_KEY=<OpenAIのAPIキー>
-```
+  ```sh
+  $ export OPENAI_KEY=<OpenAIのAPIキー>
+  ```
 
 環境変数`OPENAI_KEY`が指定されていない場合，ChatGPTを使わずに動作します．
 
@@ -272,9 +291,19 @@ $ export OPENAI_KEY=<OpenAIのAPIキー>
   $ python run_server.py sample_apps/lab_app_ja/config_ja.yml 
   ```
 
+  アプリケーションディレクトリで起動する場合は以下のようにします。
+
+  ```sh
+  $ export DIALBB_HOME=<DialBBのホームディレクトリ>
+  $ export PYTHONPATH=$DIALBB_HOME:$PYTHONPATH
+  $ cd sample_apps/lab_app_ja  # アプリケーションディレクトリに移動
+  $ python $DIALBB_HOME/run_server.py config.yml 
+  ```
+
+
 #### テスト方法
 
-以下のコマンドで，Snips+STNアプリケーションでは使用していない機能をテストすることができます．
+  以下のコマンドで，Snips+STNアプリケーションでは使用していない機能をテストすることができます．
 
   ```sh
   $ cd sample_apps/lab_app_ja
@@ -300,11 +329,11 @@ $ export OPENAI_KEY=<OpenAIのAPIキー>
 
 #### 環境変数の設定
 
-環境変数OPENAI_KEYにOpenAIのAPIキーを設定します．以下はbashの例です．
+  環境変数OPENAI_KEYにOpenAIのAPIキーを設定します．以下はbashの例です．
 
-```sh
-$ export OPENAI_KEY=<OpenAIのAPIキー>
-```
+  ```sh
+  $ export OPENAI_KEY=<OpenAIのAPIキー>
+  ```
 
 #### 起動方法
 
@@ -318,6 +347,16 @@ $ export OPENAI_KEY=<OpenAIのAPIキー>
 
   ```sh
   $ python run_server.py sample_apps/chatgpt/config_en.yml 
+  ```
+
+  アプリケーションディレクトリで起動する場合は以下のようにします。
+
+  ```sh
+  $ export DIALBB_HOME=<DialBBのホームディレクトリ>
+  $ export PYTHONPATH=$DIALBB_HOME:$PYTHONPATH
+  $ cd sample_apps/chatgpt  # アプリケーションディレクトリに移動
+  $ python $DIALBB_HOME/run_server.py config_ja.yml  # 日本語
+  $ python $DIALBB_HOME/run_server.py config_en.yml  # 英語
   ```
 
 ## 要望・質問・バグ報告

@@ -9,21 +9,27 @@ __version__ = '0.1'
 __author__ = 'Mikio Nakano'
 __copyright__ = 'C4A Research Institute, Inc.'
 
+import sys
+import traceback
 from datetime import datetime
 from typing import Dict, Any
 import os
 
 use_openai: bool = False
 
+openai_client = None
+
 openai_key: str = os.environ.get('OPENAI_KEY', "")
 if openai_key:
     import openai
     use_openai = True
     openai.api_key = openai_key
+    openai_client = openai.OpenAI(api_key=openai_key)
 
 
 # 知っているラーメンの種類
 known_ramens = ("豚骨ラーメン", "味噌ラーメン", "塩ラーメン", "醤油ラーメン")
+
 
 def is_known_ramen(ramen: str, context: Dict[str, Any]) -> bool:
     """
@@ -86,7 +92,7 @@ def generate_with_openai_gpt(prompt: str):
     chat_completion = None
     while True:
         try:
-            chat_completion = self._openai_client.with_options(timeout=10).chat.completions.create(
+            chat_completion = openai_client.with_options(timeout=10).chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.7,
@@ -94,7 +100,7 @@ def generate_with_openai_gpt(prompt: str):
         except openai.APITimeoutError:
             continue
         except Exception as e:
-            self.log_error("OpenAI Error: " + traceback.format_exc())
+            print("OpenAI Error: " + traceback.format_exc())
             sys.exit(1)
         finally:
             if not chat_completion:
@@ -128,8 +134,8 @@ def set_impression_of_dialogue(impression_key: str, context: Dict[str, Any]) -> 
 
 def generate_confirmation_request(nlu_result: Dict[str, Any], context: Dict[str, Any]) -> str:
 
-    if nlu_result.get("type") == "特定のラーメンが好き" and nlu_result["slots"].get("favorite_ramen"):
-        return f'{nlu_result["slots"]["favorite_ramen"]}がお好きなんですか？'
+    if nlu_result.get("type") == "特定のラーメンが好き" and nlu_result["slots"].get("好きなラーメン"):
+        return f'{nlu_result["slots"]["好きなラーメン"]}がお好きなんですか？'
     else:
         return "もう一度言って頂けますか？"
 
