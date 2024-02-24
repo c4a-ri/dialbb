@@ -102,7 +102,7 @@ def set_impression_of_dialogue(impression_key: str, context: Dict[str, Any]) -> 
 def generate_confirmation_request(nlu_result: Dict[str, Any], context: Dict[str, Any]) -> str:
 
     if nlu_result.get("type") == "tell-like-specific-sandwich" and nlu_result["slots"].get("favorite-sandwich"):
-        return f'Do you like {nlu_result["slots"]["favorite_ramen"]}?'
+        return f'Do you like {nlu_result["slots"]["favorite-sandwich"]}?'
     else:
         return "Could you say that again?"
 
