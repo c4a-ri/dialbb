@@ -26,6 +26,8 @@ BUILTIN_FUNCTION_PREFIX: str = "builtin"
 GOSUB: str = "#gosub"
 EXIT: str = "#exit"
 SKIP: str = "$skip"
+COMMA: str = "&&&comma&&&"
+SEMICOLON: str = "&&&semicolon&&&"
 
 class Argument:
     """
@@ -43,7 +45,7 @@ class Argument:
             self._name = argument_string[1:]
         elif argument_string[0] in ('"', '”', '“') and argument_string[-1] in ('"', '”', '“'):  # constant string 定数文字列
             self._type = CONSTANT
-            self._name = argument_string[1:-1]
+            self._name = argument_string[1:-1].replace(SEMICOLON, ';').replace(COMMA, ",")  # revert semicolon and comma
         elif argument_string[0] in ('&', '＆'):  # variable name 変数名
             self._type = ADDRESS
             self._name = argument_string[1:]  # remove '&'
@@ -168,6 +170,7 @@ class Transition:
     def __init__(self, user_utterance_type: str, conditions_str: str, actions_str: str, destination: str):
         self._user_utterance_type: str = user_utterance_type.strip()
         self._conditions: List[Condition] = []
+        conditions_str = self._replace_special_characters_in_constant(conditions_str)
         for condition_str in conditions_str.split(';'):
             condition_str = condition_str.strip()
             if condition_str == '':
@@ -185,6 +188,7 @@ class Transition:
             else:
                 abort_during_building(f"{condition_str} is not a valid condition.")
         self._actions: List[Action] = []
+        actions_str = self._replace_special_characters_in_constant(actions_str)
         for action_str in actions_str.split(';'):
             action_str = action_str.strip()
             if action_str == "":
@@ -201,6 +205,27 @@ class Transition:
             else:
                 warn_during_building(f"{action_str} is not a valid action.")
         self._destination: str = destination
+
+    def _replace_special_characters_in_constant(self, string: str):
+        """
+        replace commas and semicolons in string by special strings
+        :param string: input string
+        :return: replaced string
+        """
+
+        in_constant: bool = False
+        result = ""
+        for char in string:
+            if char == '"':
+                in_constant = not in_constant
+                result += char
+            elif char == ',' and in_constant:
+                result += COMMA
+            elif char == ';' and in_constant:
+                result += SEMICOLON
+            else:
+                result += char
+        return result
 
     def get_user_utterance_type(self) -> str:
         """

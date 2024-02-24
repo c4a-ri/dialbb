@@ -297,16 +297,7 @@ If the environment variable `OPENAI_KEY` is not specified, it works without Chat
 #### Startup
 
   ```sh
-  $ python run_server.py sample_apps/lab_app_ja/config.yml
-  ```
-
-  When invoking in the application directory, do the following
-
-  ```sh
-  $ export DIALBB_HOME=<DialBB home diretory>
-  $ export PYTHONPATH=$DIALBB_HOME:$PYTHONPATH
-  $ cd sample_apps/lab_app_ja  # moving to the application diretory
-  $ python $DIALBB_HOME/run_server.py config.yml 
+  $ python run_server.py sample_apps/lab_app_en/config_en.yml
   ```
 
 #### Test Method
@@ -358,18 +349,6 @@ $ export OPENAI_KEY=<OpenAI's API key>.
   ```sh
   $ python run_server.py sample_apps/chatgpt/config_en.yml
   ```
-
-  When invoking in the application directory, do the following
-
-  ```sh
-  $ export DIALBB_HOME=<DialBB home diretory>
-  $ export PYTHONPATH=$DIALBB_HOME:$PYTHONPATH
-  $ cd sample_apps/chatgpt  # moving to the application diretory
-  $ python $DIALBB_HOME/run_server.py config_en.yml  # for English
-  $ python $DIALBB_HOME/run_server.py config_ja.yml  # for Japanese
-  ```
-
-
 
 ## Requests, Questions, and Bug Reports
 

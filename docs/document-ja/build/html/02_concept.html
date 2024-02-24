@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="ja" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>2. DialBBの概要 &mdash; DialBBドキュメント ver. 0.6 v0.6.0 ドキュメント</title>
@@ -12,10 +12,8 @@
   <![endif]-->
   
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
         <script src="_static/translations.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="索引" href="genindex.html" />
@@ -29,11 +27,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> DialBBドキュメント ver. 0.6
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            DialBBドキュメント ver. 0.6
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -61,8 +63,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li><span class="section-number">2. </span>DialBBの概要</li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active"><span class="section-number">2. </span>DialBBの概要</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/02_concept.md.txt" rel="nofollow"> View page source</a>
       </li>
@@ -78,16 +80,17 @@
 <p>フレームワークとは，それ単体でアプリケーションとして成立はしないが，データや追加のプログラムを与えることでアプリケーションを作成するものです．</p>
 <p>以下にDialBBのアプリケーションの基本的なアーキテクチャを示します．</p>
 <p><img alt="dialbb-arch" src="_images/dialbb-arch.jpg" /></p>
-<p>メインモジュールは，対話の各ターンで入力されたデータ（ユーザ発話を含みます）を各ブロックに順次処理させることにより，システム発話を作成して返します．この入力の内容は同じJSON形式のデータblackboard<a class="footnote-reference brackets" href="#fn" id="id1">1</a> に書き込まれます．各ブロックは，blackboardの要素のいくつかを受け取り，辞書形式のデータを返します．返されたデータはblackboardに追加されます．すでに同じキーを持つ要素がblackboardにある場合は上書きされます．</p>
+<p>メインモジュールは，対話の各ターンで入力されたデータ（ユーザ発話を含みます）を各ブロックに順次処理させることにより，システム発話を作成して返します．この入力の内容は同じJSON形式のデータblackboard<a class="footnote-reference brackets" href="#fn" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> に書き込まれます．各ブロックは，blackboardの要素のいくつかを受け取り，辞書形式のデータを返します．返されたデータはblackboardに追加されます．すでに同じキーを持つ要素がblackboardにある場合は上書きされます．</p>
 <p>どのようなブロックを使うかは，コンフィギュレーションファイルで設定します．ブロックは，あらかじめDialBBが用意しているブロック（組み込みブロック）でもアプリケーション開発者が作成するブロックでも構いません．</p>
 <p>メインモジュールが各ブロックにどのようなデータを渡し，どのようなデータを受け取るかもコンフィギュレーションファイルで指定します．</p>
 <p>詳細は「<a class="reference internal" href="05_framework.html#framework"><span class="std std-ref">フレームワーク仕様</span></a>」で説明します．</p>
 <hr class="footnotes docutils" />
-<dl class="footnote brackets">
-<dt class="label" id="fn"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
-<dd><p>ver.0.2以前はpayloadと呼んでいました．</p>
-</dd>
-</dl>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="fn" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p>ver.0.2以前はpayloadと呼んでいました．</p>
+</aside>
+</aside>
 </section>
 
 

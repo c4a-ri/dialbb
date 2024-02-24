@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="ja" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>5. 組み込みブロッククラスの仕様 &mdash; DialBBドキュメント ver. 0.6 v0.6.0 ドキュメント</title>
@@ -12,10 +12,8 @@
   <![endif]-->
   
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
         <script src="_static/translations.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="索引" href="genindex.html" />
@@ -28,11 +26,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> DialBBドキュメント ver. 0.6
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            DialBBドキュメント ver. 0.6
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -135,8 +137,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li><span class="section-number">5. </span>組み込みブロッククラスの仕様</li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active"><span class="section-number">5. </span>組み込みブロッククラスの仕様</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/06_builtin_blocks.md.txt" rel="nofollow"> View page source</a>
       </li>
@@ -332,12 +334,12 @@
 </pre></div>
 </div>
 <p>以下が例です．</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="w"> </span><span class="p">{</span>
 <span class="w">   </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;特定のラーメンが好き&quot;</span><span class="p">,</span><span class="w"> </span>
-<span class="w">   </span><span class="nt">&quot;slots&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">      </span><span class="nt">&quot;favorite_ramen&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;醤油ラーメン&quot;</span><span class="w"></span>
-<span class="w">   </span><span class="p">}</span><span class="w"></span>
-<span class="w"> </span><span class="p">}</span><span class="w"></span>
+<span class="w">   </span><span class="nt">&quot;slots&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;favorite_ramen&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;醤油ラーメン&quot;</span>
+<span class="w">   </span><span class="p">}</span>
+<span class="w"> </span><span class="p">}</span>
 </pre></div>
 </div>
 </li>
@@ -423,7 +425,7 @@
 <section id="nlu-knowledge">
 <span id="id15"></span><h3><span class="section-number">5.5.3. </span>言語理解知識<a class="headerlink" href="#nlu-knowledge" title="この見出しへのパーマリンク"></a></h3>
 <p>言語理解知識は，以下の４つのシートからなります．</p>
-<table class="colwidths-auto docutils align-default">
+<table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>シート名</p></th>
 <th class="head"><p>内容</p></th>
@@ -477,7 +479,7 @@
 <code class="docutils literal notranslate"><span class="pre">entity</span> <span class="pre">class</span></code>カラムの値として辞書関数（<code class="docutils literal notranslate"><span class="pre">dialbb/&lt;関数名&gt;</span></code>の形）を使うことができます．これにより，dictionaryシートに辞書情報を記述する代わりに，関数呼び出しで辞書記述を得ることができます．（例: <code class="docutils literal notranslate"><span class="pre">dialbb/location</span></code>）関数は以下の「<a class="reference internal" href="#dictionary-function"><span class="std std-ref">開発者による辞書関数の定義</span></a>」で説明します．
 またentity classカラムの値は，Snipsの<a class="reference external" href="https://snips-nlu.readthedocs.io/en/latest/builtin_entities.html">builtin entity</a>でも構いません．（例: <code class="docutils literal notranslate"><span class="pre">snips/city</span></code>）</p>
 <p>Snipsのbuiltin entityを用いる場合，以下のようにしてインストールする必要があります．</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ snips-nlu download-entity snips/city ja
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>snips-nlu<span class="w"> </span>download-entity<span class="w"> </span>snips/city<span class="w"> </span>ja
 </pre></div>
 </div>
 </li>
@@ -569,7 +571,7 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">final</span></code>: 対話終了かどうかのフラグ（ブール値）</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">aux_data</span></code>: 補助データ（辞書型）(ver. 0.4.0で変更）
 入力の補助データを，後述のアクション関数の中でアップデートしたものに，遷移した状態のIDを含めたもの．アクション関数の中でのアップデートは必ずしも行われるわけではない．遷移した状態は，以下の形式で付加される．</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="w">   </span><span class="p">{</span><span class="nt">&quot;state&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;特定のラーメンが好き&quot;</span><span class="p">}</span><span class="w"></span>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="w">   </span><span class="p">{</span><span class="nt">&quot;state&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;特定のラーメンが好き&quot;</span><span class="p">}</span>
 </pre></div>
 </div>
 </li>
@@ -664,7 +666,7 @@
 <p>STN Managerは，対話のセッションごとに文脈情報を保持しています．文脈情報は変数とその値の組の集合（pythonの辞書型データ）で，値はどのようなデータ構造でも構いません．</p>
 <p>条件やアクションの関数は文脈情報にアクセスします．</p>
 <p>文脈情報にはあらかじめ以下のキーと値のペアがセットされています．</p>
-<table class="colwidths-auto docutils align-default">
+<table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>キー</p></th>
 <th class="head"><p>値</p></th>
@@ -847,10 +849,10 @@
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">confirmation_request</span></code>（オブジェクト）</p>
 <p>これは以下の形で指定します．</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">confirmation_request</span><span class="p">:</span><span class="w"></span>
-<span class="w">  </span><span class="nt">function_to_generate_utterance</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;関数名（文字列）&gt;</span><span class="w"></span>
-<span class="w">  </span><span class="nt">acknowledgement_utterance_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;肯定のユーザ発話タイプ名（文字列）&gt;</span><span class="w"></span>
-<span class="w">  </span><span class="nt">denial_utterance_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;否定のユーザ発話タイプ名（文字列）&gt;</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">confirmation_request</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">function_to_generate_utterance</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;関数名（文字列）&gt;</span>
+<span class="w">  </span><span class="nt">acknowledgement_utterance_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;肯定のユーザ発話タイプ名（文字列）&gt;</span>
+<span class="w">  </span><span class="nt">denial_utterance_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;否定のユーザ発話タイプ名（文字列）&gt;</span>
 </pre></div>
 </div>
 <p>これが指定されている場合，入力の確信度が低いときは，状態遷移をおこなわず，<code class="docutils literal notranslate"><span class="pre">function_to_generate_utterance</span></code>で指定された関数を実行し，その返り値を発話します（確認要求発話と呼びます）．</p>
@@ -1070,7 +1072,7 @@
 </div>
 <p>&lt;ラベル&gt;は固有表現のクラスです．固有表現は見つかった固有表現で，<code class="docutils literal notranslate"><span class="pre">input_text</span></code>の部分文字列です．同じクラスの固有表現が複数見つかった場合，<code class="docutils literal notranslate"><span class="pre">:</span></code>で連結します．</p>
 <p>例</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nt">&quot;NE_Person&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;田中:鈴木&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;NE_Dish&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;味噌ラーメン&quot;</span><span class="p">}</span><span class="w"></span>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nt">&quot;NE_Person&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;田中:鈴木&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;NE_Dish&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;味噌ラーメン&quot;</span><span class="p">}</span>
 </pre></div>
 </div>
 <p>固有表現のクラスについては，spaCy/GiNZAのモデルのサイトを参照してください．</p>
@@ -1093,10 +1095,10 @@
 <p>ルールベースの固有表現抽出パターンを記述します．パターンは，<a class="reference external" href="https://spacy.io/usage/rule-based-matching">spaCyのパターンの説明</a>に書いてあるものをYAML形式にしたものです．</p>
 <p>以下が日本語の例です．</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">patterns</span><span class="p">:</span><span class="w"> </span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Date</span><span class="w"></span>
-<span class="w">    </span><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">昨日</span><span class="w"></span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Date</span><span class="w"></span>
-<span class="w">    </span><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">きのう</span><span class="w"></span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Date</span>
+<span class="w">    </span><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">昨日</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Date</span>
+<span class="w">    </span><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">きのう</span>
 </pre></div>
 </div>
 </li>
