@@ -27,7 +27,10 @@ def abort_during_building(message: str) -> None:
     エラーメッセージを表示してアプリを終了する
     :param message: error message
     """
-    print("Encountered an error during building app. " + message, file=sys.stdout)
+    if DEBUG:
+        raise BuildError("Aborted during building app: " + message)
+    else:
+        print("Encountered an error during building app. " + message, file=sys.stdout)
     sys.exit(1)
 
 
