@@ -42,9 +42,10 @@ CONFIG_KEY_ENTITIES_SHEET: str = "entities_sheet"
 CONFIG_KEY_DICTIONARY_SHEET: str = "dictionary_sheet"
 CONFIG_KEY_SUDACHI_NORMALIZATION: str = "sudachi_normalization"
 CONFIG_KEY_NUM_CANDIDATES: str = "num_candidates"
-CONFIG_KEY_TOKENS: str = "tokens"
-KEY_INPUT_TEXT: str = "input_text"
+
+KEY_TOKENS: str = "tokens"
 KEY_NLU_RESULT: str = "nlu_result"
+
 SCOPES = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
 
 
@@ -66,8 +67,8 @@ class Understander(AbstractBlock):
         entities_sheet = self.block_config.get(CONFIG_KEY_ENTITIES_SHEET, "entities")
         dictionary_sheet = self.block_config.get(CONFIG_KEY_DICTIONARY_SHEET, "dictionary")
 
-        # language: "us" or "jp"
-        self._language = self.config[CONFIG_KEY_LANGUAGE]
+        # language: "en" or "ja"
+        self._language = self.config.get(CONFIG_KEY_LANGUAGE, "en")
 
         # how many NLU candidates will be sent to the dialogue manager
         self._num_candidates = self.block_config.get(CONFIG_KEY_NUM_CANDIDATES, 1)
@@ -77,15 +78,15 @@ class Understander(AbstractBlock):
         google_sheet_config: Dict[str, str] = self.block_config.get(CONFIG_KEY_KNOWLEDGE_GOOGLE_SHEET)
         if google_sheet_config:  # get knowledge from google sheet
             utterances_df, slots_df, entities_df, dictionary_df \
-                = self.get_dfs_from_gs(google_sheet_config, utterances_sheet, slots_sheet,
-                                       entities_sheet, dictionary_sheet)
+                = self._get_dfs_from_gs(google_sheet_config, utterances_sheet, slots_sheet,
+                                        entities_sheet, dictionary_sheet)
         else:  # get knowledge from excel
             excel_file = self.block_config.get(CONFIG_KEY_KNOWLEDGE_FILE)
             if not excel_file:
                 abort_during_building(
                     f"Neither knowledge file nor google sheet info is not specified for the block {self.name}.")
             utterances_df, slots_df, entities_df, dictionary_df \
-                = self.get_dfs_from_excel(excel_file, utterances_sheet, slots_sheet, entities_sheet, dictionary_sheet)
+                = self._get_dfs_from_excel(excel_file, utterances_sheet, slots_sheet, entities_sheet, dictionary_sheet)
 
         # importing dictionary function modules
         function_modules: List[ModuleType] = []
@@ -108,9 +109,9 @@ class Understander(AbstractBlock):
             self._nlu_engine = SnipsNLUEngine(config=CONFIG_JA, random_state=SNIPS_SEED)
         self._nlu_engine.fit(nlu_knowledge_json)  # train NLU model
 
-    def get_dfs_from_gs(self, google_sheet_config: Dict[str, str],
-                        utterances_sheet: str, slots_sheet: str,
-                        entities_sheet: str, dictionary_sheet: str) \
+    def _get_dfs_from_gs(self, google_sheet_config: Dict[str, str],
+                         utterances_sheet: str, slots_sheet: str,
+                         entities_sheet: str, dictionary_sheet: str) \
             -> Tuple[DataFrame, DataFrame, DataFrame, DataFrame]:
         """
         Get DataFrames for each sheet in knowledge in google sheets
@@ -138,8 +139,8 @@ class Understander(AbstractBlock):
                pd.DataFrame(entities_data[1:], columns=entities_data[0]), \
                pd.DataFrame(dictionary_data[1:], columns=dictionary_data[0])
 
-    def get_dfs_from_excel(self, excel_file: str, utterances_sheet: str, slots_sheet: str,
-                           entities_sheet: str, dictionary_sheet: str):
+    def _get_dfs_from_excel(self, excel_file: str, utterances_sheet: str, slots_sheet: str,
+                            entities_sheet: str, dictionary_sheet: str):
 
         """
         Get DataFrames for each sheet in knowledge in Excel
@@ -168,7 +169,7 @@ class Understander(AbstractBlock):
         n-best results are returned
         SNIPSを用いて言語理解を行う
         コンフィギュレーションのnum_candidatesが2以上なら、n-bestの言語理解結果が返される
-        :param input: e.g. {"sentence": "I love egg salad sandwiches"}
+        :param input: e.g. {"tokens": ["I", "love", "egg", "salad", "sandwiches"]}
         :param session_id: session id sent from client
         :return: {"nlu_result": <nlu result in DialBB format>} or
                  {"nlu_result": <list of nlu results in DialBB format>}
@@ -185,7 +186,7 @@ class Understander(AbstractBlock):
         session_id: str = input.get(KEY_SESSION_ID, "undecided")
         self.log_debug("input: " + str(input), session_id=session_id)
 
-        tokens = input[CONFIG_KEY_TOKENS]
+        tokens = input[KEY_TOKENS]
         if not tokens:  # if input is empty
             if self._num_candidates == 1:  # non n-best mode
                 nlu_result: Dict[str, Any] = {"type": "", "slots": {}}
@@ -195,17 +196,17 @@ class Understander(AbstractBlock):
             input_to_nlu = " ".join(tokens)  # concatenate tokens into a string
             if self._num_candidates == 1:  # non n-best mode
                 snips_result: Dict[str, Any] = self._nlu_engine.parse(input_to_nlu)
-                nlu_result: Dict[str, Any] = self.one_snips_result_to_nlu_result(snips_result)
+                nlu_result: Dict[str, Any] = self._one_snips_result_to_nlu_result(snips_result)
             else:  # n-best mode
                 snips_results: List[Dict[str, Any]] = self._nlu_engine.parse(input_to_nlu, top_n=self._num_candidates)
-                nlu_result: List[Dict[str, Any]] = [self.one_snips_result_to_nlu_result(snips_result)
+                nlu_result: List[Dict[str, Any]] = [self._one_snips_result_to_nlu_result(snips_result)
                                                     for snips_result in snips_results]
         output = {KEY_NLU_RESULT: nlu_result}
         self.log_debug("output: " + str(output), session_id=session_id)
 
         return output
 
-    def one_snips_result_to_nlu_result(self, snips_result: Dict[str, Any]) -> Dict[str, Any]:
+    def _one_snips_result_to_nlu_result(self, snips_result: Dict[str, Any]) -> Dict[str, Any]:
         """
         get nlu result in dialbb format from one snips nlu result
         SNIPSの言語理解結果からDialBBフォーマットの言語理解結果を得る

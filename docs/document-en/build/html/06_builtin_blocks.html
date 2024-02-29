@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>5. Built-in Block Classes &mdash; DialBB Document v0.6.0 documentation</title>
@@ -12,10 +12,8 @@
   <![endif]-->
   
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -27,11 +25,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> DialBB Document
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            DialBB Document
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -68,43 +70,53 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#stn-manager-state-transition-network-based-dialogue-management-block">5.4. STN Manager (State Transition Network-based Dialogue Management Block)</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id4">5.4.1. Block configuration parameters</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#dialogue-management-knowledge-description">5.4.2. Dialogue Management Knowledge Description</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#special-status">5.4.3. Special status</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#conditions-and-actions">5.4.4. Conditions and Actions</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#contextual-information">5.4.4.1. Contextual Information</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#function-arguments">5.4.4.2. Function Arguments</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#function-definitions">5.4.5. Function Definitions</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#built-in-functions">5.4.5.1. Built-in Functions</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#function-definitions-by-the-developers">5.4.5.2. Function Definitions by the Developers</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#reaction">5.4.6. Reaction</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#continuous-transition">5.4.7. Continuous Transition</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#dealing-with-multiple-language-understanding-results">5.4.8. Dealing with Multiple Language Understanding Results</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#subdialogue">5.4.9. Subdialogue</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#advanced-mechanisms-for-handling-speech-input">5.4.10. Advanced Mechanisms for Handling Speech Input</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#additional-block-configuration-parameters">5.4.10.1. Additional block configuration parameters</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#adding-built-in-condition-functions">5.4.10.2. Adding built-in condition functions</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#ignoring-the-last-incorrect-input">5.4.10.3. Ignoring the last incorrect input</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#chatgpt-understander-language-understanding-block-using-snips">5.4. ChatGPT Understander (Language Understanding Block using Snips)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id4">5.4.1. Input/Output</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id5">5.4.2. Block Configuration Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chatgpt-nlu-knowledge">5.4.3. Language Understanding Knowledge</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id7">5.4.3.1. utterances sheet</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id8">5.4.3.2. slots sheet</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#chatgpt-dialogue-chatgpt-based-dialogue-block">5.5. ChatGPT Dialogue (ChatGPT-based Dialogue Block)</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id5">5.5.1. Input/Output</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id6">5.5.2. Block Configuration Parameters</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id7">5.5.3. Process Details</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#extending-the-chatgpt-dialogue-block-class">5.5.4. Extending the ChatGPT Dialogue Block Class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#stn-manager-state-transition-network-based-dialogue-management-block">5.5. STN Manager (State Transition Network-based Dialogue Management Block)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id9">5.5.1. Block configuration parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dialogue-management-knowledge-description">5.5.2. Dialogue Management Knowledge Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#special-status">5.5.3. Special status</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#conditions-and-actions">5.5.4. Conditions and Actions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#contextual-information">5.5.4.1. Contextual Information</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#function-arguments">5.5.4.2. Function Arguments</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#spacy-based-ner-named-entity-recognizer-block-using-spacy">5.6. spaCy-Based NER (Named Entity Recognizer Block using spaCy)</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id8">5.6.1. Input/Output</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id9">5.6.2. Block Configuration Parameters</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id10">5.6.3. Process Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#function-definitions">5.5.5. Function Definitions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#built-in-functions">5.5.5.1. Built-in Functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#function-definitions-by-the-developers">5.5.5.2. Function Definitions by the Developers</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#reaction">5.5.6. Reaction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#continuous-transition">5.5.7. Continuous Transition</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dealing-with-multiple-language-understanding-results">5.5.8. Dealing with Multiple Language Understanding Results</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subdialogue">5.5.9. Subdialogue</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#advanced-mechanisms-for-handling-speech-input">5.5.10. Advanced Mechanisms for Handling Speech Input</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#additional-block-configuration-parameters">5.5.10.1. Additional block configuration parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#adding-built-in-condition-functions">5.5.10.2. Adding built-in condition functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ignoring-the-last-incorrect-input">5.5.10.3. Ignoring the last incorrect input</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#chatgpt-dialogue-chatgpt-based-dialogue-block">5.6. ChatGPT Dialogue (ChatGPT-based Dialogue Block)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id10">5.6.1. Input/Output</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id11">5.6.2. Block Configuration Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id12">5.6.3. Process Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#extending-the-chatgpt-dialogue-block-class">5.6.4. Extending the ChatGPT Dialogue Block Class</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#spacy-based-ner-named-entity-recognizer-block-using-spacy">5.7. spaCy-Based NER (Named Entity Recognizer Block using spaCy)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id13">5.7.1. Input/Output</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id14">5.7.2. Block Configuration Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id15">5.7.3. Process Details</a></li>
 </ul>
 </li>
 </ul>
@@ -124,8 +136,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li><span class="section-number">5. </span>Built-in Block Classes</li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active"><span class="section-number">5. </span>Built-in Block Classes</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/06_builtin_blocks.md.txt" rel="nofollow"> View page source</a>
       </li>
@@ -224,7 +236,7 @@
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">tokens</span></code>: list of tokens (list of strings)</p>
 <ul>
-<li><p>Examples: <code class="docutils literal notranslate"><span class="pre">['I'</span> <span class="pre">'like',</span> <span class="pre">'chicken',</span> <span class="pre">'salad'</span> <span class="pre">'sandwiches']</span></code>.</p></li>
+<li><p>Example: <code class="docutils literal notranslate"><span class="pre">['I'</span> <span class="pre">'like',</span> <span class="pre">'chicken',</span> <span class="pre">'salad'</span> <span class="pre">'sandwiches']</span></code>.</p></li>
 </ul>
 </li>
 </ul>
@@ -241,10 +253,10 @@
 </pre></div>
 </div>
 <p>The following is an example.</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="w"> </span><span class="p">{</span>
 <span class="w">     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;tell-like-specific-sandwich&quot;</span><span class="p">,</span><span class="w"> </span>
-<span class="w">     </span><span class="nt">&quot;slots&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;favorite-sandwich&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;roast beef sandwich&quot;</span><span class="p">}</span><span class="w"></span>
-<span class="w"> </span><span class="p">}</span><span class="w"></span>
+<span class="w">     </span><span class="nt">&quot;slots&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;favorite-sandwich&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;roast beef sandwich&quot;</span><span class="p">}</span>
+<span class="w"> </span><span class="p">}</span>
 </pre></div>
 </div>
 </li>
@@ -313,7 +325,7 @@
 <section id="language-understanding-knowledge">
 <span id="nlu-knowledge"></span><h3><span class="section-number">5.3.3. </span>Language Understanding Knowledge<a class="headerlink" href="#language-understanding-knowledge" title="Permalink to this heading"></a></h3>
 <p>Language understanding knowledge consists of the following four sheets.</p>
-<table class="colwidths-auto docutils align-default">
+<table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>sheet name</p></th>
 <th class="head"><p>contents</p></th>
@@ -367,7 +379,7 @@
 <p>The function (e.g. <code class="docutils literal notranslate"><span class="pre">dialbb/location</span></code>) is described in “<a class="reference internal" href="#dictionary-function"><span class="std std-ref">Dictionary function definitions by developers</span></a>” below.</p>
 <p>The value of the entity class column can also be a <a class="reference external" href="https://snips-nlu.readthedocs.io/en/latest/builtin_entities.html">Snips built-in entity</a>. (e.g. <code class="docutils literal notranslate"><span class="pre">snips/city</span></code>)</p>
 <p>When you use Snips built-in entities, you need to install it as follows</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ snips-nlu download-entity snips/city en
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>snips-nlu<span class="w"> </span>download-entity<span class="w"> </span>snips/city<span class="w"> </span>en
 </pre></div>
 </div>
 <p>Accuracy and other aspects of the Snips built-in entities have not been fully verified.</p>
@@ -435,8 +447,163 @@
 </section>
 </section>
 </section>
+<section id="chatgpt-understander-language-understanding-block-using-snips">
+<span id="chatgpt-understander"></span><h2><span class="section-number">5.4. </span>ChatGPT Understander (Language Understanding Block using Snips)<a class="headerlink" href="#chatgpt-understander-language-understanding-block-using-snips" title="Permalink to this heading"></a></h2>
+<p>(<code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.understanding_with_chatgpt.chatgpt_understander.Understander</span></code>）</p>
+<p>Determines the user utterance type (also called intent) and extracts the slots using OpenAI’s ChatGPT.</p>
+<p>Performs language understanding in Japanese if the <code class="docutils literal notranslate"><span class="pre">language</span></code> element of the configuration is <code class="docutils literal notranslate"><span class="pre">ja</span></code>, and language understanding in English if it is <code class="docutils literal notranslate"><span class="pre">en</span></code>.</p>
+<p>At startup, this block reads the knowledge for language understanding written in Excel, converts it into the list of user utterance types, the list of slots, and the few shot examples to be embedded in the prompt.</p>
+<p>At runtime, input utterance is added to the prompt to make ChatGPT perform language understanding.</p>
+<section id="id4">
+<h3><span class="section-number">5.4.1. </span>Input/Output<a class="headerlink" href="#id4" title="Permalink to this heading"></a></h3>
+<ul>
+<li><p>input</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">input_text</span></code>: input string</p>
+<p>The input string is assumed to be canonicalized.</p>
+<ul class="simple">
+<li><p>Example: <code class="docutils literal notranslate"><span class="pre">&quot;I</span> <span class="pre">like</span> <span class="pre">chicken</span> <span class="pre">salad</span> <span class="pre">sandwiches&quot;</span></code>.</p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>output</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">nlu_result</span></code>: language understanding result (dict)</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>```json
+ {
+     &quot;type&quot;: &lt;user utterance type (intent)&gt;,. 
+     &quot;slots&quot;: {&lt;slot name&gt;: &lt;slot value&gt;, ... , &lt;slot name&gt;: &lt;slot value&gt;}
+ }
+```
+
+The following is an example.	  
+
+```json
+ {
+     &quot;type&quot;: &quot;tell-like-specific-sandwich&quot;, 
+     &quot;slots&quot;: {&quot;favorite-sandwich&quot;: &quot;roast beef sandwich&quot;}
+ }
+```
+</pre></div>
+</div>
+</li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="id5">
+<h3><span class="section-number">5.4.2. </span>Block Configuration Parameters<a class="headerlink" href="#id5" title="Permalink to this heading"></a></h3>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">knowledge_file</span></code> (string)</p>
+<p>Specifies the Excel file that describes the knowledge. The file path must be relative to the directory where the configuration file is located.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flags_to_use</span></code> (list of strings)</p>
+<p>Specifies the flags to be used. If one of these values is written in the <code class="docutils literal notranslate"><span class="pre">flag</span></code> column of each sheet, it is read. If this parameter is not set, all rows are read.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">canonicalizer</span></code></p>
+<p>Specifies the canonicalization information to be performed when converting language comprehension knowledge to Snips training data.</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">class</span></code></p>
+<p>Specifies the class of the normalization block. Basically, the same normalization block used in the application is specified.</p>
+</li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">knowledge_google_sheet</span></code> (hash)</p>
+<ul>
+<li><p>This specfies information for using Google Sheet instead of Excel.</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">sheet_id</span></code> (string)</p>
+<p>Google Sheet ID.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">key_file</span></code>(string)</p>
+<p>Specify the key file to access the Google Sheet API as a relative path from the configuration file directory.</p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">prompt_template</span></code></p>
+<p>This specifies the prompt template file as a relative path from the configuration file directory.</p>
+<p>When this is not specified, <code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.understanding_with_chatgpt.prompt_templates_ja</span> <span class="pre">.PROMPT_TEMPLATE_JA</span></code> (for Japanese) or <code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.understanding_with_chatgpt.prompt_templates_en</span> <span class="pre">.PROMPT_TEMPLATE_EN</span></code> (for English) is used.</p>
+<p>A prompt template is a template of prompts for making ChatGPT language understanding, and it can contain the following variables starting with <code class="docutils literal notranslate"><span class="pre">&#64;</span></code>.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&#64;types</span></code> 発話タイプの種類を列挙したものです．</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&#64;slot_definitions</span></code> スロットの種類を列挙したものです．</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&#64;examples</span></code> 発話例と，タイプ，スロットの正解を書いたいわゆるfew shot exampleです．</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&#64;input</span></code> 入力発話です．</p></li>
+</ul>
+<p>これらの変数には，実行時に値が代入されます．</p>
+</li>
+</ul>
+</section>
+<section id="chatgpt-nlu-knowledge">
+<span id="id6"></span><h3><span class="section-number">5.4.3. </span>Language Understanding Knowledge<a class="headerlink" href="#chatgpt-nlu-knowledge" title="Permalink to this heading"></a></h3>
+<p>Language understanding knowledge consists of the following two sheets.</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>sheet name</p></th>
+<th class="head"><p>contents</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>utterances</p></td>
+<td><p>examples of utterances by type</p></td>
+</tr>
+<tr class="row-odd"><td><p>slots</p></td>
+<td><p>relationship between slots and entities and a list of synonyms</p></td>
+</tr>
+</tbody>
+</table>
+<p>The sheet name can be changed in the block configuration, but since it is unlikely to be changed, a detailed explanation is omitted.</p>
+<section id="id7">
+<h4><span class="section-number">5.4.3.1. </span>utterances sheet<a class="headerlink" href="#id7" title="Permalink to this heading"></a></h4>
+<p>Each row consists of the following columns</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">flag</span></code></p>
+<p>Flags to be used or not. <code class="docutils literal notranslate"><span class="pre">Y</span></code> (yes), <code class="docutils literal notranslate"><span class="pre">T</span></code> (test), etc. are often written. Which flag’s rows to use is specified in the configuration. In the configuration of the sample application, all rows are used.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">type</span></code></p>
+<p>User utterance type (Intent)</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">utterance</span></code></p>
+<p>Example utterance.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">slots</span></code></p>
+<p>Slots that are included in the utterance. They are written in the following form</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">slot</span> <span class="n">name</span><span class="o">&gt;=&lt;</span><span class="n">slot</span> <span class="n">value</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">slot</span> <span class="n">name</span><span class="o">&gt;=&lt;</span><span class="n">slot</span> <span class="n">value</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">...</span> <span class="o">&lt;</span><span class="n">slot</span> <span class="n">name</span><span class="o">&gt;=&lt;</span><span class="n">slot</span> <span class="n">value</span><span class="o">&gt;</span> 
+</pre></div>
+</div>
+<p>The following is an example.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">location</span><span class="o">=</span><span class="n">philladelphia</span><span class="p">,</span> <span class="n">favorite</span><span class="o">-</span><span class="n">sandwich</span><span class="o">=</span><span class="n">cheesesteak</span> <span class="n">sandwitch</span>
+</pre></div>
+</div>
+</li>
+</ul>
+<p>The sheets that this block uses, including the utterance sheets, can have other columns than these.</p>
+</section>
+<section id="id8">
+<h4><span class="section-number">5.4.3.2. </span>slots sheet<a class="headerlink" href="#id8" title="Permalink to this heading"></a></h4>
+<p>Each row consists of the following columns.</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">flag</span></code></p>
+<p>Same as on the utterance sheet.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">slot</span> <span class="pre">name</span></code></p>
+<p>Slot name. It is used in the example utterances in the utterances sheet. Also used in the language understanding results.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">entity</span></code></p>
+<p>The name of the dictionary entry. It is also included in language understanding results.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">synonyms</span></code></p>
+<p>Synonyms joined by <code class="docutils literal notranslate"><span class="pre">','</span></code>.</p>
+</li>
+</ul>
+</section>
+</section>
+</section>
 <section id="stn-manager-state-transition-network-based-dialogue-management-block">
-<span id="stn-manager"></span><h2><span class="section-number">5.4. </span>STN Manager (State Transition Network-based Dialogue Management Block)<a class="headerlink" href="#stn-manager-state-transition-network-based-dialogue-management-block" title="Permalink to this heading"></a></h2>
+<span id="stn-manager"></span><h2><span class="section-number">5.5. </span>STN Manager (State Transition Network-based Dialogue Management Block)<a class="headerlink" href="#stn-manager-state-transition-network-based-dialogue-management-block" title="Permalink to this heading"></a></h2>
 <p>(<code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.stn_manager.stn_management</span></code>)</p>
 <p>It perfomrs dialogue management using a state-transition neetwork.</p>
 <ul>
@@ -459,15 +626,15 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">final</span></code>: a flag indicating whether the dialog is finished or not. (bool)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">aux_data</span></code>: auxiliary data (dictionary type)</p>
 <p>The auxiliary data of the input is updated in action functions described below, including the ID of the transitioned state. Updates are not necessarily performed in action functions. The transitioned state is added in the following format.</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="p">{</span><span class="nt">&quot;state&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;I like a particular ramen&quot;</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="p">{</span><span class="nt">&quot;state&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;I like a particular ramen&quot;</span><span class="w"> </span><span class="p">}</span>
 </pre></div>
 </div>
 </li>
 </ul>
 </li>
 </ul>
-<section id="id4">
-<h3><span class="section-number">5.4.1. </span>Block configuration parameters<a class="headerlink" href="#id4" title="Permalink to this heading"></a></h3>
+<section id="id9">
+<h3><span class="section-number">5.5.1. </span>Block configuration parameters<a class="headerlink" href="#id9" title="Permalink to this heading"></a></h3>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">knowledge_file</span></code> (string)</p>
 <p>Specifies an Excel file describing the scenario. It is a relative path from the directory wherer  the configuration file exists.</p>
@@ -490,7 +657,7 @@
 </ul>
 </section>
 <section id="dialogue-management-knowledge-description">
-<span id="scenario"></span><h3><span class="section-number">5.4.2. </span>Dialogue Management Knowledge Description<a class="headerlink" href="#dialogue-management-knowledge-description" title="Permalink to this heading"></a></h3>
+<span id="scenario"></span><h3><span class="section-number">5.5.2. </span>Dialogue Management Knowledge Description<a class="headerlink" href="#dialogue-management-knowledge-description" title="Permalink to this heading"></a></h3>
 <p>The dialog management knowledge (scenario) is written in the scenario sheet in the Excel file.</p>
 <p>Each row of the sheet represents a transition. Each row consists of the following columns</p>
 <ul>
@@ -525,7 +692,7 @@
 <p>The default transition (a line with both <code class="docutils literal notranslate"><span class="pre">user</span> <span class="pre">utterance</span> <span class="pre">type</span></code> and <code class="docutils literal notranslate"><span class="pre">conditions</span></code> columns empty) must be at the bottom of the rows having the <code class="docutils literal notranslate"><span class="pre">state</span></code> column values.</p>
 </section>
 <section id="special-status">
-<h3><span class="section-number">5.4.3. </span>Special status<a class="headerlink" href="#special-status" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">5.5.3. </span>Special status<a class="headerlink" href="#special-status" title="Permalink to this heading"></a></h3>
 <p>The following state names are predefined.</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">#prep</span></code></p>
@@ -545,13 +712,13 @@ In a final state, the system generates a system utterance and terminates the dia
 </ul>
 </section>
 <section id="conditions-and-actions">
-<h3><span class="section-number">5.4.4. </span>Conditions and Actions<a class="headerlink" href="#conditions-and-actions" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">5.5.4. </span>Conditions and Actions<a class="headerlink" href="#conditions-and-actions" title="Permalink to this heading"></a></h3>
 <section id="contextual-information">
-<h4><span class="section-number">5.4.4.1. </span>Contextual Information<a class="headerlink" href="#contextual-information" title="Permalink to this heading"></a></h4>
+<h4><span class="section-number">5.5.4.1. </span>Contextual Information<a class="headerlink" href="#contextual-information" title="Permalink to this heading"></a></h4>
 <p>STN Manager maintains contextual information for each dialogue session. The contextual information is a set of variables and their values (python dictionary type data), and the values can be any data structure.</p>
 <p>Condition and action functions access contextual information.</p>
 <p>The context information is pre-set with the following key-value pairs.</p>
-<table class="colwidths-auto docutils align-default">
+<table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>key</p></th>
 <th class="head"><p>value</p></th>
@@ -599,7 +766,7 @@ In a final state, the system generates a system utterance and terminates the dia
 <p>In addition to these, new key/value pairs can be added within the action function.</p>
 </section>
 <section id="function-arguments">
-<span id="arguments"></span><h4><span class="section-number">5.4.4.2. </span>Function Arguments<a class="headerlink" href="#function-arguments" title="Permalink to this heading"></a></h4>
+<span id="arguments"></span><h4><span class="section-number">5.5.4.2. </span>Function Arguments<a class="headerlink" href="#function-arguments" title="Permalink to this heading"></a></h4>
 <p>The arguments of the functions used in conditions and actions are of the following types.</p>
 <ul>
 <li><p>Special variables (strings beginning with <code class="docutils literal notranslate"><span class="pre">#</span></code>)</p>
@@ -632,10 +799,10 @@ In a final state, the system generates a system utterance and terminates the dia
 </section>
 </section>
 <section id="function-definitions">
-<h3><span class="section-number">5.4.5. </span>Function Definitions<a class="headerlink" href="#function-definitions" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">5.5.5. </span>Function Definitions<a class="headerlink" href="#function-definitions" title="Permalink to this heading"></a></h3>
 <p>Functions used in conditions and actions are either built-in to DialBB or defined by the developers.The function used in a condition returns a boolean value, while the function used in an action returns nothing.</p>
 <section id="built-in-functions">
-<h4><span class="section-number">5.4.5.1. </span>Built-in Functions<a class="headerlink" href="#built-in-functions" title="Permalink to this heading"></a></h4>
+<h4><span class="section-number">5.5.5.1. </span>Built-in Functions<a class="headerlink" href="#built-in-functions" title="Permalink to this heading"></a></h4>
 <p>The built-in functions are as follows:</p>
 <ul>
 <li><p>Functions used in conditions</p>
@@ -683,7 +850,7 @@ In a final state, the system generates a system utterance and terminates the dia
 </ul>
 </section>
 <section id="function-definitions-by-the-developers">
-<h4><span class="section-number">5.4.5.2. </span>Function Definitions by the Developers<a class="headerlink" href="#function-definitions-by-the-developers" title="Permalink to this heading"></a></h4>
+<h4><span class="section-number">5.5.5.2. </span>Function Definitions by the Developers<a class="headerlink" href="#function-definitions-by-the-developers" title="Permalink to this heading"></a></h4>
 <p>When the developer defines functions, he/she edits a file specified in <code class="docutils literal notranslate"><span class="pre">function_definition</span></code> element in the block configuration.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">get_ramen_location</span><span class="p">(</span><span class="n">ramen</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">variable</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> 
     <span class="n">location</span><span class="p">:</span><span class="nb">str</span> <span class="o">=</span> <span class="n">ramen_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ramen</span><span class="p">,</span> <span class="s2">&quot;Japan&quot;</span><span class="p">)</span>
@@ -697,38 +864,38 @@ In the case of a variable reference, the variable name without the <code class="
 </section>
 </section>
 <section id="reaction">
-<h3><span class="section-number">5.4.6. </span>Reaction<a class="headerlink" href="#reaction" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">5.5.6. </span>Reaction<a class="headerlink" href="#reaction" title="Permalink to this heading"></a></h3>
 <p>In an action function, setting a string to <code class="docutils literal notranslate"><span class="pre">_reaction</span></code> in the context information will prepend that string to the system’s response after the state transition.</p>
 <p>For example, if the action function <code class="docutils literal notranslate"><span class="pre">_set(&amp;_reaction,</span> <span class="pre">&quot;I</span> <span class="pre">agree.&quot;)</span></code> is executed and the system’s response in the subsequent state is “How was the food?”, then the system will return the response “I agree. How was the food?”.</p>
 </section>
 <section id="continuous-transition">
-<h3><span class="section-number">5.4.7. </span>Continuous Transition<a class="headerlink" href="#continuous-transition" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">5.5.7. </span>Continuous Transition<a class="headerlink" href="#continuous-transition" title="Permalink to this heading"></a></h3>
 <p>If a transition is made to a state where the first system utterance is <code class="docutils literal notranslate"><span class="pre">$skip</span></code>, the next transition is made immediately without returning a system response. This is used in cases where the second transition is selected based on the result of the action of the first transition.</p>
 </section>
 <section id="dealing-with-multiple-language-understanding-results">
-<h3><span class="section-number">5.4.8. </span>Dealing with Multiple Language Understanding Results<a class="headerlink" href="#dealing-with-multiple-language-understanding-results" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">5.5.8. </span>Dealing with Multiple Language Understanding Results<a class="headerlink" href="#dealing-with-multiple-language-understanding-results" title="Permalink to this heading"></a></h3>
 <p>If the input <code class="docutils literal notranslate"><span class="pre">nlu_result</span></code> is a list that contains multiple language understanding results, the process is as follows.</p>
 <p>Starting from the top of the list, check whether the <code class="docutils literal notranslate"><span class="pre">type</span></code> value of a candidate language understanding result is equal to the <code class="docutils literal notranslate"><span class="pre">user</span> <span class="pre">utterance</span> <span class="pre">type</span></code> value of one of the possible transitions from the current state, and use the candidate language understanding result if there is an equal transition. If none of the candidate language comprehension results meet the above conditions, the first language comprehension result in the list is used.</p>
 </section>
 <section id="subdialogue">
-<h3><span class="section-number">5.4.9. </span>Subdialogue<a class="headerlink" href="#subdialogue" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">5.5.9. </span>Subdialogue<a class="headerlink" href="#subdialogue" title="Permalink to this heading"></a></h3>
 <p>If the destination state name is of the form <code class="docutils literal notranslate"><span class="pre">#gosub:&lt;state</span> <span class="pre">name1&gt;:&lt;state</span> <span class="pre">name2&gt;</span></code>, it transitions to the state <code class="docutils literal notranslate"><span class="pre">&lt;state</span> <span class="pre">name1&gt;</span></code> and executes a subdialogue starting there. If the destination state is <code class="docutils literal notranslate"><span class="pre">:exit</span></code>, it moves to the state <code class="docutils literal notranslate"><span class="pre">&lt;state</span> <span class="pre">name2&gt;</span></code>.
 For example, if the destination state name is of the form <code class="docutils literal notranslate"><span class="pre">#gosub:request_confirmation:confirmed</span></code>, a subdialogue starting with <code class="docutils literal notranslate"><span class="pre">request_confirmatin</span></code> is executed, and when the destination state becomes <code class="docutils literal notranslate"><span class="pre">:exit</span></code>, it returns to <code class="docutils literal notranslate"><span class="pre">confirmed</span></code>. When the destination becomes <code class="docutils literal notranslate"><span class="pre">:exit</span></code>, it returns to <code class="docutils literal notranslate"><span class="pre">confirmed</span></code>.
 It is also possible to transition to a subdialogue within a subdialogue.</p>
 </section>
 <section id="advanced-mechanisms-for-handling-speech-input">
-<h3><span class="section-number">5.4.10. </span>Advanced Mechanisms for Handling Speech Input<a class="headerlink" href="#advanced-mechanisms-for-handling-speech-input" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">5.5.10. </span>Advanced Mechanisms for Handling Speech Input<a class="headerlink" href="#advanced-mechanisms-for-handling-speech-input" title="Permalink to this heading"></a></h3>
 <section id="additional-block-configuration-parameters">
-<h4><span class="section-number">5.4.10.1. </span>Additional block configuration parameters<a class="headerlink" href="#additional-block-configuration-parameters" title="Permalink to this heading"></a></h4>
+<h4><span class="section-number">5.5.10.1. </span>Additional block configuration parameters<a class="headerlink" href="#additional-block-configuration-parameters" title="Permalink to this heading"></a></h4>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">input_confidence_threshold</span></code> (float; default value <code class="docutils literal notranslate"><span class="pre">1.0</span></code>)
 If the input is a speech recognition result and its confidence is less than this value, the confidence is considered low. The confidence of the input is the value of <code class="docutils literal notranslate"><span class="pre">confidence</span></code> in <code class="docutils literal notranslate"><span class="pre">aux_data</span></code>. If there is no <code class="docutils literal notranslate"><span class="pre">confidence</span></code> key in <code class="docutils literal notranslate"><span class="pre">aux_data</span></code>, the confidence is considered high. In the case of low confidence, the process depends on the value of the parameter described below.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">confirmation_request</span></code> (object)</p>
 <p>This is specified in the following form.</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">confirmation_request</span><span class="p">:</span><span class="w"></span>
-<span class="w">  </span><span class="nt">function_to_generate_utterance</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;function name (string)&gt;</span><span class="w"></span>
-<span class="w">  </span><span class="nt">acknowledgement_utterance_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;user utterance type name of acknowledgement (string)&gt;</span><span class="w"></span>
-<span class="w">  </span><span class="nt">denial_utterance_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;name of user utterance type for affirmation (string)&gt;</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">confirmation_request</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">function_to_generate_utterance</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;function name (string)&gt;</span>
+<span class="w">  </span><span class="nt">acknowledgement_utterance_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;user utterance type name of acknowledgement (string)&gt;</span>
+<span class="w">  </span><span class="nt">denial_utterance_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;name of user utterance type for affirmation (string)&gt;</span>
 </pre></div>
 </div>
 <p>If this is specified, the function specified in <code class="docutils literal notranslate"><span class="pre">function_to_generate_utterance</span></code> is executed and the return value is spoken (called a confirmation request utterance), instead of making a state transition when the input is less certain.
@@ -761,7 +928,7 @@ Then, the next process is performed in response to the user’s utterance.</p>
 </ul>
 </section>
 <section id="adding-built-in-condition-functions">
-<h4><span class="section-number">5.4.10.2. </span>Adding built-in condition functions<a class="headerlink" href="#adding-built-in-condition-functions" title="Permalink to this heading"></a></h4>
+<h4><span class="section-number">5.5.10.2. </span>Adding built-in condition functions<a class="headerlink" href="#adding-built-in-condition-functions" title="Permalink to this heading"></a></h4>
 <p>The following built-in condition functions have been added</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">_confidence_is_low()</span></code></p>
@@ -773,7 +940,7 @@ Then, the next process is performed in response to the user’s utterance.</p>
 </ul>
 </section>
 <section id="ignoring-the-last-incorrect-input">
-<h4><span class="section-number">5.4.10.3. </span>Ignoring the last incorrect input<a class="headerlink" href="#ignoring-the-last-incorrect-input" title="Permalink to this heading"></a></h4>
+<h4><span class="section-number">5.5.10.3. </span>Ignoring the last incorrect input<a class="headerlink" href="#ignoring-the-last-incorrect-input" title="Permalink to this heading"></a></h4>
 <p>If the value of <code class="docutils literal notranslate"><span class="pre">rewind</span></code> in the input <code class="docutils literal notranslate"><span class="pre">aux_data</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code>, a transition is made from the state before the last response.
 Any changes to the dialog context due to actions taken during the previous response will also be undone.
 This function is used when a user utterance is accidentally split in the middle during speech recognition and only the first half of the utterance is responded to.</p>
@@ -782,12 +949,12 @@ This function is used when a user utterance is accidentally split in the middle 
 </section>
 </section>
 <section id="chatgpt-dialogue-chatgpt-based-dialogue-block">
-<span id="chatgpt-dialogue"></span><h2><span class="section-number">5.5. </span>ChatGPT Dialogue (ChatGPT-based Dialogue Block)<a class="headerlink" href="#chatgpt-dialogue-chatgpt-based-dialogue-block" title="Permalink to this heading"></a></h2>
+<span id="chatgpt-dialogue"></span><h2><span class="section-number">5.6. </span>ChatGPT Dialogue (ChatGPT-based Dialogue Block)<a class="headerlink" href="#chatgpt-dialogue-chatgpt-based-dialogue-block" title="Permalink to this heading"></a></h2>
 <p>(<code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.chatgpt.chatgpt_en.ChatGPT_Ja</span></code> (for Japanese), and <code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.chatgpt.chatgpt_en.ChatGPT_En</span></code> (for English))</p>
 <p>Engages in dialogue using OpenAI’s ChatGPT.</p>
 <p>These classes are subclasses of <code class="docutils literal notranslate"><span class="pre">dialbb.built-in_blocks.chatgpt.chatgpt.ChatGPT</span></code>. By creating a new subclass of <code class="docutils literal notranslate"><span class="pre">dialbb.built-in_blocks.chatgpt.chatgpt.ChatGPT</span></code>, you can create a new block using ChatGPT.</p>
-<section id="id5">
-<h3><span class="section-number">5.5.1. </span>Input/Output<a class="headerlink" href="#id5" title="Permalink to this heading"></a></h3>
+<section id="id10">
+<h3><span class="section-number">5.6.1. </span>Input/Output<a class="headerlink" href="#id10" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>Input</p>
 <ul>
@@ -809,8 +976,8 @@ The output <code class="docutils literal notranslate"><span class="pre">aux_data
 you can change this when you create a new subclass of <code class="docutils literal notranslate"><span class="pre">ChatGPT</span></code>.</p>
 <p>When using these blocks, you need to set the OpenAI license key in the environment variable <code class="docutils literal notranslate"><span class="pre">OPENAI_KEY</span></code>.</p>
 </section>
-<section id="id6">
-<h3><span class="section-number">5.5.2. </span>Block Configuration Parameters<a class="headerlink" href="#id6" title="Permalink to this heading"></a></h3>
+<section id="id11">
+<h3><span class="section-number">5.6.2. </span>Block Configuration Parameters<a class="headerlink" href="#id11" title="Permalink to this heading"></a></h3>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">first_system_utterance</span></code> (string, default value is <code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code>)</p>
 <p>This is the first system utterance of the dialog.</p>
@@ -826,8 +993,8 @@ you can change this when you create a new subclass of <code class="docutils lite
 </li>
 </ul>
 </section>
-<section id="id7">
-<h3><span class="section-number">5.5.3. </span>Process Details<a class="headerlink" href="#id7" title="Permalink to this heading"></a></h3>
+<section id="id12">
+<h3><span class="section-number">5.6.3. </span>Process Details<a class="headerlink" href="#id12" title="Permalink to this heading"></a></h3>
 <ul>
 <li><p>At the beginning of the dialog, the value of <code class="docutils literal notranslate"><span class="pre">first_system_utterance</span></code> in the block configuration is returned as system utterance.</p></li>
 <li><p>In the second and subsequent turns, the following prompt is given to ChatGPT and the returns are returned as the system utterance.</p>
@@ -852,7 +1019,7 @@ you can change this when you create a new subclass of <code class="docutils lite
 </ul>
 </section>
 <section id="extending-the-chatgpt-dialogue-block-class">
-<h3><span class="section-number">5.5.4. </span>Extending the ChatGPT Dialogue Block Class<a class="headerlink" href="#extending-the-chatgpt-dialogue-block-class" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">5.6.4. </span>Extending the ChatGPT Dialogue Block Class<a class="headerlink" href="#extending-the-chatgpt-dialogue-block-class" title="Permalink to this heading"></a></h3>
 <p>As mentioned earlier, you can create a subclass of <code class="docutils literal notranslate"><span class="pre">dialbb.built-in_blocks.chatgpt.chatgpt.ChatGPT</span></code> and use it as your own block for flexible control changes.</p>
 <p>When creating a subclass, implement the following methods</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">_generate_system_utterance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dialogue_history</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]],</span><span class="o">.</span>
@@ -909,11 +1076,11 @@ you can change this when you create a new subclass of <code class="docutils lite
 </section>
 </section>
 <section id="spacy-based-ner-named-entity-recognizer-block-using-spacy">
-<span id="spacy-ner"></span><h2><span class="section-number">5.6. </span>spaCy-Based NER (Named Entity Recognizer Block using spaCy)<a class="headerlink" href="#spacy-based-ner-named-entity-recognizer-block-using-spacy" title="Permalink to this heading"></a></h2>
+<span id="spacy-ner"></span><h2><span class="section-number">5.7. </span>spaCy-Based NER (Named Entity Recognizer Block using spaCy)<a class="headerlink" href="#spacy-based-ner-named-entity-recognizer-block-using-spacy" title="Permalink to this heading"></a></h2>
 <p>(<code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.ner_with_spacy.ne_recognizer.SpaCyNER</span></code>)</p>
 <p>Performs named entity recognition using <a class="reference external" href="https://spacy.io">spaCy</a> and <a class="reference external" href="https://megagonlabs.github.io/ginza/">GiNZA</a>.</p>
-<section id="id8">
-<h3><span class="section-number">5.6.1. </span>Input/Output<a class="headerlink" href="#id8" title="Permalink to this heading"></a></h3>
+<section id="id13">
+<h3><span class="section-number">5.7.1. </span>Input/Output<a class="headerlink" href="#id13" title="Permalink to this heading"></a></h3>
 <ul>
 <li><p>Input</p>
 <ul class="simple">
@@ -941,8 +1108,8 @@ you can change this when you create a new subclass of <code class="docutils lite
 <p>Example:</p>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="w"> </span>
 <span class="w">  </span><span class="nt">&quot;NE_Person&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;John:Mary&quot;</span><span class="p">,</span><span class="w"> </span>
-<span class="w">  </span><span class="nt">&quot;NE_Dish&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Chiken Marsala&quot;</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;NE_Dish&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Chiken Marsala&quot;</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>See the spaCy/GiNZA model website for more information on the class of named entities.</p>
@@ -951,8 +1118,8 @@ you can change this when you create a new subclass of <code class="docutils lite
 <li><p><code class="docutils literal notranslate"><span class="pre">en_core_web_trf</span></code> (3.5.0): <a class="reference external" href="https://huggingface.co/spacy/en_core_web_trfhttps://pypi.org/project/ja-ginza-electra/">https://spacy.io/models/en#en_core_web_trf-labels</a></p></li>
 </ul>
 </section>
-<section id="id9">
-<h3><span class="section-number">5.6.2. </span>Block Configuration Parameters<a class="headerlink" href="#id9" title="Permalink to this heading"></a></h3>
+<section id="id14">
+<h3><span class="section-number">5.7.2. </span>Block Configuration Parameters<a class="headerlink" href="#id14" title="Permalink to this heading"></a></h3>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">model</span></code> (String: Required)</p>
 <p>The name of the spaCy/GiNZA model. It can be <code class="docutils literal notranslate"><span class="pre">ja_ginza_electra</span></code> (Japanese), <code class="docutils literal notranslate"><span class="pre">en_core_web_trf</span></code> (English), etc.</p>
@@ -961,17 +1128,17 @@ you can change this when you create a new subclass of <code class="docutils lite
 <p>Describes a rule-based named entity extraction pattern. The pattern is a YAML format of the one described in <a class="reference external" href="https://spacy.io/usage/rule-based-matching">spaCy Pattern Description</a>.</p>
 <p>The following is an example.</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">patterns</span><span class="p">:</span><span class="w"> </span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Date</span><span class="w"></span>
-<span class="w">    </span><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">yesterday</span><span class="w"></span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Date</span><span class="w"></span>
-<span class="w">    </span><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">The day before yesterday</span><span class="w"></span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Date</span>
+<span class="w">    </span><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">yesterday</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Date</span>
+<span class="w">    </span><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">The day before yesterday</span>
 </pre></div>
 </div>
 </li>
 </ul>
 </section>
-<section id="id10">
-<h3><span class="section-number">5.6.3. </span>Process Details<a class="headerlink" href="#id10" title="Permalink to this heading"></a></h3>
+<section id="id15">
+<h3><span class="section-number">5.7.3. </span>Process Details<a class="headerlink" href="#id15" title="Permalink to this heading"></a></h3>
 <p>Extracts the named entities in <code class="docutils literal notranslate"><span class="pre">input_text</span></code> using spaCy/GiNZA and returns the result in <code class="docutils literal notranslate"><span class="pre">aux_data</span></code>.</p>
 </section>
 </section>

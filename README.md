@@ -1,6 +1,6 @@
 # DialBB: A Framework for Building Dialogue Systems
 
-ver.0.6.2
+ver.0.7.0
 
 [日本語版](README-ja.md)
 
@@ -25,7 +25,7 @@ This software is released for non-commercial use. For details of the license, pl
 
 ### Execution Environment
 
-We have confirmed that the following procedure works on Python 3.8.10 on Ubuntu 20.04.  We haven't heard that application dosn't work with Python 3.9 or later and on Windows10/11 and MacOS (including Apple Silicon), though we haven't completely confirmed. 
+We have confirmed that the following procedure works on Python 3.8.10 on Ubuntu 20.04.  We haven't heard that application dosn't work with Python 3.9 or later and on Windows10/11 and MacOS (including Apple Silicon), though we haven't completely confirmed. However, Snips NLU mentioned later does not support Python 3.9+, it may require additional procedure to install Snips NLU or it might not possible to install it.
 
 The following instructions assume that you are working with bash on Ubuntu. If you are using other shells or the Windows command prompt, please read the following instructions accordingly.
 
@@ -155,13 +155,15 @@ This is a sample application using the following built-in blocks. The English ve
   Do the following:
 
   ```sh
+  # Run one of the following
+  $ pip install -r sample_apps/network_en/requirements.txt
+  $ pip install -r sample_apps/network_en/requirements.txt
+
   # To create and use an English application
-  $ pip install -r sample_apps/network_ja/requirements.txt
   $ python -m snips_nlu download en
 
   # To create and use a Japanese language application
   $ python -m snips_nlu download ja
-  $ pip install -r sample_apps/network_en/requirements.txt
   ```
 
 Note:
@@ -204,15 +206,35 @@ The following command starts the application.
 
   - English application
 
-  ```sh
-  $ python run_server.py sample_apps/network_en/config.yml 
-  ```
+   ```sh
+   $ python run_server.py sample_apps/network_en/config.yml 
+   ```
+
+    When invoking in the application directory, do the following
+
+   ```sh
+   $ export DIALBB_HOME=<DialBB home diretory>
+   $ export PYTHONPATH=$DIALBB_HOME:$PYTHONPATH
+   $ cd sample_apps/network_en  # moving to the application diretory
+   $ python $DIALBB_HOME/run_server.py config.yml 
+   ```
 
   - Japanese application
 
-  ```sh
-  $ python run_server.py sample_apps/network_ja/config.yml 
-  ```
+   ```sh
+   $ python run_server.py sample_apps/network_ja/config.yml 
+   ```
+
+    When invoking in the application directory, do the following
+
+   ```sh
+   $ export DIALBB_HOME=<DialBB home diretory>
+   $ export PYTHONPATH=$DIALBB_HOME:$PYTHONPATH
+   $ cd sample_apps/network_ja  # moving to the application diretory
+   $ python $DIALBB_HOME/run_server.py config.yml 
+   ```
+
+
 
 #### Operation Check
 
@@ -245,37 +267,47 @@ The following commands can be used to test the sequential processing and interac
 
 ### Experimental Application
 
-An experimental application is available at `sample_apps/lab_app_ja/` (Japanese only). This application is used to test various functions of the built-in blocks. It uses the following built-in blocks.
+An experimental application is available at `sample_apps/lab_app_ja/` (Japanese) and `sample_apps/lab_app_en/` (English) . This application is used to test various functions of the built-in blocks. It uses the following built-in blocks.
 
 
-- Japanese Canonicalizer Block
-- Sudachi Tokenizer Block
-- Snips Understander Block
-- Spacy NER Block (NER using [spaCy](https://spacy.io/)/[GiNZA](https://megagonlabs.github.io/ginza/))
-- STN Manager Block
+- English Application
+
+  - Simple Canonicalizer Block
+  - Snips Understander Block
+  - Spacy NER Block (NER using [spaCy](https://spacy.io/))
+
+  - STN Manager Block
+
+- Japanese Application
+
+  - Japanese Canonicalizer Block
+  - Snips Understander Block
+  - Spacy NER Block (NER using [spaCy](https://spacy.io/)/[GiNZA](https://megagonlabs.github.io/ginza/))
+
+  - STN Manager Block
 
 #### Installing Python libraries
 
   Do the following:
 
   ```sh
-  $ pip install -r sample_apps/lab_app_ja/requirements.txt
+  $ pip install -r sample_apps/lab_app_en/requirements.txt # for English app
+  $ pip install -r sample_apps/lab_app_ja/requirements.txt # for Japanese app
   ```
 
 #### Setting environment variables
 
-This application can use OpenAI's ChatGPT; to use ChatGPT, set the OpenAI API key in the environment variable `OPENAI_KEY`. The following is a bash example.
+This application uses OpenAI's ChatGPT. So, set the OpenAI API key in the environment variable `OPENAI_KEY`. The following is a bash example.
 
 ```sh
 $ export OPENAI_KEY=<OpenAI's API key>.
 ```
 
-If the environment variable `OPENAI_KEY` is not specified, it works without ChatGPT.
-
 #### Startup
 
   ```sh
-  $ python run_server.py sample_apps/lab_app_ja/config.yml
+  $ python run_server.py sample_apps/lab_app_en/config_en.yml # English app
+  $ python run_server.py sample_apps/lab_app_en/config_ja.yml # Japanese app
   ```
 
 #### Test Method
@@ -283,7 +315,8 @@ If the environment variable `OPENAI_KEY` is not specified, it works without Chat
 The following commands allow you to test features not used in the Snips+STN ApplicatiSNIon.
 
   ```sh
-  $ cd sample_apps/lab_app_en
+  $ cd sample_apps/lab_app_en # in the case of English app
+  $ cd sample_apps/lab_app_ja # in the case of Japanese app
   $ export DIALBB_HOME=<DialBB home directory>.
   $ export PYTHONPATH=$DIALBB_HOME:$PYTHONPATH
   $ python $DIALBB_HOME/dialbb/util/send_test_requests.py config.yml test_requests.json

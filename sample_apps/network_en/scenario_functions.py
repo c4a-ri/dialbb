@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# sandwich_functions.py
+# scenario_functions.py
 #   functions used in sandwich app
 
 __version__ = '0.1'

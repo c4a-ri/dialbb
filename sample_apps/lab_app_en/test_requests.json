@@ -1,0 +1,99 @@
+[
+    [
+        {
+        },
+        {
+            "user_utterance": "I'm John",
+            "aux_data": {"confidence": 0.9}
+        },
+        {
+            "user_utterance": "Let's see",
+            "aux_data": {"confidence": 0.9}
+        },
+        {
+            "user_utterance": "Yes",
+            "aux_data": {"confidence": 0.2}
+        },
+        {
+            "user_utterance": "",
+            "aux_data": {"long_silence": true}
+        },
+        {
+            "user_utterance": "Yes",
+            "aux_data": {"confidence": 0.9}
+        },
+        {
+            "user_utterance": "Chicken salad sandwiches",
+            "aux_data": {"confidence": 0.2}
+        },
+        {
+            "user_utterance": "No",
+            "aux_data": {"confidence": 0.9}
+        },
+        {
+            "user_utterance": "Tuna salad sandwiches",
+            "aux_data": {"rewind": true, "confidence": 0.8}
+        },
+        {
+            "user_utterance": "Yes",
+            "aux_data": {"confidence": 0.7}
+        },
+        {
+            "user_utterance": "",
+            "aux_data": {"stop_dialogue": true}
+        }
+    ],
+    [
+        {
+        },
+        {
+            "user_utterance": "Mary",
+            "aux_data": {"confidence": 0.9}
+        },
+        {
+            "user_utterance": "yes",
+            "aux_data": {"confidence": 0.9}
+        },
+        {
+            "user_utterance": "Yeah",
+            "aux_data": {"barge_in": true, "confidence":  0.2}
+        },
+        {
+            "user_utterance": "Yep",
+            "aux_data": {"barge_in": true, "confidence":  0.8}
+        },
+        {
+            "user_utterance": "Egg salad sandwiches",
+            "aux_data": {"confidence": 0.8}
+        },
+        {
+            "user_utterance": "",
+            "aux_data": {"stop_dialogue": true}
+        }
+    ],
+    [
+        {
+        },
+        {
+            "user_utterance": "I don't want to say",
+            "aux_data": {"confidence": 0.9}
+        },
+        {
+            "user_utterance": "Yes",
+            "aux_data": {"confidence": 0.9}
+        },
+        {
+            "user_utterance": "Yes",
+            "aux_data": {"barge_in": true, "confidence":  0.8}
+        },
+        {
+            "user_utterance": "phillies cheesesteak",
+            "aux_data": {"confidence": 0.8}
+        },
+        {
+            "user_utterance": "I like cheese",
+            "aux_data": {"confidence": 0.8}
+        }
+    ]
+]
+

@@ -30,15 +30,23 @@ The English version is located in `sample_apps/network_en/` and the Japanese ver
 
 ### Experimental Application
 
-This application is based on the Snips+STN application, and includes examples of various functions of the built-in blocks. It uses the following built-in blocks. (Japanese only). 
+This application is based on language understanding based on ChatGPT and dialogue management based on state transistion networks, and includes examples of various functions of the built-in blocks. It uses the following built-in blocks. (from v0.7, ChatGPT language undderstanding instead of Snips language understanding)
 
-- Japanese Canonicalizer
-- Sudachi Tokenizer
-- {ref}`snips_understander`
-- {ref}`spacy_ner`
-- {ref}`stn_manager`
+- English Application
 
-It is located in `sample_apps/lab_app_ja/`.
+  - Simple Canonicalizer
+  - {ref}`chatgpt_understander`
+  - {ref}`spacy_ner`
+  - {ref}`stn_manager`
+
+- Japanese Application
+
+  - Japanese Canonicalizer
+  - {ref}`chatgpt_understander`
+  - {ref}`spacy_ner`
+  - {ref}`stn_manager`
+
+It is located in `sample_apps/lab_app_ja/` (Japanese)  and `sample_apps/lab_app_en/` (English).
 
 ### ChatGPT Dialogue Application
 

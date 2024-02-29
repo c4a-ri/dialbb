@@ -17,6 +17,8 @@ import os
 
 use_openai: bool = False
 
+openai_client = None
+
 openai_key: str = os.environ.get('OPENAI_KEY', "")
 if openai_key:
     import openai
@@ -27,6 +29,7 @@ if openai_key:
 
 # 知っているラーメンの種類
 known_ramens = ("豚骨ラーメン", "味噌ラーメン", "塩ラーメン", "醤油ラーメン")
+
 
 def is_known_ramen(ramen: str, context: Dict[str, Any]) -> bool:
     """
@@ -131,8 +134,8 @@ def set_impression_of_dialogue(impression_key: str, context: Dict[str, Any]) -> 
 
 def generate_confirmation_request(nlu_result: Dict[str, Any], context: Dict[str, Any]) -> str:
 
-    if nlu_result.get("type") == "特定のラーメンが好き" and nlu_result["slots"].get("favorite_ramen"):
-        return f'{nlu_result["slots"]["favorite_ramen"]}がお好きなんですか？'
+    if nlu_result.get("type") == "特定のラーメンが好き" and nlu_result["slots"].get("好きなラーメン"):
+        return f'{nlu_result["slots"]["好きなラーメン"]}がお好きなんですか？'
     else:
         return "もう一度言って頂けますか？"
 

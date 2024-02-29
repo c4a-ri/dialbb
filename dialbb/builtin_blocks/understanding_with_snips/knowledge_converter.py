@@ -9,7 +9,6 @@ __version__ = '0.1'
 __author__ = 'Mikio Nakano'
 __copyright__ = 'C4A Research Institute, Inc.'
 
-import importlib
 from types import ModuleType
 from typing import Dict, List, Any, Union
 import sys
@@ -18,9 +17,9 @@ from pandas import DataFrame
 
 from re import Pattern
 
-from dialbb.abstract_block import AbstractBlock
 from dialbb.builtin_blocks.preprocess.abstract_canonicalizer import AbstractCanonicalizer
 from dialbb.builtin_blocks.tokenization.abstract_tokenizer import AbstractTokenizer
+from dialbb.util.builtin_block_utils import create_block_object
 from dialbb.util.error_handlers import abort_during_building, warn_during_building
 from dialbb.main import ANY_FLAG
 from dialbb.builtin_blocks.tokenization.abstract_tokenizer import TokenWithIndices
@@ -60,21 +59,6 @@ def check_columns(required_columns: List[str], df: DataFrame, sheet: str) -> boo
                                   + "There might be extra whitespaces.")
     return True
 
-def create_block_object(block_config: Dict[str, Any]) -> AbstractBlock:
-    """
-    create a block object (tokenizer or canonicalizer)
-    :param block_config: config
-    :return: block object
-    """
-
-    print(f"creating block whose class is {block_config[KEY_CLASS]}.")
-    block_module_name, block_class_name = block_config[KEY_CLASS].rsplit(".", 1)
-    component_module = importlib.import_module(block_module_name)
-    block_class = getattr(component_module, block_class_name)
-    block_object = block_class(block_config, {}, "")  # create block (instance of block class)
-    if not isinstance(block_object, AbstractBlock):
-        raise Exception(f"{block_config[KEY_CLASS]} is not a subclass of AbstractBlock.")
-    return block_object
 
 def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, entities_df: DataFrame,
                           dictionary_df: DataFrame, flags: List[str], function_modules: List[ModuleType],
@@ -92,7 +76,6 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, entitie
     :param config: application configuration
     :param block_config: block configuration
     :param language: language of this app ('en' or 'ja')
-    :param sudachi_normalization: whether to perform sudachi normalization
     :return: SNIPS training data (to be saved as a JSON file)
     """
 

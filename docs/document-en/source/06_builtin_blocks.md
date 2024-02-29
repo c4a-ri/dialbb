@@ -71,7 +71,7 @@ At runtime, it uses the created Snips model for language understanding.
 
 - input
   - `tokens`: list of tokens (list of strings)
-    - Examples: `['I' 'like', 'chicken', 'salad' 'sandwiches']`.
+    - Example: `['I' 'like', 'chicken', 'salad' 'sandwiches']`.
   
 - output 
 
@@ -291,6 +291,162 @@ def location(config: Dict[str, Any], block_config: Dict[str, Any]) \
 When the application is launched, the above knowledge is converted into Snips training data and a model is created.
 
 The Snips training data is `_training_data.json` in the application directory. By looking at this file, you can check if the conversion is successful.
+
+(chatgpt_understander)=
+## ChatGPT Understander (Language Understanding Block using Snips)
+
+(`dialbb.builtin_blocks.understanding_with_chatgpt.chatgpt_understander.Understander`）
+
+Determines the user utterance type (also called intent) and extracts the slots using OpenAI's ChatGPT.
+
+Performs language understanding in Japanese if the `language` element of the configuration is `ja`, and language understanding in English if it is `en`. 
+
+At startup, this block reads the knowledge for language understanding written in Excel, converts it into the list of user utterance types, the list of slots, and the few shot examples to be embedded in the prompt.
+
+At runtime, input utterance is added to the prompt to make ChatGPT perform language understanding.
+
+### Input/Output
+
+- input
+  - `input_text`: input string
+
+    The input string is assumed to be canonicalized.
+
+    - Example: `"I like chicken salad sandwiches"`.
+  
+- output 
+
+  - `nlu_result`: language understanding result (dict)
+	
+	    ```json
+	     {
+	         "type": <user utterance type (intent)>,. 
+	         "slots": {<slot name>: <slot value>, ... , <slot name>: <slot value>}
+	     }
+	    ```
+
+	    The following is an example.	  
+	  
+	    ```json
+	     {
+	         "type": "tell-like-specific-sandwich", 
+	         "slots": {"favorite-sandwich": "roast beef sandwich"}
+	     }
+	    ```
+	  
+
+### Block Configuration Parameters
+
+- `knowledge_file` (string)
+
+   Specifies the Excel file that describes the knowledge. The file path must be relative to the directory where the configuration file is located.
+
+- `flags_to_use` (list of strings)
+
+   Specifies the flags to be used. If one of these values is written in the `flag` column of each sheet, it is read. If this parameter is not set, all rows are read.
+
+- `canonicalizer` 
+
+   Specifies the canonicalization information to be performed when converting language comprehension knowledge to Snips training data.
+
+   - `class`
+   
+      Specifies the class of the normalization block. Basically, the same normalization block used in the application is specified.
+
+
+- `knowledge_google_sheet` (hash)
+
+  - This specfies information for using Google Sheet instead of Excel.
+  
+    - `sheet_id` (string)
+
+      Google Sheet ID.
+
+    - `key_file`(string)
+
+       Specify the key file to access the Google Sheet API as a relative path from the configuration file directory.
+
+- `prompt_template`
+
+  This specifies the prompt template file as a relative path from the configuration file directory.
+  
+  When this is not specified, `dialbb.builtin_blocks.understanding_with_chatgpt.prompt_templates_ja .PROMPT_TEMPLATE_JA` (for Japanese) or `dialbb.builtin_blocks.understanding_with_chatgpt.prompt_templates_en .PROMPT_TEMPLATE_EN` (for English) is used.
+  
+  A prompt template is a template of prompts for making ChatGPT language understanding, and it can contain the following variables starting with `@`.
+  
+  - `@types` 発話タイプの種類を列挙したものです．
+  - `@slot_definitions` スロットの種類を列挙したものです．
+  - `@examples` 発話例と，タイプ，スロットの正解を書いたいわゆるfew shot exampleです．
+  - `@input` 入力発話です．
+  
+  これらの変数には，実行時に値が代入されます．
+
+
+(chatgpt_nlu_knowledge)=
+### Language Understanding Knowledge
+
+Language understanding knowledge consists of the following two sheets.
+
+| sheet name | contents |
+| ---------- | -------------------------------------- |
+| utterances | examples of utterances by type |
+| slots | relationship between slots and entities and a list of synonyms |
+
+The sheet name can be changed in the block configuration, but since it is unlikely to be changed, a detailed explanation is omitted.
+
+#### utterances sheet
+
+Each row consists of the following columns
+
+- `flag`      
+
+   Flags to be used or not. `Y` (yes), `T` (test), etc. are often written. Which flag's rows to use is specified in the configuration. In the configuration of the sample application, all rows are used.
+
+
+- `type`     
+
+   User utterance type (Intent)        
+
+- `utterance` 
+
+   Example utterance.
+
+- `slots` 
+
+   Slots that are included in the utterance. They are written in the following form
+   
+   ```
+   <slot name>=<slot value>, <slot name>=<slot value>, ... <slot name>=<slot value> 
+   ```
+   
+   The following is an example.
+
+   ```
+   location=philladelphia, favorite-sandwich=cheesesteak sandwitch
+   ```
+
+The sheets that this block uses, including the utterance sheets, can have other columns than these.
+
+#### slots sheet
+
+Each row consists of the following columns.
+
+- `flag`
+
+  Same as on the utterance sheet.
+
+- `slot name` 
+
+  Slot name. It is used in the example utterances in the utterances sheet. Also used in the language understanding results.
+
+- `entity`
+
+   The name of the dictionary entry. It is also included in language understanding results.
+
+- `synonyms`
+
+   Synonyms joined by `','`.
+
 
 (stn_manager)=
 ## STN Manager (State Transition Network-based Dialogue Management Block)
