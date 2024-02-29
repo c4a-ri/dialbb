@@ -1041,8 +1041,8 @@ Example:
 
 See the spaCy/GiNZA model website for more information on the class of named entities.
 	 
- - `ja-ginza-electra` (5.1.2):，[https://pypi.org/project/ja-ginza-electra/](https://pypi.org/project/ja-ginza-electra/) 
- - `en_core_web_trf` (3.5.0):，[https://spacy.io/models/en#en_core_web_trf-labels](https://huggingface.co/spacy/en_core_web_trfhttps://pypi.org/project/ja-ginza-electra/)
+ - `ja-ginza-electra` (5.1.2): [https://pypi.org/project/ja-ginza-electra/](https://pypi.org/project/ja-ginza-electra/) 
+ - `en_core_web_trf` (3.5.0): [https://spacy.io/models/en#en_core_web_trf-labels](https://huggingface.co/spacy/en_core_web_trfhttps://pypi.org/project/ja-ginza-electra/)
  
  
 
