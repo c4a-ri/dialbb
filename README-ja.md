@@ -6,7 +6,7 @@ ver.0.7.0
 
 ## 概要
 
-DialBBは株式会社C4A研究所が開発した対話システムを構築するためのフレームワークです．情報技術の教材として作られました。拡張可能性の高いアーキテクチャを持ち、読みやすいコードで書かれています。ブロックと呼ぶモジュールを組み合わせてシステムを開発できます。開発者は簡単なシステムを組み込みブロックを用いて作ることができ、高度なシステムを自作のブロックを使って作ることもできます。
+DialBBは株式会社C4A研究所が開発した対話システムを構築するためのフレームワークです．情報技術の教材として作られました．拡張可能性の高いアーキテクチャを持ち，読みやすいコードで書かれています．ブロックと呼ぶモジュールを組み合わせてシステムを開発できます．開発者は簡単なシステムを組み込みブロックを用いて作ることができ，高度なシステムを自作のブロックを使って作ることもできます．
 
 DialBBのメインモジュールは，メソッド呼び出しまたはWeb API経由で，ユーザ発話の入力をJSON形式で受けとり，システム発話をJSON形式で返します．メインモジュールは，ブロックを順に呼び出すことによって動作します．各ブロックはJSON形式(pythonのdictのデータ)を受け取り，JSON形式のデータを返します．各ブロックのクラスや入出力仕様はアプリケーション毎のコンフィギュレーションファイルで規定します．
 
@@ -18,7 +18,7 @@ DialBBのメインモジュールは，メソッド呼び出しまたはWeb API�
 
 ## チュートリアル
 
-DialBBを簡単に説明した[チュートリアルスライド](docs/tutorial-slides/Introduction-to-DialBB-ja-v0.6.pdf)があります。
+DialBBを簡単に説明した[チュートリアルスライド](docs/tutorial-slides/Introduction-to-DialBB-ja-v0.6.pdf)があります．
 
 ## ライセンス
 
@@ -28,7 +28,7 @@ DialBBは非商用向けに公開されています．ライセンスの詳細�
 
 ### 実行環境
 
-Ubuntu 20.04上のpython 3.8.10で，以下の手順で動作することを確認しています．すべての組み合わせを完全に確かめたわけではありませんが、Windows 10/11やMacOS（アップルシリコンを含む）の上で、または、Python 3.9+を使って動かせなかったという報告は得ていません。
+Ubuntu 20.04/Windows 10上のpython 3.8.10で，以下の手順で動作することを確認しています．すべての組み合わせを完全に確かめたわけではありませんが，Windows 10/11やMacOS（アップルシリコンを含む）の上で，または，Python 3.9+を使って動かせなかったという報告は得ていません．ただ，後述のSnips NLUは基本的にPython 3.9+はサポートしていないため，インストールに工夫が必要かまたは，インストールができない可能性があります．
 
 以下の説明はUbuntu上のbashで作業することを仮定しています．他のシェルやWindowsコマンドプロンプトを用いる場合は，適宜読み替えてください．
 
@@ -82,7 +82,7 @@ $ python run_server.py sample_apps/parrot/config.yml
 
 #### ターミナルからの動作確認
 
-別のターミナルから以下を実行してください．curlをインストールしていない場合は，後述するようにブラウザからテストしてください。
+別のターミナルから以下を実行してください．curlをインストールしていない場合は，後述するようにブラウザからテストしてください．
 
 
 - ```sh
@@ -167,9 +167,9 @@ http://<hostname>:8080/test
 
   注意
 
-- 途中でエラーになり，[Rust](https://www.rust-lang.org/tools/install) などの追加のソフトウェアのインストールを求められる場合があります（特にWindowsの場合）．その場合，指示にしがってインストールしてください．うまくいかない場合は我々に連絡してください。
+- 途中でエラーになり，[Rust](https://www.rust-lang.org/tools/install) などの追加のソフトウェアのインストールを求められる場合があります（特にWindowsの場合）．その場合，指示にしがってインストールしてください．うまくいかない場合は我々に連絡してください．
 
-- 基本的にSnipsはscikit-learnの古いバージョンに依存しているため、Python3.9+では動きません。Python3.9+を使っている場合は、インストール中にエラーが出る可能性があります。 その場合，以下のコマンドで解決する可能性があります．
+- 基本的にSnipsはscikit-learnの古いバージョンに依存しているため，Python3.9+では動きません．Python3.9+を使っている場合は，インストール中にエラーが出る可能性があります． その場合，以下のコマンドで解決する可能性があります．
 
     ```
     pip install Cython==0.29.36 
@@ -207,7 +207,7 @@ http://<hostname>:8080/test
   $ python run_server.py sample_apps/network_en/config.yml 
   ```
   
-  アプリケーションディレクトリで起動する場合は以下のようにします。
+  アプリケーションディレクトリで起動する場合は以下のようにします．
 
   ```sh
   $ export DIALBB_HOME=<DialBBのホームディレクトリ>
@@ -223,7 +223,7 @@ http://<hostname>:8080/test
   $ python run_server.py sample_apps/network_ja/config.yml 
   ```
 
-  アプリケーションディレクトリで起動する場合は以下のようにします。
+  アプリケーションディレクトリで起動する場合は以下のようにします．
 
   ```sh
   $ export DIALBB_HOME=<DialBBのホームディレクトリ>
@@ -258,55 +258,65 @@ http://<hostname>:8080/test
 
 ### 実験アプリケーション
 
-`sample_apps/lab_app_ja/`に実験的なアプリケーションがあります（日本語のみ）．組み込みブロックの様々な機能を試すためのアプリケーションです．以下の組み込みブロックを用いています．
+`sample_apps/lab_app_ja/` （日本語）`sample_apps/lab_app_en/` （英語）に実験的なアプリケーションがあります（日本語）．組み込みブロックの様々な機能を試すためのアプリケーションです．以下の組み込みブロックを用いています．
 
 
-- Japanese Canonicalizer Block
-- Sudachi Tokenizer Block
-- SNIPS Understander Block
-- Spacy NER Block (NER using [spaCy](https://spacy.io/)/[GiNZA](https://megagonlabs.github.io/ginza/))
-- STN Manager Block
+- 日本語アプリケーション
+
+
+  - Japanese Canonicalizer Block 
+  - ChatGPT Understander Block
+  - Spacy NER Block (NER using [spaCy](https://spacy.io/)/[GiNZA](https://megagonlabs.github.io/ginza/))
+  - STN Manager Block
+
+- 英語アプリケーション
+
+  - Simple Canonicalizer Block 
+  - ChatGPT Understander Block
+  - Spacy NER Block (NER using [spaCy](https://spacy.io/)/[GiNZA](https://megagonlabs.github.io/ginza/))
+  - STN Manager Block
 
 #### Pythonライブラリのインストール
 
   以下を実行します．
 
   ```sh
-  $ pip install -r sample_apps/lab_app_ja/requirements.txt 
+  $ pip install -r sample_apps/lab_app_ja/requirements.txt # 日本語アプリケーション
+  $ pip install -r sample_apps/lab_app_en/requirements.txt # 英語アプリケーション
   ```
 
 #### 環境変数の設定
 
-  本アプリケーションではOpenAI社のChatGPTを使うことができます．ChatGPTを使うためには，環境変数`OPENAI_KEY`にOpenAIのAPIキーを設定します．以下はbashの例です．
+  本アプリケーションではOpenAI社のChatGPTを使います。そのため、環境変数`OPENAI_KEY`にOpenAIのAPIキーを設定します．以下はbashの例です．
 
   ```sh
   $ export OPENAI_KEY=<OpenAIのAPIキー>
   ```
 
-環境変数`OPENAI_KEY`が指定されていない場合，ChatGPTを使わずに動作します．
-
 #### 起動方法
 
   ```sh
-  $ python run_server.py sample_apps/lab_app_ja/config_ja.yml 
+  $ python run_server.py sample_apps/lab_app_ja/config_ja.yml  # 日本語
+  $ python run_server.py sample_apps/lab_app_ja/config_en.yml  # 英語
   ```
 
-  アプリケーションディレクトリで起動する場合は以下のようにします。
+  アプリケーションディレクトリで起動する場合は以下のようにします．
 
   ```sh
   $ export DIALBB_HOME=<DialBBのホームディレクトリ>
   $ export PYTHONPATH=$DIALBB_HOME:$PYTHONPATH
-  $ cd sample_apps/lab_app_ja  # アプリケーションディレクトリに移動
+  $ cd sample_apps/lab_app_ja  # アプリケーションディレクトリに移動（日本語の場合）
+  $ cd sample_apps/lab_app_en  # アプリケーションディレクトリに移動（英語の場合）
   $ python $DIALBB_HOME/run_server.py config.yml 
   ```
-
 
 #### テスト方法
 
   以下のコマンドで，Snips+STNアプリケーションでは使用していない機能をテストすることができます．
 
   ```sh
-  $ cd sample_apps/lab_app_ja
+  $ cd sample_apps/lab_app_ja # 日本語の場合
+  $ cd sample_apps/lab_app_en # 英語の場合
   $ export DIALBB_HOME=<DialBBのホームディレクトリ>
   $ export PYTHONPATH=$DIALBB_HOME:$PYTHONPATH
   $ python $DIALBB_HOME/dialbb/util/send_test_requests.py config.yml test_requests.json
@@ -349,7 +359,7 @@ http://<hostname>:8080/test
   $ python run_server.py sample_apps/chatgpt/config_en.yml 
   ```
 
-  アプリケーションディレクトリで起動する場合は以下のようにします。
+  アプリケーションディレクトリで起動する場合は以下のようにします．
 
   ```sh
   $ export DIALBB_HOME=<DialBBのホームディレクトリ>

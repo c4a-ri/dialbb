@@ -118,7 +118,7 @@ Sudachiの`SplitMode.C`を用いて単語分割します．
 
 コンフィギュレーションの`language`要素が`ja`の場合は日本語，`en`の場合は英語の言語理解を行います．
 
-本ブロックは，起動時にExcelで記述した言語理解用知識を読み込み，Snipsの訓練データに変更し，Snipsのモデルを構築します．
+本ブロックは，起動時にExcelで記述した言語理解用知識を読み込み，Snipsの訓練データに変換し，Snipsのモデルを構築します．
 
 実行時は，構築されたSnipsのモデルを用いて言語理解を行います．
 
@@ -363,6 +363,167 @@ def location(config: Dict[str, Any], block_config: Dict[str, Any]) \
 
 Snipsの訓練データはアプリのディレクトリの`_training_data.json`です．このファイルを見ることで，うまく変換されているかどうかを確認できます．
 
+(chatgpt_understander)=
+## ChatGPT Understander （ChatGPTを用いた言語理解ブロック）
+
+(`dialbb.builtin_blocks.understanding_with_chatgpt.chatgpt_understander.Understander`）
+
+OpenAI社のChatGPTを用いて，ユーザ発話タイプ（インテントとも呼びます）の決定とスロットの抽出を行います．
+
+コンフィギュレーションの`language`要素が`ja`の場合は日本語，`en`の場合は英語の言語理解を行います．
+
+本ブロックは，起動時にExcelで記述した言語理解用知識を読み込み，プロンプトのユーザ発話タイプのリスト、スロットのリスト、Few shot exampleに変換します．
+
+実行時は，プロンプトに入力発話を付加してChatGPTに言語理解を行わせます．
+
+### 入出力
+
+- 入力
+  - `input_text`: 入力文字列
+    
+	 入力文字列は正規化されていると仮定します．
+
+     例："好きなのは醤油"
+  
+- 出力
+  - `nlu_result`: 言語理解結果（辞書型）
+    
+	
+    以下の形式
+
+    ```json
+	{
+      "type": <ユーザ発話タイプ（インテント）>, 
+      "slots": {
+         <スロット名>: <スロット値>, 
+         ..., 
+         <スロット名>: <スロット値>
+        }
+    }
+    ```
+      
+    以下が例です．
+      
+    ```json
+    {
+      "type": "特定のラーメンが好き", 
+      "slots": {
+         "favorite_ramen": "醤油ラーメン"
+      }
+    }
+    ```
+
+### ブロックコンフィギュレーションのパラメータ
+
+- `knowledge_file`（文字列）
+
+  知識を記述したExcelファイルを指定します．コンフィギュレーションファイルのあるディレクトリからの相対パスで記述します．
+
+- `flags_to_use`（文字列のリスト）
+
+  各シートの`flag`カラムにこの値のうちのどれかが書かれていた場合に読み込みます．このパラメータがセットされていない場合はすべての行が読み込まれます．
+
+- `canonicalizer` 
+
+   辞書記述を正規化する際に使うプログラムを指定します．
+
+   - `class` （文字列）
+   
+      正規化のブロックのクラスを指定します．基本的にアプリケーションで用いる正規化のブロックと同じものを指定します．
+	
+- `knowledge_google_sheet` (ハッシュ)
+
+  - Excelの代わりにGoogle Sheetを用いる場合の情報を記述します．（Google Sheetを利用する際の設定は[こはたさんの記事](https://note.com/kohaku935/n/nc13bcd11632d)が参考になりますが，Google Cloud Platformの設定画面のUIがこの記事とは多少変わっています．）
+
+    - `sheet_id` （文字列）
+
+      Google SheetのIDです．
+
+    - `key_file`（文字列）
+
+      Goole Sheet APIにアクセスするためのキーファイルをコンフィギュレーションファイルのディレクトリからの相対パスで指定します．
+
+- `prompt_template`
+
+  プロンプトテンプレートを書いたファイルをコンフィギュレーションファイルのディレクトリからの相対パスで指定します．
+  
+  これが指定されていない場合は，`dialbb.builtin_blocks.understanding_with_chatgpt.prompt_templates_ja .PROMPT_TEMPLATE_JA` （日本語）または，`dialbb.builtin_blocks.understanding_with_chatgpt.prompt_templates_en .PROMPT_TEMPLATE_EN` （英語）が使われます．
+  
+  プロンプトテンプレートは，言語理解をChatGPTに行わせるプロンプトのテンプレートで，`@`で始まる以下の変数を含みます．
+  
+  - `@types` 発話タイプの種類を列挙したものです．
+  - `@slot_definitions` スロットの種類を列挙したものです．
+  - `@examples` 発話例と，タイプ，スロットの正解を書いたいわゆるfew shot exampleです．
+  - `@input` 入力発話です．
+  
+  これらの変数には，実行時に値が代入されます．
+
+
+(chatgpt_nlu_knowledge)=
+### 言語理解知識
+
+言語理解知識は，以下の2つのシートからなります．
+
+| シート名   | 内容                                   |
+| ---------- | -------------------------------------- |
+| utterances | タイプ毎の発話例                       |
+| slots      | スロットとエンティティの関係および同義語のリスト           |
+
+シート名はブロックコンフィギュレーションで変更可能ですが，変更することはほとんどないと思いますので，詳細な説明は割愛します．
+
+#### utterancesシート
+
+各行は次のカラムからなります．
+
+- `flag`      
+
+   利用するかどうかを決めるフラグ．`Y` (yes), `T` (test)などを書くことが多いです．どのフラグの行を利用するかはコンフィギュレーションに記述します．サンプルアプリのコンフィギュレーションでは，すべての行を使う設定になっています． 
+
+- `type`   
+
+   発話のタイプ（インテント）                         
+
+- `utterance` 
+
+   発話例．
+
+- `slots` 
+
+   発話に含まれるスロット．スロットを以下の形で記述します．
+   
+   ```
+   <スロット名>=<スロット値>, <スロット名>=<スロット値>, ... <スロット名>=<スロット値> 
+   ```
+   
+   以下が例です．
+
+   ```
+   地方=札幌, 好きなラーメン=味噌ラーメン
+   ```
+
+   utterancesシートのみならずこのブロックで使うシートにこれ以外のカラムがあっても構いません．
+
+#### slotsシート
+
+各行は次のカラムからなります．
+
+- `flag`
+
+  utterancesシートと同じ
+
+- `slot name` 
+
+  スロット名．utterancesシートの発話例で使うもの．言語理解結果でも用います．
+
+- `entity`
+
+   辞書エントリー名．言語理解結果に含まれます．
+
+- `synonyms`
+
+   同義語を`','`で連結したものです．
+
+
 (stn_manager)=
 ## STN manager （状態遷移ネットワークベースの対話管理ブロック）
 
@@ -378,14 +539,14 @@ Snipsの訓練データはアプリのディレクトリの`_training_data.json`
 - 出力
   - `output_text`: システム発話（文字列）
      例：
-	  ```
-	  "醤油ラーメン好きなんですね"
-	  ```
+      ```
+      "醤油ラーメン好きなんですね"
+      ```
   - `final`: 対話終了かどうかのフラグ（ブール値）
   - `aux_data`: 補助データ（辞書型）(ver. 0.4.0で変更）
      入力の補助データを，後述のアクション関数の中でアップデートしたものに，遷移した状態のIDを含めたもの．アクション関数の中でのアップデートは必ずしも行われるわけではない．遷移した状態は，以下の形式で付加される．
      ```json
-	    {"state": "特定のラーメンが好き"}
+        {"state": "特定のラーメンが好き"}
      ```
      
 ### ブロックコンフィギュレーションのパラメータ
@@ -743,7 +904,7 @@ ver. 0.4.0で，音声認識結果を入力として扱うときに生じる問�
     - このパラメータが指定されていない場合，通常の状態遷移を行います．
 
     - `action`の値が`"repeat"`の場合，状態遷移を行わず直前のシステム発話を繰り返します．
-	
+    
     - `action`の値が`transition`の場合，`destination`で指定されている状態に遷移します．
 
 #### 組み込み条件関数の追加
@@ -893,9 +1054,9 @@ _generate_system_utterance(self, dialogue_history: List[Dict[str, str]],
      以下のような配列で表された対話の履歴
      ```json
      [
-	     {"speaker": "system", "utterance": <システム発話文字列>},
-	     {"speaker": "user", "utterance": <ユーザ発話文字列>} 
-	     ...
+         {"speaker": "system", "utterance": <システム発話文字列>},
+         {"speaker": "user", "utterance": <ユーザ発話文字列>} 
+         ...
      ]
      ```
 
@@ -945,24 +1106,24 @@ _generate_system_utterance(self, dialogue_history: List[Dict[str, str]],
      
      入力された`aux_data`に固有表現抽出結果を加えたものです．
 
-	 固有表現抽出結果は，以下の形です．
+     固有表現抽出結果は，以下の形です．
 
-	 ```json
-	 {"NE_<ラベル>": "<固有表現>", "NE_<ラベル>": "<固有表現>", ...}
-	 ```
+     ```json
+     {"NE_<ラベル>": "<固有表現>", "NE_<ラベル>": "<固有表現>", ...}
+     ```
      <ラベル>は固有表現のクラスです．固有表現は見つかった固有表現で，`input_text`の部分文字列です．同じクラスの固有表現が複数見つかった場合，`:`で連結します．
 
      例
-	 
-	 ```json
-	 {"NE_Person": "田中:鈴木", "NE_Dish": "味噌ラーメン"}
-	 ```
+     
+     ```json
+     {"NE_Person": "田中:鈴木", "NE_Dish": "味噌ラーメン"}
+     ```
 
      固有表現のクラスについては，spaCy/GiNZAのモデルのサイトを参照してください．
-	 
-	 - `ja-ginza-electra` (5.1.2):，[https://pypi.org/project/ja-ginza-electra/](https://pypi.org/project/ja-ginza-electra/) 
-	 - `en_core_web_trf` (3.5.0):，[https://spacy.io/models/en#en_core_web_trf-labels](https://huggingface.co/spacy/en_core_web_trfhttps://pypi.org/project/ja-ginza-electra/)
-	 
+     
+     - `ja-ginza-electra` (5.1.2):，[https://pypi.org/project/ja-ginza-electra/](https://pypi.org/project/ja-ginza-electra/) 
+     - `en_core_web_trf` (3.5.0):，[https://spacy.io/models/en#en_core_web_trf-labels](https://huggingface.co/spacy/en_core_web_trfhttps://pypi.org/project/ja-ginza-electra/)
+     
 
 ### ブロックコンフィギュレーションのパラメータ
 
