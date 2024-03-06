@@ -2,6 +2,10 @@
 
 ## 0.7.0 (2024.3.6)
 
+- 日本語実験アプリケーションがChatGPT言語理解ブロックを利用するように変更
+
+- 英語実験アプリケーションを追加
+
 - ChatGPT Understander Block added
 
 - ChatGPT Dialogue Block changed (not backward compatible)
