@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.7.0 (2024.3.6)
+
+- ChatGPT Understander Block added
+
+- ChatGPT Dialogue Block changed (not backward compatible)
+
+## 0.6.2 (2024.2.29)
+
+- Bugs in docs fixed
+
 ## 0.6.1 (2023.12.22)
 
 - Fixed a bug where the STN Manager block received nlu_result=None
