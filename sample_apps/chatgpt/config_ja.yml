@@ -2,7 +2,7 @@
 
 blocks:
   - name: chatgpt
-    block_class: dialbb.builtin_blocks.chatgpt.chatgpt_ja.ChatGPT_Ja
+    block_class: dialbb.builtin_blocks.chatgpt.chatgpt.ChatGPT
     input:
       user_id: user_id
       user_utterance: user_utterance
@@ -11,9 +11,10 @@ blocks:
       system_utterance: system_utterance
       aux_data: aux_data
       final: final
-    first_system_utterance: "こんにちは。楽しくお話しましょう。何についてお話しますか？"
-    prompt_prefix: "システムはユーザと親しく話せます。"
-    prompt_postfix: "に続くシステムの発話を最大100文字で生成してください。"
+    user_name: ユーザ
+    system_name: システム
+    first_system_utterance: "こんにちは。私の名前は由衣です。少しお話させてください。スイーツって好きですか？"
+    prompt_template: prompt_template_ja.txt
     gpt_model: gpt-4
     
 

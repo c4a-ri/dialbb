@@ -17,8 +17,8 @@ import openai
 from dialbb.abstract_block import AbstractBlock
 from dialbb.util.error_handlers import abort_during_building
 
+DIALOGUE_HISTORY_TAG: str = '@dialogue_history'
 DEFAULT_GPT_MODEL: str = "gpt-3.5-turbo"
-
 
 class ChatGPT(AbstractBlock):
     """
@@ -35,34 +35,21 @@ class ChatGPT(AbstractBlock):
         self._openai_client = openai.OpenAI(api_key=openai_key)
         self._gpt_model = self.block_config.get("gpt_model", DEFAULT_GPT_MODEL)
 
-        # read prefix and postfix
-        self._prompt_prefix: str = self.block_config.get("prompt_prefix", "")
-        self._prompt_postfix: str = self.block_config.get("prompt_postfix", "")
+        self.user_name: str = self.block_config.get("user_name", "User")
+        self.system_name: str = self.block_config.get("system_name", "System")
 
-        if self._prompt_prefix.startswith('@'):
-            self._prompt_prefix = self.read_from_file(self._prompt_prefix[1:])
-        if self._prompt_postfix.startswith('@'):
-            self._prompt_postfix = self.read_from_file(self._prompt_postfix[1:])
+        prompt_template_file = self.block_config.get("prompt_template", "")
+        if not prompt_template_file:
+            abort_during_building("prompt template file is not specified")
+        filepath: str = os.path.join(self.config_dir, prompt_template_file)
+        with open(filepath, encoding='utf-8') as fp:
+             self._prompt_template = fp.read()
 
-        self._final_phrase = self.block_config.get("final_phrase", "")
-
-        # {"sessoin1" : [{"speaker": "user", "utterance": <user utterance>},
+        # {"session1" : [{"speaker": "user", "utterance": <user utterance>},
         #                {"speaker": "system", "utterance": <system utterance>},
         #                ....]
         # ...}
         self._dialogue_history: Dict[str, List[Dict[str, str]]] = {}
-
-    def read_from_file(self, filename: str) -> str:
-        """
-        read a text file into a string
-        :param filename: file name path (relative path from the configuration file)
-        :return: read string
-        """
-
-        filepath: str = os.path.join(self.config_dir, filename)
-        with open(filepath, encoding='utf-8') as fp:
-            result: str = fp.read()
-        return result
 
     def process(self, input_data: Dict[str, Any], session_id: str) -> Union[Dict[str, Union[dict, Any]], str]:
         """
@@ -87,8 +74,6 @@ class ChatGPT(AbstractBlock):
                                                  self._user_id,
                                                  input_data["aux_data"])
         self._dialogue_history[session_id].append({"speaker": "system", "utterance": system_utterance})
-        if self._final_phrase and self._final_phrase in system_utterance:   # final phrase appear in system utterance
-            final = True
         return {"system_utterance": system_utterance,
                 "aux_data": aux_data,
                 "final": final}
@@ -124,21 +109,35 @@ class ChatGPT(AbstractBlock):
         system_utterance: str = chat_completion.choices[0].message.content
         return system_utterance
 
+
     def generate_system_utterance(self, dialogue_history: List[Dict[str, str]],
-                                  session_id: str,
-                                  user_id: str,
+                                  session_id: str, user_id: str,
                                   aux_data: Dict[str, Any]) -> Tuple[str, Dict[str, Any], bool]:
-
         """
-        Generates system utterance. This method is to be implemented in a child class.
+        Generates system utterance using ChatGPT
 
-        :param dialogue_history: list of turn information  [{"speaker": "system", "utterance": <system utterance>}
+        :param dialogue_history: list of turn information  [{"speaker": "system", "utterance": <system utterance>},
                                                             {"speaker": "user", "utterance": <user utterance>} ...]
         :param session_id: user id string
         :param user_id: user id string
         :param aux_data: auxiliary data received from main
-        :return: a tuple of system utterance string, update aux_data, and final flag
+        :return: a tuple of system utterance string, aux_data as is, and final flag (always False)
         """
 
-        raise NotImplementedError
+        dialogue_history_string: str = ""
+
+        for turn in dialogue_history:
+            if turn["speaker"] == 'user':
+                dialogue_history_string += f"{self.user_name}: {turn['utterance']}\n"
+            else:
+                dialogue_history_string += f"{self.system_name}: {turn['utterance']}\n"
+
+        prompt: str = self._prompt_template.replace(DIALOGUE_HISTORY_TAG, dialogue_history_string)
+        self.log_debug("prompt: " + prompt, session_id=session_id)
+        generated_utterance: str = self._generate_with_openai_gpt(prompt)
+        self.log_debug("generated system utterance: " + generated_utterance, session_id=session_id)
+        system_utterance: str = generated_utterance.replace(f'{self.system_name}:', '').strip()
+        self.log_debug("final system utterance: " + system_utterance, session_id=session_id)
+
+        return system_utterance, aux_data, False
 
