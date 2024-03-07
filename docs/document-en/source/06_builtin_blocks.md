@@ -865,12 +865,11 @@ Note that the contextual information is reverted, but not if you have changed th
 (chatgpt_dialogue)=
 ## ChatGPT Dialogue (ChatGPT-based Dialogue Block)
 
-(`dialbb.builtin_blocks.chatgpt.chatgpt_en.ChatGPT_Ja` (for Japanese), and `dialbb.builtin_blocks.chatgpt.chatgpt_en.ChatGPT_En` (for English))
+(Changed in ver0.7）
+
+(`dialbb.builtin_blocks.chatgpt.chatgpt.ChatGPT` 
 
 Engages in dialogue using OpenAI's ChatGPT.
-
-These classes are subclasses of `dialbb.built-in_blocks.chatgpt.chatgpt.ChatGPT`. By creating a new subclass of `dialbb.built-in_blocks.chatgpt.chatgpt.ChatGPT`, you can create a new block using ChatGPT.
-
 
 ### Input/Output
 
@@ -886,9 +885,8 @@ These classes are subclasses of `dialbb.built-in_blocks.chatgpt.chatgpt.ChatGPT`
   - `aux_data`: auxiliary data (dictionary type)
   - `final`: boolean flag indicating whether the dialog is finished or not.
 
-In `ChatGPT_Ja` and `ChatGPT_En`, the input `aux_data` and `user_id` are not used.
-The output `aux_data` is the same as the input `aux_data` and `final` is always `False`, but
-you can change this when you create a new subclass of `ChatGPT`.
+The inputs `aux_data` and `user_id` are not used.
+The output `aux_data` is the same as the input `aux_data` and `final` is always `False`.
 
 When using these blocks, you need to set the OpenAI license key in the environment variable `OPENAI_KEY`.
 
@@ -898,14 +896,32 @@ When using these blocks, you need to set the OpenAI license key in the environme
 
    This is the first system utterance of the dialog.
 
+- `user_name` (string, default value is `"User"`)
 
-- `prompt_prefix` (string, default value is `""`)
+   This is used for the ChatGPT prompt. It is explained below.
 
-   This is used for the ChatGPT prompt. 
+- `system_name` (string, default value is `"System"`)
 
-- `prompt_postfix` (string, default value is `""`)
+   This is used for the ChatGPT prompt. It is explained below.
 
-   This is used for the ChatGPT prompt. 
+- `prompt_template` (string)
+
+  This specifies the prompt template file as a relative path from the configuration file directory.
+
+  A prompt template is a template of prompts for making ChatGPT generate a system utterance, and it can contain the following variables starting with `@`.
+
+   - `@dialogue_history` Dialogue history. This is replaced by a string in the following form:
+
+     ```
+     <The value of system_name in the block configuration>: <system utterance>
+     <The value of user_name in the block configuration>: <user utterance>
+     <The value of system_name in the block configuration>: <system utterance>
+     <The value of user_name in the block configuration>: <user utterance>
+     ...
+     <The value of system_name in the block configuration>: <system utterance>
+     <The value of user_name in the block configuration>: <user utterance>
+     ```
+
 
 - `gpt_model` (string, default value is `gpt-3.5-turbo`)
 
@@ -915,88 +931,8 @@ When using these blocks, you need to set the OpenAI license key in the environme
 
 - At the beginning of the dialog, the value of `first_system_utterance` in the block configuration is returned as system utterance.
 
-- In the second and subsequent turns, the following prompt is given to ChatGPT and the returns are returned as the system utterance.
+- In the second and subsequent turns, the prompt template in which `@dialogue_history` is replace by the dialogue histor is given to ChatGPT and the returned string is returned as the system utterance.
 
-   As an example, the following prompt is given.
-  
-  ```
-  The system can talk to the user intimately. 
-  System: "Hello. Let's have a nice talk. What would you like to talk about?"
-  User: "I would like to talk about movies."
-  System: "Great. I love to talk about movies. Please tell me what movies you have seen recently and what your favorite genre is."
-  User: "I saw the latest film by Hayao Miyazaki".
-  Generate a subsequet system utterance with a maximum of 30 words.
-  ```
-  
-  The ChatGPT response will look something like this
-
-  ```
-  System: "That's wonderful. Hayao Miyazaki's films are always wonderful. What did you think of the film?"
-  ```
-  
-   The following strings are extracted from this and returned as system speech.
-
-  ```
-  That's wonderful. Hayao Miyazaki's films are always wonderful. What did you think of the film?
-  ```
-
-### Extending the ChatGPT Dialogue Block Class
-
-As mentioned earlier, you can create a subclass of `dialbb.built-in_blocks.chatgpt.chatgpt.ChatGPT` and use it as your own block for flexible control changes.
-
-When creating a subclass, implement the following methods
-
-```python
-_generate_system_utterance(self, dialogue_history: List[Dict[str, str]],.
-                                 session_id: str, user_id: str, aux_data: Dict[str, Any
-                                 aux_data: Dict[str, Any]) -> Tuple[str, Dict[str, Any], bool]:.
-```
-
-- arguments
-
-  - `dialogue_history` (list of dictionaries)
-
-    The history of the dialog, represented as an array like this
-  
-   ```json
-   [
-     {
-       "speaker": "system", 
-       "utterance": <system utterance string>
-      },
-      {
-        "speaker": "user", 
-        "utterance": <user utterance string>
-      },
-      ...
-   ]
-   ```
-
-  - `session_id` (string)
-
-     session ID
-
-  - `user_id` (string)
-
-     user ID
-
-  - `aux_data` (dictionary type)
-
-     Auxiliary data received from the main process
-
-- The return value is the following Tuple
-
-  - `system_utterance` (string)
-
-    system utterance
-
-  - `aux_data` (dictionary)
-
-     Updated auxiliary data
-  
-  - `final` (boolean)
-
-     End of dialogue or not
 
 (spacy_ner)=
 ## spaCy-Based NER (Named Entity Recognizer Block using spaCy)

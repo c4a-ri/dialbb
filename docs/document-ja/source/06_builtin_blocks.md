@@ -290,7 +290,7 @@ utterancesシートのみならずこのブロックで使うシートにこれ�
   $ snips-nlu download-entity snips/city ja
   ```
 
-​  Snipsのbuiltin entityを用いた場合の精度などの検証は不十分です．
+  Snipsのbuiltin entityを用いた場合の精度などの検証は不十分です．
 
 #### entitiesシート
 
@@ -372,7 +372,7 @@ OpenAI社のChatGPTを用いて，ユーザ発話タイプ（インテントと�
 
 コンフィギュレーションの`language`要素が`ja`の場合は日本語，`en`の場合は英語の言語理解を行います．
 
-本ブロックは，起動時にExcelで記述した言語理解用知識を読み込み，プロンプトのユーザ発話タイプのリスト、スロットのリスト、Few shot exampleに変換します．
+本ブロックは，起動時にExcelで記述した言語理解用知識を読み込み，プロンプトのユーザ発話タイプのリスト，スロットのリスト，Few shot exampleに変換します．
 
 実行時は，プロンプトに入力発話を付加してChatGPTに言語理解を行わせます．
 
@@ -381,8 +381,9 @@ OpenAI社のChatGPTを用いて，ユーザ発話タイプ（インテントと�
 - 入力
   - `input_text`: 入力文字列
     
-	 入力文字列は正規化されていると仮定します．
-
+	
+   入力文字列は正規化されていると仮定します．
+  
      例："好きなのは醤油"
   
 - 出力
@@ -392,7 +393,7 @@ OpenAI社のChatGPTを用いて，ユーザ発話タイプ（インテントと�
     以下の形式
 
     ```json
-	{
+	  {
       "type": <ユーザ発話タイプ（インテント）>, 
       "slots": {
          <スロット名>: <スロット値>, 
@@ -401,9 +402,9 @@ OpenAI社のChatGPTを用いて，ユーザ発話タイプ（インテントと�
         }
     }
     ```
-      
+    
     以下が例です．
-      
+    
     ```json
     {
       "type": "特定のラーメンが好き", 
@@ -933,13 +934,11 @@ ver. 0.4.0で，音声認識結果を入力として扱うときに生じる問�
 (chatgpt_dialogue)=
 ## ChatGPT Dialogue （ChatGPTベースの対話ブロック）
 
-(ver0.6で追加）
+(ver0.6で追加，ver0.7で大幅に変更）
 
-(`dialbb.builtin_blocks.chatgpt.chatgpt_ja.ChatGPT_Ja`（日本語用），`dialbb.builtin_blocks.chatgpt.chatgpt_ja.ChatGPT_En`（英語用）)
+(`dialbb.builtin_blocks.chatgpt.chatgpt.ChatGPT`)
 
 OpenAI社のChatGPTを用いて対話を行います．
-
-これらのクラスは`dialbb.builtin_blocks.chatgpt.chatgpt.ChatGPT`のサブクラスです．`dialbb.builtin_blocks.chatgpt.chatgpt.ChatGPT`のサブクラスを新たに作ることで，ChatGPTを使った新たなブロックを作ることができます．
 
 
 ### 入出力
@@ -955,9 +954,7 @@ OpenAI社のChatGPTを用いて対話を行います．
   - `final`: 対話終了かどうかのフラグ（ブール値）
 
 
-`ChatGPT_Ja`, `ChatGPT_En`では，入力の`aux_data`, `user_id`利用せず，
-出力の`aux_data`は入力の`aux_data`と同じもので，`final`は常に`False`ですが，
-`ChatGPT`のサブクラスを新しく作る時に変更することができます．
+入力の`aux_data`, `user_id`利用せず，出力の`aux_data`は入力の`aux_data`と同じもので，`final`は常に`False`です．
 
 これらのブロックを使う時には，環境変数`OPENAI_KEY`にOpenAIのライセンスキーを設定する必要があります．
 
@@ -966,14 +963,32 @@ OpenAI社のChatGPTを用いて対話を行います．
 - `first_system_utterance` （文字列，デフォルト値は`""`）
 
    対話の最初のシステム発話です．
-  
-- `prompt_prefix` （文字列，デフォルト値は`""`）
+
+- `user_name` （文字列，デフォルト値は`"User"`）
 
    ChatGPTのプロンプトに使う文字列です．以下で説明します．
-   
-- `prompt_postfix` （文字列，デフォルト値は`""`）
+
+- `system_name` （文字列，デフォルト値は`"System"`）
 
    ChatGPTのプロンプトに使う文字列です．以下で説明します．
+
+- `prompt_template` （文字列）
+
+   ChatGPTのプロンプトのテンプレートを記述したファイル名です．アプリケーションディレクトリからの相対で記述します．
+
+   プロンプトテンプレートは，システム発話の生成をChatGPTに行わせるプロンプトのテンプレートで，`@`で始まる以下の変数を含みます．
+
+   - `@dialogue_history` 対話の履歴です．実行時に以下のような形の値が代入されます．
+
+     ```
+     <ブロックコンフィギュレーションのsystem_nameの値>: <システム発話>
+     <ブロックコンフィギュレーションのuser_nameの値>: <ユーザ発話>
+     <ブロックコンフィギュレーションのsystem_nameの値>: <システム発話>
+     <ブロックコンフィギュレーションのuser_nameの値>: <ユーザ発話>
+     ...
+     <ブロックコンフィギュレーションのsystem_nameの値>: <システム発話>
+     <ブロックコンフィギュレーションのuser_nameの値>: <ユーザ発話>
+     ```
 
 - `gpt_model` （文字列，デフォルト値は`gpt-3.5-turbo`）
 
@@ -983,110 +998,8 @@ OpenAI社のChatGPTを用いて対話を行います．
 
 - 対話の最初はブロックコンフィギュレーションの`first_system_utterance`の値をシステム発話として返します．
   
-- 2回目以降のターンでは，以下のプロンプトをChatGPTに与え，返ってきたものをシステム発話として返します．
+- 2回目以降のターンでは，プロンプトテンプレートの`@dialogue_history`に対話履歴を代入したものを与えてChatGPTに発話を生成させ，返ってきた文字列をシステム発話として返します．
 
-  日本語の場合
-
-  ```
-  <prompt_prefixの値>
-  システム「<システムの1番目の発話>」
-  ユーザ「<ユーザの1番目の発話>」
-  システム「<システムの2番目の発話>」
-  ユーザ「<ユーザの2番目の発話>」
-  ...
-  システム「<システムの最新の発話>」
-  ユーザ「<ユーザの最新の発話>」
-  <prompt_postfixの値>
-  ```
-  
-  英語の場合
-
-  ```
-  <prompt_prefixの値>
-  System: "<システムの1番目の発話>"
-  User: "<ユーザの1番目の発話>"
-  System: "<システムの2番目の発話>"
-  User: "<ユーザの2番目の発話>"
-  ...
-  System: "<システムの最新の発話>"
-  User: "<ユーザの最新の発話>"
-  <prompt_postfixの値>
-  ```
-  
-   例として以下のようなプロンプトが与えられます．
-  
-  ```
-  システムはユーザと親しく話せます．システム「こんにちは．楽しくお話しましょう．何についてお話しますか？」
-  ユーザー「映画について話したいです」
-  システム「素晴らしいですね．映画について大好きです．最近見た映画やお気に入りのジャンルがあれば教えてください．」
-  ユーザー「宮崎駿監督の最新作を見ました」
-  に続くシステムの発話を最大100文字で生成してください．
-  ```
-
-   ChatGPTの応答は以下のようなものになります．
-  
-  ```
-   システム「それは素晴らしいですね．宮崎駿監督の作品は常に素晴らしいです．その映画についてどんな感想を持ちましたか？」
-  ```
-  
-   これから以下の文字列を取り出して，システム発話として返します．
-
-  ```
-  それは素晴らしいですね．宮崎駿監督の作品は常に素晴らしいです．その映画についてどんな感想を持ちましたか？
-  ```
-
-### 拡張方法
-
-先に述べたように，`dialbb.builtin_blocks.chatgpt.chatgpt.ChatGPT`のサブクラスを作り，自作ブロックとして利用することで，柔軟に制御を変更することができます．
-
-サブクラスを作る際には，以下のメソッドを実装します．
-
-```python 
-_generate_system_utterance(self, dialogue_history: List[Dict[str, str]],
-                                 session_id: str, user_id: str,
-                                 aux_data: Dict[str, Any]) -> Tuple[str, Dict[str, Any], bool]:
-```
-
-- 引数
-
-  - `dialogue_history`（辞書型のリスト）
-  
-     以下のような配列で表された対話の履歴
-     ```json
-     [
-         {"speaker": "system", "utterance": <システム発話文字列>},
-         {"speaker": "user", "utterance": <ユーザ発話文字列>} 
-         ...
-     ]
-     ```
-
-  - `session_id` （文字列）
-  
-     セッションID
-  
-  - `user_id` （文字列）
-  
-     ユーザID
-  
-  - `aux_data` (辞書型）
-  
-     メインプロセスから受け取った補助データ
-  
-- 返り値は以下のTuple
-
-  - `system_utterance` （文字列）
-  
-    システム発話
-
-  - `aux_data` (辞書型）
-  
-     アップデートした補助データ
-  
-  - `final` (ブール値)
-  
-     対話の終わりかどうか
-  
-  
 (spacy_ner)=
 ## spaCy-Based Named Entity Recognizer （spaCyを用いた固有表現抽出ブロック）
 (`dialbb.builtin_blocks.ner_with_spacy.ne_recognizer.SpaCyNER`)
@@ -1103,7 +1016,7 @@ _generate_system_utterance(self, dialogue_history: List[Dict[str, str]],
   
 - 出力
   - `aux_data`: 補助データ（辞書型）
-     
+    
      入力された`aux_data`に固有表現抽出結果を加えたものです．
 
      固有表現抽出結果は，以下の形です．
@@ -1144,7 +1057,7 @@ _generate_system_utterance(self, dialogue_history: List[Dict[str, str]],
      - label: Date
        pattern: きのう
    ```
-            
+   
 
 ### 処理内容
 

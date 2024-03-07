@@ -110,7 +110,6 @@
 <li class="toctree-l3"><a class="reference internal" href="#id10">5.6.1. Input/Output</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#id11">5.6.2. Block Configuration Parameters</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#id12">5.6.3. Process Details</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#extending-the-chatgpt-dialogue-block-class">5.6.4. Extending the ChatGPT Dialogue Block Class</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#spacy-based-ner-named-entity-recognizer-block-using-spacy">5.7. spaCy-Based NER (Named Entity Recognizer Block using spaCy)</a><ul>
@@ -950,9 +949,9 @@ This function is used when a user utterance is accidentally split in the middle 
 </section>
 <section id="chatgpt-dialogue-chatgpt-based-dialogue-block">
 <span id="chatgpt-dialogue"></span><h2><span class="section-number">5.6. </span>ChatGPT Dialogue (ChatGPT-based Dialogue Block)<a class="headerlink" href="#chatgpt-dialogue-chatgpt-based-dialogue-block" title="Permalink to this heading"></a></h2>
-<p>(<code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.chatgpt.chatgpt_en.ChatGPT_Ja</span></code> (for Japanese), and <code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.chatgpt.chatgpt_en.ChatGPT_En</span></code> (for English))</p>
+<p>(Changed in ver0.7）</p>
+<p>(<code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.chatgpt.chatgpt.ChatGPT</span></code></p>
 <p>Engages in dialogue using OpenAI’s ChatGPT.</p>
-<p>These classes are subclasses of <code class="docutils literal notranslate"><span class="pre">dialbb.built-in_blocks.chatgpt.chatgpt.ChatGPT</span></code>. By creating a new subclass of <code class="docutils literal notranslate"><span class="pre">dialbb.built-in_blocks.chatgpt.chatgpt.ChatGPT</span></code>, you can create a new block using ChatGPT.</p>
 <section id="id10">
 <h3><span class="section-number">5.6.1. </span>Input/Output<a class="headerlink" href="#id10" title="Permalink to this heading"></a></h3>
 <ul class="simple">
@@ -971,9 +970,8 @@ This function is used when a user utterance is accidentally split in the middle 
 </ul>
 </li>
 </ul>
-<p>In <code class="docutils literal notranslate"><span class="pre">ChatGPT_Ja</span></code> and <code class="docutils literal notranslate"><span class="pre">ChatGPT_En</span></code>, the input <code class="docutils literal notranslate"><span class="pre">aux_data</span></code> and <code class="docutils literal notranslate"><span class="pre">user_id</span></code> are not used.
-The output <code class="docutils literal notranslate"><span class="pre">aux_data</span></code> is the same as the input <code class="docutils literal notranslate"><span class="pre">aux_data</span></code> and <code class="docutils literal notranslate"><span class="pre">final</span></code> is always <code class="docutils literal notranslate"><span class="pre">False</span></code>, but
-you can change this when you create a new subclass of <code class="docutils literal notranslate"><span class="pre">ChatGPT</span></code>.</p>
+<p>The inputs <code class="docutils literal notranslate"><span class="pre">aux_data</span></code> and <code class="docutils literal notranslate"><span class="pre">user_id</span></code> are not used.
+The output <code class="docutils literal notranslate"><span class="pre">aux_data</span></code> is the same as the input <code class="docutils literal notranslate"><span class="pre">aux_data</span></code> and <code class="docutils literal notranslate"><span class="pre">final</span></code> is always <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
 <p>When using these blocks, you need to set the OpenAI license key in the environment variable <code class="docutils literal notranslate"><span class="pre">OPENAI_KEY</span></code>.</p>
 </section>
 <section id="id11">
@@ -982,11 +980,28 @@ you can change this when you create a new subclass of <code class="docutils lite
 <li><p><code class="docutils literal notranslate"><span class="pre">first_system_utterance</span></code> (string, default value is <code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code>)</p>
 <p>This is the first system utterance of the dialog.</p>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">prompt_prefix</span></code> (string, default value is <code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code>)</p>
-<p>This is used for the ChatGPT prompt.</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">user_name</span></code> (string, default value is <code class="docutils literal notranslate"><span class="pre">&quot;User&quot;</span></code>)</p>
+<p>This is used for the ChatGPT prompt. It is explained below.</p>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">prompt_postfix</span></code> (string, default value is <code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code>)</p>
-<p>This is used for the ChatGPT prompt.</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">system_name</span></code> (string, default value is <code class="docutils literal notranslate"><span class="pre">&quot;System&quot;</span></code>)</p>
+<p>This is used for the ChatGPT prompt. It is explained below.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">prompt_template</span></code> (string)</p>
+<p>This specifies the prompt template file as a relative path from the configuration file directory.</p>
+<p>A prompt template is a template of prompts for making ChatGPT generate a system utterance, and it can contain the following variables starting with <code class="docutils literal notranslate"><span class="pre">&#64;</span></code>.</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">&#64;dialogue_history</span></code> Dialogue history. This is replaced by a string in the following form:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">The</span> <span class="n">value</span> <span class="n">of</span> <span class="n">system_name</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">block</span> <span class="n">configuration</span><span class="o">&gt;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">system</span> <span class="n">utterance</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">The</span> <span class="n">value</span> <span class="n">of</span> <span class="n">user_name</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">block</span> <span class="n">configuration</span><span class="o">&gt;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">user</span> <span class="n">utterance</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">The</span> <span class="n">value</span> <span class="n">of</span> <span class="n">system_name</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">block</span> <span class="n">configuration</span><span class="o">&gt;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">system</span> <span class="n">utterance</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">The</span> <span class="n">value</span> <span class="n">of</span> <span class="n">user_name</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">block</span> <span class="n">configuration</span><span class="o">&gt;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">user</span> <span class="n">utterance</span><span class="o">&gt;</span>
+<span class="o">...</span>
+<span class="o">&lt;</span><span class="n">The</span> <span class="n">value</span> <span class="n">of</span> <span class="n">system_name</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">block</span> <span class="n">configuration</span><span class="o">&gt;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">system</span> <span class="n">utterance</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">The</span> <span class="n">value</span> <span class="n">of</span> <span class="n">user_name</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">block</span> <span class="n">configuration</span><span class="o">&gt;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">user</span> <span class="n">utterance</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</li>
+</ul>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">gpt_model</span></code> (string, default value is <code class="docutils literal notranslate"><span class="pre">gpt-3.5-turbo</span></code>)</p>
 <p>Open AI GPT model. You can specify <code class="docutils literal notranslate"><span class="pre">gpt-4</span></code> and so on.</p>
@@ -995,83 +1010,9 @@ you can change this when you create a new subclass of <code class="docutils lite
 </section>
 <section id="id12">
 <h3><span class="section-number">5.6.3. </span>Process Details<a class="headerlink" href="#id12" title="Permalink to this heading"></a></h3>
-<ul>
+<ul class="simple">
 <li><p>At the beginning of the dialog, the value of <code class="docutils literal notranslate"><span class="pre">first_system_utterance</span></code> in the block configuration is returned as system utterance.</p></li>
-<li><p>In the second and subsequent turns, the following prompt is given to ChatGPT and the returns are returned as the system utterance.</p>
-<p>As an example, the following prompt is given.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">system</span> <span class="n">can</span> <span class="n">talk</span> <span class="n">to</span> <span class="n">the</span> <span class="n">user</span> <span class="n">intimately</span><span class="o">.</span> 
-<span class="n">System</span><span class="p">:</span> <span class="s2">&quot;Hello. Let&#39;s have a nice talk. What would you like to talk about?&quot;</span>
-<span class="n">User</span><span class="p">:</span> <span class="s2">&quot;I would like to talk about movies.&quot;</span>
-<span class="n">System</span><span class="p">:</span> <span class="s2">&quot;Great. I love to talk about movies. Please tell me what movies you have seen recently and what your favorite genre is.&quot;</span>
-<span class="n">User</span><span class="p">:</span> <span class="s2">&quot;I saw the latest film by Hayao Miyazaki&quot;</span><span class="o">.</span>
-<span class="n">Generate</span> <span class="n">a</span> <span class="n">subsequet</span> <span class="n">system</span> <span class="n">utterance</span> <span class="k">with</span> <span class="n">a</span> <span class="n">maximum</span> <span class="n">of</span> <span class="mi">30</span> <span class="n">words</span><span class="o">.</span>
-</pre></div>
-</div>
-<p>The ChatGPT response will look something like this</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">System</span><span class="p">:</span> <span class="s2">&quot;That&#39;s wonderful. Hayao Miyazaki&#39;s films are always wonderful. What did you think of the film?&quot;</span>
-</pre></div>
-</div>
-<p>The following strings are extracted from this and returned as system speech.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>That&#39;s wonderful. Hayao Miyazaki&#39;s films are always wonderful. What did you think of the film?
-</pre></div>
-</div>
-</li>
-</ul>
-</section>
-<section id="extending-the-chatgpt-dialogue-block-class">
-<h3><span class="section-number">5.6.4. </span>Extending the ChatGPT Dialogue Block Class<a class="headerlink" href="#extending-the-chatgpt-dialogue-block-class" title="Permalink to this heading"></a></h3>
-<p>As mentioned earlier, you can create a subclass of <code class="docutils literal notranslate"><span class="pre">dialbb.built-in_blocks.chatgpt.chatgpt.ChatGPT</span></code> and use it as your own block for flexible control changes.</p>
-<p>When creating a subclass, implement the following methods</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">_generate_system_utterance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dialogue_history</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]],</span><span class="o">.</span>
-                                 <span class="n">session_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">aux_data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span>
-                                 <span class="n">aux_data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="nb">bool</span><span class="p">]:</span><span class="o">.</span>
-</pre></div>
-</div>
-<ul>
-<li><p>arguments</p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">dialogue_history</span></code> (list of dictionaries)</p>
-<p>The history of the dialog, represented as an array like this</p>
-</li>
-</ul>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span>[
-  {
-    &quot;speaker&quot;: &quot;system&quot;, 
-    &quot;utterance&quot;: &lt;system utterance string&gt;
-   },
-   {
-     &quot;speaker&quot;: &quot;user&quot;, 
-     &quot;utterance&quot;: &lt;user utterance string&gt;
-   },
-   ...
-]
-</pre></div>
-</div>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">session_id</span></code> (string)</p>
-<p>session ID</p>
-</li>
-<li><p><code class="docutils literal notranslate"><span class="pre">user_id</span></code> (string)</p>
-<p>user ID</p>
-</li>
-<li><p><code class="docutils literal notranslate"><span class="pre">aux_data</span></code> (dictionary type)</p>
-<p>Auxiliary data received from the main process</p>
-</li>
-</ul>
-</li>
-<li><p>The return value is the following Tuple</p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">system_utterance</span></code> (string)</p>
-<p>system utterance</p>
-</li>
-<li><p><code class="docutils literal notranslate"><span class="pre">aux_data</span></code> (dictionary)</p>
-<p>Updated auxiliary data</p>
-</li>
-<li><p><code class="docutils literal notranslate"><span class="pre">final</span></code> (boolean)</p>
-<p>End of dialogue or not</p>
-</li>
-</ul>
-</li>
+<li><p>In the second and subsequent turns, the prompt template in which <code class="docutils literal notranslate"><span class="pre">&#64;dialogue_history</span></code> is replace by the dialogue histor is given to ChatGPT and the returned string is returned as the system utterance.</p></li>
 </ul>
 </section>
 </section>

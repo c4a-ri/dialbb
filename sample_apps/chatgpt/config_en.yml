@@ -2,7 +2,7 @@
 
 blocks:
   - name: chatgpt
-    block_class: dialbb.builtin_blocks.chatgpt.chatgpt_en.ChatGPT_En
+    block_class: dialbb.builtin_blocks.chatgpt.chatgpt.ChatGPT
     input:
       user_id: user_id
       user_utterance: user_utterance
@@ -11,9 +11,11 @@ blocks:
       system_utterance: system_utterance
       aux_data: aux_data
       final: final
-    first_system_utterance: "Hello! Let's talk. What would you like to talk about?"
-    prompt_prefix: "The system behaves as a good friend of the user."
-    prompt_postfix: "Please generate the system utterance that follows."
+    user_name: User
+    system_name: System
+    prompt_template: 
+    first_system_utterance: "Hello! Let's talk about food. What kind of cuisine do you like?"
+    prompt_template: prompt_template_en.txt
     gpt_model: gpt-4
     
 
