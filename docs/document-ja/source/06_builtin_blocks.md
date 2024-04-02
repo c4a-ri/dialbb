@@ -956,7 +956,7 @@ OpenAI社のChatGPTを用いて対話を行います．
 
 入力の`aux_data`, `user_id`利用せず，出力の`aux_data`は入力の`aux_data`と同じもので，`final`は常に`False`です．
 
-これらのブロックを使う時には，環境変数`OPENAI_KEY`にOpenAIのライセンスキーを設定する必要があります．
+これらのブロックを使う時には，環境変数`OPENAI_API_KEY`にOpenAIのライセンスキーを設定する必要があります．
 
 ### ブロックコンフィギュレーションのパラメータ
 

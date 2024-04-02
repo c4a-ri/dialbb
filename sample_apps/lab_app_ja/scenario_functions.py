@@ -19,12 +19,12 @@ use_openai: bool = False
 
 openai_client = None
 
-openai_key: str = os.environ.get('OPENAI_KEY', "")
-if openai_key:
+openai_api_key: str = os.environ.get('OPENAI_API_KEY', os.environ.get('OPENAI_KEY', ""))
+if openai_api_key:
     import openai
     use_openai = True
-    openai.api_key = openai_key
-    openai_client = openai.OpenAI(api_key=openai_key)
+    openai.api_key = openai_api_key
+    openai_client = openai.OpenAI(api_key=openai_api_key)
 
 
 # 知っているラーメンの種類

@@ -23,7 +23,8 @@ from oauth2client.service_account import ServiceAccountCredentials
 from dialbb.builtin_blocks.stn_management.scenario_graph import create_scenario_graph
 from dialbb.builtin_blocks.stn_management.state_transition_network \
     import StateTransitionNetwork, State, Transition, Argument, Condition, Action, \
-    INITIAL_STATE_NAME, ERROR_STATE_NAME, FINAL_ABORT_STATE_NAME, GOSUB, EXIT
+    INITIAL_STATE_NAME, ERROR_STATE_NAME, FINAL_ABORT_STATE_NAME, GOSUB, EXIT, function_call_pattern, \
+    BUILTIN_FUNCTION_PREFIX
 from dialbb.builtin_blocks.stn_management.stn_creator import create_stn
 from dialbb.abstract_block import AbstractBlock
 from dialbb.main import ANY_FLAG, DEBUG, CONFIG_KEY_FLAGS_TO_USE, CONFIG_DIR
@@ -72,6 +73,7 @@ KEY_TYPE: str = 'type'
 
 SHEET_NAME_SCENARIO: str = "scenario"
 DEFAULT_UTTERANCE_ASKING_REPETITION: str = "Could you say that again?"
+GENERATION_FAILURE_STRING: str = "..."
 
 # builtin function module
 # 組み込み関数
@@ -328,7 +330,7 @@ class Manager(AbstractBlock):
                     new_state_name = INITIAL_STATE_NAME
                     self._dialogue_context[session_id][CONTEXT_KEY_CURRENT_STATE_NAME] = new_state_name
                 self._previous_dialogue_context[session_id] = copy.deepcopy(self._dialogue_context[session_id])
-            else: # non-first turn 2回目以降のターン
+            else:  # non-first turn 2回目以降のターン
                 if DEBUG:  # logging for debug
                     self._log_dialogue_context_for_debug(session_id)
 
@@ -451,8 +453,8 @@ class Manager(AbstractBlock):
                 output_text = self._utterance_asking_repetition
             else:
                 output_text = new_state.get_one_system_utterance()
-                output_text = self._substitute_variables(output_text, session_id)  # replace variables
-
+                output_text = self._substitute_expressions(output_text, session_id, nlu_result,
+                                                           aux_data, user_id, sentence)
             # add "_reaction" of dialogue context before output text
             if self._dialogue_context[session_id][CONTEXT_KEY_REACTION]:
                 print(output_text)
@@ -464,7 +466,6 @@ class Manager(AbstractBlock):
             self._dialogue_context[session_id][CONTEXT_KEY_DIALOGUE_HISTORY].append({"speaker": "system",
                                                                                      "utterance": output_text})
             self._dialogue_context[session_id][CONTEXT_KEY_REACTION] = ""
-
 
             # check if the new state is a final state
             final: bool = False
@@ -491,20 +492,35 @@ class Manager(AbstractBlock):
         del dialogue_context[CONTEXT_KEY_DIALOGUE_HISTORY]
         self.log_debug("dialogue_context: " + str(dialogue_context), session_id=session_id)
 
-    def _substitute_variables(self, text: str, session_id: str) -> str:
+    def _substitute_expressions(self, text: str, session_id: str, nlu_result: Dict[str, Any],
+                                aux_data: Dict[str, Any], user_id: str, sentence: str) -> str:
         """
-        replaces variables (in dialogue frame) in the input text with their values
-        :param text: system utterance with variables
-        :return: system utterance whose variables are substituted by their values
+        replaces expressions (variables in dialogue frame or function calls) in the input text with their values
+        :param text: system utterance string in the scenario
+        :param session_id:
+        :param nlu_result: nlu results
+        :param aux_data: aux_data inputted to the block
+        :param user_id: user id string
+        :param sentence: input user sentence string
+        :return: system utterance in which expressions are realized
         """
+
         result = text
         for match in var_in_system_utterance_pattern.finditer(result):
-            variable = match.group(1)
-            if variable in self._dialogue_context[session_id].keys():
-                result = result.replace("{" + variable + "}",
-                                        self._dialogue_context[session_id][variable])
+            to_be_replaced: str = match.group(0)
+            expression = match.group(1)
+            m = function_call_pattern.match(expression)
+            if m:
+                function_name: str = m.group(1).strip()
+                argument_list_str: str = m.group(2).strip()
+                generated_string = self._generate_in_system_utterance(function_name, argument_list_str,
+                                                                      nlu_result, aux_data, user_id,
+                                                                      session_id, sentence)
+                result = result.replace(to_be_replaced, generated_string)
+            elif expression in self._dialogue_context[session_id].keys():
+                result = result.replace(to_be_replaced, self._dialogue_context[session_id][expression])
             else:
-                self.log_error(f'variable {variable} in system utterance "{text}" is not found in the dialogue context.')
+                self.log_error(f'variable {expression} in system utterance "{text}" is not found in the dialogue context.')
                 if DEBUG:
                     raise Exception()
         return result
@@ -613,6 +629,74 @@ class Manager(AbstractBlock):
                                                                 + previous_state_name
         return ERROR_STATE_NAME
 
+    def _search_function_in_modules(self, function_name: str):
+        """
+        search function in function modules  functionをfunction moduleの中で探す
+        :param function_name: name of the function to search
+        :return: function object or None if no such function is found
+        """
+        for function_module in self._function_modules:
+            function = getattr(function_module, function_name, None)
+            if function:  # if function is found
+                return function
+        return None
+
+    def _generate_in_system_utterance(self, function_name: str, argument_list_string: str,
+                                      nlu_result: Dict[str, Any], aux_data: Dict[str, Any],
+                                      user_id: str, session_id: str, sentence: str) -> str:
+        """
+        generate string by calling function in system utterance
+        システム発話中の関数呼び出し
+        :param function_name: name of of function
+        :param string of arguments (the string in the parenthesis). can be an empty string
+        :param nlu_result: NLU result
+        :param aux_data: auxiliary data received from the main process
+        :param user_id: user id string
+        :param session_id: session id string
+        :param sentence: canonicalized user utterance string
+        :return: True if the condition is satisfied
+        """
+
+        if function_name[0] == '_':  # when builtin
+            function_name = BUILTIN_FUNCTION_PREFIX + function_name
+
+        argument_names: List[str] = []
+        if argument_list_string:
+            argument_names= [argument_str.strip() for argument_str in argument_list_string.split(",")]
+
+        self.log_debug(f"calling function in system utterance: {function_name}({argument_list_string})",
+                       session_id=session_id)
+
+        generation_function = self._search_function_in_modules(function_name)
+
+        if not generation_function:  # when condition function is not defined
+            self.log_error(f"condition function {function_name} is not defined.", session_id=session_id)
+            return GENERATION_FAILURE_STRING
+
+        # realize variables 変数の具体化
+        argument_values: List[Any] \
+            = [self._realize_argument(Argument(argument), nlu_result, aux_data, user_id, session_id, sentence)
+               for argument in argument_names]
+        if DEBUG:
+            argument_value_strings: List[str] = [str(x) for x in argument_values]
+            self.log_debug(f"condition is realized: {function_name}({','.join(argument_value_strings)})",
+                           session_id=session_id)
+        argument_names.append("context")  # add context to the arguments 対話文脈を引数に加える
+        argument_values.append(self._dialogue_context[session_id])
+        args: Dict[str, str] = dict(zip(argument_names, argument_values))
+        args["func"] = generation_function
+        expression = "func(" + ','.join(argument_names) + ")"
+        try:
+            result = eval(expression, {}, args)  # evaluate function call 関数呼び出しを評価
+            self.log_debug(f"generated in system utterance: {result}", session_id=session_id)
+            return result
+        except Exception as e:
+            self.log_warning(f"Exception occurred during system generation in utterance: {str(function_name)}: {str(e)}",
+                             session_id=session_id)
+            if DEBUG:
+                raise Exception(e)
+            return GENERATION_FAILURE_STRING
+
     def _check_one_condition(self, condition: Condition, nlu_result: Dict[str, Any], aux_data: Dict[str, Any],
                              user_id: str, session_id: str, sentence: str) -> bool:
         """
@@ -629,14 +713,7 @@ class Manager(AbstractBlock):
 
         self.log_debug(f"checking condition: {str(condition)}", session_id=session_id)
         function_name: str = condition.get_function()
-        condition_function = None
-
-        # search function in function modules  functionをfunction moduleの中で探す
-        for function_module in self._function_modules:
-            function = getattr(function_module, function_name, None)
-            if function:  # if function is found
-                condition_function = function
-                break
+        condition_function = self._search_function_in_modules(function_name)
         if not condition_function:  # when condition function is not defined
             self.log_error(f"condition function {function_name} is not defined.", session_id=session_id)
             return False
@@ -663,7 +740,7 @@ class Manager(AbstractBlock):
                     self.log_debug(f"condition is not satisfied.", session_id=session_id)
                 return result
             except Exception as e:
-                self.log_warning(f"Exception occurred during transition {str(condition)}: {str(e)}",
+                self.log_warning(f"Exception occurred during checking condition {str(condition)}: {str(e)}",
                                  session_id=session_id)
                 if DEBUG:
                     raise Exception(e)
@@ -753,18 +830,8 @@ class Manager(AbstractBlock):
             self.log_debug(f"performing action: {str(action)}", session_id=session_id)
             command_name: str = action.get_function_name()
 
-            # non builtin actions
-            action_function = None
-
-            # search action function in function modules
-            # action functionをfunction moduleの中から探す
-            for function_module in self._function_modules:
-                function = getattr(function_module, command_name, None)
-                if function is None:  # if command is not in the module
-                    continue
-                else:
-                    action_function = function
-                    break
+            # realize action
+            action_function = self._search_function_in_modules(command_name)
             if not action_function:  # action function is not defined
                 self.log_error(f"can't find action function: {command_name}", session_id=session_id)
             else:

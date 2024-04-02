@@ -888,7 +888,7 @@ Engages in dialogue using OpenAI's ChatGPT.
 The inputs `aux_data` and `user_id` are not used.
 The output `aux_data` is the same as the input `aux_data` and `final` is always `False`.
 
-When using these blocks, you need to set the OpenAI license key in the environment variable `OPENAI_KEY`.
+When using these blocks, you need to set the OpenAI license key in the environment variable `OPENAI_API_KEY`.
 
 ### Block Configuration Parameters
 

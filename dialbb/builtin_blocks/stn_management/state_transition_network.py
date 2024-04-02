@@ -29,6 +29,9 @@ SKIP: str = "$skip"
 COMMA: str = "&&&comma&&&"
 SEMICOLON: str = "&&&semicolon&&&"
 
+function_call_pattern = re.compile(r"([^(]+)\(([^)]*)\)")  # matches function patter such as "func(..)"
+
+
 class Argument:
     """
     Argument of scenario functions
@@ -345,9 +348,6 @@ class State:
         :return: the list of system utterance strings
         """
         return self._system_utterances
-
-
-function_call_pattern = re.compile(r"([^(]+)\(([^)]*)\)")  # matches function patter such as "func(..)"
 
 
 class StateTransitionNetwork:

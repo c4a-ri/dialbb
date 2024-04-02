@@ -58,10 +58,10 @@ class Understander(AbstractBlock):
         super().__init__(*args)
 
         # chatgpt setting
-        openai_key: str = os.environ.get('OPENAI_KEY', "")
-        if not openai_key:
-            abort_during_building("OPENAI_KEY is not defined")
-        self._openai_client = openai.OpenAI(api_key=openai_key)
+        openai_api_key: str = os.environ.get('OPENAI_API_KEY', os.environ.get('OPENAI_KEY', ""))
+        if not openai_api_key:
+            abort_during_building("OPENAI_API_KEY is not defined")
+        self._openai_client = openai.OpenAI(api_key=openai_api_key)
         self._gpt_model = self.block_config.get(CONFIG_KEY_GPT_MODEL, DEFAULT_GPT_MODEL)
 
         # sheets in spreadsheet

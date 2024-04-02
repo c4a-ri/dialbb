@@ -297,10 +297,10 @@ An experimental application is available at `sample_apps/lab_app_ja/` (Japanese)
 
 #### Setting environment variables
 
-This application uses OpenAI's ChatGPT. So, set the OpenAI API key in the environment variable `OPENAI_KEY`. The following is a bash example.
+This application uses OpenAI's ChatGPT. So, set the OpenAI API key in the environment variable `OPENAI_API_KEY`. The following is a bash example.
 
 ```sh
-$ export OPENAI_KEY=<OpenAI's API key>.
+$ export OPENAI_API_KEY=<OpenAI's API key>.
 ```
 
 #### Startup
@@ -341,10 +341,10 @@ Only the following builtin block is used.
 
 #### Setting environment variables
 
-Set the environment variable OPENAI_KEY to the OpenAI API key. The following is a bash example.
+Set the environment variable OPENAI_API_KEY to the OpenAI API key. The following is a bash example.
 
 ```sh
-$ export OPENAI_KEY=<OpenAI's API key>.
+$ export OPENAI_API_KEY=<OpenAI's API key>.
 ```
 
 #### Startup
