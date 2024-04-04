@@ -1,4 +1,4 @@
-# configuration file for a chatgpt-based English application
+# Configuration file for a chatgpt-based English application
 
 blocks:
   - name: chatgpt
@@ -13,7 +13,6 @@ blocks:
       final: final
     user_name: User
     system_name: System
-    prompt_template: 
     first_system_utterance: "Hello! Let's talk about food. What kind of cuisine do you like?"
     prompt_template: prompt_template_en.txt
     gpt_model: gpt-4

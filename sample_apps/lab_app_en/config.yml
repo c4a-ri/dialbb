@@ -8,7 +8,7 @@ blocks:  # list of blocks
     block_class: dialbb.builtin_blocks.preprocess.simple_canonicalizer.SimpleCanonicalizer
     input: # input to the block
       input_text: user_utterance
-    output: # output from thre block
+    output: # output from the block
       output_text: canonicalized_user_utterance
   - name: understander
     block_class: dialbb.builtin_blocks.understanding_with_chatgpt.chatgpt_understander.Understander
