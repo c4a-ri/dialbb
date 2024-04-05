@@ -670,7 +670,7 @@ class Manager(AbstractBlock):
         generation_function = self._search_function_in_modules(function_name)
 
         if not generation_function:  # when condition function is not defined
-            self.log_error(f"condition function {function_name} is not defined.", session_id=session_id)
+            self.log_error(f"generation function {function_name} is not defined.", session_id=session_id)
             return GENERATION_FAILURE_STRING
 
         # realize variables 変数の具体化

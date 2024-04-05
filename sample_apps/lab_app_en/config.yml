@@ -2,6 +2,8 @@
 
 language: en  # specify language
 
+system_name: "sandwich bot"
+
 blocks:  # list of blocks
   - name: canonicalizer  # block name
     # block class

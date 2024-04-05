@@ -140,3 +140,13 @@ def generate_confirmation_request(nlu_result: Dict[str, Any], context: Dict[str,
         return "もう一度言って頂けますか？"
 
 
+def get_system_name(context: Dict[str, Any]) -> str:
+
+    return context['_config'].get("system_name", "チャットボット")
+
+
+
+
+
+
+

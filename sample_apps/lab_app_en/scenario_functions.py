@@ -107,4 +107,7 @@ def generate_confirmation_request(nlu_result: Dict[str, Any], context: Dict[str,
         return "Could you say that again?"
 
 
+def get_system_name(context: Dict[str, Any]) -> str:
+
+    return context['_config'].get("system_name", "Chatbot")
 
