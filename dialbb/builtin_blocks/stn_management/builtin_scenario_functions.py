@@ -148,7 +148,7 @@ def builtin_num_turns_exceeds(threshold_str: str, context: Dict[str, Any]) -> bo
         return False
 
     num_turns = 0
-    for turn in context.get("dialogue_history", []):
+    for turn in context.get("_dialogue_history", []):
         if turn.get('speaker') == 'user':
             num_turns += 1
             if num_turns > threshold:

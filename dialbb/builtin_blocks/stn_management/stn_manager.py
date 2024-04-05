@@ -24,11 +24,12 @@ from dialbb.builtin_blocks.stn_management.scenario_graph import create_scenario_
 from dialbb.builtin_blocks.stn_management.state_transition_network \
     import StateTransitionNetwork, State, Transition, Argument, Condition, Action, \
     INITIAL_STATE_NAME, ERROR_STATE_NAME, FINAL_ABORT_STATE_NAME, GOSUB, EXIT, function_call_pattern, \
-    BUILTIN_FUNCTION_PREFIX
+    BUILTIN_FUNCTION_PREFIX, COMMA, SEMICOLON
 from dialbb.builtin_blocks.stn_management.stn_creator import create_stn
 from dialbb.abstract_block import AbstractBlock
 from dialbb.main import ANY_FLAG, DEBUG, CONFIG_KEY_FLAGS_TO_USE, CONFIG_DIR
 from dialbb.util.error_handlers import abort_during_building
+
 
 CONFIG_KEY_KNOWLEDGE_GOOGLE_SHEET: str = "knowledge_google_sheet"  # google sheet info
 CONFIG_KEY_SHEET_ID: str = "sheet_id"  # google sheet id
@@ -567,10 +568,8 @@ class Manager(AbstractBlock):
         # 今final状態かerror状態か
         # check if the current state is a final or error state
         if self._network.is_final_state_or_error_state(previous_state_name):
-            self.log_error("no available transitions found from state: " + previous_state_name,
-                           session_id=session_id)
-            self._dialogue_context[session_id][CONTEXT_KEY_CAUSE] = f"no available transitions found from state: " \
-                                                                    + previous_state_name
+            self.log_error("This session has been ended", session_id=session_id)
+            self._dialogue_context[session_id][CONTEXT_KEY_CAUSE] = "This session no longer exists"
             return ERROR_STATE_NAME
 
         # if aux data's stop_dialogue value is True, go to #final_abort state
@@ -662,7 +661,10 @@ class Manager(AbstractBlock):
 
         argument_names: List[str] = []
         if argument_list_string:
-            argument_names= [argument_str.strip() for argument_str in argument_list_string.split(",")]
+            # replace commas and semicolons in constant strings
+            argument_list_string = Transition.replace_special_characters_in_constant(argument_list_string)
+            argument_names= [argument_str.strip().replace(COMMA, ',').replace(SEMICOLON,"")
+                             for argument_str in re.split("[,，、]", argument_list_string)]
 
         self.log_debug(f"calling function in system utterance: {function_name}({argument_list_string})",
                        session_id=session_id)

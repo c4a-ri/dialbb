@@ -173,7 +173,7 @@ class Transition:
     def __init__(self, user_utterance_type: str, conditions_str: str, actions_str: str, destination: str):
         self._user_utterance_type: str = user_utterance_type.strip()
         self._conditions: List[Condition] = []
-        conditions_str = self._replace_special_characters_in_constant(conditions_str)
+        conditions_str = self.replace_special_characters_in_constant(conditions_str)
         for condition_str in conditions_str.split(';'):
             condition_str = condition_str.strip()
             if condition_str == '':
@@ -191,7 +191,7 @@ class Transition:
             else:
                 abort_during_building(f"{condition_str} is not a valid condition.")
         self._actions: List[Action] = []
-        actions_str = self._replace_special_characters_in_constant(actions_str)
+        actions_str = self.replace_special_characters_in_constant(actions_str)
         for action_str in actions_str.split(';'):
             action_str = action_str.strip()
             if action_str == "":
@@ -209,7 +209,8 @@ class Transition:
                 warn_during_building(f"{action_str} is not a valid action.")
         self._destination: str = destination
 
-    def _replace_special_characters_in_constant(self, string: str):
+    @staticmethod
+    def replace_special_characters_in_constant(string: str):
         """
         replace commas and semicolons in string by special strings
         :param string: input string
