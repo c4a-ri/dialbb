@@ -6,7 +6,7 @@
 #   組み込みシナリオ関数
 
 __version__ = '0.1'
-__author__ = 'Mikio Nakano'
+__author__ = 'Mikio Nakano' 
 __copyright__ = 'C4A Research Institute, Inc.'
 
 import sys

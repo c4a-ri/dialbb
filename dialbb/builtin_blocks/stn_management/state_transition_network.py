@@ -223,9 +223,9 @@ class Transition:
             if char == '"':
                 in_constant = not in_constant
                 result += char
-            elif char == ',' and in_constant:
+            elif char in (',', '、', '，') and in_constant:
                 result += COMMA
-            elif char == ';' and in_constant:
+            elif char in (';', '；') and in_constant:
                 result += SEMICOLON
             else:
                 result += char

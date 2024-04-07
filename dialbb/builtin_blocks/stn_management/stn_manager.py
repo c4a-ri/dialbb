@@ -676,10 +676,17 @@ class Manager(AbstractBlock):
             return GENERATION_FAILURE_STRING
 
         # realize variables 変数の具体化
-        argument_values: List[Any] \
-            = [self._realize_argument(Argument(argument), nlu_result, aux_data, user_id, session_id, sentence)
-               for argument in argument_names]
-        if DEBUG:
+        try:
+            argument_values: List[Any] \
+                = [self._realize_argument(Argument(argument), nlu_result, aux_data, user_id, session_id, sentence)
+                   for argument in argument_names]
+        except Exception as e:  # failure in realization
+            self.log_warning(f"Exception occurred during realizing arguments in system utterance: {str(argument_names)}",
+                             session_id=session_id)
+            if DEBUG:
+                raise Exception(e)
+            return GENERATION_FAILURE_STRING
+        if DEBUG:  # print details
             argument_value_strings: List[str] = [str(x) for x in argument_values]
             self.log_debug(f"condition is realized: {function_name}({','.join(argument_value_strings)})",
                            session_id=session_id)
