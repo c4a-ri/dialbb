@@ -265,9 +265,9 @@ The following commands can be used to test the sequential processing and interac
 ​       The dialog exchange is written to `sample_apps/network_ja/_test_outputs.txt`.
 
 
-### Experimental Application
+### Experimental Applications
 
-An experimental application is available at `sample_apps/lab_app_ja/` (Japanese) and `sample_apps/lab_app_en/` (English) . This application is used to test various functions of the built-in blocks. It uses the following built-in blocks.
+Experimental applications are available at `sample_apps/lab_app_ja/` (Japanese) and `sample_apps/lab_app_en/` (English) . This application is used to test various functions of the built-in blocks. It uses the following built-in blocks.
 
 
 - English Application
