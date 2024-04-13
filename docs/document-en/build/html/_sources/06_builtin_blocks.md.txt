@@ -866,7 +866,7 @@ Note that the contextual information is reverted, but not if you have changed th
 
 (Changed in ver0.7)
 
-(`dialbb.builtin_blocks.chatgpt.chatgpt.ChatGPT` 
+(`dialbb.builtin_blocks.chatgpt.chatgpt.ChatGPT`) 
 
 Engages in dialogue using OpenAI's ChatGPT.
 
