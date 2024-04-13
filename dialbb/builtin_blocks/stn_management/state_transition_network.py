@@ -30,6 +30,9 @@ COMMA: str = "&&&comma&&&"
 SEMICOLON: str = "&&&semicolon&&&"
 
 function_call_pattern = re.compile(r"([^(]+)\(([^)]*)\)")  # matches function patter such as "func(..)"
+ne_condition_pattern = re.compile("([^=]+)!=(.+)")  # matches <variable>!=<value>
+eq_condition_pattern = re.compile("([^=]+)==(.+)")  # matches <variable>==<value>
+set_action_pattern = re.compile("([^=]+)=(.+)")  # matches <variable>=<value>
 
 
 class Argument:
@@ -133,8 +136,8 @@ class Condition:
 
 class Action:
     """
-    a condition for state transition
-    状態遷移の条件を表すクラス
+    an action at a state transition
+    状態遷移におけるアクション
     """
 
     def __init__(self, function_name: str, arguments: List[Argument], string_representation: str):
@@ -178,6 +181,11 @@ class Transition:
             condition_str = condition_str.strip()
             if condition_str == '':
                 continue
+            if condition_str.startswith('$"') and condition_str[-1] == '"':   # $" .... "
+                task: str = condition_str[1:]
+                condition_str = f'_check_with_llm({task})'
+            else:
+                condition_str = self._replace_eq_ne_pattern(condition_str)
             m = function_call_pattern.match(condition_str)  # function pattern match
             if m:
                 function_name: str = m.group(1).strip()
@@ -196,6 +204,7 @@ class Transition:
             action_str = action_str.strip()
             if action_str == "":
                 continue
+            action_str = self._replace_set_pattern(action_str)
             m = function_call_pattern.match(action_str)
             if m:
                 command_name: str = m.group(1).strip()
@@ -210,9 +219,51 @@ class Transition:
         self._destination: str = destination
 
     @staticmethod
+    def _replace_eq_ne_pattern(condition_str: str) -> str:
+        """
+        replace eq or ne syntax sugar (aa==bb, aa!=bb) by _eq(aa, bb)/_ne(aa, bb) in condition
+        :param condition_str: condition string
+        :return: replaced string
+        """
+
+        result = condition_str
+        m_eq = eq_condition_pattern.match(condition_str)
+        if m_eq:
+            variable: str = m_eq.group(1)
+            if variable[0] == '"':
+                abort_during_building("Left-hand side should be a variable: " + condition_str)
+            elif variable[0] not in ('#', '*'):
+                variable = '*' + variable
+            result = f"_eq({variable}, {m_eq.group(2)})"
+        else:
+            m_ne = ne_condition_pattern.match(condition_str)
+            if m_ne:
+                variable: str = m_ne.group(1)
+                if variable[0] == '"':
+                    abort_during_building("Left-hand side should be a variable: " + condition_str)
+                elif variable[0] not in ('#', '*'):
+                    variable = '*' + variable
+                result = f"_ne({variable}, {m_ne.group(2)})"
+        return result
+
+    @staticmethod
+    def _replace_set_pattern(action_str: str) -> str:
+        """
+        replace set syntax sugar (a=b) by _set(&a, b) in action
+        :param action_str: action string
+        :return: replaced string
+        """
+
+        result = action_str
+        m = set_action_pattern.match(action_str)
+        if m:
+            result = f"_set(&{m.group(1)}, {m.group(2)})"
+        return result
+
+    @staticmethod
     def replace_special_characters_in_constant(string: str):
         """
-        replace commas and semicolons in string by special strings
+        replace commas and semicolons in constant (" ..." or { ...})string by special strings
         :param string: input string
         :return: replaced string
         """

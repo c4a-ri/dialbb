@@ -207,7 +207,7 @@ def create_prompt_for_chatgpt(task: str, language: str, system_persona: str, sit
     return prompt
 
 
-def builtin_generate_with_chatgpt(task: str, context: Dict[str, Any]) -> str:
+def builtin_generate_with_llm(task: str, context: Dict[str, Any]) -> str:
     """
     Judge if the condition is satisfied using ChatGPT
     :param task: instruction
@@ -272,7 +272,7 @@ def builtin_generate_with_chatgpt(task: str, context: Dict[str, Any]) -> str:
         return "..."
 
 
-def builtin_check_with_chatgpt(task: str, context: Dict[str, Any]) -> bool:
+def builtin_check_with_llm(task: str, context: Dict[str, Any]) -> bool:
     """
     Check if the condition is satisfied
     :param task: instruction

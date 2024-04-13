@@ -83,7 +83,8 @@ BUILTIN_FUNCTION_MODULE: str = "dialbb.builtin_blocks.stn_management.builtin_sce
 # for using google spreadsheet
 SCOPES = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
 
-var_in_system_utterance_pattern = re.compile(r'{([^}]+)}')  # {<variable name>}
+# {<variable name>||<function call>|<LLM instruction>}
+EMBEDDING_PATTERN = re.compile(r'{([^}]+)}')
 
 
 class STNError(Exception):
@@ -443,6 +444,7 @@ class Manager(AbstractBlock):
                 new_state_name = ERROR_STATE_NAME  # move to error state
                 new_state = self._network.get_state_from_state_name(new_state_name)
 
+            # store the new state for this session
             self._dialogue_context[session_id][CONTEXT_KEY_CURRENT_STATE_NAME] = new_state_name
 
             # select utterance システム発話を選択
@@ -506,11 +508,17 @@ class Manager(AbstractBlock):
         :return: system utterance in which expressions are realized
         """
 
-        result = text
-        for match in var_in_system_utterance_pattern.finditer(result):
+        result = Transition.replace_special_characters_in_constant(text)  # replace commas and semicolons in constant
+
+        # variable in context, special variable (starting with '#'), function call,
+        # or LLM instruction (starting with !)
+        for match in EMBEDDING_PATTERN.finditer(result):
             to_be_replaced: str = match.group(0)
             expression = match.group(1)
-            m = function_call_pattern.match(expression)
+            expression = expression.strip()
+            if expression.startswith('$'):
+                expression = f'_generate_with_llm({expression[1:]})'
+            m = function_call_pattern.match(expression)  # matches the function call pattern
             if m:
                 function_name: str = m.group(1).strip()
                 argument_list_str: str = m.group(2).strip()
@@ -518,6 +526,19 @@ class Manager(AbstractBlock):
                                                                       nlu_result, aux_data, user_id,
                                                                       session_id, sentence)
                 result = result.replace(to_be_replaced, generated_string)
+            elif expression.startswith('#'):  # realize special variable
+                slot_name = expression[1:]
+                if slot_name == "sentence":
+                    value: str = sentence
+                if slot_name == "user_id":
+                    value: str = user_id
+                elif slot_name in nlu_result["slots"].keys():
+                    value: str = nlu_result["slots"][slot_name]
+                elif slot_name in aux_data.keys():
+                    value: str = aux_data[slot_name]
+                else:
+                    self.log_warning(f"special variable #{slot_name} is not realized.", session_id=session_id)
+                return "..."
             elif expression in self._dialogue_context[session_id].keys():
                 result = result.replace(to_be_replaced, self._dialogue_context[session_id][expression])
             else:
@@ -662,7 +683,6 @@ class Manager(AbstractBlock):
         argument_names: List[str] = []
         if argument_list_string:
             # replace commas and semicolons in constant strings
-            argument_list_string = Transition.replace_special_characters_in_constant(argument_list_string)
             argument_names= [argument_str.strip().replace(COMMA, ',').replace(SEMICOLON,"")
                              for argument_str in re.split("[,，、]", argument_list_string)]
 

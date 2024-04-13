@@ -135,7 +135,7 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame,
             utterances2understanding_results[utterance] = understanding_results
 
     types_in_prompt: str = ""
-    for utterance_type in utterances2understanding_results.keys():
+    for utterance_type in types2utterances.keys(): 
         types_in_prompt += f"- {utterance_type}\n"
 
     slot_definitions_in_prompt: str = ""
