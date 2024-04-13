@@ -2,9 +2,9 @@
 
 ## 0.7.0 (2024.3.6)
 
-- 日本語実験アプリケーションがChatGPT言語理解ブロックを利用するように変更
+- The Japanese experimental application changed so that it uses the ChatGPT language understander.
 
-- 英語実験アプリケーションを追加
+- The English experimental application added
 
 - ChatGPT Understander Block added
 

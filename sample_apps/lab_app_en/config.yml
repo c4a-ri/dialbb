@@ -24,8 +24,6 @@ blocks:  # list of blocks
     flags_to_use:
       - 'Y'
       - 'T'
-    sudachi_normalization: yes
-    num_candidates: 3
   - name: ner
     block_class: dialbb.builtin_blocks.ner_with_spacy.ne_recognizer.SpaCyNER
     input:
