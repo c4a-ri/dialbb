@@ -18,12 +18,12 @@ import sphinx_rtd_theme
 
 # -- Project information -----------------------------------------------------
 
-project = 'DialBB Document'
+project = 'DialBB ver. 0.8 Document'
 copyright = 'C4A Research Institute, Inc'
 author = 'Mikio Nakano'
 
 # The full version, including alpha/beta/rc tags
-release = 'v0.7.0'
+release = 'v0.8.0'
 
 
 # -- General configuration ---------------------------------------------------

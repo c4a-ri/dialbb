@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.8.0
+
+- Change the default environment variable for setting the OpenAI API key to OPENAI_API_KEY.
+
+- STN Manager Builtin Block
+
+  - References to special variables and function calls within system utterances allowed.
+
+  - Builtin generation and conditional functions using LLM (ChatGPT) prepared.
+
+  - Syntactic sugars for embedded scenario functions prepared.
+
 ## 0.7.0 (2024.3.6)
 
 - The Japanese experimental application changed so that it uses the ChatGPT language understander.

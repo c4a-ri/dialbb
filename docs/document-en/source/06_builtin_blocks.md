@@ -528,7 +528,11 @@ Each row of the sheet represents a transition. Each row consists of the followin
 
 - `system utterance`
 
-    Candidates of the system utterance generated in the `state` state. The {<variable>} in the system utterance string is replaced by the value assigned to the variable during the dialogue. There can be multiple lines with the same `state`, but all `system utterance` in the lines having the same `state` become system utterance candidates, and will be chosen randomely.
+    Candidates of the system utterance generated in the `state` state. 
+	
+	The `{<variable>}` or `{<function call>}` in the system utterance string is replaced by the value assigned to the variable during the dialogue or the return value of the function call. これについては、以下の「{ref}`realization_in_system_utterance`」で詳しく説明します。
+	
+	There can be multiple lines with the same `state`, but all `system utterance` in the lines having the same `state` become system utterance candidates, and will be chosen randomely.
 
 - `user utterance example`
 
@@ -762,6 +766,10 @@ In the case of a variable reference, the variable name without the `&`' is passe
 In an action function, setting a string to `_reaction` in the context information will prepend that string to the system's response after the state transition.
 
 For example, if the action function `_set(&_reaction, "I agree.")` is executed and the system's response in the subsequent state is "How was the food?", then the system will return the response "I agree. How was the food?".
+
+(realization_in_system_utterance)=
+### システム発話中の変数や関数呼び出しの扱い
+
 
 ### Continuous Transition
 
