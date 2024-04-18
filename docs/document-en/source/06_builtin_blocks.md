@@ -362,9 +362,13 @@ At runtime, input utterance is added to the prompt to make ChatGPT perform langu
 
       Google Sheet ID.
 
-    - `key_file`(string)
+    - `key_file` (string)
 
        Specify the key file to access the Google Sheet API as a relative path from the configuration file directory.
+
+- `gpt_model` (string. The default value is `gpt-3.5-turbo`.)
+
+   Specifies the ChatGPT model. 
 
 - `prompt_template`
 
