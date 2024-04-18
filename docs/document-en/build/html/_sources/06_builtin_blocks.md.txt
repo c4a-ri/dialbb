@@ -27,7 +27,7 @@ Canonicalizes user input sentences. The main target language is English.
 Performs the following processing on the input string.
 
 - Deletes leading and tailing spaces.
-- Replaces upper-case alphabetic characters by lower-case characters.
+- Replaces upper-case alphabetic characters with lower-case characters.
 - Deletes line breaks.
 - Converts a sequence of spaces into a single space.
 
@@ -295,13 +295,13 @@ The Snips training data is `_training_data.json` in the application directory. B
 (chatgpt_understander)=
 ## ChatGPT Understander (Language Understanding Block using Snips)
 
-(`dialbb.builtin_blocks.understanding_with_chatgpt.chatgpt_understander.Understander`）
+(`dialbb.builtin_blocks.understanding_with_chatgpt.chatgpt_understander.Understander`)
 
 Determines the user utterance type (also called intent) and extracts the slots using OpenAI's ChatGPT.
 
 Performs language understanding in Japanese if the `language` element of the configuration is `ja`, and language understanding in English if it is `en`. 
 
-At startup, this block reads the knowledge for language understanding written in Excel, converts it into the list of user utterance types, the list of slots, and the few shot examples to be embedded in the prompt.
+At startup, this block reads the knowledge for language understanding written in Excel, and converts it into the list of user utterance types, the list of slots, and the few shot examples to be embedded in the prompt.
 
 At runtime, input utterance is added to the prompt to make ChatGPT perform language understanding.
 
@@ -333,7 +333,7 @@ At runtime, input utterance is added to the prompt to make ChatGPT perform langu
 	         "slots": {"favorite-sandwich": "roast beef sandwich"}
 	     }
 	    ```
-	  
+	
 
 ### Block Configuration Parameters
 
@@ -362,9 +362,13 @@ At runtime, input utterance is added to the prompt to make ChatGPT perform langu
 
       Google Sheet ID.
 
-    - `key_file`(string)
+    - `key_file` (string)
 
        Specify the key file to access the Google Sheet API as a relative path from the configuration file directory.
+
+- `gpt_model` (string. The default value is `gpt-3.5-turbo`.)
+
+   Specifies the ChatGPT model. 
 
 - `prompt_template`
 
@@ -374,16 +378,15 @@ At runtime, input utterance is added to the prompt to make ChatGPT perform langu
   
   A prompt template is a template of prompts for making ChatGPT language understanding, and it can contain the following variables starting with `@`.
   
-  - `@types` 発話タイプの種類を列挙したものです．
-  - `@slot_definitions` スロットの種類を列挙したものです．
-  - `@examples` 発話例と，タイプ，スロットの正解を書いたいわゆるfew shot exampleです．
-  - `@input` 入力発話です．
+  - `@types` The list of utterance types.
+  - `@slot_definitions` The list of slot definitions.
+  - `@examples` So-called few shot examples each of which has an utterances example, its utterance type, and its slots. 
+  - `@input` input utterance.
   
-  これらの変数には，実行時に値が代入されます．
-
+  Values are assigned to these variables at runtime.
 
 (chatgpt_nlu_knowledge)=
-### Language Understanding Knowledge
+### Language Understanding Knowledgeutterance
 
 Language understanding knowledge consists of the following two sheets.
 
@@ -865,9 +868,9 @@ Note that the contextual information is reverted, but not if you have changed th
 (chatgpt_dialogue)=
 ## ChatGPT Dialogue (ChatGPT-based Dialogue Block)
 
-(Changed in ver0.7）
+(Changed in ver0.7)
 
-(`dialbb.builtin_blocks.chatgpt.chatgpt.ChatGPT` 
+(`dialbb.builtin_blocks.chatgpt.chatgpt.ChatGPT`) 
 
 Engages in dialogue using OpenAI's ChatGPT.
 
@@ -979,7 +982,7 @@ See the spaCy/GiNZA model website for more information on the class of named ent
 	 
  - `ja-ginza-electra` (5.1.2): [https://pypi.org/project/ja-ginza-electra/](https://pypi.org/project/ja-ginza-electra/) 
  - `en_core_web_trf` (3.5.0): [https://spacy.io/models/en#en_core_web_trf-labels](https://huggingface.co/spacy/en_core_web_trfhttps://pypi.org/project/ja-ginza-electra/)
- 
+
  
 
 ### Block Configuration Parameters
