@@ -226,7 +226,7 @@ def builtin_generate_with_llm(task: str, context: Dict[str, Any]) -> str:
         # read chatgpt settings in the block config
         chatgpt_settings: Dict[str, Any] = context['_block_config'].get("chatgpt")
         if chatgpt_settings:
-            gpt_model: str = chatgpt_settings.get("model", "gpt-3.5-turbo")
+            gpt_model: str = chatgpt_settings.get("gpt_model", "gpt-3.5-turbo")
             gpt_temperature: float = chatgpt_settings.get("temperature", 0.7)
             system_persona: List[str] = chatgpt_settings.get("persona")
             situation: List[str] = chatgpt_settings.get("situation")
@@ -287,7 +287,7 @@ def builtin_check_with_llm(task: str, context: Dict[str, Any]) -> bool:
         # read chatgpt settings in the block config
         chatgpt_settings: Dict[str, Any] = context['_block_config'].get("chatgpt")
         if chatgpt_settings:
-            gpt_model: str = chatgpt_settings.get("model", "gpt-3.5-turbo")
+            gpt_model: str = chatgpt_settings.get("gpt_model", "gpt-3.5-turbo")
             gpt_temperature: float = chatgpt_settings.get("temperature", 0.7)
             system_persona: List[str] = chatgpt_settings.get("persona")
             situation: List[str] = chatgpt_settings.get("situation")

@@ -64,8 +64,8 @@ blocks:  # list of blocks
       - 'Y'
       - 'T'
     chatgpt:
-      model: gpt-3.5-turbo
-      #model: gpt-4
+      gpt_model: gpt-3.5-turbo
+      #gpt_model: gpt-4
       temperature: 0.7
       situation:
         - You are a dialogue system and chatting with the user.

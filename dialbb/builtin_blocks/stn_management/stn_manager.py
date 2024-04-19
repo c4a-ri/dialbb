@@ -195,19 +195,6 @@ class Manager(AbstractBlock):
         if DEBUG:
             self._network.check_network(self._repeat_when_no_available_transitions)
 
-        # generate a graph file from the network
-        dot_file: str = os.path.join(CONFIG_DIR, "_stn_graph.dot")  # dot file to input to graphviz
-        jpg_file: str = os.path.join(CONFIG_DIR, "_stn_graph.jpg")  # output of graphviz
-        self._network.output_graph(dot_file)  # create dot file
-        print(f"converting dot file to jpeg: {dot_file}.")
-        if self._language == 'ja':
-            ret: int = os.system(f'dot -Tjpg -Nfontname="MS Gothic" -Efontname="MS Gothic" '
-                                 + f'-Gfontname="MS Gothic" {dot_file} > {jpg_file}')
-        else:
-            ret: int = os.system(f"dot -Tjpg {dot_file} > {jpg_file}")
-        if ret != 0:
-            print(f"converting failed. graphviz may not be installed.")
-
     def get_df_from_gs(self, google_sheet_config: Dict[str, str], scenario_sheet: str) -> DataFrame:
         """
         gets scenario dataframe from google sheet
@@ -538,7 +525,6 @@ class Manager(AbstractBlock):
                     value: str = aux_data[slot_name]
                 else:
                     self.log_warning(f"special variable #{slot_name} is not realized.", session_id=session_id)
-                return "..."
             elif expression in self._dialogue_context[session_id].keys():
                 result = result.replace(to_be_replaced, self._dialogue_context[session_id][expression])
             else:

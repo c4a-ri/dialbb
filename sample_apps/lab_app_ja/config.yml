@@ -66,8 +66,8 @@ blocks:  # ブロックのリスト
       - Y
       - T
     chatgpt:
-      model: gpt-3.5-turbo
-      #_model: gpt-4
+      gpt_model: gpt-3.5-turbo
+      #gpt_model: gpt-4
       temperature: 0.7
       situation:
         - あなたは対話システムで、ユーザと食べ物に関して雑談をしています。
