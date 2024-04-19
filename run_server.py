@@ -14,7 +14,6 @@ from jsonschema import validate, ValidationError
 import mimetypes
 import argparse
 from flask import Flask, request, jsonify, render_template, make_response
-from waitress import serve
 
 # DIALBB_HOME = os.path.dirname(__file__)
 # sys.path.append(DIALBB_HOME)  # TODO avoid this not to violate PEP8 E402
@@ -112,8 +111,6 @@ if __name__ == '__main__':
     logger = get_logger("server")
     logger.propagate = False
     app.run(host="0.0.0.0", port=args.port)
-    #print('running with waitress')
-    #serve(app, host="0.0.0.0", port=args.port)
 
 
 

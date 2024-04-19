@@ -681,6 +681,16 @@ The arguments of the functions used in conditions and actions are of the followi
   It means the string as it is.
 
 
+(realization_in_system_utterance)=
+### システム発話中の変数や関数呼び出しの扱い
+
+システム発話中の`{`と`}`に囲まれた部分の変数や関数呼び出しは，その変数の値や、関数呼び出しの返り値で置き換えられます．
+
+変数は`#`で始まるものは上記の特殊変数です．それ以外のものは通常の変数で，文脈情報にあるはずのものです．それらの変数が存在しない場合は，置換されず変数名がそのまま使われます．
+
+関数呼び出しの場合，関数は条件やアクションで用いる関数と同じように上記の引数を取ることができます。返り値は文字列でないといけません。
+
+
 ### Function Definitions
 
 Functions used in conditions and actions are either built-in to DialBB or defined by the developers.The function used in a condition returns a boolean value, while the function used in an action returns nothing.
@@ -728,6 +738,17 @@ The built-in functions are as follows:
 
     e.g., `_not_member_of(*favorite_food, "ramen:fried_han:dumpling")`
     
+  - `_num_turns_exceeds(n)`
+  
+    文字列`n`が表す整数よりもターン数（ユーザの発話回数）が多いとき、`True`を返します。
+	
+    例：`_num_turns_exceeds("10")`
+
+  - `_check_with_llm(task)`
+  
+     大規模言語モデル（現在はOpenAIのChatGPTのみ）を用いて判定をします。後述します。
+
+
 - Functions used in actions
 
   - `_set(x, y)`
@@ -746,6 +767,13 @@ The built-in functions are as follows:
     e.g., `_set(&a, b)`: sets the value of `b` to `a`. 
 
     `_set(&a, "hello")`: sets `"hello"` to `a`.
+
+- システム発話内で用いる関数
+
+  - `_generate_with_llm(task)`
+  
+     大規模言語モデル（現在はOpenAIのChatGPTのみ）を用いて文字列を生成します。後述します。
+
 
 #### Function Definitions by the Developers
 
