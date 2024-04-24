@@ -12,7 +12,7 @@ __copyright__ = 'C4A Research Institute, Inc.'
 import re
 from typing import List, Dict, Any
 from dialbb.util.error_handlers import abort_during_building, warn_during_building
-
+from dialbb.util.globals import DEBUG
 CONSTANT: str = "constant"
 SPECIAL_VARIABLE: str = "special_variable"
 VARIABLE: str = "variable"
@@ -174,6 +174,9 @@ class Transition:
     """
 
     def __init__(self, user_utterance_type: str, conditions_str: str, actions_str: str, destination: str):
+        if DEBUG:
+            print(f"creating transition: user utterance type: {user_utterance_type}, " +
+                  f"conditions: {conditions_str}, actions: {actions_str}, destinations: {destination}")
         self._user_utterance_type: str = user_utterance_type.strip()
         self._conditions: List[Condition] = []
         conditions_str = self.replace_special_characters_in_constant(conditions_str)
@@ -333,6 +336,8 @@ class State:
 
     def __init__(self, name: str):
         self._name: str = name  # state name 状態名
+        if DEBUG:
+            print(f"creating state: {self._name}")
         self._transitions: List[Transition] = []  # transition list 状態のリスト
         self._system_utterances: List[str] = []  # system utterance list システム発話のリスト
 
