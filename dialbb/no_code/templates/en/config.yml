@@ -1,0 +1,71 @@
+language: en   # specify language
+
+blocks:  # list of blocks
+  - name: canonicalizer  # block name
+    # block class
+    block_class: dialbb.builtin_blocks.preprocess.simple_canonicalizer.SimpleCanonicalizer
+    input: # input to block
+      input_text: user_utterance
+    output: # output form the block
+      output_text: canonicalized_user_utterance
+  - name: understander
+    block_class: dialbb.builtin_blocks.understanding_with_chatgpt.chatgpt_understander.Understander
+    input:
+      input_text: canonicalized_user_utterance
+    output:
+      nlu_result: nlu_result
+    knowledge_file: nlu-knowledge.xlsx  # knowledge file
+    canonicalizer:
+      class: dialbb.builtin_blocks.preprocess.japanese_canonicalizer.JapaneseCanonicalizer
+    model: gpt-3.5-turbo
+  - name: ner
+    block_class: dialbb.builtin_blocks.ner_with_spacy.ne_recognizer.SpaCyNER
+    input:
+      input_text: user_utterance
+      aux_data: aux_data
+    output:
+      aux_data: aux_data
+    model: en_core_web_trf
+  - name: manager
+    block_class: dialbb.builtin_blocks.stn_management.stn_manager.Manager
+    knowledge_file: scenario.xlsx # scenario file
+    input:
+      sentence: canonicalized_user_utterance
+      nlu_result: nlu_result
+      user_id: user_id
+      aux_data: aux_data
+    output:
+      output_text: system_utterance
+      final: final
+      aux_data: aux_data
+    chatgpt:
+      gpt_model: gpt-3.5-turbo  # gpt-4
+      temperature: 0.7
+      situation:
+        - You are a dialogue system and chatting with the user.
+        - You met the user for the first time.
+        - You and the user are similar in age.
+        - You and the user talk in a friendly manner.
+      persona:
+        - Your name is Yui
+        - 28 years old
+        - Female
+        - You like sweets
+        - You don't drink alcohol
+        - A web designer working for an IT company
+        - Single
+        - You talk very friendly
+        - Diplomatic and cheerful
+
+
+
+
+
+
+
+
+        
+        
+
+    
+    

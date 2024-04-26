@@ -1,0 +1,65 @@
+language: ja   # 言語を指定
+
+blocks:  # ブロックのリスト
+  - name: canonicalizer  # ブロック名
+    # ブロックのクラス
+    block_class: dialbb.builtin_blocks.preprocess.japanese_canonicalizer.JapaneseCanonicalizer
+    input: # ブロックへの入力
+      input_text: user_utterance
+    output: # ブロックからの出力
+      output_text: canonicalized_user_utterance
+  - name: understander
+    block_class: dialbb.builtin_blocks.understanding_with_chatgpt.chatgpt_understander.Understander
+    input:
+      input_text: canonicalized_user_utterance
+    output:
+      nlu_result: nlu_result
+    knowledge_file: nlu-knowledge.xlsx  # 知識記述ファイル
+    canonicalizer:
+      class: dialbb.builtin_blocks.preprocess.japanese_canonicalizer.JapaneseCanonicalizer
+    model: gpt-3.5-turbo
+  - name: ner
+    block_class: dialbb.builtin_blocks.ner_with_spacy.ne_recognizer.SpaCyNER
+    input:
+      input_text: user_utterance
+      aux_data: aux_data
+    output:
+      aux_data: aux_data
+    model: ja_ginza_electra
+  - name: manager
+    block_class: dialbb.builtin_blocks.stn_management.stn_manager.Manager
+    knowledge_file: scenario.xlsx # 知識記述ファイル
+    input:
+      sentence: canonicalized_user_utterance
+      nlu_result: nlu_result
+      user_id: user_id
+      aux_data: aux_data
+    output:
+      output_text: system_utterance
+      final: final
+      aux_data: aux_data
+    chatgpt:
+      model: gpt-3.5-turbo
+      #model: gpt-4
+      temperature: 0.7
+      situation:
+        - あなたは対話システムで、ユーザと食べ物に関して雑談をしています。
+        - ユーザとは初対面です
+        - ユーザとは同年代です
+        - ユーザとは親しい感じで話します
+      persona:
+        - 名前は由衣
+        - 28歳
+        - 女性
+        - ラーメン全般が好き
+        - お酒は飲まない
+        - IT会社のwebデザイナー
+        - 独身
+        - 非常にフレンドリーに話す
+        - 外交的で陽気
+
+        
+        
+
+    
+    

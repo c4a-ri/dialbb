@@ -1,0 +1,1785 @@
+{
+    "nodes": [
+        {
+            "id": 1006,
+            "label": "systemNode",
+            "outputs": {
+                "next": {
+                    "id": "c906f4cdb7280f51",
+                    "label": "Output",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "inputs": {
+                "state": {
+                    "id": "7a5c15aa00298e74",
+                    "label": "Input",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "controls": {
+                "type": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "c1a310d56c5ab5c8",
+                    "type": "text",
+                    "value": "initial"
+                },
+                "status": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "71be191c173f36bb",
+                    "type": "text",
+                    "value": "#initial"
+                },
+                "utterance": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "21cedf90fa98df6d",
+                    "type": "text",
+                    "value": "こんにちは。今日はラーメンについて教えて下さい。ラーメンはよく食べますか？"
+                }
+            }
+        },
+        {
+            "id": 1016,
+            "label": "userNode",
+            "outputs": {
+                "next": {
+                    "id": "6ab550e1ae1b3c65",
+                    "label": "Output",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "inputs": {
+                "state": {
+                    "id": "49c4fa46938d11ef",
+                    "label": "Input",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "controls": {
+                "seqnum": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "e8c5b276bd26fb27",
+                    "type": "number",
+                    "value": 10
+                },
+                "utterance": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "11483688b69bb287",
+                    "type": "text",
+                    "value": "はい、よく食べます。"
+                },
+                "type": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "2c3ba32d767e109c",
+                    "type": "text",
+                    "value": "食べる"
+                },
+                "conditions": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "7b357f65ba405bc3",
+                    "type": "text",
+                    "value": ""
+                },
+                "actions": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "400cb01edd24c257",
+                    "type": "text",
+                    "value": ""
+                }
+            }
+        },
+        {
+            "id": 2009,
+            "label": "userNode",
+            "outputs": {
+                "next": {
+                    "id": "3c3cecfabb5b5654",
+                    "label": "Output",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "inputs": {
+                "state": {
+                    "id": "68158563cb7b8c60",
+                    "label": "Input",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "controls": {
+                "seqnum": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "8e781e691212967f",
+                    "type": "number",
+                    "value": 20
+                },
+                "utterance": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "dcc071d0267815b1",
+                    "type": "text",
+                    "value": "あまり食べないです。"
+                },
+                "type": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "4e8123bd4227f3b9",
+                    "type": "text",
+                    "value": "食べない"
+                },
+                "conditions": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "b8a1669d58718667",
+                    "type": "text",
+                    "value": ""
+                },
+                "actions": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "131d24ce59d20c49",
+                    "type": "text",
+                    "value": ""
+                }
+            }
+        },
+        {
+            "id": 3009,
+            "label": "userNode",
+            "outputs": {
+                "next": {
+                    "id": "bbded2752298ad8f",
+                    "label": "Output",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "inputs": {
+                "state": {
+                    "id": "001235db954bf2cd",
+                    "label": "Input",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "controls": {
+                "seqnum": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "ee68495049d78c04",
+                    "type": "number",
+                    "value": 30
+                },
+                "utterance": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "880d3fd314e96254",
+                    "type": "text",
+                    "value": "はい"
+                },
+                "type": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "7ae4e814128b48a5",
+                    "type": "text",
+                    "value": "肯定"
+                },
+                "conditions": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "af228410fe6f1a57",
+                    "type": "text",
+                    "value": ""
+                },
+                "actions": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "1e31ce15db3d1994",
+                    "type": "text",
+                    "value": ""
+                }
+            }
+        },
+        {
+            "id": 4009,
+            "label": "userNode",
+            "outputs": {
+                "next": {
+                    "id": "22f066c13aa8d6fb",
+                    "label": "Output",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "inputs": {
+                "state": {
+                    "id": "cf369e8fe51b7568",
+                    "label": "Input",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "controls": {
+                "seqnum": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "467193e031f01ebe",
+                    "type": "number",
+                    "value": 40
+                },
+                "utterance": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "c2bd2cb93ceeaa0a",
+                    "type": "text",
+                    "value": ""
+                },
+                "type": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "9bd9b44da55277c4",
+                    "type": "text",
+                    "value": ""
+                },
+                "conditions": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "41c2a9cdf01f9792",
+                    "type": "text",
+                    "value": ""
+                },
+                "actions": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "214b4d64171383c3",
+                    "type": "text",
+                    "value": ""
+                }
+            }
+        },
+        {
+            "id": 5006,
+            "label": "systemNode",
+            "outputs": {
+                "next": {
+                    "id": "9355e57c8b2cf142",
+                    "label": "Output",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "inputs": {
+                "state": {
+                    "id": "3774529b374b066d",
+                    "label": "Input",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "controls": {
+                "type": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "9975d50a8cc8f41d",
+                    "type": "text",
+                    "value": "other"
+                },
+                "status": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "fc706c6d875c9f51",
+                    "type": "text",
+                    "value": "食べる"
+                },
+                "utterance": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "dfee7b373eb2f07e",
+                    "type": "text",
+                    "value": "ラーメンお好きなんですね。"
+                }
+            }
+        },
+        {
+            "id": 5016,
+            "label": "userNode",
+            "outputs": {
+                "next": {
+                    "id": "28a39c101d49f578",
+                    "label": "Output",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "inputs": {
+                "state": {
+                    "id": "01c21303dcdca39b",
+                    "label": "Input",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "controls": {
+                "seqnum": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "76365f42ac088152",
+                    "type": "number",
+                    "value": 10
+                },
+                "utterance": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "9ad36d209a6975de",
+                    "type": "text",
+                    "value": "そうですね。"
+                },
+                "type": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "e88c4decd9c668d6",
+                    "type": "text",
+                    "value": "肯定"
+                },
+                "conditions": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "92b883f24b36fea0",
+                    "type": "text",
+                    "value": ""
+                },
+                "actions": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "03c071314e76b763",
+                    "type": "text",
+                    "value": ""
+                }
+            }
+        },
+        {
+            "id": 6009,
+            "label": "userNode",
+            "outputs": {
+                "next": {
+                    "id": "a9bc5c37bdae6353",
+                    "label": "Output",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "inputs": {
+                "state": {
+                    "id": "ba295e205ce057aa",
+                    "label": "Input",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "controls": {
+                "seqnum": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "57b1be6b192d7623",
+                    "type": "number",
+                    "value": 20
+                },
+                "utterance": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "f4a0e1fd1abe23f3",
+                    "type": "text",
+                    "value": "好き"
+                },
+                "type": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "406983547e9946bd",
+                    "type": "text",
+                    "value": "好き"
+                },
+                "conditions": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "406e0d27c9a16528",
+                    "type": "text",
+                    "value": ""
+                },
+                "actions": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "09a73889e596b9d6",
+                    "type": "text",
+                    "value": ""
+                }
+            }
+        },
+        {
+            "id": 7009,
+            "label": "userNode",
+            "outputs": {
+                "next": {
+                    "id": "7a77b3804b023e61",
+                    "label": "Output",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "inputs": {
+                "state": {
+                    "id": "284338cea3aa1e29",
+                    "label": "Input",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "controls": {
+                "seqnum": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "ed0166c6f7e91603",
+                    "type": "number",
+                    "value": 30
+                },
+                "utterance": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "700eb00e1e9d761a",
+                    "type": "text",
+                    "value": "いや"
+                },
+                "type": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "8e4a57847d728623",
+                    "type": "text",
+                    "value": "否定"
+                },
+                "conditions": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "809b377c8ee291d9",
+                    "type": "text",
+                    "value": ""
+                },
+                "actions": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "3406cf2810de1fe9",
+                    "type": "text",
+                    "value": ""
+                }
+            }
+        },
+        {
+            "id": 8009,
+            "label": "userNode",
+            "outputs": {
+                "next": {
+                    "id": "2adc75c5c32952d6",
+                    "label": "Output",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "inputs": {
+                "state": {
+                    "id": "3949e0b8bfe28da6",
+                    "label": "Input",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "controls": {
+                "seqnum": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "effc17ab72091f02",
+                    "type": "number",
+                    "value": 40
+                },
+                "utterance": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "fe4eafa7f3298a40",
+                    "type": "text",
+                    "value": "そんなに好きじゃない"
+                },
+                "type": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "4ade43c611771557",
+                    "type": "text",
+                    "value": "好きじゃない"
+                },
+                "conditions": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "456a999d5a5558f2",
+                    "type": "text",
+                    "value": ""
+                },
+                "actions": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "ee8f9149b244931d",
+                    "type": "text",
+                    "value": ""
+                }
+            }
+        },
+        {
+            "id": 9009,
+            "label": "userNode",
+            "outputs": {
+                "next": {
+                    "id": "3a4fdd979cb377a7",
+                    "label": "Output",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "inputs": {
+                "state": {
+                    "id": "fa297f863572ebbb",
+                    "label": "Input",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "controls": {
+                "seqnum": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "a369495ee9e2df11",
+                    "type": "number",
+                    "value": 50
+                },
+                "utterance": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "04fc39c73a86fedf",
+                    "type": "text",
+                    "value": "まあまあ"
+                },
+                "type": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "47f589402ea0b50e",
+                    "type": "text",
+                    "value": ""
+                },
+                "conditions": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "bb0e7d5889f3fbbb",
+                    "type": "text",
+                    "value": ""
+                },
+                "actions": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "1f805923563f376a",
+                    "type": "text",
+                    "value": ""
+                }
+            }
+        },
+        {
+            "id": 10006,
+            "label": "systemNode",
+            "outputs": {
+                "next": {
+                    "id": "c79532878f6a39e2",
+                    "label": "Output",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "inputs": {
+                "state": {
+                    "id": "b4781728de5ee058",
+                    "label": "Input",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "controls": {
+                "type": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "624d72231bc3c414",
+                    "type": "text",
+                    "value": "other"
+                },
+                "status": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "524c33f5dd46ee38",
+                    "type": "text",
+                    "value": "食べない"
+                },
+                "utterance": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "056ef2142c67474d",
+                    "type": "text",
+                    "value": "ラーメン嫌いなんですね。なぜか教えて頂いてもいいですか？"
+                }
+            }
+        },
+        {
+            "id": 10016,
+            "label": "userNode",
+            "outputs": {
+                "next": {
+                    "id": "555e96ced5b2cc5f",
+                    "label": "Output",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "inputs": {
+                "state": {
+                    "id": "867e4a6dbaa36820",
+                    "label": "Input",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "controls": {
+                "seqnum": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "e01e9d270f1fd4cc",
+                    "type": "number",
+                    "value": 10
+                },
+                "utterance": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "b7053596aa9e2e94",
+                    "type": "text",
+                    "value": "油っぽいんだよね"
+                },
+                "type": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "270e960db6f7559d",
+                    "type": "text",
+                    "value": ""
+                },
+                "conditions": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "aaf5396b5b4b687d",
+                    "type": "text",
+                    "value": ""
+                },
+                "actions": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "5e85b58e66943a67",
+                    "type": "text",
+                    "value": ""
+                }
+            }
+        },
+        {
+            "id": 11006,
+            "label": "systemNode",
+            "outputs": {
+                "next": {
+                    "id": "1cc4fc5ec905eeeb",
+                    "label": "Output",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "inputs": {
+                "state": {
+                    "id": "f7c3d1be67a21b44",
+                    "label": "Input",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "controls": {
+                "type": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "618a1b1f2c88f818",
+                    "type": "text",
+                    "value": "other"
+                },
+                "status": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "cba2ece2bef14e1e",
+                    "type": "text",
+                    "value": "好き"
+                },
+                "utterance": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "b59fec58aa747954",
+                    "type": "text",
+                    "value": "豚骨ラーメンとか塩ラーメンなどいろんな種類のラーメンがありますが、どんなラーメンが好きですか？"
+                }
+            }
+        },
+        {
+            "id": 11016,
+            "label": "userNode",
+            "outputs": {
+                "next": {
+                    "id": "8a548aea48ec6408",
+                    "label": "Output",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "inputs": {
+                "state": {
+                    "id": "68d5962bdf426582",
+                    "label": "Input",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "controls": {
+                "seqnum": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "2ba6de8665cef1f2",
+                    "type": "number",
+                    "value": 10
+                },
+                "utterance": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "36a2ba8ff39620f6",
+                    "type": "text",
+                    "value": "豚骨ラーメンが好きです。"
+                },
+                "type": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "9437fc72c005b7c4",
+                    "type": "text",
+                    "value": "特定のラーメンが好き"
+                },
+                "conditions": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "5e266d2ee483d5bd",
+                    "type": "text",
+                    "value": "_eq(#favorite_ramen, \"豚骨ラーメン\")"
+                },
+                "actions": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "8c4f7f9fad8c2de2",
+                    "type": "text",
+                    "value": "_set(&topic_ramen, #favorite_ramen)"
+                }
+            }
+        },
+        {
+            "id": 12009,
+            "label": "userNode",
+            "outputs": {
+                "next": {
+                    "id": "9b3af4f1c451f014",
+                    "label": "Output",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "inputs": {
+                "state": {
+                    "id": "3ae754e16f701ed4",
+                    "label": "Input",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "controls": {
+                "seqnum": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "8a02118c97a31043",
+                    "type": "number",
+                    "value": 20
+                },
+                "utterance": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "44ff2f8f7bac7d72",
+                    "type": "text",
+                    "value": "豚骨ラーメンが好きです。"
+                },
+                "type": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "618866cbd17ac5a8",
+                    "type": "text",
+                    "value": "特定のラーメンが好き"
+                },
+                "conditions": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "4efba2520741cfc4",
+                    "type": "text",
+                    "value": "is_known_ramen(#favorite_ramen)"
+                },
+                "actions": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "4e9ea7e8f94cbbd1",
+                    "type": "text",
+                    "value": "_set(&topic_ramen, #favorite_ramen); get_ramen_location(*topic_ramen, &location)"
+                }
+            }
+        },
+        {
+            "id": 13009,
+            "label": "userNode",
+            "outputs": {
+                "next": {
+                    "id": "1bd89a19742ce61a",
+                    "label": "Output",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "inputs": {
+                "state": {
+                    "id": "8d9637201ed62dc1",
+                    "label": "Input",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "controls": {
+                "seqnum": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "54109a11af6c6688",
+                    "type": "number",
+                    "value": 30
+                },
+                "utterance": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "5cef0b31c7106146",
+                    "type": "text",
+                    "value": ""
+                },
+                "type": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "a8eac20b150bae64",
+                    "type": "text",
+                    "value": "特定のラーメンが好き"
+                },
+                "conditions": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "89d5be5dcaedc423",
+                    "type": "text",
+                    "value": "is_novel_ramen(#favorite_ramen)"
+                },
+                "actions": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "aadcb7bc8017a67b",
+                    "type": "text",
+                    "value": "_set(&topic_ramen, #favorite_ramen)"
+                }
+            }
+        },
+        {
+            "id": 14009,
+            "label": "userNode",
+            "outputs": {
+                "next": {
+                    "id": "e92130866df4c7ce",
+                    "label": "Output",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "inputs": {
+                "state": {
+                    "id": "2b23b8ddad4d2a21",
+                    "label": "Input",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "controls": {
+                "seqnum": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "be31cfb016293b50",
+                    "type": "number",
+                    "value": 40
+                },
+                "utterance": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "2b9f807bbec9b8ba",
+                    "type": "text",
+                    "value": "近所の街中華のラーメンが好きなんだよね"
+                },
+                "type": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "df090e11118fb8ad",
+                    "type": "text",
+                    "value": ""
+                },
+                "conditions": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "b05285272bb2475e",
+                    "type": "text",
+                    "value": ""
+                },
+                "actions": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "410397b02db7f746",
+                    "type": "text",
+                    "value": ""
+                }
+            }
+        },
+        {
+            "id": 15006,
+            "label": "systemNode",
+            "outputs": {
+                "next": {
+                    "id": "f2be05bc467c6233",
+                    "label": "Output",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "inputs": {
+                "state": {
+                    "id": "882d159151edef80",
+                    "label": "Input",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "controls": {
+                "type": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "dadee59ab593cebd",
+                    "type": "text",
+                    "value": "other"
+                },
+                "status": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "07036f7439fb3e92",
+                    "type": "text",
+                    "value": "好きじゃない"
+                },
+                "utterance": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "9428818e4b320f39",
+                    "type": "text",
+                    "value": "そうなんですね。好きじゃないのに何で食べるのですか？"
+                }
+            }
+        },
+        {
+            "id": 15016,
+            "label": "userNode",
+            "outputs": {
+                "next": {
+                    "id": "2039acabb748ef4c",
+                    "label": "Output",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "inputs": {
+                "state": {
+                    "id": "f9f568beb0ebcb44",
+                    "label": "Input",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "controls": {
+                "seqnum": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "d19d2c1485fcdb89",
+                    "type": "number",
+                    "value": 10
+                },
+                "utterance": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "9928175429d78a3a",
+                    "type": "text",
+                    "value": "安いから"
+                },
+                "type": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "890a6844f7b4a831",
+                    "type": "text",
+                    "value": ""
+                },
+                "conditions": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "50af9c4ad9e7c19a",
+                    "type": "text",
+                    "value": ""
+                },
+                "actions": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "3d37e2cfdb3fdd71",
+                    "type": "text",
+                    "value": ""
+                }
+            }
+        },
+        {
+            "id": 16006,
+            "label": "systemNode",
+            "outputs": {
+                "next": {
+                    "id": "de7b7e73e1037462",
+                    "label": "Output",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "inputs": {
+                "state": {
+                    "id": "c94dce8858652ba3",
+                    "label": "Input",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "controls": {
+                "type": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "9f6f6e4507dee544",
+                    "type": "text",
+                    "value": "other"
+                },
+                "status": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "d1ec4926d2fb1ac7",
+                    "type": "text",
+                    "value": "豚骨ラーメンが好き"
+                },
+                "utterance": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "fbee4ec5479be1f0",
+                    "type": "text",
+                    "value": "豚骨ラーメンですね。私も大好きです！なぜ豚骨ラーメンが好きなんですか？"
+                }
+            }
+        },
+        {
+            "id": 16016,
+            "label": "userNode",
+            "outputs": {
+                "next": {
+                    "id": "8fd07c17db0b5f68",
+                    "label": "Output",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "inputs": {
+                "state": {
+                    "id": "4511acf9390dea1d",
+                    "label": "Input",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "controls": {
+                "seqnum": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "ba42aff8ef4e6749",
+                    "type": "number",
+                    "value": 10
+                },
+                "utterance": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "bde25468b66942a7",
+                    "type": "text",
+                    "value": ""
+                },
+                "type": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "98fdca3409784b16",
+                    "type": "text",
+                    "value": ""
+                },
+                "conditions": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "688949c950e90f6c",
+                    "type": "text",
+                    "value": ""
+                },
+                "actions": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "f713aa3d73cff54d",
+                    "type": "text",
+                    "value": ""
+                }
+            }
+        },
+        {
+            "id": 17006,
+            "label": "systemNode",
+            "outputs": {
+                "next": {
+                    "id": "06b4b06a05e2cc84",
+                    "label": "Output",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "inputs": {
+                "state": {
+                    "id": "e8f82989e77ad84d",
+                    "label": "Input",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "controls": {
+                "type": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "9cc78c561ce9abed",
+                    "type": "text",
+                    "value": "other"
+                },
+                "status": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "ea05b8ef93d582c7",
+                    "type": "text",
+                    "value": "特定のラーメンが好き"
+                },
+                "utterance": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "9bb36b990fa25359",
+                    "type": "text",
+                    "value": "{topic_ramen}ですね。{location}にはよく行きますか？"
+                }
+            }
+        },
+        {
+            "id": 17016,
+            "label": "userNode",
+            "outputs": {
+                "next": {
+                    "id": "43fa2ec9337eecaa",
+                    "label": "Output",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "inputs": {
+                "state": {
+                    "id": "750f890ae4f86ce7",
+                    "label": "Input",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "controls": {
+                "seqnum": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "a7501e94ec37f8ef",
+                    "type": "number",
+                    "value": 10
+                },
+                "utterance": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "1cdb3523cedb495c",
+                    "type": "text",
+                    "value": ""
+                },
+                "type": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "0f65d2f4043ccc76",
+                    "type": "text",
+                    "value": ""
+                },
+                "conditions": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "72edd6f17d715213",
+                    "type": "text",
+                    "value": ""
+                },
+                "actions": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "fe61eecc5b162b0a",
+                    "type": "text",
+                    "value": ""
+                }
+            }
+        },
+        {
+            "id": 18006,
+            "label": "systemNode",
+            "outputs": {
+                "next": {
+                    "id": "73e385c12aba770b",
+                    "label": "Output",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "inputs": {
+                "state": {
+                    "id": "5a0d358d870454b9",
+                    "label": "Input",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "controls": {
+                "type": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "be5844cbfe362d97",
+                    "type": "text",
+                    "value": "other"
+                },
+                "status": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "9324eff817bf9ca9",
+                    "type": "text",
+                    "value": "知らないラーメンが好き"
+                },
+                "utterance": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "aaeac70b429dd1b7",
+                    "type": "text",
+                    "value": "{topic_ramen}は知りませんでした。どんなラーメンなんですか？"
+                }
+            }
+        },
+        {
+            "id": 18016,
+            "label": "userNode",
+            "outputs": {
+                "next": {
+                    "id": "fe64c6ffa1fc99d6",
+                    "label": "Output",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "inputs": {
+                "state": {
+                    "id": "4b0c18e7f91c874a",
+                    "label": "Input",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "controls": {
+                "seqnum": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "4f04d7b36653a6b3",
+                    "type": "number",
+                    "value": 10
+                },
+                "utterance": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "aa816abff39894a0",
+                    "type": "text",
+                    "value": ""
+                },
+                "type": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "b92e92f4288619c0",
+                    "type": "text",
+                    "value": ""
+                },
+                "conditions": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "a8acbde9d1a014e5",
+                    "type": "text",
+                    "value": ""
+                },
+                "actions": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "f0ce9991c663e661",
+                    "type": "text",
+                    "value": ""
+                }
+            }
+        },
+        {
+            "id": 19006,
+            "label": "systemNode",
+            "outputs": {
+                "next": {
+                    "id": "9bacdb451fcf3b22",
+                    "label": "Output",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "inputs": {
+                "state": {
+                    "id": "f5ae471e23d4e969",
+                    "label": "Input",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "controls": {
+                "type": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "ae684efdce7bdc4f",
+                    "type": "text",
+                    "value": ""
+                },
+                "status": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "f3fdf80ce74faad2",
+                    "type": "text",
+                    "value": "#final"
+                },
+                "utterance": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "9dca62e6188470d7",
+                    "type": "text",
+                    "value": "わかりました。今日はお時間ありがとうございました。"
+                }
+            }
+        },
+        {
+            "id": 19016,
+            "label": "userNode",
+            "outputs": {
+                "next": {
+                    "id": "c705f9b7bc67f995",
+                    "label": "Output",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "inputs": {
+                "state": {
+                    "id": "4aeaedd03c698879",
+                    "label": "Input",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "controls": {
+                "seqnum": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "3b06564824b7bffd",
+                    "type": "number",
+                    "value": 10
+                },
+                "utterance": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "577a244e4c86e7f1",
+                    "type": "text",
+                    "value": ""
+                },
+                "type": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "93ad80749c6f366d",
+                    "type": "text",
+                    "value": ""
+                },
+                "conditions": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "1e47b2f762cc4df8",
+                    "type": "text",
+                    "value": ""
+                },
+                "actions": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "5ad902f12ba193bc",
+                    "type": "text",
+                    "value": ""
+                }
+            }
+        },
+        {
+            "id": 20006,
+            "label": "systemNode",
+            "outputs": {
+                "next": {
+                    "id": "e5049be3548b7d97",
+                    "label": "Output",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "inputs": {
+                "state": {
+                    "id": "7f6dc8508f7bc749",
+                    "label": "Input",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "controls": {
+                "type": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "8f604187b5f16092",
+                    "type": "text",
+                    "value": "error"
+                },
+                "status": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "83d7e5ad906cfa33",
+                    "type": "text",
+                    "value": "#error"
+                },
+                "utterance": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "aba834b64a9dc29c",
+                    "type": "text",
+                    "value": "申し訳ありません。内部エラーがおきてしまいました。今日はありがとうございました。"
+                }
+            }
+        },
+        {
+            "id": 20016,
+            "label": "userNode",
+            "outputs": {
+                "next": {
+                    "id": "2af85c891784d915",
+                    "label": "Output",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "inputs": {
+                "state": {
+                    "id": "d7a16bea7d929013",
+                    "label": "Input",
+                    "socket": {
+                        "name": "Number"
+                    }
+                }
+            },
+            "controls": {
+                "seqnum": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "8a02d5eaab2e2b49",
+                    "type": "number",
+                    "value": 10
+                },
+                "utterance": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "32d5fadbadddb2af",
+                    "type": "text",
+                    "value": ""
+                },
+                "type": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "50791eaeed1d979e",
+                    "type": "text",
+                    "value": ""
+                },
+                "conditions": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "3a1b24f1f2ccb1e3",
+                    "type": "text",
+                    "value": ""
+                },
+                "actions": {
+                    "__type": "ClassicPreset.InputControl",
+                    "id": "6fb4ea31eb1cf980",
+                    "type": "text",
+                    "value": ""
+                }
+            }
+        }
+    ],
+    "connects": [
+        {
+            "id": "1b14a53beb4f0285",
+            "sourceOutput": "next",
+            "targetInput": "state",
+            "source": 1006,
+            "target": 1016
+        },
+        {
+            "id": "3f95de4735a2b38b",
+            "sourceOutput": "next",
+            "targetInput": "state",
+            "source": 1006,
+            "target": 2009
+        },
+        {
+            "id": "249ed8e75997a356",
+            "sourceOutput": "next",
+            "targetInput": "state",
+            "source": 1006,
+            "target": 3009
+        },
+        {
+            "id": "e0048f76c8baf0c0",
+            "sourceOutput": "next",
+            "targetInput": "state",
+            "source": 1006,
+            "target": 4009
+        },
+        {
+            "id": "ab86ed3afa800107",
+            "sourceOutput": "next",
+            "targetInput": "state",
+            "source": 1016,
+            "target": 5006
+        },
+        {
+            "id": "3de59d5883c947a9",
+            "sourceOutput": "next",
+            "targetInput": "state",
+            "source": 2009,
+            "target": 10006
+        },
+        {
+            "id": "646d49f79766e1c8",
+            "sourceOutput": "next",
+            "targetInput": "state",
+            "source": 3009,
+            "target": 5006
+        },
+        {
+            "id": "2c3c59d37878286c",
+            "sourceOutput": "next",
+            "targetInput": "state",
+            "source": 4009,
+            "target": 11006
+        },
+        {
+            "id": "7cb57ceccabb7e92",
+            "sourceOutput": "next",
+            "targetInput": "state",
+            "source": 5006,
+            "target": 5016
+        },
+        {
+            "id": "21fb6e6980e8eee7",
+            "sourceOutput": "next",
+            "targetInput": "state",
+            "source": 5006,
+            "target": 6009
+        },
+        {
+            "id": "50939aad66518b43",
+            "sourceOutput": "next",
+            "targetInput": "state",
+            "source": 5006,
+            "target": 7009
+        },
+        {
+            "id": "b1f540333a7d7437",
+            "sourceOutput": "next",
+            "targetInput": "state",
+            "source": 5006,
+            "target": 8009
+        },
+        {
+            "id": "3c54466f860d8e2a",
+            "sourceOutput": "next",
+            "targetInput": "state",
+            "source": 5006,
+            "target": 9009
+        },
+        {
+            "id": "c78d86632d9c8757",
+            "sourceOutput": "next",
+            "targetInput": "state",
+            "source": 5016,
+            "target": 11006
+        },
+        {
+            "id": "57961ce38ddf3d09",
+            "sourceOutput": "next",
+            "targetInput": "state",
+            "source": 6009,
+            "target": 11006
+        },
+        {
+            "id": "fc458ad1665f239c",
+            "sourceOutput": "next",
+            "targetInput": "state",
+            "source": 7009,
+            "target": 15006
+        },
+        {
+            "id": "3fae074c6ba052e3",
+            "sourceOutput": "next",
+            "targetInput": "state",
+            "source": 8009,
+            "target": 15006
+        },
+        {
+            "id": "bce76554d8a9f6bb",
+            "sourceOutput": "next",
+            "targetInput": "state",
+            "source": 9009,
+            "target": 11006
+        },
+        {
+            "id": "dfc07a702b9ad4f1",
+            "sourceOutput": "next",
+            "targetInput": "state",
+            "source": 10006,
+            "target": 10016
+        },
+        {
+            "id": "b4be105af82110a2",
+            "sourceOutput": "next",
+            "targetInput": "state",
+            "source": 10016,
+            "target": 19006
+        },
+        {
+            "id": "464efb542b44d1c7",
+            "sourceOutput": "next",
+            "targetInput": "state",
+            "source": 11006,
+            "target": 11016
+        },
+        {
+            "id": "f699c035b54d416c",
+            "sourceOutput": "next",
+            "targetInput": "state",
+            "source": 11006,
+            "target": 12009
+        },
+        {
+            "id": "c9ceed35e888e513",
+            "sourceOutput": "next",
+            "targetInput": "state",
+            "source": 11006,
+            "target": 13009
+        },
+        {
+            "id": "7117d3ec85fcd2f9",
+            "sourceOutput": "next",
+            "targetInput": "state",
+            "source": 11006,
+            "target": 14009
+        },
+        {
+            "id": "5d41a08998785722",
+            "sourceOutput": "next",
+            "targetInput": "state",
+            "source": 11016,
+            "target": 16006
+        },
+        {
+            "id": "bb5b3bd8ef2b7fb7",
+            "sourceOutput": "next",
+            "targetInput": "state",
+            "source": 12009,
+            "target": 17006
+        },
+        {
+            "id": "4d4769bf7c5c92d0",
+            "sourceOutput": "next",
+            "targetInput": "state",
+            "source": 13009,
+            "target": 18006
+        },
+        {
+            "id": "0ea65107a90387aa",
+            "sourceOutput": "next",
+            "targetInput": "state",
+            "source": 14009,
+            "target": 19006
+        },
+        {
+            "id": "654341c9b9727830",
+            "sourceOutput": "next",
+            "targetInput": "state",
+            "source": 15006,
+            "target": 15016
+        },
+        {
+            "id": "86394da7b4dd6a16",
+            "sourceOutput": "next",
+            "targetInput": "state",
+            "source": 15016,
+            "target": 19006
+        },
+        {
+            "id": "01465b9008b1ff22",
+            "sourceOutput": "next",
+            "targetInput": "state",
+            "source": 16006,
+            "target": 16016
+        },
+        {
+            "id": "c8c290edc97e7049",
+            "sourceOutput": "next",
+            "targetInput": "state",
+            "source": 16016,
+            "target": 19006
+        },
+        {
+            "id": "a725eb41ce25aa26",
+            "sourceOutput": "next",
+            "targetInput": "state",
+            "source": 17006,
+            "target": 17016
+        },
+        {
+            "id": "c02ea98b781030e1",
+            "sourceOutput": "next",
+            "targetInput": "state",
+            "source": 17016,
+            "target": 19006
+        },
+        {
+            "id": "b874a205510418c8",
+            "sourceOutput": "next",
+            "targetInput": "state",
+            "source": 18006,
+            "target": 18016
+        },
+        {
+            "id": "dff6da0e703065d1",
+            "sourceOutput": "next",
+            "targetInput": "state",
+            "source": 18016,
+            "target": 19006
+        },
+        {
+            "id": "e282c99bd07aec14",
+            "sourceOutput": "next",
+            "targetInput": "state",
+            "source": 19006,
+            "target": 19016
+        },
+        {
+            "id": "c347b6242f109acf",
+            "sourceOutput": "next",
+            "targetInput": "state",
+            "source": 20006,
+            "target": 20016
+        }
+    ],
+    "types": [
+        "initial",
+        "食べる",
+        "食べない",
+        "肯定",
+        "",
+        "other",
+        "好き",
+        "否定",
+        "好きじゃない",
+        "特定のラーメンが好き",
+        "error"
+    ]
+}
