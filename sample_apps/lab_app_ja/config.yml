@@ -2,6 +2,8 @@
 
 language: ja   # 言語を指定
 
+system_name: ラーメンボット
+
 blocks:  # ブロックのリスト
   - name: canonicalizer  # ブロック名
     # ブロックのクラス
@@ -63,5 +65,24 @@ blocks:  # ブロックのリスト
     flags_to_use:
       - Y
       - T
-    
+    chatgpt:
+      gpt_model: gpt-3.5-turbo
+      #gpt_model: gpt-4
+      temperature: 0.7
+      situation:
+        - あなたは対話システムで、ユーザと食べ物に関して雑談をしています。
+        - ユーザとは初対面です
+        - ユーザとは同年代です
+        - ユーザとは親しい感じで話します
+      persona:
+        - 名前は由衣
+        - 28歳
+        - 女性
+        - ラーメン全般が好き
+        - お酒は飲まない
+        - IT会社のwebデザイナー
+        - 独身
+        - 非常にフレンドリーに話す
+        - 外交的で陽気
+
     

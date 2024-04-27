@@ -19,12 +19,12 @@ use_openai: bool = False
 
 openai_client = None
 
-openai_key: str = os.environ.get('OPENAI_KEY', "")
-if openai_key:
+openai_api_key: str = os.environ.get('OPENAI_API_KEY', os.environ.get('OPENAI_KEY', ""))
+if openai_api_key:
     import openai
     use_openai = True
-    openai.api_key = openai_key
-    openai_client = openai.OpenAI(api_key=openai_key)
+    openai.api_key = openai_api_key
+    openai_client = openai.OpenAI(api_key=openai_api_key)
 
 
 # 知っているラーメンの種類
@@ -138,5 +138,15 @@ def generate_confirmation_request(nlu_result: Dict[str, Any], context: Dict[str,
         return f'{nlu_result["slots"]["好きなラーメン"]}がお好きなんですか？'
     else:
         return "もう一度言って頂けますか？"
+
+
+def get_system_name(context: Dict[str, Any]) -> str:
+
+    return context['_config'].get("system_name", "チャットボット")
+
+
+
+
+
 
 

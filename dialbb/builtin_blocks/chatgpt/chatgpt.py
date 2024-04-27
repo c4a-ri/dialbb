@@ -20,6 +20,7 @@ from dialbb.util.error_handlers import abort_during_building
 DIALOGUE_HISTORY_TAG: str = '@dialogue_history'
 DEFAULT_GPT_MODEL: str = "gpt-3.5-turbo"
 
+
 class ChatGPT(AbstractBlock):
     """
     performs dialogue using ChatGPT
@@ -29,10 +30,10 @@ class ChatGPT(AbstractBlock):
 
         super().__init__(*args)
 
-        openai_key: str = os.environ.get('OPENAI_KEY', "")
-        if not openai_key:
-            abort_during_building("OPENAI_KEY is not defined")
-        self._openai_client = openai.OpenAI(api_key=openai_key)
+        openai_api_key: str = os.environ.get('OPENAI_API_KEY', os.environ.get('OPENAI_KEY', ""))
+        if not openai_api_key:
+            abort_during_building("OPENAI_API_KEY is not defined")
+        self._openai_client = openai.OpenAI(api_key=openai_api_key)
         self._gpt_model = self.block_config.get("gpt_model", DEFAULT_GPT_MODEL)
 
         self.user_name: str = self.block_config.get("user_name", "User")
@@ -108,7 +109,6 @@ class ChatGPT(AbstractBlock):
                     break
         system_utterance: str = chat_completion.choices[0].message.content
         return system_utterance
-
 
     def generate_system_utterance(self, dialogue_history: List[Dict[str, str]],
                                   session_id: str, user_id: str,

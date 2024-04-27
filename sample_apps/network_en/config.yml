@@ -9,7 +9,7 @@ blocks:
       input_text: user_utterance
     output:
       output_text: canonicalized_user_utterance
-  - name: tokenizer  # tokenize block
+  - name: tokenizer  # tokenization block
     block_class: dialbb.builtin_blocks.tokenization.whitespace_tokenizer.WhitespaceTokenizer
     input:
       input_text: canonicalized_user_utterance

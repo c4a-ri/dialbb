@@ -386,7 +386,7 @@ At runtime, input utterance is added to the prompt to make ChatGPT perform langu
   Values are assigned to these variables at runtime.
 
 (chatgpt_nlu_knowledge)=
-### Language Understanding Knowledgeutterance
+### Language Understanding Knowledge
 
 Language understanding knowledge consists of the following two sheets.
 
@@ -531,7 +531,11 @@ Each row of the sheet represents a transition. Each row consists of the followin
 
 - `system utterance`
 
-    Candidates of the system utterance generated in the `state` state. The {<variable>} in the system utterance string is replaced by the value assigned to the variable during the dialogue. There can be multiple lines with the same `state`, but all `system utterance` in the lines having the same `state` become system utterance candidates, and will be chosen randomely.
+    Candidates of the system utterance generated in the `state` state. 
+	
+	The `{<variable>}` or `{<function call>}` in the system utterance string is replaced by the value assigned to the variable during the dialogue or the return value of the function call. This will be explained in detail in "{ref}`realization_in_system_utterance`".
+	
+	There can be multiple lines with the same `state`, but all `system utterance` in the lines having the same `state` become system utterance candidates, and will be chosen randomely.
 
 - `user utterance example`
 
@@ -593,7 +597,7 @@ In a final state, the system generates a system utterance and terminates the dia
 
 ### Conditions and Actions
 
-#### Contextual Information
+#### Contextual information
 
 STN Manager maintains contextual information for each dialogue session. The contextual information is a set of variables and their values (python dictionary type data), and the values can be any data structure.
 
@@ -605,12 +609,12 @@ The context information is pre-set with the following key-value pairs.
 
 | key | value |
 | ------------- | ------------------------------------------------------------ |
-| _current_state_name | name of the state before transition (string)
+| _current_state_name | name of the state before transition (string)|
 | _config | dictionary type data created by reading configuration file |
-| _block_config | The part of the dialog management block in the configiguration file (dictionary)
-| _aux_data | aux_data (dictionary) received from main process
-| _previous_system_utterance | previous system utterance (string)
-| _dialogue_history | Dialogue history (list)
+| _block_config | The part of the dialog management block in the configuration file (dictionary) |
+| _aux_data | aux_data (dictionary) received from main process|
+| _previous_system_utterance | previous system utterance (string)|
+| _dialogue_history | Dialogue history (list)|
 
 
 
@@ -637,7 +641,7 @@ The dialog history is in the following form.
 In addition to these, new key/value pairs can be added within the action function.
 
 (arguments)=
-#### Function Arguments
+#### Function arguments
 
 The arguments of the functions used in conditions and actions are of the following types.
 
@@ -677,12 +681,21 @@ The arguments of the functions used in conditions and actions are of the followi
   It means the string as it is.
 
 
+(realization_in_system_utterance)=
+### Variables and Function Calls in System Utterances
+
+In system utterances, parts enclosed in `{` and `}` are variables or function calls that are replaced by the value of the variable or the return value of the function call.
+
+Variables that start with `#` are special variables mentioned above. Other variables are normal variables, which are supposed to be present in the context information. If these variables do not exist, the variable names are used as is without replacement.
+
+For function calls, the functions can take arguments explained above as functions used for conditions or actions. The return value must be a string.
+
 ### Function Definitions
 
 Functions used in conditions and actions are either built-in to DialBB or defined by the developers.The function used in a condition returns a boolean value, while the function used in an action returns nothing.
 
 
-#### Built-in Functions
+#### Built-in functions
 
 The built-in functions are as follows:
 
@@ -724,6 +737,17 @@ The built-in functions are as follows:
 
     e.g., `_not_member_of(*favorite_food, "ramen:fried_han:dumpling")`
     
+  - `_num_turns_exceeds(n)`
+  
+	Returns `True` when the number of user turns exceeds the integer represented by the string `n`. 
+	
+    e.g.: `_num_turns_exceeds("10")`
+
+  - `_check_with_llm(task)`
+  
+     Makes the judgment using a large language model. More details follow.
+
+
 - Functions used in actions
 
   - `_set(x, y)`
@@ -743,7 +767,134 @@ The built-in functions are as follows:
 
     `_set(&a, "hello")`: sets `"hello"` to `a`.
 
-#### Function Definitions by the Developers
+- Functions used in system utterances
+
+  - `_generate_with_llm(task)`
+  
+     Generates a string using a large language model (currently only OpenAI's ChatGPT). More details follow.
+
+
+#### Built-in functions using large language models
+
+The functions `_check_with_llm(task)` and `_generate_with_llm(task)` use a large language model (currently only OpenAI's ChatGPT) along with dialogue history to perform condition checks and text generation. Here are some examples:
+
+
+- Example of a condition check:
+
+  ```python
+  _check_with_llm("Please determine if the user said the reason.")
+  ```
+
+- Example of text generation:
+
+  ```python
+  _generate_with_llm("Generate a sentence to say it's time to end the talk by continuing the conversation in 50 words.")
+  ```
+
+To use these functions, the following settings are required:
+
+- Set OpenAI's API key to environment variable `OPENAI_API_KEY`.
+
+  Please check websites and other resources to find out how to obtain an API key from OpenAI.
+  
+- Add the following elements to the chatgpt block configuration:
+
+  - `gpt_model` (string)
+
+    This specifies the model name of GPT, such as `gpt-4`, `gpt-3.5-turbo`, etc. The default value is `gpt-3.5-turbo`.
+
+  - `temperature` (float)
+
+    This specifies the temperature parameter for GPT. The default value is `0.7`.
+
+  - `situation` (list of strings)
+
+    A list that enumerates the scenarios to be written in the GPT prompt. If this element is absent, no specific situation is specified.
+
+
+  - `persona` (lis of strings)
+
+    A list that enumerates the system persona to be written in the GPT prompt.
+
+    If this element is absent, no specific persona is specified.
+
+
+  e.g.:
+
+  ```yaml
+    chatgpt:
+      gpt_model: gpt-4
+      temperature: 0.7
+      situation:
+        - You are a dialogue system and chatting with the user.
+        - You met the user for the first time.
+        - You and the user are similar in age.
+        - You and the user talk in a friendly manner.
+      persona:
+        - Your name is Yui
+        - 28 years old
+        - Female
+        - You like sweets
+        - You don't drink alcohol
+        - A web designer working for an IT company
+        - Single
+        - You talk very friendly
+        - Diplomatic and cheerful
+  ```
+
+#### Syntax sugars for built-in functions
+
+Syntax sugars are provided to simplify the description of built-in functions.
+
+
+- `<variable name>==<value>`
+
+  This means `_eq(<variable name>, <value>)`.
+
+  e.g.:
+
+  ```
+  #favorite_sandwich=="chiken salad sandwich"
+  ```
+
+- `<variable name>!=<value>`
+
+  This means `_ne(<variable name>, <value>)`.
+
+  e.g.:
+
+  ```
+  #NE_Person!=""
+  ```
+
+- `<variable name>=<value>`
+
+  This means `_set(&<variable name>, <value>)`.
+
+  e.g.:, 
+
+  ```
+  user_name=#NE_Person
+  ```
+
+- `$<task string>`
+
+  When used as a condition, it means `_check_with_llm(<task string>)`, and when used in a system utterance enclosed in `{}`, it means `_generate_with_llm(<task string>)`.
+
+  Example of a condition:
+
+  ```
+  $"Please determine if the user said the reason."
+  ```
+
+  Example of a text generation function call in a system utterance
+
+  ```
+  I understand. {$"Generate a sentence to say it's time to end the talk by continuing the conversation in 50 words" }  Thank you for your time.
+  ```
+
+
+#### Function definitions by the developers
 
 
 When the developer defines functions, he/she edits a file specified in `function_definition` element in the block configuration.
@@ -765,6 +916,7 @@ In the case of a variable reference, the variable name without the `&`' is passe
 In an action function, setting a string to `_reaction` in the context information will prepend that string to the system's response after the state transition.
 
 For example, if the action function `_set(&_reaction, "I agree.")` is executed and the system's response in the subsequent state is "How was the food?", then the system will return the response "I agree. How was the food?".
+
 
 ### Continuous Transition
 
@@ -891,7 +1043,7 @@ Engages in dialogue using OpenAI's ChatGPT.
 The inputs `aux_data` and `user_id` are not used.
 The output `aux_data` is the same as the input `aux_data` and `final` is always `False`.
 
-When using these blocks, you need to set the OpenAI license key in the environment variable `OPENAI_KEY`.
+When using these blocks, you need to set the OpenAI license key in the environment variable `OPENAI_API_KEY`.
 
 ### Block Configuration Parameters
 
