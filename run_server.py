@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # run_server.py
-#   invoke the dialogue application server for no-code version
+#   invoke the dialogue application server
 #
 __version__ = '0.1'
 __author__ = 'Mikio Nakano'
@@ -10,8 +10,10 @@ __author__ = 'Mikio Nakano'
 import argparse
 from dialbb.server.run_server import start_dialbb
 
+
 def main(config_file, port):
-    # dialbb/server/run_server を起動
+
+    # starts dialbb/server/run_server
     start_dialbb(config_file, port)
 
 
