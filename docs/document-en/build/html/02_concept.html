@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>2. DialBB Overview &mdash; DialBB ver. 0.8 Document v0.8.0 documentation</title>
@@ -12,8 +12,10 @@
   <![endif]-->
   
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -26,15 +28,11 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-
-          
-          
-          <a href="index.html" class="icon icon-home">
-            DialBB ver. 0.8 Document
+            <a href="index.html" class="icon icon-home"> DialBB ver. 0.8 Document
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -62,8 +60,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active"><span class="section-number">2. </span>DialBB Overview</li>
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><span class="section-number">2. </span>DialBB Overview</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/02_concept.md.txt" rel="nofollow"> View page source</a>
       </li>
@@ -80,18 +78,17 @@
 <p>The basic architecture of a DialBB application is shown below.</p>
 <p><img alt="dialbb-arch" src="_images/dialbb-arch-en.jpg" /></p>
 <p>The main module creates and returns a system utterance by making modules called blocks sequentially
-process the data (including user utterances) inputted at each turn of the dialog. The inputted is data copied to data called blackboard <a class="footnote-reference brackets" href="#fn" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> in the main block. Each block takes some of the elements of the blackboard and returns data in
+process the data (including user utterances) inputted at each turn of the dialog. The inputted is data copied to data called blackboard <a class="footnote-reference brackets" href="#fn" id="id1">1</a> in the main block. Each block takes some of the elements of the blackboard and returns data in
 dictionary format. The returned data is added to blackboard. If an element with the same key already exists in blackboard, it is overwritten.</p>
 <p>The type of block to be used is specified in the configuration file. Blocks can be either blocks provided by DialBB (built-in blocks) or blocks created by the application developer.</p>
 <p>The configuration file also specifies what data the main module sends to and receives from each block.</p>
 <p>Details are explained in the “<a class="reference internal" href="05_framework.html#framework"><span class="std std-ref">Framework Specifications</span></a>” section.</p>
 <hr class="footnotes docutils" />
-<aside class="footnote-list brackets">
-<aside class="footnote brackets" id="fn" role="note">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
-<p>Before ver. 0.2, it was called payload.</p>
-</aside>
-</aside>
+<dl class="footnote brackets">
+<dt class="label" id="fn"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
+<dd><p>Before ver. 0.2, it was called payload.</p>
+</dd>
+</dl>
 </section>
 
 
