@@ -636,7 +636,7 @@
 </ul>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">gpt_model</span></code> (文字列．デフォルト値は<code class="docutils literal notranslate"><span class="pre">gpt-3.5-turbo</span></code>）</p>
-<p>ChatGPTのモデルを指定します．</p>
+<p>ChatGPTのモデルを指定します．<code class="docutils literal notranslate"><span class="pre">gpt-4-turbo</span></code>などが指定できます．<code class="docutils literal notranslate"><span class="pre">gpt-4</span></code>は指定できません．</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">prompt_template</span></code></p>
 <p>プロンプトテンプレートを書いたファイルをコンフィギュレーションファイルのディレクトリからの相対パスで指定します．</p>
@@ -924,9 +924,9 @@
 </section>
 <section id="realization-in-system-utterance">
 <span id="id29"></span><h3><span class="section-number">5.7.5. </span>システム発話中の変数や関数呼び出しの扱い<a class="headerlink" href="#realization-in-system-utterance" title="この見出しへのパーマリンク"></a></h3>
-<p>システム発話中の<code class="docutils literal notranslate"><span class="pre">{</span></code>と<code class="docutils literal notranslate"><span class="pre">}</span></code>に囲まれた部分の変数や関数呼び出しは，その変数の値や、関数呼び出しの返り値で置き換えられます．</p>
+<p>システム発話中の<code class="docutils literal notranslate"><span class="pre">{</span></code>と<code class="docutils literal notranslate"><span class="pre">}</span></code>に囲まれた部分の変数や関数呼び出しは，その変数の値や，関数呼び出しの返り値で置き換えられます．</p>
 <p>変数は<code class="docutils literal notranslate"><span class="pre">#</span></code>で始まるものは上記の特殊変数です．それ以外のものは通常の変数で，文脈情報にあるはずのものです．それらの変数が存在しない場合は，置換されず変数名がそのまま使われます．</p>
-<p>関数呼び出しの場合，関数は条件やアクションで用いる関数と同じように上記の引数を取ることができます。返り値は文字列でないといけません。</p>
+<p>関数呼び出しの場合，関数は条件やアクションで用いる関数と同じように上記の引数を取ることができます．返り値は文字列でないといけません．</p>
 </section>
 <section id="id30">
 <h3><span class="section-number">5.7.6. </span>関数定義<a class="headerlink" href="#id30" title="この見出しへのパーマリンク"></a></h3>
@@ -965,11 +965,11 @@
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">_not_member_of(x,</span> <span class="pre">y)</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">_num_turns_exceeds(n)</span></code></p>
-<p>文字列<code class="docutils literal notranslate"><span class="pre">n</span></code>が表す整数よりもターン数（ユーザの発話回数）が多いとき、<code class="docutils literal notranslate"><span class="pre">True</span></code>を返します。</p>
+<p>文字列<code class="docutils literal notranslate"><span class="pre">n</span></code>が表す整数よりもターン数（ユーザの発話回数）が多いとき，<code class="docutils literal notranslate"><span class="pre">True</span></code>を返します．</p>
 <p>例：<code class="docutils literal notranslate"><span class="pre">_num_turns_exceeds(&quot;10&quot;)</span></code></p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">_check_with_llm(task)</span></code></p>
-<p>大規模言語モデル（現在はOpenAIのChatGPTのみ）を用いて判定をします。後述します。</p>
+<p>大規模言語モデル（現在はOpenAIのChatGPTのみ）を用いて判定をします．後述します．</p>
 </li>
 </ul>
 </li>
@@ -990,7 +990,7 @@
 <li><p>システム発話内で用いる関数</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">_generate_with_llm(task)</span></code></p>
-<p>大規模言語モデル（現在はOpenAIのChatGPTのみ）を用いて文字列を生成します。後述します。</p>
+<p>大規模言語モデル（現在はOpenAIのChatGPTのみ）を用いて文字列を生成します．後述します．</p>
 </li>
 </ul>
 </li>
@@ -998,47 +998,47 @@
 </section>
 <section id="id32">
 <h4><span class="section-number">5.7.6.2. </span>大規模言語モデルを用いた組み込み関数<a class="headerlink" href="#id32" title="この見出しへのパーマリンク"></a></h4>
-<p><code class="docutils literal notranslate"><span class="pre">_check_with_llm(task)</span></code>および<code class="docutils literal notranslate"><span class="pre">_generate_with_llm(task)</span></code>は、大規模言語モデル（現在はOpenAIのChatGPTのみ）と、対話履歴を用いて、条件の判定および文字列の生成を行います。以下が例です。</p>
+<p><code class="docutils literal notranslate"><span class="pre">_check_with_llm(task)</span></code>および<code class="docutils literal notranslate"><span class="pre">_generate_with_llm(task)</span></code>は，大規模言語モデル（現在はOpenAIのChatGPTのみ）と，対話履歴を用いて，条件の判定および文字列の生成を行います．以下が例です．</p>
 <ul>
 <li><p>条件判定の例</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">_check_with_llm</span><span class="p">(</span><span class="s2">&quot;ユーザが理由を言ったかどうか判断してください。&quot;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">_check_with_llm</span><span class="p">(</span><span class="s2">&quot;ユーザが理由を言ったかどうか判断してください．&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </li>
 <li><p>文字列生成の例</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">_generate_with_llm</span><span class="p">(</span><span class="s2">&quot;それまでの会話につづけて、対話を終わらせる発話を50文字以内で生成してください&quot;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">_generate_with_llm</span><span class="p">(</span><span class="s2">&quot;それまでの会話につづけて，対話を終わらせる発話を50文字以内で生成してください&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </li>
 </ul>
-<p>これらの関数を使うためには、以下の設定が必要です。</p>
+<p>これらの関数を使うためには，以下の設定が必要です．</p>
 <ul>
-<li><p>環境変数<code class="docutils literal notranslate"><span class="pre">OPENAI_API_KEY</span></code>にOpenAIのAPIキーをセットするする</p>
-<p>OpenAIのAPIキーの取得の仕方はWebサイトなどで調べてください。</p>
+<li><p>環境変数<code class="docutils literal notranslate"><span class="pre">OPENAI_API_KEY</span></code>にOpenAIのAPIキーをセットする</p>
+<p>OpenAIのAPIキーの取得の仕方はWebサイトなどで調べてください．</p>
 </li>
 <li><p>ブロックコンフィギュレーションの<code class="docutils literal notranslate"><span class="pre">chatgpt</span></code>要素に以下の要素を加える</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">gpt_model</span></code> （文字列）</p>
-<p>GPTのモデル名です。<code class="docutils literal notranslate"><span class="pre">gpt-4</span></code>, <code class="docutils literal notranslate"><span class="pre">gpt-3.5-turbo</span></code>等を指定できます。デフォルト値は<code class="docutils literal notranslate"><span class="pre">gpt-3.5-turbo</span></code>です。</p>
+<p>GPTのモデル名です．<code class="docutils literal notranslate"><span class="pre">gpt-4-turbo</span></code>, <code class="docutils literal notranslate"><span class="pre">gpt-3.5-turbo</span></code>等を指定できます．デフォルト値は<code class="docutils literal notranslate"><span class="pre">gpt-3.5-turbo</span></code>です．<code class="docutils literal notranslate"><span class="pre">gpt-4</span></code>は指定できません．</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">temperature</span></code> (float)</p>
-<p>GPTの温度パラメータです。デフォルト値は<code class="docutils literal notranslate"><span class="pre">0.7</span></code>です。</p>
+<p>GPTの温度パラメータです．デフォルト値は<code class="docutils literal notranslate"><span class="pre">0.7</span></code>です．</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">situation</span></code> （文字列のリスト）</p>
-<p>GPTのプロンプトに書く状況を列挙したものです。</p>
-<p>この要素がない場合、状況は指定されません。</p>
+<p>GPTのプロンプトに書く状況を列挙したものです．</p>
+<p>この要素がない場合，状況は指定されません．</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">persona</span></code> （文字列のリスト）</p>
-<p>GPTのプロンプトに書くシステムのペルソナを列挙したものです。</p>
-<p>この要素がない場合、ペルソナは指定されません。</p>
+<p>GPTのプロンプトに書くシステムのペルソナを列挙したものです．</p>
+<p>この要素がない場合，ペルソナは指定されません．</p>
 </li>
 </ul>
 <p>例：</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">chatgpt</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">gpt_model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpt-4</span>
+<span class="w">  </span><span class="nt">gpt_model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpt-4-turbo</span>
 <span class="w">  </span><span class="nt">temperature</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.7</span>
 <span class="w">  </span><span class="nt">situation</span><span class="p">:</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">あなたは対話システムで、ユーザと食べ物に関して雑談をしています。</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">あなたは対話システムで，ユーザと食べ物に関して雑談をしています．</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ユーザとは初対面です</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ユーザとは同年代です</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ユーザとは親しい感じで話します</span>
@@ -1059,39 +1059,39 @@
 </section>
 <section id="id33">
 <h4><span class="section-number">5.7.6.3. </span>組み込み関数の簡略記法<a class="headerlink" href="#id33" title="この見出しへのパーマリンク"></a></h4>
-<p>組み込み関数の記述を簡単にするために以下の簡略記法（Syntax Sugar)が用意されています。</p>
+<p>組み込み関数の記述を簡単にするために以下の簡略記法（Syntax Sugar)が用意されています．</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">&lt;変数名&gt;==&lt;値&gt;</span></code></p>
-<p><code class="docutils literal notranslate"><span class="pre">_eq(&lt;変数名&gt;,</span> <span class="pre">&lt;値&gt;)</span></code>の意味です。</p>
+<p><code class="docutils literal notranslate"><span class="pre">_eq(&lt;変数名&gt;,</span> <span class="pre">&lt;値&gt;)</span></code>の意味です．</p>
 <p>例：</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#好きなラーメン==&quot;豚骨ラーメン&quot;</span>
 </pre></div>
 </div>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">&lt;変数名&gt;!=&lt;値&gt;</span></code></p>
-<p><code class="docutils literal notranslate"><span class="pre">_ne(&lt;変数名&gt;,</span> <span class="pre">&lt;値&gt;)</span></code>の意味です。</p>
+<p><code class="docutils literal notranslate"><span class="pre">_ne(&lt;変数名&gt;,</span> <span class="pre">&lt;値&gt;)</span></code>の意味です．</p>
 <p>例：</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#NE_Person!=&quot;&quot;</span>
 </pre></div>
 </div>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">&lt;変数名&gt;=&lt;値&gt;</span></code></p>
-<p><code class="docutils literal notranslate"><span class="pre">_set(&amp;&lt;変数名&gt;,</span> <span class="pre">&lt;値&gt;)</span></code>の意味です。</p>
+<p><code class="docutils literal notranslate"><span class="pre">_set(&amp;&lt;変数名&gt;,</span> <span class="pre">&lt;値&gt;)</span></code>の意味です．</p>
 <p>例：</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">user_name</span><span class="o">=</span><span class="c1">#NE_Person</span>
 </pre></div>
 </div>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">$&lt;タスク文字列&gt;</span></code></p>
-<p>条件として使われた時は、<code class="docutils literal notranslate"><span class="pre">_check_with_llm(&lt;タスク文字列&gt;)</span></code>の意味で、システム発話中に<code class="docutils literal notranslate"><span class="pre">{}</span></code>で囲まれて文字列生成として使われた時は、<code class="docutils literal notranslate"><span class="pre">_generate_with_llm(&lt;タスク文字列&gt;)</span></code>の意味です。</p>
+<p>条件として使われた時は，<code class="docutils literal notranslate"><span class="pre">_check_with_llm(&lt;タスク文字列&gt;)</span></code>の意味で，システム発話中に<code class="docutils literal notranslate"><span class="pre">{}</span></code>で囲まれて文字列生成として使われた時は，<code class="docutils literal notranslate"><span class="pre">_generate_with_llm(&lt;タスク文字列&gt;)</span></code>の意味です．</p>
 <p>条件の例：</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$&quot;ユーザが理由を言ったかどうか判断してください。&quot;
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$&quot;ユーザが理由を言ったかどうか判断してください．&quot;
 </pre></div>
 </div>
 </li>
 </ul>
 <p>​  文字列生成を含むシステム発話の例：</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>わかりました。{$&quot;それまでの会話につづけて、対話を終わらせる発話を50文字以内で生成してください。&quot;}今日はお時間ありがとうございました。
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>わかりました．{$&quot;それまでの会話につづけて，対話を終わらせる発話を50文字以内で生成してください．&quot;}今日はお時間ありがとうございました．
 </pre></div>
 </div>
 </section>
@@ -1253,7 +1253,7 @@
 </ul>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">gpt_model</span></code> （文字列，デフォルト値は<code class="docutils literal notranslate"><span class="pre">gpt-3.5-turbo</span></code>）</p>
-<p>Open AI GPTのモデルです．<code class="docutils literal notranslate"><span class="pre">gpt-4</span></code>などが指定できます．</p>
+<p>Open AI GPTのモデルです．<code class="docutils literal notranslate"><span class="pre">gpt-4</span></code>, <code class="docutils literal notranslate"><span class="pre">gpt-4-turbo</span></code>などが指定できます．</p>
 </li>
 </ul>
 </section>

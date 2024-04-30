@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>5. Built-in Block Classes &mdash; DialBB ver. 0.8 Document v0.8.0 documentation</title>
@@ -12,8 +12,10 @@
   <![endif]-->
   
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -25,15 +27,11 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-
-          
-          
-          <a href="index.html" class="icon icon-home">
-            DialBB ver. 0.8 Document
+            <a href="index.html" class="icon icon-home"> DialBB ver. 0.8 Document
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -138,8 +136,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active"><span class="section-number">5. </span>Built-in Block Classes</li>
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><span class="section-number">5. </span>Built-in Block Classes</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/06_builtin_blocks.md.txt" rel="nofollow"> View page source</a>
       </li>
@@ -255,10 +253,10 @@
 </pre></div>
 </div>
 <p>The following is an example.</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="w"> </span><span class="p">{</span>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w">     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;tell-like-specific-sandwich&quot;</span><span class="p">,</span><span class="w"> </span>
-<span class="w">     </span><span class="nt">&quot;slots&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;favorite-sandwich&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;roast beef sandwich&quot;</span><span class="p">}</span>
-<span class="w"> </span><span class="p">}</span>
+<span class="w">     </span><span class="nt">&quot;slots&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;favorite-sandwich&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;roast beef sandwich&quot;</span><span class="p">}</span><span class="w"></span>
+<span class="w"> </span><span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 </li>
@@ -327,7 +325,7 @@
 <section id="language-understanding-knowledge">
 <span id="nlu-knowledge"></span><h3><span class="section-number">5.3.3. </span>Language Understanding Knowledge<a class="headerlink" href="#language-understanding-knowledge" title="Permalink to this heading"></a></h3>
 <p>Language understanding knowledge consists of the following four sheets.</p>
-<table class="docutils align-default">
+<table class="colwidths-auto docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>sheet name</p></th>
 <th class="head"><p>contents</p></th>
@@ -381,7 +379,7 @@
 <p>The function (e.g. <code class="docutils literal notranslate"><span class="pre">dialbb/location</span></code>) is described in “<a class="reference internal" href="#dictionary-function"><span class="std std-ref">Dictionary function definitions by developers</span></a>” below.</p>
 <p>The value of the entity class column can also be a <a class="reference external" href="https://snips-nlu.readthedocs.io/en/latest/builtin_entities.html">Snips built-in entity</a>. (e.g. <code class="docutils literal notranslate"><span class="pre">snips/city</span></code>)</p>
 <p>When you use Snips built-in entities, you need to install it as follows</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>snips-nlu<span class="w"> </span>download-entity<span class="w"> </span>snips/city<span class="w"> </span>en
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ snips-nlu download-entity snips/city en
 </pre></div>
 </div>
 <p>Accuracy and other aspects of the Snips built-in entities have not been fully verified.</p>
@@ -526,7 +524,7 @@ The following is an example.
 </ul>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">gpt_model</span></code> (string. The default value is <code class="docutils literal notranslate"><span class="pre">gpt-3.5-turbo</span></code>.)</p>
-<p>Specifies the ChatGPT model.</p>
+<p>Specifies the ChatGPT model. <code class="docutils literal notranslate"><span class="pre">gpt-4-turbo</span></code> can be specified. <code class="docutils literal notranslate"><span class="pre">gpt-4</span></code> cannot be used.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">prompt_template</span></code></p>
 <p>This specifies the prompt template file as a relative path from the configuration file directory.</p>
@@ -545,7 +543,7 @@ The following is an example.
 <section id="chatgpt-nlu-knowledge">
 <span id="id6"></span><h3><span class="section-number">5.4.3. </span>Language Understanding Knowledge<a class="headerlink" href="#chatgpt-nlu-knowledge" title="Permalink to this heading"></a></h3>
 <p>Language understanding knowledge consists of the following two sheets.</p>
-<table class="docutils align-default">
+<table class="colwidths-auto docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>sheet name</p></th>
 <th class="head"><p>contents</p></th>
@@ -631,7 +629,7 @@ The following is an example.
 <li><p><code class="docutils literal notranslate"><span class="pre">final</span></code>: a flag indicating whether the dialog is finished or not. (bool)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">aux_data</span></code>: auxiliary data (dictionary type)</p>
 <p>The auxiliary data of the input is updated in action functions described below, including the ID of the transitioned state. Updates are not necessarily performed in action functions. The transitioned state is added in the following format.</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="p">{</span><span class="nt">&quot;state&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;I like a particular ramen&quot;</span><span class="w"> </span><span class="p">}</span>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="p">{</span><span class="nt">&quot;state&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;I like a particular ramen&quot;</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 </li>
@@ -725,7 +723,7 @@ In a final state, the system generates a system utterance and terminates the dia
 <p>STN Manager maintains contextual information for each dialogue session. The contextual information is a set of variables and their values (python dictionary type data), and the values can be any data structure.</p>
 <p>Condition and action functions access contextual information.</p>
 <p>The context information is pre-set with the following key-value pairs.</p>
-<table class="docutils align-default">
+<table class="colwidths-auto docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>key</p></th>
 <th class="head"><p>value</p></th>
@@ -899,7 +897,7 @@ In a final state, the system generates a system utterance and terminates the dia
 <li><p>Add the following elements to the chatgpt block configuration:</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">gpt_model</span></code> (string)</p>
-<p>This specifies the model name of GPT, such as <code class="docutils literal notranslate"><span class="pre">gpt-4</span></code>, <code class="docutils literal notranslate"><span class="pre">gpt-3.5-turbo</span></code>, etc. The default value is <code class="docutils literal notranslate"><span class="pre">gpt-3.5-turbo</span></code>.</p>
+<p>This specifies the model name of GPT, such as <code class="docutils literal notranslate"><span class="pre">gpt-4-turbo</span></code>, <code class="docutils literal notranslate"><span class="pre">gpt-3.5-turbo</span></code>, etc. The default value is <code class="docutils literal notranslate"><span class="pre">gpt-3.5-turbo</span></code>. <code class="docutils literal notranslate"><span class="pre">gpt-4</span></code> cannot be used.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">temperature</span></code> (float)</p>
 <p>This specifies the temperature parameter for GPT. The default value is <code class="docutils literal notranslate"><span class="pre">0.7</span></code>.</p>
@@ -913,24 +911,24 @@ In a final state, the system generates a system utterance and terminates the dia
 </li>
 </ul>
 <p>e.g.:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="nt">chatgpt</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">gpt_model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpt-4</span>
-<span class="w">    </span><span class="nt">temperature</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.7</span>
-<span class="w">    </span><span class="nt">situation</span><span class="p">:</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">You are a dialogue system and chatting with the user.</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">You met the user for the first time.</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">You and the user are similar in age.</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">You and the user talk in a friendly manner.</span>
-<span class="w">    </span><span class="nt">persona</span><span class="p">:</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Your name is Yui</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">28 years old</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Female</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">You like sweets</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">You don&#39;t drink alcohol</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">A web designer working for an IT company</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Single</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">You talk very friendly</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Diplomatic and cheerful</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="nt">chatgpt</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="nt">gpt_model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpt-4-turbo</span><span class="w"></span>
+<span class="w">    </span><span class="nt">temperature</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.7</span><span class="w"></span>
+<span class="w">    </span><span class="nt">situation</span><span class="p">:</span><span class="w"></span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">You are a dialogue system and chatting with the user.</span><span class="w"></span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">You met the user for the first time.</span><span class="w"></span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">You and the user are similar in age.</span><span class="w"></span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">You and the user talk in a friendly manner.</span><span class="w"></span>
+<span class="w">    </span><span class="nt">persona</span><span class="p">:</span><span class="w"></span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Your name is Yui</span><span class="w"></span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">28 years old</span><span class="w"></span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Female</span><span class="w"></span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">You like sweets</span><span class="w"></span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">You don&#39;t drink alcohol</span><span class="w"></span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">A web designer working for an IT company</span><span class="w"></span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Single</span><span class="w"></span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">You talk very friendly</span><span class="w"></span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Diplomatic and cheerful</span><span class="w"></span>
 </pre></div>
 </div>
 </li>
@@ -1017,10 +1015,10 @@ It is also possible to transition to a subdialogue within a subdialogue.</p>
 If the input is a speech recognition result and its confidence is less than this value, the confidence is considered low. The confidence of the input is the value of <code class="docutils literal notranslate"><span class="pre">confidence</span></code> in <code class="docutils literal notranslate"><span class="pre">aux_data</span></code>. If there is no <code class="docutils literal notranslate"><span class="pre">confidence</span></code> key in <code class="docutils literal notranslate"><span class="pre">aux_data</span></code>, the confidence is considered high. In the case of low confidence, the process depends on the value of the parameter described below.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">confirmation_request</span></code> (object)</p>
 <p>This is specified in the following form.</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">confirmation_request</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">function_to_generate_utterance</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;function name (string)&gt;</span>
-<span class="w">  </span><span class="nt">acknowledgement_utterance_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;user utterance type name of acknowledgement (string)&gt;</span>
-<span class="w">  </span><span class="nt">denial_utterance_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;name of user utterance type for affirmation (string)&gt;</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">confirmation_request</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="nt">function_to_generate_utterance</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;function name (string)&gt;</span><span class="w"></span>
+<span class="w">  </span><span class="nt">acknowledgement_utterance_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;user utterance type name of acknowledgement (string)&gt;</span><span class="w"></span>
+<span class="w">  </span><span class="nt">denial_utterance_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;name of user utterance type for affirmation (string)&gt;</span><span class="w"></span>
 </pre></div>
 </div>
 <p>If this is specified, the function specified in <code class="docutils literal notranslate"><span class="pre">function_to_generate_utterance</span></code> is executed and the return value is spoken (called a confirmation request utterance), instead of making a state transition when the input is less certain.
@@ -1130,7 +1128,7 @@ The output <code class="docutils literal notranslate"><span class="pre">aux_data
 </ul>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">gpt_model</span></code> (string, default value is <code class="docutils literal notranslate"><span class="pre">gpt-3.5-turbo</span></code>)</p>
-<p>Open AI GPT model. You can specify <code class="docutils literal notranslate"><span class="pre">gpt-4</span></code> and so on.</p>
+<p>Open AI GPT model. You can specify <code class="docutils literal notranslate"><span class="pre">gpt-4</span></code>, <code class="docutils literal notranslate"><span class="pre">gpt-4-turbo</span></code> and so on.</p>
 </li>
 </ul>
 </section>
@@ -1175,8 +1173,8 @@ The output <code class="docutils literal notranslate"><span class="pre">aux_data
 <p>Example:</p>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="w"> </span>
 <span class="w">  </span><span class="nt">&quot;NE_Person&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;John:Mary&quot;</span><span class="p">,</span><span class="w"> </span>
-<span class="w">  </span><span class="nt">&quot;NE_Dish&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Chiken Marsala&quot;</span>
-<span class="p">}</span>
+<span class="w">  </span><span class="nt">&quot;NE_Dish&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Chiken Marsala&quot;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <p>See the spaCy/GiNZA model website for more information on the class of named entities.</p>
@@ -1195,10 +1193,10 @@ The output <code class="docutils literal notranslate"><span class="pre">aux_data
 <p>Describes a rule-based named entity extraction pattern. The pattern is a YAML format of the one described in <a class="reference external" href="https://spacy.io/usage/rule-based-matching">spaCy Pattern Description</a>.</p>
 <p>The following is an example.</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">patterns</span><span class="p">:</span><span class="w"> </span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Date</span>
-<span class="w">    </span><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">yesterday</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Date</span>
-<span class="w">    </span><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">The day before yesterday</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Date</span><span class="w"></span>
+<span class="w">    </span><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">yesterday</span><span class="w"></span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Date</span><span class="w"></span>
+<span class="w">    </span><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">The day before yesterday</span><span class="w"></span>
 </pre></div>
 </div>
 </li>

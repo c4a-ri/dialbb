@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>3. Sample Applications &mdash; DialBB ver. 0.8 Document v0.8.0 documentation</title>
@@ -12,8 +12,10 @@
   <![endif]-->
   
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -26,15 +28,11 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-
-          
-          
-          <a href="index.html" class="icon icon-home">
-            DialBB ver. 0.8 Document
+            <a href="index.html" class="icon icon-home"> DialBB ver. 0.8 Document
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -83,8 +81,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active"><span class="section-number">3. </span>Sample Applications</li>
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><span class="section-number">3. </span>Sample Applications</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/04_sample_app.md.txt" rel="nofollow"> View page source</a>
       </li>
@@ -203,12 +201,12 @@ files, you can create a completely different dialogue system.</p>
 <section id="language-understanding-results">
 <h4><span class="section-number">3.2.3.1. </span>Language understanding results<a class="headerlink" href="#language-understanding-results" title="Permalink to this heading"></a></h4>
 <p>The Snips Understander block analyzes input utterance and outputs language understanding results. Each result consists of a type and a set of slots. For example, the language understanding result of “I like chicken salad sandwich” is as follows.</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="w"></span>
 <span class="w">  </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;tell-like-specific-sandwich&quot;</span><span class="p">,</span><span class="w"> </span>
-<span class="w">  </span><span class="nt">&quot;slots&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;favarite_sandwich&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;chcken salad sandwich&quot;</span>
-<span class="w">  </span><span class="p">}</span>
-<span class="p">}</span>
+<span class="w">  </span><span class="nt">&quot;slots&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;favarite_sandwich&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;chcken salad sandwich&quot;</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <p>The type is <code class="docutils literal notranslate"><span class="pre">&quot;tell-like-specific-sandwich&quot;</span></code> and the value of the <code class="docutils literal notranslate"><span class="pre">&quot;favarite_sandwich&quot;</span></code> slot is <code class="docutils literal notranslate"><span class="pre">&quot;chicken</span> <span class="pre">salad</span> <span class="pre">sandwich&quot;</span></code>. It is possible to have multiple slots.</p>
@@ -217,7 +215,7 @@ files, you can create a completely different dialogue system.</p>
 <h4><span class="section-number">3.2.3.2. </span>Language understanding knowledge<a class="headerlink" href="#language-understanding-knowledge" title="Permalink to this heading"></a></h4>
 <p>The knowledge for language understanding used by the Snips Understander block is written in <code class="docutils literal notranslate"><span class="pre">sample-knowledge-ja.xlsx</span></code>.</p>
 <p>The language understanding knowledge consisits of the following four sheets.</p>
-<table class="docutils align-default">
+<table class="colwidths-auto docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Sheet name</p></th>
 <th class="head"><p>Contents</p></th>
