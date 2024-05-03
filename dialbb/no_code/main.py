@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# config_mng.py
-#   dialbb no_code GUI main routine.
+# main.py
+#   dialbb no_code GUI main program
 #
 __version__ = '0.1'
 __author__ = 'Mikio Nakano'
@@ -18,77 +18,78 @@ import shutil
 import zipfile
 from dialbb.no_code.tools.knowledgeConverter2json import convert2json
 from dialbb.no_code.tools.knowledgeConverter2excel import convert2excel
-from dialbb.no_code.config_mng import edit_config
-from dialbb.no_code.gui_utils import gui_settings, Proc_mng, File_timestamp, central_position, chaild_position
+from dialbb.no_code.config_editor import edit_config
+from dialbb.no_code.gui_utils import gui_settings, ProcessManager, FileTimestamp, central_position, chaild_position
+from typing import Dict, Any, List
 
-# 実行環境パス
-SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
-LIB_DIR = os.path.abspath(os.path.join(SCRIPT_ROOT, '..'))
-NC_PATH = SCRIPT_ROOT
-APP_FILE_DIR = os.path.join(NC_PATH, 'app')
-EDITOR_DIR = os.path.join(NC_PATH, 'gui_editor')
+# paths  実行環境パス
+SCRIPT_ROOT: str = os.path.dirname(os.path.abspath(__file__))
+LIB_DIR: str = os.path.abspath(os.path.join(SCRIPT_ROOT, '..'))
+NC_PATH: str = SCRIPT_ROOT
+APP_FILE_DIR: str = os.path.join(NC_PATH, 'app')
+EDITOR_DIR: str = os.path.join(NC_PATH, 'gui_editor')
 #print(f'SCRIPT_ROOT={SCRIPT_ROOT}\nNC_PATH={NC_PATH}\nLIB_DIR={LIB_DIR}\nAPP_FILE_DIR={APP_FILE_DIR}\nEDITOR_DIR={EDITOR_DIR}')
 
-# アプリファイルの定義
-APP_FILES = {
+# define application files  アプリファイルの定義
+APP_FILES: Dict[str, str] = {
     "scenario": "scenario.xlsx",
     "knowledge": "nlu-knowledge.xlsx",
     "config": "config.yml"
 }
 
-# DialBBサーバのプロセス情報
-dialbb_proc = None
+# dialbb process information  DialBBサーバのプロセス情報
+dialbb_proc: bool = None
 
-# アプリファイルのタイムスタンプ
-appfile_TS = File_timestamp(APP_FILE_DIR, APP_FILES.values())
+# application file timestamp アプリファイルのタイムスタンプ
+app_file_timestamp: float = FileTimestamp(APP_FILE_DIR, APP_FILES.values())
 
 
-# -------- GUIエディタ関連 -------------------------------------
-# GUIエディタ起動
-def exec_Editor(file_path):
-    # 知識記述Excel-json変換
-    ret = Conv_exl2json(file_path, f'{EDITOR_DIR}/static/data/init.json')
+# -------- GUI Editor -------------------------------------
+# Start GUI Editor GUIエディタ起動
+def exec_editor(file_path):
+    # convert knowledge excel to JSON 知識記述Excel-json変換
+    ret = convert_excel_to_json(file_path, f'{EDITOR_DIR}/static/data/init.json')
     if not ret:
         return
     
     print(f"exec_Editor os:{os.name} editor dir:{EDITOR_DIR}")
-    # サーバ起動
+    # invoke server サーバ起動
     cmd = os.path.join(NC_PATH, r'start_editor.py')
-    editor_proc = Proc_mng(cmd)
+    editor_proc = ProcessManager(cmd)
     ret = editor_proc.start()
     if ret:
-        # ブラウザ起動
+        # invoke browser ブラウザ起動
         import time
         time.sleep(2)
         # webbrowser.open('http://localhost:5000/', new=1, autoraise=True)
         subprocess.Popen(["start", "msedge", "--app=http://localhost:5000/"], shell=True)
 
-        # 終了の指示待ち
-        msg = 'GUI Editor 実行中...'
-        messagebox.showinfo("GUI Editor", msg, detail='http://localhost:5000/にアクセス！\n終了する時はOKボタンを押してください.')
+        # waiting for an order to quit   終了の指示待ち
+        msg = 'Running GUI Editor...'
+        messagebox.showinfo("GUI Editor", msg, detail='Access http://localhost:5000/\n Press OK to quit.')
 
-        # 終了処理
+        # finish editing   終了処理
         json_file = f'{EDITOR_DIR}/static/data/save.json'
         if not os.path.isfile(json_file):
-            messagebox.showwarning('Warning', 'セーブされていません!',
-                                    detail='必要な場合はエディタの[Save]ボタンでセーブしてから[OK]を押してください.')
-        # WarningでSaveした場合を考慮して再チェック
+            messagebox.showwarning('Warning', 'Scenario is not saved.',
+                                    detail='Press [Save] button on the browser and then press [OK].')
+        # recheck   WarningでSaveした場合を考慮して再チェック
         if os.path.isfile(json_file):
-            # json-知識記述Excel変換
-            Conv_json2exl(json_file, file_path)
-            # Tempファイル削除
+            # convert JSON to Excel   json-知識記述Excel変換
+            convert_json_to_excel(json_file, file_path)
+            # remove temp file    tempファイル削除
             os.remove(json_file)
 
-        # サーバ停止
+        # stop server   サーバ停止
         editor_proc.stop()
 
 
 # Excel→JSON変換処理
-def Conv_exl2json(xlsx, json):
+def convert_excel_to_json(xlsx, json):
     result = False
     # メッセージを表示する
     if xlsx == "" or json == "":
-        messagebox.showerror("Warning", "ファイルが指定されていません.")
+        messagebox.showerror("Warning", "Excel file or Json file is not specified.")
     else:
         convert2json(xlsx, json)
         # messagebox.showinfo("File Convertor", f"{json}を生成しました.")
@@ -98,13 +99,13 @@ def Conv_exl2json(xlsx, json):
 
 
 # JSON→Excel変換処理
-def Conv_json2exl(json ,xlsx):
+def convert_json_to_excel(json: str, xlsx: str) -> None:
     # メッセージを表示する
     if xlsx == "" or json == "":
-        messagebox.showerror("Warning", "ファイルが指定されていません.")
+        messagebox.showerror("Warning", "Excel file or Json file is not specified.")
     else:
         convert2excel(json, xlsx)
-        messagebox.showinfo("File Convertor", f"{xlsx}を生成しました.")
+        messagebox.showinfo("File Convertor", f"Excel file {xlsx} created.")
 
 
 # -------- DialBBサーバ関連 -------------------------------------
@@ -113,12 +114,12 @@ def exec_dialbb(app_file):
     global dialbb_proc
 
     if dialbb_proc:
-        messagebox.showwarning('Warning', 'サーバは起動済みです.')
+        messagebox.showwarning('Warning', 'The DialBB server is already running.')
     else:
         print(f"app_file:{app_file}")
         # サーバ起動
         cmd = os.path.join(LIB_DIR, r'server/run_server.py')
-        dialbb_proc = Proc_mng(cmd, [app_file])
+        dialbb_proc = ProcessManager(cmd, [app_file])
         ret = dialbb_proc.start()
         if not ret:
             dialbb_proc = None
@@ -133,7 +134,7 @@ def stop_dialbb():
         dialbb_proc.stop()
         dialbb_proc = None
     else:
-        messagebox.showwarning('Warning', 'サーバは起動していません.')
+        messagebox.showwarning('Warning', 'The DialBB server is not running.')
 
 
 # -------- GUI画面制御サブルーチン -------------------------------------
@@ -141,7 +142,7 @@ def stop_dialbb():
 def set_file_frame(parent_frame, settings, label_text, file_type_list):
     # ラベルの作成
     file_frame = ttk.Frame(parent_frame, style='My.TLabelframe')
-    file_frame.spec_app = tk.Label(file_frame, text = label_text)
+    file_frame.spec_app = tk.Label(file_frame, text=label_text)
     file_frame.spec_app.grid(column=0, row=0, sticky=tk.NSEW, padx=5)
     # アプリ名の表示エリアを登録して保存アプリ名を表示する
     settings.reg_disp_aria(file_frame.spec_app)
@@ -184,12 +185,12 @@ def edit_scenario(parent, file_path):
     f1 = tk.Frame(sub_menu)    # Subフレーム生成
 
     # Excel編集ボタンの作成
-    excel_btn = ttk.Button(f1, text="Excel編集",
+    excel_btn = ttk.Button(f1, text="Edit Excel File",
                            command=lambda: [edit_excel(file_path),
                                             on_cancel(sub_menu)])
     # GUIエディタ編集ボタンの作成
-    editor_btn = ttk.Button(f1, text="GUIエディタ起動",
-                            command=lambda: [exec_Editor(file_path),
+    editor_btn = ttk.Button(f1, text="Start GUI Editor",
+                            command=lambda: [exec_editor(file_path),
                                              on_cancel(sub_menu)])
     # Cancelボタンの作成
     cancel_btn = ttk.Button(sub_menu, text="cancel", command=lambda: on_cancel(sub_menu))
@@ -218,16 +219,16 @@ def sample_func():
 # [close]ボタン：メインウィンドウを閉じる
 def App_Close(root):
     global dialbb_proc
-    global appfile_TS
+    global app_file_timestamp
     
     if dialbb_proc:
         # dialbbサーバ停止
         dialbb_proc.stop()
 
     # アプリファイルの変更チェック
-    if not appfile_TS.check():
-        ret = messagebox.askquestion("変更あり", "アプリファイルが保存されていません！",
-                                     detail="このまま終了しますか？", icon='warning')
+    if not app_file_timestamp.check():
+        ret = messagebox.askquestion("File changed", "Appliation file has not been saved!",
+                                     detail="Exit without saving?", icon='warning')
         if ret == 'no':
             return
 
@@ -243,7 +244,7 @@ def on_cancel(frame):
 
 # [select]ボタン：アプリファイルの読み込み
 def open_file_command(edit_box, settings, file_type_list):
-    file_path = filedialog.askopenfilename(filetypes = file_type_list)
+    file_path = filedialog.askopenfilename(filetypes=file_type_list)
     if file_path:
         # パスをテキストボックスに設定する
         edit_box.delete(0, tk.END)
@@ -304,12 +305,12 @@ def select_edit_file(parent):
         global APP_FILES
 
         if not selected:
-             messagebox.showerror("Warning", "選択されていません.")
+             messagebox.showerror("Warning", "Not selected.")
              return
 
         file_path = os.path.join(APP_FILE_DIR, APP_FILES[selected])
         if not os.path.isfile(file_path):
-            messagebox.showerror("Error", "ファイルが存在しません.",
+            messagebox.showerror("Error", "File does not exist.",
                                 detail=f'{file_path}')
             return
         
@@ -324,7 +325,7 @@ def select_edit_file(parent):
             # Configファイル
             edit_config(sub_menu, file_path)
         else:
-            messagebox.showerror("Warning", "ファイルが選択されていません.")
+            messagebox.showerror("Warning", "File is not selected.")
 
 
 # [create]ボタンの処理。templateファイルをコピーする。
@@ -361,12 +362,11 @@ def create_app_files(parent, settings):
     # サイズ＆表示位置の指定
     chaild_position(parent, sub_menu, width=250, height=130)
 
-
-    #ボタンクリックされた際のイベント
+    # ボタンクリックされた際のイベント
     def btn_click():
         lang = radio_val.get()
         if not lang:
-             messagebox.showerror("Warning", "言語が選択されていません.")
+             messagebox.showerror("Warning", "Language is not specified.")
              return
 
         # templateファイルをコピー
@@ -379,11 +379,11 @@ def create_app_files(parent, settings):
             try:
                 shutil.copy2(org_file, dist_file)
             except FileNotFoundError:
-                messagebox.showerror("Error", "ファイルが存在しません.",
+                messagebox.showerror("Error", "File does not exist.",
                                      detail=f'{org_file}')
                 return
         
-        messagebox.showinfo("File copy", 'テンプレートのアプリケーションファイルを作成しました。',
+        messagebox.showinfo("File copy", 'Application files created.',
                             detail=f'Lang = [{lang}]')
         
         # アプリケーション名の保存
@@ -396,7 +396,7 @@ def create_app_files(parent, settings):
 # [save]ボタンの処理。アプリファイルをzip圧縮して保存する
 def save_appfile(file_path, settings):
     global APP_FILES
-    global appfile_TS
+    global app_file_timestamp
 
     if file_path == '':
         # messagebox.showerror("Warning", "アプリケーションファイルが選択されていません.")
@@ -407,7 +407,7 @@ def save_appfile(file_path, settings):
 
     zip_file = filedialog.asksaveasfilename(title='Save App files',
                                             initialdir=dir,
-                                            filetypes=[('zipファイル', '*.zip')],
+                                            filetypes=[('zip file', '*.zip')],
                                             defaultextension='zip')
     if zip_file:
         print(f'{APP_FILES.values()} compress to {zip_file}')
@@ -421,7 +421,7 @@ def save_appfile(file_path, settings):
         settings.set_appname(file_name)
 
         # ファイルタイムスタンプを更新
-        appfile_TS.update()
+        app_file_timestamp.update()
 
 
 # [setting]ボタンの処理。ユーザ情報の設定。
@@ -468,7 +468,7 @@ def setting_json(parent, settings):
         settings.set_gptkey(key)
         # OPENAI_KEY環境変数をセット
         os.environ["OPENAI_KEY"] = key
-        messagebox.showinfo("Settings", 'セーブしました。')
+        messagebox.showinfo("Settings", 'Saved.')
         # 画面を閉じる
         sub_menu.destroy()
 

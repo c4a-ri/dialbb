@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # gui_utils.py
-#   functions used in GUI of dialbb.
+#   functions used in GUI of Dialbb No Code
 #
 __version__ = '0.1'
 __author__ = 'Mikio Nakano'
@@ -16,9 +16,11 @@ from typing import List
 import json
 
 
-# -------- プロセス管理クラス -------------------------------------
-class Proc_mng:
-    def __init__(self, cmd: str, param: List[str] = []) -> None:
+# -------- Process manager class プロセス管理クラス -------------------------------------
+class ProcessManager:
+    def __init__(self, cmd: str, param: List[str] = None) -> None:
+        if param is None:
+            param = []
         self.cmd = cmd
         self.param = param
 
@@ -38,14 +40,14 @@ class Proc_mng:
 
         ret_code = self.process.poll()
         if ret_code is not None:
-            messagebox.showerror('ERROR', "サーバ起動に失敗しました.", detail=self.process.stdout)
+            messagebox.showerror('ERROR', "Failed to start the server.", detail=self.process.stdout)
             return False
         print(f'# Start process pid={self.process.pid}.')
         return True
     
-    # プロセス停止
+    # stop process プロセス停止
     def stop(self) -> None:
-        # サーバ停止
+        # stp server サーバ停止
         if os.name == 'nt':
             # windows
             os.system(f"taskkill /F /T /PID {self.process.pid}")
@@ -57,10 +59,14 @@ class Proc_mng:
 
 
 # -------- ファイルタイムスタンプ管理クラス -------------------------------------
-class File_timestamp:
+class FileTimestamp:
+
     files = []
-    def __init__(self, dir, files: List[str] = []) -> None:
-        # 対処fileリスト（full-path）
+
+    def __init__(self, dir: str, files: List[str] = None) -> None:
+        if files is None:
+            files = []
+        # list of files to process (full path)
         for f in files:
             self.files.append(os.path.join(dir, f))
         # 初期タイムスタンプ取得
@@ -92,10 +98,11 @@ class File_timestamp:
 
 
 # -------- JSONファイルの管理クラス -------------------------------------
-class Json_info:
+class JsonInfo:
     label_gpt = 'OPENAI_API_KEY'
     label_app = 'Specify_application'
     def __init__(self, filename):
+
         self.filename = filename
         self.data = {}
         self.disp = None
@@ -125,7 +132,7 @@ class Json_info:
     def _disp_appname(self, app_name):
         if self.disp:
             # 表示エリアにセット
-            self.disp['text'] = f'Specify application : {app_name}'
+            self.disp['text'] = f'Specify application (Current app: {app_name})'
 
     # OPENAI_API_KEY取得
     def get_gptkey(self):
@@ -174,4 +181,4 @@ def chaild_position(parent, chaild, width:int = 0, height:int = 0):
 
 # GUIで利用するセッティング情報を制御
 def gui_settings(file_path):
-    return Json_info(file_path)
+    return JsonInfo(file_path)

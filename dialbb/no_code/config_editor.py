@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# config_mng.py
+# config_editor.py
 #   Process of editing config.
 #
 __version__ = '0.1'
