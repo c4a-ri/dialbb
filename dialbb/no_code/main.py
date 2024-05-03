@@ -84,8 +84,14 @@ def exec_editor(file_path):
         editor_proc.stop()
 
 
-# Excel→JSON変換処理
-def convert_excel_to_json(xlsx, json):
+#Excel→JSON変換処理
+def convert_excel_to_json(xlsx: str, json: str):
+    """
+    Convert Excel to JSON
+
+    :param xlsx:
+    :param json:
+    """
     result = False
     # メッセージを表示する
     if xlsx == "" or json == "":
