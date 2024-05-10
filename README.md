@@ -273,7 +273,7 @@ Experimental applications are available at `sample_apps/lab_app_ja/` (Japanese) 
 - English Application
 
   - Simple Canonicalizer Block
-  - Snips Understander Block
+  - ChatGPT Understander Block
   - Spacy NER Block (NER using [spaCy](https://spacy.io/))
 
   - STN Manager Block
@@ -281,7 +281,7 @@ Experimental applications are available at `sample_apps/lab_app_ja/` (Japanese) 
 - Japanese Application
 
   - Japanese Canonicalizer Block
-  - Snips Understander Block
+  - ChatGPT Understander Block
   - Spacy NER Block (NER using [spaCy](https://spacy.io/)/[GiNZA](https://megagonlabs.github.io/ginza/))
 
   - STN Manager Block
