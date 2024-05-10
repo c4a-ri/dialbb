@@ -123,17 +123,17 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, entitie
                     function_found = True
                     if function:
                         dictionary: List[Dict[str, Union[str, List[str]]]] \
-                            = eval("func(config, block_config)", {}, # execute dictionary function
+                            = eval("func(config, block_config)", {},  # execute dictionary function
                                    {"func": function, "config": config, "block_config": block_config})
                         snips_entity_definitions[entity_class] = {'data':  []}
                         for entry in dictionary:
                             entity: str = entry['entity']
-                            normalized_value: str = normalize(entity, canonicalizer, tokenizer)
+                            normalized_entity: str = normalize(entity, canonicalizer, tokenizer)
                             normalized_synonyms: List[str] = [normalize(synonym, canonicalizer, tokenizer)
                                                    for synonym in entry.get('synonyms',[])]
-                            if entity != normalized_value:
-                                normalized_synonyms.append(normalized_value) # normalized entity is used as a synonym
-                            snips_entity_definitions[entity_class]['data'].append({"value": entity,
+                            if entity != normalized_entity:
+                                normalized_synonyms.append(normalized_entity)  # normalized entity is used as a synonym
+                            snips_entity_definitions[entity_class]['data'].append({"value": normalized_entity,
                                                                                    "synonyms": normalized_synonyms})
                         break
                 if not function_found:
@@ -189,14 +189,14 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame, entitie
                                                   re.split('[,，、]', synonyms_string)]  # convert synonym cell to a list
                 entity_class: str = row[COLUMN_ENTITY_CLASS].strip()
                 entity: str = row[COLUMN_ENTITY]
-                normalized_value: str = normalize(entity, canonicalizer, tokenizer, language)  # dictionary entry
-                if entity != normalized_value:
-                    normalized_synonyms.append(normalized_value)  # normalized entity is used as a synonym
+                normalized_entity: str = normalize(entity, canonicalizer, tokenizer, language)  # dictionary entry
+                if entity != normalized_entity:
+                    normalized_synonyms.append(normalized_entity)  # normalized entity is used as a synonym
                 if entity_class in snips_entity_definitions.keys():
-                    snips_entity_definitions[entity_class]['data'].append({"value": entity,
+                    snips_entity_definitions[entity_class]['data'].append({"value": normalized_entity,
                                                                            "synonyms": normalized_synonyms})
                 else:
-                    snips_entity_definitions[entity_class] = {'data': [{"value": entity,
+                    snips_entity_definitions[entity_class] = {'data': [{"value": normalized_entity,
                                                                         "synonyms": normalized_synonyms}]}
 
         # integrate information in entities dataframe into dictionary
