@@ -1,0 +1,50 @@
+header {
+    background-color: #f0f2f5;
+    padding: 5px;
+    height: 6vh;
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    text-align:center;
+  }
+  
+  .rete {
+    position: absolute;
+    top: 65px;
+    left: 10px;
+    height: 90vh;
+    width: 96vw;
+    font-size: 1rem;
+    background: white;
+    border-radius: 1em;
+    text-align: left;
+    border: 3px solid #55b881;
+    line-height: 1;
+  }
+  
+  /* ボタンを非表示にする */
+  .hidden {
+    display: none;
+  }
+  .filelabel{
+    display: inline-block;
+    position: relative;
+    background-color: #fff;
+    color: #000;
+    font-size: 14px;
+    padding: 2px 6px;  /* Top, Right, (Bottom, Left) */
+    border: 1px solid #3333334f;
+    border-radius: 4px;
+    transition: all 0.5s;
+    margin-right: 10px;
+  }
+  .filelabel:hover{
+    color: #1fa7bee0;
+    border: 1px solid #1fa7bee0;
+  }
+  .fileinput{
+    display: none;
+  }
+  
