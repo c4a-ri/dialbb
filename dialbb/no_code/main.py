@@ -545,8 +545,8 @@ def main():
 
     # タイトルとアイコンを設定
     root.title("DialBB Manager")
-    photo = os.path.join(NC_PATH, 'img', 'dialbb-icon.png')
-    root.iconphoto(True, tk.PhotoImage(file=photo))
+    # photo = os.path.join(NC_PATH, 'img', 'dialbb-icon.png')
+    # root.iconphoto(True, tk.PhotoImage(file=photo))
 
     # ウィンドウサイズと表示位置を指定
     central_position(root, width=400, height=280)

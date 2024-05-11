@@ -17,7 +17,7 @@ exclude = [
 
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = ">=3.8"
 openpyxl = "3.1.2"
 flask = "3.0.0"
 annotated-types = "0.6.0"
