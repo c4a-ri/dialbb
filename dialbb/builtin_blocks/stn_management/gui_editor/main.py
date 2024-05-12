@@ -69,14 +69,14 @@ class Proc_mng:
 # GUIエディタ起動
 def exec_Editor(file_path):
     # 知識記述Excel-json変換
-    init_json = f'{EDITOR_DIR}/dist/static/data/init.json'
+    init_json = os.path.join(EDITOR_DIR, 'dist', 'static', 'data', 'init.json')
     ret = Conv_exl2json(file_path, init_json)
     if not ret:
         return
     
     print(f"exec_Editor os:{os.name} editor dir:{EDITOR_DIR}")
     # サーバ起動
-    cmd = os.path.join(EDITOR_DIR, r'start_editor.py')
+    cmd = os.path.join(EDITOR_DIR, 'start_editor.py')
     editor_proc = Proc_mng(cmd)
     ret = editor_proc.start()
     if ret:
@@ -92,7 +92,7 @@ def exec_Editor(file_path):
         messagebox.showinfo("GUI Editor", msg, detail='http://localhost:5000/にアクセス！\n終了する時はOKボタンを押してください.')
 
         # 終了処理
-        save_json = f'{EDITOR_DIR}/dist/static/data/save.json'
+        save_json = os.path.join(EDITOR_DIR, 'dist', 'static', 'data', 'save.json')
         if not os.path.isfile(save_json):
             messagebox.showwarning('Warning', 'セーブされていません!',
                                     detail='必要な場合はエディタの[Save]ボタンでセーブしてから[OK]を押してください.')
@@ -220,6 +220,13 @@ def set_main_frame(root_frame):
 def main():
     # Rootウジェットの生成
     root = tk.Tk()
+    
+    global EDITOR_DIR
+    init_json = EDITOR_DIR+r'/dist/static/data/init.json'
+    print(init_json)
+    init_json = os.path.join(EDITOR_DIR, 'dist', 'static', 'data', 'init.json')
+    photo = os.path.join(EDITOR_DIR, 'img', 'dialbb-icon.png')
+    print(init_json)
 
     # タイトルとアイコンを設定
     root.title("DialBB GUI Scenario Editor")
