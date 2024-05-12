@@ -220,13 +220,6 @@ def set_main_frame(root_frame):
 def main():
     # Rootウジェットの生成
     root = tk.Tk()
-    
-    global EDITOR_DIR
-    init_json = EDITOR_DIR+r'/dist/static/data/init.json'
-    print(init_json)
-    init_json = os.path.join(EDITOR_DIR, 'dist', 'static', 'data', 'init.json')
-    photo = os.path.join(EDITOR_DIR, 'img', 'dialbb-icon.png')
-    print(init_json)
 
     # タイトルとアイコンを設定
     root.title("DialBB GUI Scenario Editor")
