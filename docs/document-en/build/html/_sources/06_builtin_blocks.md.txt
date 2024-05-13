@@ -293,7 +293,7 @@ When the application is launched, the above knowledge is converted into Snips tr
 The Snips training data is `_training_data.json` in the application directory. By looking at this file, you can check if the conversion is successful.
 
 (chatgpt_understander)=
-## ChatGPT Understander (Language Understanding Block using Snips)
+## ChatGPT Understander (Language Understanding Block using ChatGPT)
 
 (`dialbb.builtin_blocks.understanding_with_chatgpt.chatgpt_understander.Understander`)
 
