@@ -88,8 +88,8 @@ def exec_Editor(file_path):
         subprocess.Popen(["start", "msedge", "--app=http://localhost:5000/"], shell=True)
 
         # 終了の指示待ち
-        msg = 'GUI Editor 実行中...'
-        messagebox.showinfo("GUI Editor", msg, detail='http://localhost:5000/にアクセス！\n終了する時はOKボタンを押してください.')
+        msg = 'DialBB GUI Scenario Editor 実行中...'
+        messagebox.showinfo("DialBB GUI Scenario Editor", msg, detail='http://localhost:5000/にアクセス！\n終了する時はOKボタンを押してください.')
 
         # 終了処理
         save_json = os.path.join(EDITOR_DIR, 'dist', 'static', 'data', 'save.json')
