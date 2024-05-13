@@ -5,7 +5,7 @@
   python, node.js も必要です.  
 
 * （参考）開発環境  
-  python 3.10.5  
+  python 3.10.5  (3.8.10でも動作確認済み)
   vite 5.0.8  
   vue 3.3.11  
   node.js 21.6.1  
@@ -24,7 +24,7 @@
   ブラウザよりアクセス  
   http://localhost:5173/ 
 
-* 本場用ビルド  
+* 本番用ビルド  
 ```
   $ npm run build
 ```
@@ -32,16 +32,16 @@
   
 
 ### シナリオ エディタの起動方法  
-* メイン画面の起動
+#### ・メイン画面の起動
 ```
   $ python dialbb\builtin_blocks\stn_management\gui_editor\main.py
 ```
 
-* エディタの起動
+#### ・エディタの起動
 [select]ボタンでシナリオExcelファイルを指定して、[edit]ボタンでエディターサーバを起動します.  
 <img src="images/editor-gui-main.jpg" width="50%">
 
-* エディタの終了
+#### ・エディタの終了
 実行中ダイアログの[OK]ボタンでエディターサーバは停止します.  
 <img src="images/gui-editor-running.jpg" width="30%">
 
@@ -86,13 +86,4 @@
 [Clear]ボタンをクリックします、新規作成したい場合に使用します
 
 -------  
-### ツールを利用して知識記述Excelとノードエディタ用JSONに変換する方法
-  リポジトリの **dialbb/no_code/Tools/** 配下の変換ツールを使用する
-```sh
-・知識記述Excel⇒JSON変換
-    python knowledgeConverter2json.py sample-knowledge-ja.xlsx xxxx.json
-
-・JSON⇒知識記述Excel変換
-    python knowledgeConverter2excel.py xxxx.json sample-knowledge-ja.xlsx
-```
 
