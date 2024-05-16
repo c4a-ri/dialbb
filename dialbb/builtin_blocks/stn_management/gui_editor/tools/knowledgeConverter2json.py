@@ -240,8 +240,6 @@ def convert_node_data(exl_data: DataFrame) -> Tuple[List[nodeItem], List[str]]:
 def convert2json(exl_file: str, json_file: str):
     # Read Excel
     utterances_df = read_excel(exl_file, 'scenario')
-    # for index, row in utterances_df.iterrows():
-    #     print(f'--------\n{row}')
 
     # ExcelデータをNodeEditor形式のJSONに変換
     nodes, uu_types = convert_node_data(utterances_df)
@@ -253,11 +251,8 @@ def convert2json(exl_file: str, json_file: str):
 
     # Convert to JSON
     save_data = vars(conv_data)
-    # json_data = json.dumps(save_data, ensure_ascii=False, default=obj2dict)
-    # print(json_data)
     with open(json_file, 'w', encoding='utf-8') as f:
         json.dump(save_data, f, ensure_ascii=False, default=obj2dict)
-        # print('### output json file {}'.format(json_file))
 
 
 if __name__ == "__main__":

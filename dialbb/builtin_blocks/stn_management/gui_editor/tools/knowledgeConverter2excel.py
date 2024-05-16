@@ -2,13 +2,15 @@ import pandas as pd
 from pandas import DataFrame
 from typing import Dict, List, Any
 import argparse
-import json, codecs
+import json
+import codecs
 
 title = 'NodeエディタのExport(JSON)ファイルを知識記述のExcelに変換する.'
 
-#--------------------
+
+# --------------------
 # Typeのシーケンス番号でソートする
-#--------------------
+# --------------------
 def sort_types(df: DataFrame) -> DataFrame:
     df_result = pd.DataFrame()
 
@@ -24,9 +26,9 @@ def sort_types(df: DataFrame) -> DataFrame:
     return df_result
 
 
-#--------------------
+# --------------------
 # NodeEditorのJSONをExcelデータ形式に変換
-#--------------------
+# --------------------
 def convert_node2df(json_data: Any) -> DataFrame:
     nodes = []
     sys_node = {}
@@ -50,7 +52,7 @@ def convert_node2df(json_data: Any) -> DataFrame:
         # connectorで繋がっているuserNodeを取得
         for conn in df_conn[df_conn['source'] == sys_node.id].itertuples():
             for user_node in df_node.loc[(df_node['label'] == 'userNode')
-                                    & (df_node['id'] == conn.target)].itertuples():
+                                         & (df_node['id'] == conn.target)].itertuples():
                 # print(user_node.controls["utterance"]["value"])
 
                 # create row data for knowledge excel
@@ -77,7 +79,7 @@ def convert_node2df(json_data: Any) -> DataFrame:
 #--------------------
 def convert2excel(json_file: str, exl_file: str):
     # JSON読み込み
-    with codecs.open(json_file, 'r', encoding = 'utf_8') as f:
+    with codecs.open(json_file, 'r', encoding='utf_8') as f:
         json_data = json.load(f)
     # print(json_data)
 

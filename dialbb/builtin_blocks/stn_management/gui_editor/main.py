@@ -7,7 +7,8 @@
 __version__ = '0.1'
 __author__ = 'Mikio Nakano'
 
-import sys, os
+import sys
+import os
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
@@ -94,8 +95,8 @@ def exec_Editor(file_path):
         # 終了処理
         save_json = os.path.join(EDITOR_DIR, 'dist', 'static', 'data', 'save.json')
         if not os.path.isfile(save_json):
-            messagebox.showwarning('Warning', 'セーブされていません!',
-                                    detail='必要な場合はエディタの[Save]ボタンでセーブしてから[OK]を押してください.')
+            messagebox.showwarning('Warning', 'サーバを終了すると保存機能は使えません、よろしいでしょうか？',
+                                   detail='必要な場合はエディタの[Save]ボタンでセーブしてから[OK]を押してください.')
         # WarningでSaveした場合を考慮して再チェック
         if os.path.isfile(save_json):
             # json-知識記述Excel変換
@@ -114,26 +115,32 @@ def Conv_exl2json(xlsx, json):
     if xlsx == "" or json == "":
         messagebox.showerror("Warning", "ファイルが指定されていません.")
     else:
+        # フォルダが無ければ作成
+        folder_path = os.path.dirname(json)
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+
+        # 変換処理起動
         convert2json(xlsx, json)
-        # messagebox.showinfo("File Convertor", f"{json}を生成しました.")
         result = True
     
     return result
 
 
 # JSON→Excel変換処理
-def Conv_json2exl(json ,xlsx):
+def Conv_json2exl(json, xlsx):
     # メッセージを表示する
     if xlsx == "" or json == "":
         messagebox.showerror("Warning", "ファイルが指定されていません.")
     else:
+        # 変換処理起動
         convert2excel(json, xlsx)
-        messagebox.showinfo("File Convertor", f"{xlsx}を生成しました.")
+        # messagebox.showinfo("File Convertor", f"{xlsx}を生成しました.")
 
 
 # -------- GUI画面制御サブルーチン -------------------------------------
 # ウィンドウのサイズと中央表示の設定
-def central_position(frame, width:int, height:int):
+def central_position(frame, width: int, height: int):
     # スクリーンの縦横サイズを取得する
     sw=frame.winfo_screenwidth()
     sh=frame.winfo_screenheight()
@@ -142,7 +149,7 @@ def central_position(frame, width:int, height:int):
 
 
 # 親ウジェットに重ねて子ウジェットを表示
-def chaild_position(parent, chaild, width:int = 0, height:int = 0):
+def chaild_position(parent, chaild, width: int = 0, height: int = 0):
     # 親ウィンドウの位置に子ウィンドウを配置
     x = parent.winfo_rootx() + parent.winfo_width() // 4 - chaild.winfo_width() // 4
     y = parent.winfo_rooty() + parent.winfo_height() // 4 - chaild.winfo_height() // 4
@@ -156,7 +163,7 @@ def chaild_position(parent, chaild, width:int = 0, height:int = 0):
 def set_file_frame(parent_frame, label_text, file_type_list):
     # ラベルの作成
     file_frame = ttk.Frame(parent_frame, style='My.TLabelframe')
-    file_frame.spec_app = tk.Label(file_frame, text = label_text)
+    file_frame.spec_app = tk.Label(file_frame, text=label_text)
     file_frame.spec_app.grid(column=0, row=0, sticky=tk.NSEW, padx=5)
     
     # テキストボックスの作成
@@ -197,7 +204,7 @@ def on_cancel(frame):
 
 # [select]ボタン：アプリファイルの読み込み
 def open_file_command(edit_box, file_type_list):
-    file_path = filedialog.askopenfilename(filetypes = file_type_list)
+    file_path = filedialog.askopenfilename(filetypes=file_type_list)
     if file_path:
         # パスをテキストボックスに設定する
         edit_box.delete(0, tk.END)
@@ -213,7 +220,7 @@ def set_main_frame(root_frame):
 
     # closeボタン
     close_btn = tk.Button(root_frame, text="close", width=5,
-                          command=lambda:App_Close(root_frame))
+                          command=lambda: App_Close(root_frame))
     close_btn.pack(side=tk.BOTTOM, anchor=tk.NE, padx=10, pady=10)
 
 
