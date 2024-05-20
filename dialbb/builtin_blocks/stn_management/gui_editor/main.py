@@ -15,6 +15,8 @@ from tkinter import messagebox
 from tkinter import filedialog
 import subprocess
 import webbrowser
+import time
+import platform
 from typing import List
 from tools.knowledgeConverter2json import convert2json
 from tools.knowledgeConverter2excel import convert2excel
@@ -31,11 +33,13 @@ class Proc_mng:
     def __init__(self, cmd: str, param: List[str] = []) -> None:
         self.cmd = cmd
         self.param = param
+        self.pf = platform.system()
 
     # プロセス起動
     def start(self) -> bool:
         # プロセス起動コマンド
-        if os.name == 'nt':
+        # ブラウザをアプリケーションモードで起動する
+        if self.pf == 'Windows':
             # windows
             # Pythonの実行可能ファイルのパスを取得
             cmd = [sys.executable, self.cmd] + self.param
@@ -56,7 +60,7 @@ class Proc_mng:
     # プロセス停止
     def stop(self) -> None:
         # サーバ停止
-        if os.name == 'nt':
+        if self.pf == 'Windows':
             # windows
             os.system(f"taskkill /F /T /PID {self.process.pid}")
         else:
@@ -82,21 +86,32 @@ def exec_Editor(file_path):
     ret = editor_proc.start()
     if ret:
         # ブラウザ起動
-        import time
-        time.sleep(2)
-        # webbrowser.open('http://localhost:5000/', new=1, autoraise=True)
-        # ブラウザをアプリケーションモードで起動する
-        subprocess.Popen(["start", "msedge", "--app=http://localhost:5000/"], shell=True)
+        try:
+            time.sleep(2)
+            # webbrowser.open('http://localhost:5000/', new=1, autoraise=True)
+            pf = platform.system()
+            # ブラウザをアプリケーションモードで起動する
+            if pf == 'Windows':
+                subprocess.Popen(["start", "chrome", "--app=http://localhost:5000/"], shell=True)
+            elif pf == 'Darwin':
+                # Mac OSX
+                subprocess.Popen(["open", "-a", "'Google Chrome'", "--args",
+                                  "'--app=http://localhost:5000/'"], shell=True)
+        except Exception:
+            pass
 
         # 終了の指示待ち
-        msg = 'DialBB GUI Scenario Editor 実行中...'
-        messagebox.showinfo("DialBB GUI Scenario Editor", msg, detail='http://localhost:5000/にアクセス！\n終了する時はOKボタンを押してください.')
+        msg = 'DialBB GUI Scenario Editor is running...'
+        # messagebox.showinfo("DialBB GUI Scenario Editor", msg, detail='http://localhost:5000/にアクセス！\n終了する時はOKボタンを押してください.')
+        messagebox.showinfo("DialBB GUI Scenario Editor", msg, detail='Please access http://localhost:5000/\nPress "Stop" to stop the server.')
 
         # 終了処理
         save_json = os.path.join(EDITOR_DIR, 'dist', 'static', 'data', 'save.json')
         if not os.path.isfile(save_json):
-            messagebox.showwarning('Warning', 'サーバを終了すると保存機能は使えません、よろしいでしょうか？',
-                                   detail='必要な場合はエディタの[Save]ボタンでセーブしてから[OK]を押してください.')
+            # messagebox.showwarning('Warning', 'サーバを終了すると保存機能は使えません、よろしいでしょうか？',
+            #                        detail='必要な場合はエディタの[Save]ボタンでセーブしてから[OK]を押してください.')
+            messagebox.showwarning('Warning', 'Scenario will not be saved if you stop the server. Do you want to continue?',
+                                   detail='To save the scenario, press "Save" on the editor and then press "Stop".')
         # WarningでSaveした場合を考慮して再チェック
         if os.path.isfile(save_json):
             # json-知識記述Excel変換
