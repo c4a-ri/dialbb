@@ -278,8 +278,9 @@ export async function createEditor(container: HTMLElement) {
       formData.append('file', file);
 
       try {
-        const response = await fetch('/upload', {
-          method: 'POST',
+        // const response = await fetch('/upload', {
+        const response = await fetch('/save', {
+            method: 'POST',
           body: formData
         });
         if (!response.ok) {

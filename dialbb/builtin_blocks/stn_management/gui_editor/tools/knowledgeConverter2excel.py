@@ -74,9 +74,9 @@ def convert_node2df(json_data: Any) -> DataFrame:
     return pd.DataFrame(nodes)
 
 
-#--------------------
+# --------------------
 #  NodeEditor形式のJSONを知識記述Excelに変換
-#--------------------
+# --------------------
 def convert2excel(json_file: str, exl_file: str):
     # JSON読み込み
     with codecs.open(json_file, 'r', encoding='utf_8') as f:

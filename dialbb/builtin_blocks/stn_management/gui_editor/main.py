@@ -115,7 +115,7 @@ def exec_Editor(file_path):
         # WarningでSaveした場合を考慮して再チェック
         if os.path.isfile(save_json):
             # json-知識記述Excel変換
-            Conv_json2exl(save_json, file_path)
+            # Conv_json2exl(save_json, file_path)
             # Tempファイル削除
             os.remove(save_json)
 
@@ -126,18 +126,16 @@ def exec_Editor(file_path):
 # Excel→JSON変換処理
 def Conv_exl2json(xlsx, json):
     result = False
-    # メッセージを表示する
-    if xlsx == "" or json == "":
-        messagebox.showerror("Warning", "ファイルが指定されていません.")
-    else:
+
+    if json:
         # フォルダが無ければ作成
         folder_path = os.path.dirname(json)
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
 
-        # 変換処理起動
-        convert2json(xlsx, json)
-        result = True
+    # 変換処理起動
+    convert2json(xlsx, json)
+    result = True
     
     return result
 
