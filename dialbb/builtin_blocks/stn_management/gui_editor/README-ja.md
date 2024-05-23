@@ -13,12 +13,12 @@
 * セットアップ  
   gui_editor/フォルダで
 ```
-  $ npm install
+npm install
 ```
 
 * 動作確認  
 ```
-  $ npm run dev
+npm run dev
 ```
 
   ブラウザよりアクセス  
@@ -26,7 +26,7 @@
 
 * 本番用ビルド  
 ```
-  $ npm run build
+npm run build
 ```
   dist/フォルダにリリース物が生成されます  
   
@@ -34,7 +34,7 @@
 ### シナリオ エディタの起動方法  
 #### ・メイン画面の起動
 ```
-  $ python dialbb\builtin_blocks\stn_management\gui_editor\main.py
+python dialbb\builtin_blocks\stn_management\gui_editor\main.py
 ```
 
 #### ・エディタの起動

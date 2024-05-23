@@ -11,9 +11,11 @@ print(f'template_folder={DOC_ROOT}')
 app = Flask(__name__,  template_folder=DOC_ROOT, 
             static_folder=os.path.join(DOC_ROOT, 'static'))
 
+
 @app.route('/')
 def home():
     return render_template('index.html')
+
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
@@ -27,6 +29,7 @@ def upload_file():
         filename = secure_filename(file.filename)
         file.save(os.path.join(DOC_ROOT, 'static/data/', filename))
         return 'File successfully uploaded'
+
 
 @app.route('/save', methods=['POST'])
 def save_excel():

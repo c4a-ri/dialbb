@@ -12,6 +12,7 @@ import os
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
+from tkinter import simpledialog
 from tkinter import filedialog
 import subprocess
 import webbrowser
@@ -70,12 +71,36 @@ class Proc_mng:
         print(f'# Terminated process of {self.cmd}.')
 
 
+# カスタムメッセージダイアログのクラス
+class CustomDialog(simpledialog.Dialog):
+    def __init__(self, master, title=None, msg='', detail='', btn='OK') -> None:
+        self.mater = master     # 親フレーム
+        self.msg = msg          # 表示メッセージ
+        self.detail = detail    # 表示Detail（省略可）
+        self.btn = btn          # ボタンの文字（省略時"OK"）
+        super(CustomDialog, self).__init__(parent=master, title=title)
+
+    def body(self, master):
+        # メッセージの表示
+        self.label = tk.Label(master, text=self.msg)
+        self.label.pack(padx=10, pady=5)
+        # Detailの表示
+        if self.detail:
+            self.detail = tk.Label(master, text=self.detail)
+            self.detail.pack(padx=10, pady=5)
+
+    def buttonbox(self):
+        # ボタンのテキストを指定文字にセット
+        self.ok_button = tk.Button(self, text=self.btn, command=self.ok)
+        self.ok_button.pack(pady=10, ipadx=10)
+
+
 # -------- GUIエディタ関連 -------------------------------------
 # GUIエディタ起動
-def exec_Editor(file_path):
+def exec_Editor(parent):
     # 知識記述Excel-json変換
     init_json = os.path.join(EDITOR_DIR, 'dist', 'static', 'data', 'init.json')
-    ret = Conv_exl2json(file_path, init_json)
+    ret = Conv_exl2json(parent.edit_box.get(), init_json)
     if not ret:
         return
     
@@ -101,9 +126,10 @@ def exec_Editor(file_path):
             pass
 
         # 終了の指示待ち
-        msg = 'DialBB GUI Scenario Editor is running...'
         # messagebox.showinfo("DialBB GUI Scenario Editor", msg, detail='http://localhost:5000/にアクセス！\n終了する時はOKボタンを押してください.')
-        messagebox.showinfo("DialBB GUI Scenario Editor", msg, detail='Please access http://localhost:5000/\nPress "Stop" to stop the server.')
+        CustomDialog(parent, title='DialBB GUI Scenario Editor', btn='Stop',
+                     msg='DialBB GUI Scenario Editor is running...',
+                     detail='Please access http://localhost:5000/\nPress "Stop" to stop the server.')
 
         # 終了処理
         save_json = os.path.join(EDITOR_DIR, 'dist', 'static', 'data', 'save.json')
@@ -193,7 +219,7 @@ def set_file_frame(parent_frame, label_text, file_type_list):
     
     # editボタンの作成:GUIエディタ起動
     btnEditor = tk.Button(file_frame, text="edit", width=5,
-                          command=lambda: exec_Editor(file_frame.edit_box.get()))
+                          command=lambda: exec_Editor(file_frame))
     btnEditor.grid(column=2, row=1, padx=5)
 
     return file_frame
