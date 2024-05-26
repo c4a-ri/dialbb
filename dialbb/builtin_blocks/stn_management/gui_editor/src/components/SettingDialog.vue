@@ -99,8 +99,9 @@ defineExpose({
               <div class="modal-content">
               <!-- ヘッダー部 -->
               <div class="modal-header">
-                  <h1 class="modal-title fs-5" id="exampleModalLabel">シナリオの設定</h1>
-                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" @click="doClose"></button>
+                <h1 v-if="nodeKind == 'systemNode'" class="modal-title fs-5" id="exampleModalLabel">system</h1>
+                <h1 v-else-if="nodeKind == 'userNode'" class="modal-title fs-5" id="exampleModalLabel">user</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" @click="doClose"></button>
               </div>
               
               <!-- ダイアログ入力項目 -->
@@ -110,41 +111,41 @@ defineExpose({
                     <div class="dropdown">
                       <label for="status-type" class="col-form-label">type:</label>
                       <select class="form-select" aria-label="Default select example" v-model="inputStatusType">
-                          <option value='' disabled selected style='display:none;'>タイプを選択</option>
+                          <option value='' disabled selected style='display:none;'>Select type</option>
                           <option v-for="state in selectItems">{{ state }}</option>
                       </select>
                     </div>
                     <div class="mb-3">
                         <label for="status-name" class="col-form-label">name:</label>
                         <textarea class="form-control" id="status-name" v-model="inputStatus"
-                                    title="状態名を入力してください（省略可）"></textarea>
+                                    title="Input the state name (optional)"></textarea>
                     </div>
                     <div class="mb-3">
-                        <label for="system-utter" class="col-form-label">システム発話:</label>
+                        <label for="system-utter" class="col-form-label">utterance:</label>
                         <textarea class="form-control" id="system-utter" v-model="inputSystem"
-                                    title="システム発話を入力してください。"></textarea>
+                                    title="Input the system utterance"></textarea>
                     </div>
                   </div>
                   <div v-else-if="nodeKind == 'userNode'">
                     <div class="mb-3">
-                        <label for="user-utter" class="col-form-label">ユーザ発話:</label>
+                        <label for="user-utter" class="col-form-label">user utterance example:</label>
                         <textarea class="form-control" id="user-utter" v-model="inputUser"
-                                    title="ユーザ発話を入力してください。"></textarea>
+                                    title="Input the user utterance example"></textarea>
                     </div>
                     <div class="mb-3">
-                        <label for="utter-type" class="col-form-label">発話タイプ:</label>
+                        <label for="utter-type" class="col-form-label">user utterance type:</label>
                         <textarea class="form-control" id="utter-type" v-model="inputType"
-                                    title="発話タイプを入力してください。"></textarea>
+                                    title="Input the user utterance type"></textarea>
                     </div>
                     <div class="mb-3">
-                        <label for="condition" class="col-form-label">条件:</label>
+                        <label for="condition" class="col-form-label">conditions:</label>
                         <textarea class="form-control" id="condition" v-model="inputCondition"
-                                    title="条件を入力してください。"></textarea>
+                                    title="Input the conditions"></textarea>
                     </div>
                     <div class="mb-3">
-                        <label for="action" class="col-form-label">アクション:</label>
+                        <label for="action" class="col-form-label">actions:</label>
                         <textarea class="form-control" id="user-utter" v-model="inputAction"
-                                    title="アクションを入力してください。"></textarea>
+                                    title="Input the actions"></textarea>
                     </div>
                   </div>
                 </form>
