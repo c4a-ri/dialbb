@@ -16,7 +16,7 @@ export class userNode extends Classic.Node<
   >
   implements DataflowNode {
   width = 220;
-  height = 390;
+  height = 360;
   constructor(
     // change?: (value: number) => void,
     // initial?: { left?: number; right?: number },
@@ -63,8 +63,8 @@ export class userNode extends Classic.Node<
     // this.addOutput("next", new Classic.Output(socket, "Output", true));
 
     // systemNodeの状態 -> Inputソケット ->  次状態コントロールと連携 とする
-    this.addInput("state", new Classic.Input(socket, "from system", false));
-    this.addOutput("next", new Classic.Output(socket, "next", false));
+    this.addInput("state", new Classic.Input(socket, "input", false));
+    this.addOutput("next", new Classic.Output(socket, "output", false));
 
   }
 

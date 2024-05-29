@@ -196,29 +196,30 @@ export async function createEditor(container: HTMLElement) {
 
   AreaExtensions.simpleNodesOrder(area);
 
-  insertableNodes(area, {
-    async createConnections(node, connection) {
-      await editor.addConnection(
-        new Connection(
-          editor.getNode(connection.source),
-          connection.sourceOutput,
-          node,
-          "state"
-        )
-      );
-      await editor.addConnection(
-        new Connection(
-          node,
-          "next",
-          editor.getNode(connection.target),
-          connection.targetInput
-        )
-      );
-      arrange.layout({
-        applier: animatedApplier
-      });
-    }
-  });
+  // ★インサートモードは無効にする
+  // insertableNodes(area, {
+  //   async createConnections(node, connection) {
+  //     await editor.addConnection(
+  //       new Connection(
+  //         editor.getNode(connection.source),
+  //         connection.sourceOutput,
+  //         node,
+  //         "state"
+  //       )
+  //     );
+  //     await editor.addConnection(
+  //       new Connection(
+  //         node,
+  //         "next",
+  //         editor.getNode(connection.target),
+  //         connection.targetInput
+  //       )
+  //     );
+  //     arrange.layout({
+  //       applier: animatedApplier
+  //     });
+  //   }
+  // });
 
   // --------------------------
   // initial drawing
