@@ -9,6 +9,7 @@ import {
   systemNode,
   userNode
 } from "../../../nodes";
+import { Connection } from "../../../editor";
 
 /**
  * Classic context menu preset.
@@ -41,15 +42,23 @@ export function setup<Schemes extends BSchemes>(nodes: ItemDefinition<Schemes>[]
       label: 'Delete',
       key: 'delete',
       async handler() {
-        const nodeId = context.id
-        const connections = editor.getConnections().filter(c => {
-          return c.source === nodeId || c.target === nodeId
-        })
+        if (context instanceof systemNode ||
+            context instanceof userNode ) {
+          const nodeId = context.id
+          const connections = editor.getConnections().filter(c => {
+            return c.source === nodeId || c.target === nodeId
+          })
 
-        for (const connection of connections) {
-          await editor.removeConnection(connection.id)
+          for (const connection of connections) {
+            await editor.removeConnection(connection.id)
+          }
+          await editor.removeNode(nodeId)
         }
-        await editor.removeNode(nodeId)
+        else if (context instanceof Connection) {
+          console.log("### context.id="+context.id)
+          await editor.removeConnection(context.id)
+        }
+
       }
     }
 
@@ -72,7 +81,7 @@ export function setup<Schemes extends BSchemes>(nodes: ItemDefinition<Schemes>[]
       key: 'dialog',
       async handler() {
         const nodeId = context.id
-        console.log("##>nodeId:"+context.id)
+        console.log("##>nodeId:"+context.id+" Type:"+(typeof context))
         console.table(context)
         console.log('------------');
 
@@ -84,10 +93,6 @@ export function setup<Schemes extends BSchemes>(nodes: ItemDefinition<Schemes>[]
           // 発話
           let domInput = document.getElementById('syswordsInput') as HTMLInputElement;
           domInput.value = nodeData.controls.utterance.value as string;
-          await (domInput as HTMLInputElement).dispatchEvent(event);
-          // 状態
-          domInput = document.getElementById('statusInput') as HTMLInputElement;
-          domInput.value = nodeData.controls.status.value as string;
           await (domInput as HTMLInputElement).dispatchEvent(event);
           // 状態Type
           domInput = document.getElementById('statustypeIn') as HTMLInputElement;
@@ -111,6 +116,11 @@ export function setup<Schemes extends BSchemes>(nodes: ItemDefinition<Schemes>[]
           // ユーザノード
           const nodeData = context as userNode
           const event = new Event('input');
+          // 優先番号
+          const domInputNum = document.getElementById('priorityNumInput') as HTMLInputElement;
+          domInputNum.value = nodeData.controls.seqnum.value?.toString() as string;
+          await (domInputNum as HTMLInputElement).dispatchEvent(event);
+          
           // 発話
           let domInput = document.getElementById('userwordsInput') as HTMLInputElement;
           domInput.value = nodeData.controls.utterance.value as string;
@@ -142,12 +152,25 @@ export function setup<Schemes extends BSchemes>(nodes: ItemDefinition<Schemes>[]
       }
     }
     
-    return {
-      searchBar: false,
-      list: [
-        deleteItem, dialogItem,
-        ...(cloneItem ? [cloneItem] : [])
-      ]
+    if (context instanceof Connection) {
+      // Connectionは[Delete]のみ
+      return {
+        searchBar: false,
+        list: [
+          deleteItem,
+        ]
+      }
+    }
+    else {
+      // Nodeは[Delete, Setting]
+      return {
+        searchBar: false,
+        list: [
+          deleteItem,
+          dialogItem,
+          ...(cloneItem ? [cloneItem] : [])
+        ]
+      }
     }
   })
 }

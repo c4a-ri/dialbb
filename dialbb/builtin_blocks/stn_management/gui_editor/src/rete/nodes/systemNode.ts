@@ -23,17 +23,17 @@ export class systemNode extends Classic.Node<
     // 状態-タイプ
     this.addControl(
       "type",
-      new CustomInputControl("text", "type", { initial: type })
+      new CustomInputControl("text", "type", { initial: type, readonly: true })
     );
-    // 状態-名称（省略可能）
+    // 状態-名称（不要になったので隠す）
     this.addControl(
       "status",
-      new CustomInputControl("text", "name", { initial: status })
+      new CustomInputControl("text", "", { readonly: true }, true )
     );
     // システム発話パターン
     this.addControl(
       "utterance",
-      new CustomInputControl("text", "utterance", { initial: sysUtter })
+      new CustomInputControl("text", "utterance", { initial: sysUtter, readonly: true })
     );
 
     // 入出力ソケットの実装

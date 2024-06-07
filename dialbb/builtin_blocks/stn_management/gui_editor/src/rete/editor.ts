@@ -38,15 +38,17 @@ import CustomControl from "./nodes/CustomControl.vue";
 import { CustomInputControl } from "./utils";
 import ShortControl from "./nodes/ShortControl.vue";
 
-
 type Node = systemNode | userNode;
-export type Schemes = GetSchemes<
-  Node, Connection<Node>
->;
 
 export class Connection<
   N extends Node
-> extends ClassicPreset.Connection<N, N> {}
+> extends ClassicPreset.Connection<N, N> {
+  selected?: boolean;
+}
+
+export type Schemes = GetSchemes<
+  Node, Connection<Node>
+>;
 
 const socket = new ClassicPreset.Socket("socket");
 type AreaExtra = VueArea2D<Schemes> | ContextMenuExtra;
@@ -61,6 +63,7 @@ export type Context = {
 
 let contextG: any;
 
+
 /*--------------------------------------------------
   Create Node Editor.
 --------------------------------------------------*/
@@ -71,6 +74,7 @@ export async function createEditor(container: HTMLElement) {
   const render = new VuePlugin<Schemes, AreaExtra>();
   const arrange = new AutoArrangePlugin<Schemes, AreaExtra>();
   const engine = new DataflowEngine<Schemes>();
+  
   AreaExtensions.selectableNodes(area, AreaExtensions.selector(), {
     accumulating: AreaExtensions.accumulateOnCtrl()
   });
@@ -95,7 +99,7 @@ export async function createEditor(container: HTMLElement) {
       const [source, target] = getSourceTarget(from, to) || [null, null];
       const { editor } = context;
       if (source && target) {
-        //console.log('addConnection:'+source.key+'==>'+target.key)
+        // console.log('addConnection:'+source.key+'==>'+target.key)
         editor.addConnection(
           new Connection(
             editor.getNode(source.nodeId),
@@ -254,7 +258,7 @@ export async function createEditor(container: HTMLElement) {
     console.log('Call resetEditor()')
     await clearEditor(editor);
   }
-  
+
   // --------------------------
   // NodeデータExport
   // --------------------------
@@ -262,6 +266,7 @@ export async function createEditor(container: HTMLElement) {
     console.log('Call saveModule() dev:'+dev+' File='+filePath)
     // NodeをJSONにシリアライズ
     const data = await exportGraph(context.editor);
+
     const datastring = JSON.stringify(data);
     // console.log('Write data :'+datastring);
     if (dev) {
@@ -279,19 +284,21 @@ export async function createEditor(container: HTMLElement) {
       formData.append('file', file);
 
       try {
-        // const response = await fetch('/upload', {
+        // サーバに保存リクエスト送信(POST)
         const response = await fetch('/save', {
-            method: 'POST',
+          method: 'POST',
           body: formData
         });
         if (!response.ok) {
           throw new Error('Upload failed');
         }
         console.log('File uploaded successfully');
-      } catch (error: any) {
+      }
+      catch (error: any) {
         console.error(error.message);
       }
     }
+    return {};
   }
 
   return {
@@ -326,7 +333,6 @@ export async function saveNodeValue(nodeid: string = '', setVal: any = {}) {
   // NodeにDialog入力データをセット
   if (node instanceof systemNode) {
     // System Node
-    node.controls.status.value = setVal['status'];
     node.controls.type.value = setVal['type'];
     node.controls.utterance.value = setVal['utterance'];
   }
@@ -336,6 +342,7 @@ export async function saveNodeValue(nodeid: string = '', setVal: any = {}) {
     node.controls.type.value = setVal['type'];
     node.controls.conditions.value = setVal['condition'];
     node.controls.actions.value = setVal['action'];
+    node.controls.seqnum.value = setVal['priorityNum'];
   }
   // 再レンダリング
   contextG.area.update(`node`, nodeid)

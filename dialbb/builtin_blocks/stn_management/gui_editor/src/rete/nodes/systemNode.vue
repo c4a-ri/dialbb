@@ -25,7 +25,7 @@
       :data="{ type: 'control', payload: control }" :data-testid="'control-' + key" /> -->
     <div class="control" v-for="[key, control] in controls()" :key="key + seed" :data-testid="'control-' + key">
       <div class="control-title" data-testid="control-title">{{ control.label }}</div>
-      <Ref class="control-input" :emit="emit"
+      <Ref v-if="!control.hide" class="control-input" :emit="emit"
         :data="{ type: 'control', payload: control }" data-testid="control-input" />
     </div>
   </div>

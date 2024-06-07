@@ -12,13 +12,13 @@ const editor = ref()
 const state = reactive({
   nodeId: ref(''),
   nodeKind: ref(''),
-  status: ref(''),
   statustype: ref(''),
   systemutter: ref(''),
   userutter: ref(''),
   uttertype: ref(''),
   condition: ref(''),
   action: ref(''),
+  priorityNum: ref(0)
 })
 
 const jsonDataPath = ref('static/data/init.json')
@@ -99,11 +99,11 @@ onMounted(async () => {
     <input type="hidden" id="nodeKind" v-model="state.nodeKind"/>
     <input type="hidden" id="syswordsInput" v-model="state.systemutter"/>
     <input type="hidden" id="statustypeIn" v-model="state.statustype"/>
-    <input type="hidden" id="statusInput" v-model="state.status"/>
     <input type="hidden" id="userwordsInput" v-model="state.userutter"/>
     <input type="hidden" id="uttertypeInput" v-model="state.uttertype"/>
     <input type="hidden" id="conditionInput" v-model="state.condition"/>
     <input type="hidden" id="actionInput" v-model="state.action"/>
+    <input type="hidden" id="priorityNumInput" v-model.number="state.priorityNum"/>
 
     <!-- setting dialog -->
     <div id="dialoginfo" >
