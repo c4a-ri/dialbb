@@ -125,7 +125,7 @@ If the hostname or IP address of the server from which the application is launch
 http://<hostname>:8080 
 ```
 
-If the server is running on Windows, the dialog screen may not appear in your browser. In this case, a simple dialog screen will appear when you connect to the following URL.
+If the server is running on Windows 10, the dialog screen may not appear in your browser. In this case, a simple dialog screen will appear when you connect to the following URL.
 
 ```
 http://<hostname>:8080/test
@@ -181,6 +181,50 @@ Note:
 	
 
 
+  - On Windows, you might encounter an error like:
+
+    ```
+    ModuleNotFoundError: No module named 'setuptools_rust'
+    ```
+
+    In this case, first try:
+
+    ```sh
+    $ pip install --upgrade pip
+    ```
+
+    If that doesn’t resolve the issue, try the following steps:
+
+    - Download `snips_nlu_parsers-0.4.3-cp38-cp38m-win_amd64.whl` from https://pypi.org/project/snips-nlu-parsers/#files and rename it to `snips_nlu_parsers-0.4.3-cp38-cp38-win_amd64.whl`. Install it using:
+
+      ```sh
+      $ pip install snips_nlu_parsers-0.4.3-cp38-cp38-win_amd64.whl
+      ```
+
+    - Download `snips_nlu_utils-0.9.1-cp37-cp37m-win_amd64.whl` from https://pypi.org/project/snips-nlu-utils/#files and rename it to `snips_nlu_utils-0.9.1-cp38-cp38-win_amd64.whl`. Install it using:
+
+      ```sh
+      $ pip install snips_nlu_utils-0.9.1-cp38-cp38-win_amd64.whl
+      ```
+
+    - Then, run the following again:
+
+      ```sh
+      $ pip install -r sample_apps/network_ja/requirements.txt 
+      $ pip install -r sample_apps/network_en/requirements.txt 
+      ```
+
+
+- On Windows, when you run:
+
+  ```sh
+  $ python -m snips_nlu download en 
+  $ python -m snips_nlu download ja 
+  ```
+
+  you may encounter an error `Creating a shortcut link for 'ja' didn't work`. In this case, please run Windows in developer mode.
+
+
   - When running with Anaconda on Windows, Anaconda Prompt may need to be started in administrator mode.
 
   - If you are using pyenv, you may get the following error.
@@ -188,7 +232,7 @@ Note:
     ```
     ModuleNotFoundError: No module named '_bz2' 
     ```
-    
+
     See [this page](https://stackoverflow.com/questions/60775172/pyenvs-python-is-missing-bzip2-module) and others for how to deal with this problem.
 
 If the installation does not work, please contact us.
