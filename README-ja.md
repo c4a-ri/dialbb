@@ -1,6 +1,6 @@
 # DialBB: 対話システム構築フレームワーク
 
-ver.0.7.0
+ver.0.8.0
 
 [English](README.md)
 
@@ -123,7 +123,7 @@ $ python run_server.py sample_apps/parrot/config.yml
 http://<hostname>:8080 
 ```
 
-サーバをWindows上で動作させた場合，ブラウザ上に対話画面が出ないことがあります．その場合は，以下のURLに接続すると，簡易な対話画面が出ます．
+サーバをWindows 10上で動作させた場合，ブラウザ上に対話画面が出ないことがあります．その場合は，以下のURLに接続すると，簡易な対話画面が出ます．
 
 ```
 http://<hostname>:8080/test
@@ -167,14 +167,54 @@ http://<hostname>:8080/test
 
   注意
 
-- 途中でエラーになり，[Rust](https://www.rust-lang.org/tools/install) などの追加のソフトウェアのインストールを求められる場合があります（特にWindowsの場合）．その場合，指示にしがってインストールしてください．うまくいかない場合は我々に連絡してください．
-
 - 基本的にSnipsはscikit-learnの古いバージョンに依存しているため，Python3.9+では動きません．Python3.9+を使っている場合は，インストール中にエラーが出る可能性があります． その場合，以下のコマンドで解決する可能性があります．
 
     ```
     pip install Cython==0.29.36 
     pip install --upgrade pip setuptools wheel
     ```
+
+- Windowsでは
+
+    ```
+    ModuleNotFoundError: No module named 'setuptools_rust'
+    ```
+
+    のようなエラーがでる可能性があります．この時は，まず
+
+    ```sh
+    $ pip install --upgrade pip
+    ```
+
+     を試してください．それでもうまくいかない場合，以下の方法を試してみてください．
+
+    - https://pypi.org/project/snips-nlu-parsers/#files から `snips_nlu_parsers-0.4.3-cp38-cp38m-win_amd64.whl` をダウンロードし，`snips_nlu_parsers-0.4.3-cp38-cp38-win_amd64.whl` にrenameする．以下でインストールする．
+
+      ```sh
+      $ pip install snips_nlu_parsers-0.4.3-cp38-cp38-win_amd64.whl
+      ```
+
+    - https://pypi.org/project/snips-nlu-utils/#files から `snips_nlu_utils-0.9.1-cp37-cp37m-win_amd64.whl` をダウンロードし，`snips_nlu_utils-0.9.1-cp38-cp38-win_amd64.whl`にrenameする．以下でインストールする．
+
+      ```sh
+      $ pip install snips_nlu_utils-0.9.1-cp38-cp38-win_amd64.whl
+      ```
+
+    - 再度以下を実行する．
+
+      ```sh
+        $ pip install -r sample_apps/network_ja/requirements.txt 
+        $ pip install -r sample_apps/network_en/requirements.txt 
+      ```
+
+- Windowsで
+
+  ```
+    $ python -m snips_nlu download en 
+    $ python -m snips_nlu download ja 
+  ```
+
+  を実行したとき，`Creating a shortcut link for 'ja' didn't work`というエラーが出ることがあります．この時はWindowsを開発者モードで実行してください．
 
 - Windows上のAnacondaを用いて実行する場合，Anaconda Promptを管理者モードで起動しないといけない可能性があります．
 
@@ -287,7 +327,7 @@ http://<hostname>:8080/test
 
 #### 環境変数の設定
 
-  本アプリケーションではOpenAI社のChatGPTを使います。そのため、環境変数`OPENAI_API_KEY`にOpenAIのAPIキーを設定します．以下はbashの例です．
+  本アプリケーションではOpenAI社のChatGPTを使います．そのため，環境変数`OPENAI_API_KEY`にOpenAIのAPIキーを設定します．以下はbashの例です．
 
   ```sh
   $ export OPENAI_API_KEY=<OpenAIのAPIキー>
