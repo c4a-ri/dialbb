@@ -3,6 +3,7 @@ import { onMounted, reactive, ref } from 'vue';
 import { createEditor } from './rete/editor';
 import SettingDialog from './components/SettingDialog.vue';
 import AddNewType from './components/AddNewType.vue';
+import InfoDialog from './components/InfoDialog.vue';
 import { Space, Button } from 'ant-design-vue';
 import "./rete/styles.css";
 
@@ -26,9 +27,12 @@ const typeItems = ref(["example-1", "example-2", "example-3", "othe"])
 const showModal = ref(false)
 
 // データセーブ[Save]
-const doExport =  () => {
+const doExport =  async () => {
   console.log("Click Button doExport()");
-  editor.value.saveModule(import.meta.env.DEV, 'save.json');
+  const result = await editor.value.saveModule(import.meta.env.DEV, 'save.json');
+  if ('warning' in result) {
+    openInformationDialog(result['warning']);
+  }
 }
 
 // Setting Dialog表示
@@ -49,6 +53,18 @@ const addTypeConfirm = (value: string) => {
   console.log('Input Value:', value);
   typeItems.value.push(value);
 };
+
+// Information Dialog表示
+const childRef3 = ref()
+const infoDlgTitle = ref('Warning');
+const infoDlgMessage = ref('');
+
+const openInformationDialog = (msg: string) => {
+  infoDlgMessage.value = msg;
+  // 子コンポーネント起動
+  childRef3.value.openDialog();
+};
+
 
 onMounted(async () => {
   // Rete Viewport 表示
@@ -112,6 +128,10 @@ onMounted(async () => {
     <!-- AddNewType dialog -->
     <div id="dialoginfo2" >
       <AddNewType ref="childRef2" :title="'発話タイプ追加'" @addType="addTypeConfirm" />
+    </div>
+    <!-- Information dialog -->
+    <div id="dialoginfo3" >
+      <InfoDialog ref="childRef3" :title="infoDlgTitle" :message="infoDlgMessage" />
     </div>
 
     <!-- node editor area -->

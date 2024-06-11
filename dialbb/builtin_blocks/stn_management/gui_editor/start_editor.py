@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 from werkzeug.utils import secure_filename
 import os
 import tkinter as tk
@@ -8,7 +8,7 @@ from tools.knowledgeConverter2excel import convert2excel
 DOC_ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dist')
 print(f'template_folder={DOC_ROOT}')
 
-app = Flask(__name__,  template_folder=DOC_ROOT, 
+app = Flask(__name__,  template_folder=DOC_ROOT,
             static_folder=os.path.join(DOC_ROOT, 'static'))
 
 
@@ -43,7 +43,7 @@ def save_excel():
         json_file = os.path.join(DOC_ROOT, 'static/data/',
                                  secure_filename(file.filename))
         file.save(json_file)
-        
+
         root = tk.Tk()
         root.attributes('-topmost', True)
         root.withdraw()
@@ -55,10 +55,10 @@ def save_excel():
             print(f'file={xlsx_file}')
             # excel変換
             convert2excel(json_file, xlsx_file)
-        
+
         root.destroy()
 
-        return 'File successfully uploaded'
+        return jsonify({'message': ''})
 
 
 if __name__ == '__main__':

@@ -123,24 +123,19 @@ def generate_connectors(nodes: any = []) -> List[connectorItem]:
 def get_state_type(state_types: Set[str], row: Dict[str, str]) -> Tuple[Set[str], str]:
     type = ''
     state = row["state"]
-    if row["system utterance"] == '$skip':
-        type = 'skip'
-    if re.match('#final$', state):
-        # finelは複数あるので final-1, final-2,... にする
-        finals = [v for v in state_types if re.match('final_\d', v)]
-        n = len(finals)
-        state_types.add(f'final_{n+1}')
-
+    if re.match('#final', state):
+        # finel-xxxは finalに置き換え
+        type = 'final'
     elif state.startswith('#'):
+        # 先頭#を削除してセット
         type = state[1:]
-        if type in state_types:
-            print(f'Error: Duplicate state "{state}"')
-        else:
-            state_types.add(type)
-    elif state != '':
-        # その他はすべてother
+    elif row["system utterance"] == '$skip':
+        # system utteranceに$skipが有る場合はskip
+        type = 'skip'
+    else:
+        # 他はすべてother
         type = 'other'
-        state_types.add('other')
+    state_types.add(type)
 
     return state_types, type
 
@@ -233,8 +228,8 @@ def convert_node_data(exl_data: DataFrame) -> Tuple[List[nodeItem], List[str]]:
     
     #     print(f'node_data : {json.dumps(node_data, default=obj2dict)}')
     # print(f'nodes : {nodes}')
-
     # print(f'types={state_types}')
+
     # Return nodes and status type list
     return nodes, list(state_types)
 

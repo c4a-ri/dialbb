@@ -37,6 +37,7 @@ import UserNode from "./nodes/userNode.vue";
 import CustomControl from "./nodes/CustomControl.vue";
 import { CustomInputControl } from "./utils";
 import ShortControl from "./nodes/ShortControl.vue";
+import SelectableConnection from "./nodes/SelectableConnection.vue";
 
 type Node = systemNode | userNode;
 
@@ -75,6 +76,7 @@ export async function createEditor(container: HTMLElement) {
   const arrange = new AutoArrangePlugin<Schemes, AreaExtra>();
   const engine = new DataflowEngine<Schemes>();
   
+  // 選択可能なノードにする
   AreaExtensions.selectableNodes(area, AreaExtensions.selector(), {
     accumulating: AreaExtensions.accumulateOnCtrl()
   });
@@ -148,6 +150,9 @@ export async function createEditor(container: HTMLElement) {
               return VuePresets.classic.Control;
             }
           }
+        },
+        connection(context) {
+          return SelectableConnection;
         }
       }
     })
@@ -266,6 +271,12 @@ export async function createEditor(container: HTMLElement) {
     console.log('Call saveModule() dev:'+dev+' File='+filePath)
     // NodeをJSONにシリアライズ
     const data = await exportGraph(context.editor);
+    console.table(data)
+    // エラーチェック
+    if ('warning' in data) {
+      // エラー終了
+      return data;
+    }
 
     const datastring = JSON.stringify(data);
     // console.log('Write data :'+datastring);
@@ -292,7 +303,14 @@ export async function createEditor(container: HTMLElement) {
         if (!response.ok) {
           throw new Error('Upload failed');
         }
-        console.log('File uploaded successfully');
+
+        // レスポンスのJSONを取得
+        const responseData = await response.json();
+        console.table(responseData);
+        // const msg = JSON.stringify(responseData.text);
+        if (responseData.message && responseData.message != '') {
+          alert(responseData.message);
+        }
       }
       catch (error: any) {
         console.error(error.message);
