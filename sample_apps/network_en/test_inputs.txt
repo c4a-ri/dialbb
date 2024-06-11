@@ -2,7 +2,7 @@
 System: Hello! I'm a chatbot. Let me ask you about sandwich. Do you have sandwiches very often?
 User: Yes I do
 System: You like sandwich. 
-User: maybe
+User: maybe.
 System: what kind of sandwich do you like?
 User: I like egg salad sandwich
 System: I like egg salad sandwich, too! Could you tell me why you like egg salad sandwich?

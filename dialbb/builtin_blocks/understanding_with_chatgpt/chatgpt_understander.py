@@ -35,8 +35,6 @@ CONFIG_KEY_KEY_FILE: str = "key_file"  # key file for Google sheets API
 CONFIG_KEY_KNOWLEDGE_FILE: str = "knowledge_file"  # excel file path
 CONFIG_KEY_UTTERANCE_SHEET: str = "utterances_sheet"
 CONFIG_KEY_SLOTS_SHEET: str = "slots_sheet"
-CONFIG_KEY_ENTITIES_SHEET: str = "entities_sheet"
-CONFIG_KEY_DICTIONARY_SHEET: str = "dictionary_sheet"
 CONFIG_KEY_PROMPT_TEMPLATE: str = "prompt_template"
 CONFIG_KEY_GPT_MODEL: str = "gpt_model"
 
@@ -67,7 +65,6 @@ class Understander(AbstractBlock):
         # sheets in spreadsheet
         utterances_sheet = self.block_config.get(CONFIG_KEY_UTTERANCE_SHEET, "utterances")
         slots_sheet = self.block_config.get(CONFIG_KEY_SLOTS_SHEET, "slots")
-        dictionary_sheet = self.block_config.get(CONFIG_KEY_DICTIONARY_SHEET, "dictionary")
 
         # language: "en" or "ja"
         self._language = self.config.get(CONFIG_KEY_LANGUAGE, 'en')
@@ -86,15 +83,13 @@ class Understander(AbstractBlock):
 
         google_sheet_config: Dict[str, str] = self.block_config.get(CONFIG_KEY_KNOWLEDGE_GOOGLE_SHEET)
         if google_sheet_config:  # get knowledge from google sheet
-            utterances_df, slots_df, dictionary_df \
-                = self._get_dfs_from_gs(google_sheet_config, utterances_sheet, slots_sheet, dictionary_sheet)
+            utterances_df, slots_df = self._get_dfs_from_gs(google_sheet_config, utterances_sheet, slots_sheet)
         else:  # get knowledge from excel
             excel_file = self.block_config.get(CONFIG_KEY_KNOWLEDGE_FILE)
             if not excel_file:
                 abort_during_building(
                     f"Neither knowledge file nor google sheet info is not specified for the block {self.name}.")
-            utterances_df, slots_df, dictionary_df \
-                = self._get_dfs_from_excel(excel_file, utterances_sheet, slots_sheet, dictionary_sheet)
+            utterances_df, slots_df = self._get_dfs_from_excel(excel_file, utterances_sheet, slots_sheet)
 
         # convert nlu knowledge to type and slot definitions
         types, slot_definitions, examples, self.entities2synonyms \
@@ -113,16 +108,14 @@ class Understander(AbstractBlock):
         return file_contents
 
     def _get_dfs_from_gs(self, google_sheet_config: Dict[str, str],
-                         utterances_sheet: str, slots_sheet: str,
-                         dictionary_sheet: str) \
-            -> Tuple[DataFrame, DataFrame, DataFrame]:
+                         utterances_sheet: str, slots_sheet: str) \
+            -> Tuple[DataFrame, DataFrame]:
         """
         Get DataFrames for each sheet in knowledge in google sheets
         Google sheetに書かれた知識からDataframeを取得する。
         :param google_sheet_config: configuration for accessing google sheet
         :param utterances_sheet: utterances sheet name
         :param slots_sheet: slots sheet name
-        :param dictionary_sheet: dictionary sheet name
         :return: (utterances dataframe, slots dataframe, entities dataframe, dictionary dataframe)
         """
 
@@ -134,12 +127,11 @@ class Understander(AbstractBlock):
         workbook = gc.open_by_key(google_sheet_id)
         utterances_data = workbook.worksheet(utterances_sheet).get_all_values()
         slots_data = workbook.worksheet(slots_sheet).get_all_values()
-        dictionary_data = workbook.worksheet(dictionary_sheet).get_all_values()
         return pd.DataFrame(utterances_data[1:], columns=utterances_data[0]), \
-               pd.DataFrame(slots_data[1:], columns=slots_data[0]), \
-               pd.DataFrame(dictionary_data[1:], columns=dictionary_data[0])
+               pd.DataFrame(slots_data[1:], columns=slots_data[0])
 
-    def _get_dfs_from_excel(self, excel_file: str, utterances_sheet: str, slots_sheet: str, dictionary_sheet: str):
+    def _get_dfs_from_excel(self, excel_file: str, utterances_sheet: str, slots_sheet: str)  \
+            -> Tuple[DataFrame, DataFrame]:
 
         """
         Get DataFrames for each sheet in knowledge in Excel
@@ -147,7 +139,6 @@ class Understander(AbstractBlock):
         :param excel_file: knowledge file excel
         :param utterances_sheet: utterances sheet name
         :param slots_sheet: slots sheet name
-        :param dictionary_sheet: dictionary sheet name
         :return: (utterances dataframe, slots dataframe, entities dataframe, dictionary dataframe)
         """
 
@@ -156,7 +147,7 @@ class Understander(AbstractBlock):
         try:
             df_all: Dict[str, DataFrame] = pd.read_excel(excel_file_path, sheet_name=None)  # read all sheets
             # reading slots sheet
-            return df_all.get(utterances_sheet), df_all.get(slots_sheet), df_all.get(dictionary_sheet)
+            return df_all.get(utterances_sheet), df_all.get(slots_sheet)
         except Exception as e:
             abort_during_building(f"failed to read excel file: {excel_file_path}. {str(e)}")
 
