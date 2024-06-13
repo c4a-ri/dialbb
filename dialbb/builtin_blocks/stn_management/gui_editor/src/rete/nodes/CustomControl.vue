@@ -29,7 +29,7 @@
   
 textarea {
   width: 100%;
-  height: 100px;
+  height: 140px;
   white-space: pre-wrap;
   border-radius: 10px;
   background-color: white;

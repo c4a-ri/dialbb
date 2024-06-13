@@ -67,17 +67,16 @@ python dialbb\builtin_blocks\stn_management\gui_editor\main.py
 
 #### ・ノード項目の入力
 ノードの上で右クリック > [Setting] を選択すると入力ダイアログが表示されます  
-ノードの入力枠に直接入力することも可能です
 
 <img src="images/sys-setting.jpg" width="30%">　<img src="images/user-setting.jpg" width="30%">
 
 #### ・コネクタの接続
-ノード右側のソケットを左クリック > 他ノードの左側ソケットへドラッグします  
+ノードのoutputソケットを左クリック > 他ノードのinputソケットへドラッグします  
 
 <img src="images/editor-connection.jpg" width="30%">
 
 #### ・ファイルに保存(Excel)
-[Save]ボタンをクリックします、ノードデータをシナリオExcelに書き込みます。（保存しないでエディタサーバを停止した場合はデータが失われます）
+上部の[Save]ボタンをクリックします、ノードデータをシナリオExcelに書き込みます。（保存しないでエディタサーバを停止した場合はデータが失われます）
 
 -------  
 
