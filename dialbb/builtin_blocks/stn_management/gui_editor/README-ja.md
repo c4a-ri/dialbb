@@ -70,10 +70,12 @@ python dialbb\builtin_blocks\stn_management\gui_editor\main.py
 
 <img src="images/sys-setting.jpg" width="30%">　<img src="images/user-setting.jpg" width="30%">
 
-#### ・コネクタの接続
-ノードのoutputソケットを左クリック > 他ノードのinputソケットへドラッグします  
+#### ・コネクタの接続・削除
+ノードのoutputソケットを左クリック > 他ノードのinputソケットへドラッグして接続します  
+削除はinputソケットを摘まんで離すか、コネクター上で右クリック > [Delete] を選択します。
 
-<img src="images/editor-connection.jpg" width="30%">
+<img src="images/editor-connection.jpg" width="30%">　<img src="images/editor-conn-del.jpg" width="30%">
+
 
 #### ・ファイルに保存(Excel)
 上部の[Save]ボタンをクリックします、ノードデータをシナリオExcelに書き込みます。（保存しないでエディタサーバを停止した場合はデータが失われます）

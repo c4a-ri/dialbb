@@ -23,6 +23,7 @@
     "rete-connection-plugin": "^2.0.0-beta.18",
     "rete-context-menu-plugin": "^2.0.0",
     "rete-engine": "^2.0.0",
+    "rete-history-plugin": "^2.0.1",
     "rete-render-utils": "^2.0.0-beta.15",
     "rete-vue-plugin": "^2.0.0-beta.26",
     "sass": "^1.65.1",

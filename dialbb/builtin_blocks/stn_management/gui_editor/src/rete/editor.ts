@@ -15,10 +15,17 @@ import {
   Presets as ArrangePresets,
   ArrangeAppliers
 } from "rete-auto-arrange-plugin";
+//} from "rete-context-menu-plugin";
 import { ContextMenuPlugin, Presets as ContextMenuPresets
 } from "./context-menu-plugin";
 import type { ContextMenuExtra } from "./context-menu-plugin";
-//} from "rete-context-menu-plugin";
+import type { HistoryActions } from "rete-history-plugin";
+import {
+  HistoryPlugin,
+  HistoryExtensions,
+  Presets as HistoryPresets
+ } from "rete-history-plugin";
+ 
 import { easeInOut } from "popmotion";
 import { insertableNodes } from "./insert-node";
 import { exportGraph } from "./outputData";
@@ -75,7 +82,8 @@ export async function createEditor(container: HTMLElement) {
   const render = new VuePlugin<Schemes, AreaExtra>();
   const arrange = new AutoArrangePlugin<Schemes, AreaExtra>();
   const engine = new DataflowEngine<Schemes>();
-  
+  const history = new HistoryPlugin<Schemes, HistoryActions<Schemes>>();
+
   // 選択可能なノードにする
   AreaExtensions.selectableNodes(area, AreaExtensions.selector(), {
     accumulating: AreaExtensions.accumulateOnCtrl()
@@ -162,8 +170,15 @@ export async function createEditor(container: HTMLElement) {
   area.use(connection);
   area.use(render);
 
+  // ノードの自動整列を登録
   arrange.addPreset(ArrangePresets.classic.setup());
   area.use(arrange);
+
+  // アンドゥ機能の登録
+  history.addPreset(HistoryPresets.classic.setup());
+  HistoryExtensions.keyboard(history);
+  area.use(history);
+
 
   // コンテキストメニューの定義
   const contextMenu = new ContextMenuPlugin<Schemes>({
@@ -247,7 +262,13 @@ export async function createEditor(container: HTMLElement) {
       await module.apply(editor);
     }
 
-    await arrange.layout();
+    await arrange.layout({
+      options: {
+        'elk.layered.nodePlacement.strategy': 'SIMPLE',
+      },
+      applier: animatedApplier
+    });
+
     AreaExtensions.zoomAt(area, editor.getNodes());
 
     // 発話タイプ一覧を親コンポーネントに渡す
