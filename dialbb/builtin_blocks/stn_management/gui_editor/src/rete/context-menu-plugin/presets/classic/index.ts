@@ -77,7 +77,7 @@ export function setup<Schemes extends BSchemes>(nodes: ItemDefinition<Schemes>[]
 
     // Dialog Pop-up (added ohtaki)
     const dialogItem: Item = {
-      label: 'Setting',
+      label: 'Edit',
       key: 'dialog',
       async handler() {
         const nodeId = context.id
@@ -162,7 +162,7 @@ export function setup<Schemes extends BSchemes>(nodes: ItemDefinition<Schemes>[]
       }
     }
     else {
-      // Nodeは[Delete, Setting]
+      // Nodeは[Delete, Edit]
       return {
         searchBar: false,
         list: [
