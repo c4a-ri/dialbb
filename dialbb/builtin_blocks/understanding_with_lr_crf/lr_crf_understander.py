@@ -8,16 +8,16 @@ __version__ = '0.1'
 __author__ = 'Mikio Nakano'
 __copyright__ = 'C4A Research Institute, Inc.'
 
-import traceback
 import pandas as pd
-import sklearn_crfsuite
 from pandas import DataFrame
-from dialbb.builtin_blocks.understanding_with_chatgpt.knowledge_converter import convert_nlu_knowledge
+
 from dialbb.abstract_block import AbstractBlock
+from dialbb.builtin_blocks.understanding_with_lr_crf.crf_slot_extractor import CRFSlotExtractor
+from dialbb.builtin_blocks.understanding_with_lr_crf.knowledge_converter import convert_nlu_knowledge
+from dialbb.builtin_blocks.understanding_with_lr_crf.japanese_pos_tagger import JapanesePosTagger
 from dialbb.main import CONFIG_KEY_LANGUAGE
 from typing import Any, Dict, List, Tuple, Union
 import os
-import json
 import sys
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
@@ -59,7 +59,11 @@ class Understander(AbstractBlock):
 
         # language: "en" or "ja"
         self._language = self.config.get(CONFIG_KEY_LANGUAGE, 'en')
-        if self._language not in ('en', 'ja'):
+        if self._language == 'en':
+            self._pos_tagger = EnglishPosTagger()
+        elif self._language == 'ja':
+            self._pos_tagger = JapanesePosTagger()
+        else:
             abort_during_building("unsupported language: " + self._language)
 
         self._num_candidates = self.block_config.get(CONFIG_KEY_NUM_CANDIDATES, 1)
@@ -80,34 +84,13 @@ class Understander(AbstractBlock):
         training_data, self.entities2synonyms \
             = convert_nlu_knowledge(utterances_df, slots_df, self.block_config, language=self._language)
 
-        crf_X_train = []
-        crf_y_train = []
-
         for sample in training_data:
+            sample['tokens_with_pos'] = self._tokenize_and_tag(sample['example'])  # [(token, pos), (token, pos), ...]
 
-            tokens_with_pos: List[Tuple[str, str]] = self._tokenize(sample['example'])   # [(token, pos), (token, pos), ...]
-            crf_features: List[Dict[str, Any]] = self._tokens_with_pos2crf_features(tokens_with_pos)
-            crf_labels: List[str] = self._get_crf_labels(tokens_with_pos, sample['slots'])
-            crf_X_train.append(crf_features)
-            crf_y_train.append(crf_labels)
+        self._slot_extractor = CRFSlotExtractor(training_data)  # create crf model
 
+        self._vectorizer = CountVectorizer()
 
-
-
-        self.crf = sklearn_crfsuite.CRF(
-            algorithm='lbfgs',
-            c1=0.1,
-            c2=0.1,
-            max_iterations=100,
-            all_possible_transitions=True
-        )
-        self.crf.fit(crf_X_train, crf_y_train)
-
-    def _tokens_with_pos2crf_features(self, tokens_with_pos: List[Tuple[str, str]]):
-        return [self._word2features(tokens_with_pos, i) for i in range(len(tokens_with_pos))]
-
-    def _get_crf_labels(self, tokens_with_pos: List[Tuple[str, str]], slots: List[Dict[str, str]]) -> List[str]:
-        ....
 
     def _get_dfs_from_gs(self, google_sheet_config: Dict[str, str],
                          utterances_sheet: str, slots_sheet: str) \
@@ -215,9 +198,11 @@ class Understander(AbstractBlock):
         :return:
         """
 
-        tokens_with_pos: List[Tuple[str, str]] = self._tokenize(input_text)  # [(word, pos), (word, pos) ...]
-        slots: Dict[str, str] = self._extract_slots(tokens_wth_pos)
-        utterance_types: List[str] = self._estimate_type(input_text)
+        tokens_with_pos: List[Tuple[str, str]] = self._tokenize_and_tag(input_text)  # [(word, pos), (word, pos) ...]
+        slots: Dict[str, str] = self._slot_extractor.extract_slots(tokens_with_pos)
+
+        tokens: List[str] = [item[0] for item in tokens_with_pos]
+        utterance_types: List[str] = self._estimate_type(tokens)
 
         if top_n == 1:
             return {"type": utterance_types[0], "slots": slots}
@@ -226,16 +211,34 @@ class Understander(AbstractBlock):
                 utterance_types = utterance_types[:top_n]
             return [{"type": t, "slots": slots} for t in utterance_types]
 
+    def _tokenize_and_tag(self, input_text: str) -> List[Tuple[str, str]]:
+        """
+        tokenize input and tag POS labels
+        :param input_text: input text
+        :return: [(word, pos), (word pos) ...]
+        """
 
-    def _extract_slots(self, tokens_with_pos: List[Tuple[str, str]]) -> Dict[str, str]:
+        result: List[Tuple[str, str]] = self._pos_tagger.tag(input_text)
+        return result
 
-        crf_features = self._tokens_with_pos2crf_features(tokens_with_pos)
-        predicted_labels = features = self.crf.predict_single(crf_features)
-        .....
 
-    def _estimate_type(self, input_text: str) -> str:
-        ......
+    def _estimate_type(self, tokens: List[str]) -> List[str]:
+        """
+        estimate type of token set
+        :param tokens: list of tokens of input text
+        :return: list of candidates of types
+        """
+        # 文書をトークナイズしてTF-IDFベクトルに変換
+        tokenized_input: str = " ".join(tokens)
+        doc_tfidf = self._vectorizer.transform(tokenized_input)
 
+        # モデルでラベルの確率を予測
+        probabilities = model.predict_proba(doc_tfidf)
+
+        # 確率とラベルを辞書で返す
+        label_dict = {0: 'Cats', 1: 'Dogs'}
+        prob_distribution = {label_dict[i]: prob for i, prob in enumerate(probabilities[0])}
+        return prob_distribution
 
 
 

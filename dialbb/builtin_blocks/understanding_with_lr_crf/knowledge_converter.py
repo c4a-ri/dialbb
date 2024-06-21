@@ -64,7 +64,7 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame,
              - list of training data, each of which is a dict having keys 'type', 'example, and 'slots'
                e.g., {"type": "ask-weather",
                       "example": "tell me the weather in new york tomorrow",
-                      "slots": [{"place": "new york", "date": "tomorrow"}]}
+                      "slots": {"place": "new york", "date": "tomorrow"}}
              - dict from entities to synonym lists
     """
 
@@ -123,7 +123,7 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame,
             if slots_cell:
                 slots_str: List[str] = [x.strip() for x in re.split('[,，、]', slots_cell)]
                 for slot_str in slots_str:
-                    pair: List[str] = [x.strip() for x in re.split('[=＝]', slot_str)]
+                    pair: List[str] = [canonicalizer.canonicalize(x.strip()) for x in re.split('[=＝]', slot_str)]
                     if len(pair) != 2:
                         abort_during_building("illegal slot description: " + str(slots_str))
                     slots[pair[0]] = pair[1]  # name -> value
