@@ -15,6 +15,7 @@ from dialbb.abstract_block import AbstractBlock
 from dialbb.builtin_blocks.understanding_with_lr_crf.crf_slot_extractor import CRFSlotExtractor
 from dialbb.builtin_blocks.understanding_with_lr_crf.knowledge_converter import convert_nlu_knowledge
 from dialbb.builtin_blocks.understanding_with_lr_crf.japanese_pos_tagger import JapanesePosTagger
+from dialbb.builtin_blocks.understanding_with_lr_crf.lr_type_estimator import LRTypeEstimator
 from dialbb.main import CONFIG_KEY_LANGUAGE
 from typing import Any, Dict, List, Tuple, Union
 import os
@@ -88,8 +89,7 @@ class Understander(AbstractBlock):
             sample['tokens_with_pos'] = self._tokenize_and_tag(sample['example'])  # [(token, pos), (token, pos), ...]
 
         self._slot_extractor = CRFSlotExtractor(training_data)  # create crf model
-
-        self._vectorizer = CountVectorizer()
+        self._type_estimator = LRTypeEstimator(training_data)   # create lr model
 
 
     def _get_dfs_from_gs(self, google_sheet_config: Dict[str, str],
@@ -200,9 +200,7 @@ class Understander(AbstractBlock):
 
         tokens_with_pos: List[Tuple[str, str]] = self._tokenize_and_tag(input_text)  # [(word, pos), (word, pos) ...]
         slots: Dict[str, str] = self._slot_extractor.extract_slots(tokens_with_pos)
-
-        tokens: List[str] = [item[0] for item in tokens_with_pos]
-        utterance_types: List[str] = self._estimate_type(tokens)
+        utterance_types: List[str] = self._type_estimator.estimate_type(tokens_with_pos)
 
         if top_n == 1:
             return {"type": utterance_types[0], "slots": slots}
@@ -222,23 +220,6 @@ class Understander(AbstractBlock):
         return result
 
 
-    def _estimate_type(self, tokens: List[str]) -> List[str]:
-        """
-        estimate type of token set
-        :param tokens: list of tokens of input text
-        :return: list of candidates of types
-        """
-        # 文書をトークナイズしてTF-IDFベクトルに変換
-        tokenized_input: str = " ".join(tokens)
-        doc_tfidf = self._vectorizer.transform(tokenized_input)
-
-        # モデルでラベルの確率を予測
-        probabilities = model.predict_proba(doc_tfidf)
-
-        # 確率とラベルを辞書で返す
-        label_dict = {0: 'Cats', 1: 'Dogs'}
-        prob_distribution = {label_dict[i]: prob for i, prob in enumerate(probabilities[0])}
-        return prob_distribution
 
 
 
