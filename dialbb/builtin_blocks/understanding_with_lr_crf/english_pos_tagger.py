@@ -13,7 +13,7 @@ from typing import Dict, Any, List, Tuple
 import nltk
 from nltk.tokenize import word_tokenize
 
-class JapanesePosTagger:
+class EnglishPosTagger:
 
     """
     Japanese Tokenizer

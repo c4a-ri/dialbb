@@ -8,7 +8,9 @@ __version__ = '0.1'
 __author__ = 'Mikio Nakano'
 __copyright__ = 'C4A Research Institute, Inc.'
 
+from pprint import pprint
 from typing import List, Dict, Any, Tuple
+import sklearn_crfsuite
 
 class CRFSlotExtractor:
 
@@ -24,13 +26,16 @@ class CRFSlotExtractor:
         crf_X_train = []
         crf_y_train = []
 
+        # create training data
         for sample in training_data:
 
+            tokens_with_pos = sample['tokens_with_pos']
             crf_features: List[Dict[str, Any]] = self._tokens_with_pos2crf_features(tokens_with_pos)
             crf_labels: List[str] = self._get_crf_labels(tokens_with_pos, sample['slots'])
             crf_X_train.append(crf_features)
             crf_y_train.append(crf_labels)
 
+        # train model
         self.crf = sklearn_crfsuite.CRF(
             algorithm='lbfgs',
             c1=0.1,
@@ -39,14 +44,28 @@ class CRFSlotExtractor:
             all_possible_transitions=True
         )
 
+        pprint(str(crf_X_train))
+
+        pprint(str(crf_y_train))
+
         self.crf.fit(crf_X_train, crf_y_train)
 
 
     def _tokens_with_pos2crf_features(self, tokens_with_pos: List[Tuple[str, str]]):
-        return [self._word2features(tokens_with_pos, i) for i in range(len(tokens_with_pos))]
+
+        crf_features: List[Dict[str, Any]] = [self._word2features(tokens_with_pos, i)
+                                              for i in range(len(tokens_with_pos))]
+        return crf_features
+
 
 
     def _get_crf_labels(self, tokens_with_pos: List[Tuple[str, str]], slots: Dict[str, str]) -> List[str]:
+        """
+        get the crf label list
+        :param tokens_with_pos: list of tuples consisting of token and pos
+        :param slots: dict from slot id's to slot values
+        :return: list of crf-labels (BIO tags)
+        """
 
         crf_labels: List[str] = ['O'] * len(tokens_with_pos)  # crf labels for each token
         for slot_name, slot_value in slots.items():
@@ -71,7 +90,7 @@ class CRFSlotExtractor:
             if b_index >= 0:  # slot found
                 crf_labels[b_index] = 'B-' + slot_name
                 for j in i_indices:
-                    crf_labels[b_index] = 'I-' + slot_name
+                    crf_labels[j] = 'I-' + slot_name
 
         return crf_labels
 
@@ -106,3 +125,47 @@ class CRFSlotExtractor:
         if slot_name:
             result[slot_name] = slot_value
         return result
+
+
+    def _word2features(self, sent, i):
+        word = sent[i][0]
+        postag = sent[i][1]
+
+        features = {
+            'bias': 1.0,
+            'word.lower()': word.lower(),
+            'word[-3:]': word[-3:],
+            'word[-2:]': word[-2:],
+            'word.isupper()': word.isupper(),
+            'word.istitle()': word.istitle(),
+            'word.isdigit()': word.isdigit(),
+            'postag': postag,
+            'postag[:2]': postag[:2],
+        }
+        if i > 0:
+            word1 = sent[i-1][0]
+            postag1 = sent[i-1][1]
+            features.update({
+                '-1:word.lower()': word1.lower(),
+                '-1:word.istitle()': word1.istitle(),
+                '-1:word.isupper()': word1.isupper(),
+                '-1:postag': postag1,
+                '-1:postag[:2]': postag1[:2],
+            })
+        else:
+            features['BOS'] = True
+
+        if i < len(sent)-1:
+            word1 = sent[i+1][0]
+            postag1 = sent[i+1][1]
+            features.update({
+                '+1:word.lower()': word1.lower(),
+                '+1:word.istitle()': word1.istitle(),
+                '+1:word.isupper()': word1.isupper(),
+                '+1:postag': postag1,
+                '+1:postag[:2]': postag1[:2],
+            })
+        else:
+            features['EOS'] = True
+
+        return features

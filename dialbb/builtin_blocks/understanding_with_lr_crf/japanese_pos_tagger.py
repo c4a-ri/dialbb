@@ -38,6 +38,6 @@ class JapanesePosTagger:
         if input_text == "":
             result = []
         else:
-            result = [(m.surface(), m.part_of_speech()) for m in self._tokenizer.tokenize(input_text, self._mode)]
+            result = [(m.surface(), m.part_of_speech()[0]) for m in self._tokenizer.tokenize(input_text, self._mode)]
         return result
 

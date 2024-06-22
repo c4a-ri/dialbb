@@ -51,7 +51,7 @@ def check_columns(required_columns: List[str], df: DataFrame, sheet: str) -> boo
 
 def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame,
                           block_config: Dict[str, Any],
-                          language='ja') -> Tuple[List[Dict[str, Any]], Dict[str, List[str]]]:
+                          language='ja') -> Tuple[List[Dict[str, Any]], Dict[str, List[str]], Dict[str, str]]:
 
     """
     converts nlu knowledge to parts of prompt
@@ -66,6 +66,7 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame,
                       "example": "tell me the weather in new york tomorrow",
                       "slots": {"place": "new york", "date": "tomorrow"}}
              - dict from entities to synonym lists
+             - dict from slot id's to slot names
     """
 
     slot_names2entities: Dict[str, List[str]] = {}
@@ -108,6 +109,10 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame,
 
     training_data: List[Dict[str, Any]] = []
     # read utterances sheet
+
+    slot_ids2slot_names: Dict[str, str] = {}
+    j: int = 0
+
     if utterances_df is None:  # no utterance sheet
         abort_during_building(f"Warning: no utterances sheet.")
     else:
@@ -126,10 +131,19 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame,
                     pair: List[str] = [canonicalizer.canonicalize(x.strip()) for x in re.split('[=＝]', slot_str)]
                     if len(pair) != 2:
                         abort_during_building("illegal slot description: " + str(slots_str))
-                    slots[pair[0]] = pair[1]  # name -> value
+                    slot_id = None
+                    for id, name in slot_ids2slot_names.items():
+                        if name == pair[0]:
+                            slot_id = id
+                            break
+                    if slot_id is None:   # new slot
+                        slot_id = "SLOT-" + str(j)  # slot id is SLOT-0, SLOT-1, ...
+                        j += 1
+                    slot_ids2slot_names[slot_id] = pair[0]
+                    slots[slot_id] = pair[1]  # name -> value
             training_sample: Dict[str, Any] = {"type": utterance_type, "slots": slots, "example": utterance}
             training_data.append(training_sample)
 
-    return training_data, entities2synonyms
+    return training_data, entities2synonyms, slot_ids2slot_names
 
 

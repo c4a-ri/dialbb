@@ -15,6 +15,7 @@ from dialbb.abstract_block import AbstractBlock
 from dialbb.builtin_blocks.understanding_with_lr_crf.crf_slot_extractor import CRFSlotExtractor
 from dialbb.builtin_blocks.understanding_with_lr_crf.knowledge_converter import convert_nlu_knowledge
 from dialbb.builtin_blocks.understanding_with_lr_crf.japanese_pos_tagger import JapanesePosTagger
+from dialbb.builtin_blocks.understanding_with_lr_crf.english_pos_tagger import EnglishPosTagger
 from dialbb.builtin_blocks.understanding_with_lr_crf.lr_type_estimator import LRTypeEstimator
 from dialbb.main import CONFIG_KEY_LANGUAGE
 from typing import Any, Dict, List, Tuple, Union
@@ -82,13 +83,17 @@ class Understander(AbstractBlock):
             utterances_df, slots_df = self._get_dfs_from_excel(excel_file, utterances_sheet, slots_sheet)
 
         # convert nlu knowledge to type and slot definitions
-        training_data, self.entities2synonyms \
+        training_data, self.entities2synonyms, self._slot_ids2slot_names\
             = convert_nlu_knowledge(utterances_df, slots_df, self.block_config, language=self._language)
 
         for sample in training_data:
             sample['tokens_with_pos'] = self._tokenize_and_tag(sample['example'])  # [(token, pos), (token, pos), ...]
 
-        self._slot_extractor = CRFSlotExtractor(training_data)  # create crf model
+        self._slots_exist: bool = True if self._slot_ids2slot_names else False
+
+        if self._slots_exist:
+            self._slot_extractor = CRFSlotExtractor(training_data)  # create crf model
+
         self._type_estimator = LRTypeEstimator(training_data)   # create lr model
 
 
@@ -199,7 +204,12 @@ class Understander(AbstractBlock):
         """
 
         tokens_with_pos: List[Tuple[str, str]] = self._tokenize_and_tag(input_text)  # [(word, pos), (word, pos) ...]
-        slots: Dict[str, str] = self._slot_extractor.extract_slots(tokens_with_pos)
+        if self._slots_exist:
+            slots_with_ids: Dict[str, str] = self._slot_extractor.extract_slots(tokens_with_pos)
+            # change to slot names
+            slots = {self._slot_ids2slot_names[slot_id]: value for slot_id, value in slots_with_ids.items()}
+        else:
+            slots: Dict[str, str] = {}
         utterance_types: List[str] = self._type_estimator.estimate_type(tokens_with_pos)
 
         if top_n == 1:
