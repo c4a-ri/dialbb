@@ -47,12 +47,8 @@ class LRTypeEstimator:
             else:
                 labels.append(label_id)
 
-        print(str(self._id2label))
-        print(str(self._label2id))
-
         X_train = self._vectorizer.fit_transform(training_texts)
         y_train = np.array(labels)
-        pprint(str(y_train))
 
         self._model = LogisticRegression()
         self._model.fit(X_train, y_train)   # train model

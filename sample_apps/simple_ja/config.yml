@@ -23,7 +23,6 @@ blocks:  # ブロックのリスト
     flags_to_use:
       - 'Y'
       - 'T'
-    sudachi_normalization: yes
     num_candidates: 5
   - name: manager
     block_class: dialbb.builtin_blocks.stn_management.stn_manager.Manager
