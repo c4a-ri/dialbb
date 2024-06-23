@@ -40,7 +40,7 @@ CONFIG_KEY_GPT_MODEL: str = "gpt_model"
 CONFIG_KEY_NUM_CANDIDATES: str = "num_candidates"
 
 KEY_NLU_RESULT: str = "nlu_result"
-KEY_TOKENS: str = "tokens"
+KEY_INPUT_TEXT: str = "input_text"
 
 SCOPES = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
 
@@ -86,20 +86,25 @@ class Understander(AbstractBlock):
         training_data, self.entities2synonyms, self._slot_ids2slot_names\
             = convert_nlu_knowledge(utterances_df, slots_df, self.block_config, language=self._language)
 
+        self.log_debug(f"{len(training_data)} samples are used for training.")
+
         for sample in training_data:
             sample['tokens_with_pos'] = self._tokenize_and_tag(sample['example'])  # [(token, pos), (token, pos), ...]
 
         self._slots_exist: bool = True if self._slot_ids2slot_names else False
 
         if self._slots_exist:
-            self._slot_extractor = CRFSlotExtractor(training_data)  # create crf model
+            self._slot_extractor = CRFSlotExtractor(training_data, language=self._language)  # create crf model
+            self.log_debug("CRF model is trained.")
+        else:
+            self.log_debug("No slots found in the training data. Slots will not be estimated.")
 
         self._type_estimator = LRTypeEstimator(training_data)   # create lr model
+        self.log_debug("LR model is trained.")
 
 
     def _get_dfs_from_gs(self, google_sheet_config: Dict[str, str],
-                         utterances_sheet: str, slots_sheet: str) \
-            -> Tuple[DataFrame, DataFrame]:
+                         utterances_sheet: str, slots_sheet: str) -> Tuple[DataFrame, DataFrame]:
         """
         Get DataFrames for each sheet in knowledge in google sheets
         Google sheetに書かれた知識からDataframeを取得する。
@@ -144,11 +149,11 @@ class Understander(AbstractBlock):
 
     def process(self, input: Dict[str, Any], session_id: str) -> Dict[str, Any]:
         """
-        understand input sentence using SNIPS. when num_candidates in config is more than 1,
+        understand input sentence using LR and CRF. when num_candidates in config is more than 1,
         n-best results are returned
-        SNIPSを用いて言語理解を行う
+        LRとCRFを用いて言語理解を行う
         コンフィギュレーションのnum_candidatesが2以上なら、n-bestの言語理解結果が返される
-        :param input: e.g. {"tokens": ["I", "love", "egg", "salad", "sandwiches"]}
+        :param input: e.g. {"input_text": "I love egg salad sandwiches"}
         :param session_id: session id sent from client
         :return: {"nlu_result": <nlu result in DialBB format>} or
                  {"nlu_result": <list of nlu results in DialBB format>}
@@ -165,18 +170,17 @@ class Understander(AbstractBlock):
         session_id: str = input.get(KEY_SESSION_ID, "undecided")
         self.log_debug("input: " + str(input), session_id=session_id)
 
-        tokens = input[KEY_TOKENS]
-        if not tokens:  # if input is empty
+        input_text = input[KEY_INPUT_TEXT]
+        if not input_text:  # if input is empty
             if self._num_candidates == 1:  # non n-best mode
                 nlu_result: Dict[str, Any] = {"type": "", "slots": {}}
             else:  # n-best mode
                 nlu_result: List[Dict[str, Any]] = [{"type": "", "slots": {}}]
         else:
-            input_to_nlu = " ".join(tokens)  # concatenate tokens into a string
             if self._num_candidates == 1:  # non n-best mode
-                nlu_result: Dict[str, Any] = self._understand_with_lr_crf(input_to_nlu)
+                nlu_result: Dict[str, Any] = self._understand_with_lr_crf(input_text)
             else:  # n-best mode
-                nlu_result: List[Dict[str, Any]] = self._understand_with_lr_crf(input_to_nlu, top_n=self._num_candidates)
+                nlu_result: List[Dict[str, Any]] = self._understand_with_lr_crf(input_text, top_n=self._num_candidates)
 
         output = {KEY_NLU_RESULT: nlu_result}
         self.log_debug("output: " + str(output), session_id=session_id)
@@ -208,13 +212,16 @@ class Understander(AbstractBlock):
             slots_with_ids: Dict[str, str] = self._slot_extractor.extract_slots(tokens_with_pos)
             # change to slot names
             slots = {self._slot_ids2slot_names[slot_id]: value for slot_id, value in slots_with_ids.items()}
+            self.log_debug("estracted slots: " + str(slots))
         else:
             slots: Dict[str, str] = {}
-        utterance_types: List[str] = self._type_estimator.estimate_type(tokens_with_pos)
+        utterance_types, prob_distribution = self._type_estimator.estimate_type(tokens_with_pos)
+        self.log_debug("estimated types: " + str(utterance_types))
+        self.log_debug("estimated type probabilities: " + str(prob_distribution))
 
         if top_n == 1:
             return {"type": utterance_types[0], "slots": slots}
-        else: # top n candidates
+        else:  # top n candidates
             if len(utterance_types) > top_n:
                 utterance_types = utterance_types[:top_n]
             return [{"type": t, "slots": slots} for t in utterance_types]

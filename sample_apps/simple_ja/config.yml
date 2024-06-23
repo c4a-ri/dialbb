@@ -15,7 +15,7 @@ blocks:  # ブロックのリスト
     canonicalizer:
       class: dialbb.builtin_blocks.preprocess.japanese_canonicalizer.JapaneseCanonicalizer
     input:
-      tokens: tokens
+      input_text: canonicalized_user_utterance
     output: 
       nlu_result: nlu_result
     knowledge_file: simple-nlu-knowledge-ja.xlsx  # 知識記述ファイル

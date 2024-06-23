@@ -8,6 +8,7 @@ __version__ = '0.1'
 __author__ = 'Mikio Nakano'
 __copyright__ = 'C4A Research Institute, Inc.'
 
+from pprint import pprint
 from typing import List, Dict, Any, Tuple
 
 import numpy as np
@@ -38,41 +39,46 @@ class LRTypeEstimator:
             label = item['type']
 
             label_id: int = self._label2id.get(label)
-            if label_id:
-                labels.append(label_id)
-            else:
+            if label_id is None:
                 self._id2label[i] = label
                 self._label2id[label] = i
                 labels.append(i)
                 i += 1
+            else:
+                labels.append(label_id)
+
+        print(str(self._id2label))
+        print(str(self._label2id))
 
         X_train = self._vectorizer.fit_transform(training_texts)
         y_train = np.array(labels)
+        pprint(str(y_train))
 
         self._model = LogisticRegression()
         self._model.fit(X_train, y_train)   # train model
 
-    def estimate_type(self, tokens_with_pos: List[Tuple[str, str]]) -> List[str]:
+    def estimate_type(self, tokens_with_pos: List[Tuple[str, str]]) -> Tuple[List[str], List[Tuple[str, Any]]]:
         """
         estimate type of token set
         :param tokens: list of tuples consisting of token and its POS
-        :return: list of candidates of types
+        :return: - list of candidates of types
+                 - dict from type to probability
         """
 
         # get vector
         tokens = [item[0] for item in tokens_with_pos]
         tokenized_input: str = " ".join(tokens)
-        doc_tfidf = self._vectorizer.transform(tokenized_input)
+        sentence_vector = self._vectorizer.transform([tokenized_input])
 
         # estimate type
-        probabilities = self._model.predict_proba(doc_tfidf)  # predict
+        probabilities = self._model.predict_proba(sentence_vector)  # predict
         prob_distribution = []  # [(label, prob), (label, prob) ...]
         for i, prob in enumerate(probabilities[0]):
             prob_distribution.append((self._id2label[i], prob))
         # sort in descending order of prob
         prob_distribution = sorted(prob_distribution, key=lambda x: x[1], reverse=True)
         types: List[str] = [prob[0] for prob in prob_distribution]  # get list of labels
-        return types
+        return types, prob_distribution
 
 
 

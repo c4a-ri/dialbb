@@ -8,13 +8,12 @@ __version__ = '0.1'
 __author__ = 'Mikio Nakano'
 __copyright__ = 'C4A Research Institute, Inc.'
 
-from pprint import pprint
 from typing import List, Dict, Any, Tuple
 import sklearn_crfsuite
 
 class CRFSlotExtractor:
 
-    def __init__(self, training_data: List[Dict[str, Any]]) -> None:
+    def __init__(self, training_data: List[Dict[str, Any]], language: str = 'en') -> None:
         """
         train crf model
         :param training_data:
@@ -22,6 +21,7 @@ class CRFSlotExtractor:
          "tokens_with_pos": <list of tuples each of which consists of a token string and a POS string>}
         """
 
+        self._language = language
 
         crf_X_train = []
         crf_y_train = []
@@ -44,12 +44,8 @@ class CRFSlotExtractor:
             all_possible_transitions=True
         )
 
-        pprint(str(crf_X_train))
-
-        pprint(str(crf_y_train))
-
+        # training the model
         self.crf.fit(crf_X_train, crf_y_train)
-
 
     def _tokens_with_pos2crf_features(self, tokens_with_pos: List[Tuple[str, str]]):
 
