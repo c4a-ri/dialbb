@@ -12,7 +12,7 @@ export class systemNode extends Classic.Node<
   >
   implements DataflowNode {
   width = 220;
-  height = 360;
+  height = 340;
   constructor(
     // change?: (value: number) => void,
     change?: () => void,
@@ -23,22 +23,22 @@ export class systemNode extends Classic.Node<
     // 状態-タイプ
     this.addControl(
       "type",
-      new CustomInputControl("text", "type", { initial: type })
+      new CustomInputControl("text", "type", { initial: type, readonly: true })
     );
-    // 状態-名称（省略可能）
+    // 状態-名称（不要になったので隠す）
     this.addControl(
       "status",
-      new CustomInputControl("text", "name", { initial: status })
+      new CustomInputControl("text", "", { readonly: true }, true )
     );
     // システム発話パターン
     this.addControl(
       "utterance",
-      new CustomInputControl("text", "utterance", { initial: sysUtter })
+      new CustomInputControl("text", "utterance", { initial: sysUtter, readonly: true })
     );
 
     // 入出力ソケットの実装
-    this.addInput("state", new Classic.Input(socket, "from user", true));
-    this.addOutput("next", new Classic.Output(socket, "to user", true));
+    this.addInput("state", new Classic.Input(socket, "input", true));
+    this.addOutput("next", new Classic.Output(socket, "output", true));
   }
 
   // ソケット送受信のデータ処理関数

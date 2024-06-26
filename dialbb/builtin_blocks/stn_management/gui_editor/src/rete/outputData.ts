@@ -53,12 +53,50 @@ function serializeConnection(connection: ClassicPreset.Connection<any, any>) {
 
 
 //-----------------------------------
+// Check for duplicate types in systemNodes
+//-----------------------------------
+async function checkStateType(editor: NodeEditor<Schemes>) {
+  const typeList: {[name: string]: number } = {}; 
+
+  // Count types
+  for (const node of editor.getNodes()) {
+    if (node instanceof systemNode) {
+      const type = node.controls.type.value ?? 'undefined';
+      typeList[type] = (type in typeList) ? typeList[type] + 1 : 1;
+    }
+  }
+  // console.table(typeList)
+
+  // Check for duplicates
+  let ngs = '';
+  ['prep', 'initial', 'error'].forEach((type) => {
+    if (typeList[type] > 1) {
+      ngs = (ngs) ? `${ngs},${type}` : type;
+    }
+  });
+
+  let warn:string = '';
+  if (ngs) {
+    // ワーニングメッセージを作成
+    warn = `type:"${ngs}" is set multiple times.`;
+  }
+  return warn;
+}
+
+//-----------------------------------
 // Export editor information to JSON
 //-----------------------------------
 export async function exportGraph(editor: NodeEditor<Schemes>) {
   const data: any = { nodes: [], connects: [], types: [] };
   const nodes = editor.getNodes();
   const typeList: any = [];
+
+  // Check type
+  const warning = await checkStateType(editor);
+  if (warning) {
+    // Return a warning message
+    return {'warning': warning};
+  }
 
   // Save Connections
   const connections = editor.getConnections();

@@ -72,7 +72,7 @@ def exec_editor(file_path):
         json_file = f'{EDITOR_DIR}/static/data/save.json'
         if not os.path.isfile(json_file):
             messagebox.showwarning('Warning', 'Scenario is not saved.',
-                                    detail='Press [Save] button on the browser and then press [OK].')
+                                   detail='Press [Save] button on the browser and then press [OK].')
         # recheck   WarningでSaveした場合を考慮して再チェック
         if os.path.isfile(json_file):
             # convert JSON to Excel   json-知識記述Excel変換

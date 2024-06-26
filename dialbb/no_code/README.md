@@ -51,3 +51,9 @@ ver0.1.3
 ------
 
 ## GUI操作方法
+### コンフィグレーションGUIの使い方  
+
+
+### シナリオ エディタの使い方  
+[ここ](../builtin_blocks/stn_management/gui_editor/README-ja.md#シナリオエディタの使い方)を参照
+

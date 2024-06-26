@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dialbb-nc"
-version = "0.1.5"
+version = "0.1.6"
 description = "Dialogue system development framework no-code."
 authors = ["Mikio Nakano <mikio.nakano@c4a.jp>"]
 readme = "README.md"
@@ -17,7 +17,7 @@ exclude = [
 
 
 [tool.poetry.dependencies]
-python = ">=3.8"
+python = ">=3.8,<4.0"
 openpyxl = "3.1.2"
 flask = "3.0.0"
 annotated-types = "0.6.0"

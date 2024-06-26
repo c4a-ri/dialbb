@@ -10,8 +10,9 @@ export default defineConfig({
   ],
   base: "./",
   build: {
-    outDir: "./dist",
-    assetsDir: "static/assets"
+    outDir: "../../../no_code/gui_editor",
+    assetsDir: "static/assets",
+    emptyOutDir: true,
   },
   resolve: {
     alias: {

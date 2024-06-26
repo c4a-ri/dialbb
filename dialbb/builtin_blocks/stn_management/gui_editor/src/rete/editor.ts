@@ -15,10 +15,17 @@ import {
   Presets as ArrangePresets,
   ArrangeAppliers
 } from "rete-auto-arrange-plugin";
+//} from "rete-context-menu-plugin";
 import { ContextMenuPlugin, Presets as ContextMenuPresets
 } from "./context-menu-plugin";
 import type { ContextMenuExtra } from "./context-menu-plugin";
-//} from "rete-context-menu-plugin";
+import type { HistoryActions } from "rete-history-plugin";
+import {
+  HistoryPlugin,
+  HistoryExtensions,
+  Presets as HistoryPresets
+ } from "rete-history-plugin";
+ 
 import { easeInOut } from "popmotion";
 import { insertableNodes } from "./insert-node";
 import { exportGraph } from "./outputData";
@@ -37,16 +44,19 @@ import UserNode from "./nodes/userNode.vue";
 import CustomControl from "./nodes/CustomControl.vue";
 import { CustomInputControl } from "./utils";
 import ShortControl from "./nodes/ShortControl.vue";
-
+import SelectableConnection from "./nodes/SelectableConnection.vue";
 
 type Node = systemNode | userNode;
-export type Schemes = GetSchemes<
-  Node, Connection<Node>
->;
 
 export class Connection<
   N extends Node
-> extends ClassicPreset.Connection<N, N> {}
+> extends ClassicPreset.Connection<N, N> {
+  selected?: boolean;
+}
+
+export type Schemes = GetSchemes<
+  Node, Connection<Node>
+>;
 
 const socket = new ClassicPreset.Socket("socket");
 type AreaExtra = VueArea2D<Schemes> | ContextMenuExtra;
@@ -61,6 +71,7 @@ export type Context = {
 
 let contextG: any;
 
+
 /*--------------------------------------------------
   Create Node Editor.
 --------------------------------------------------*/
@@ -71,6 +82,9 @@ export async function createEditor(container: HTMLElement) {
   const render = new VuePlugin<Schemes, AreaExtra>();
   const arrange = new AutoArrangePlugin<Schemes, AreaExtra>();
   const engine = new DataflowEngine<Schemes>();
+  const history = new HistoryPlugin<Schemes, HistoryActions<Schemes>>();
+
+  // 選択可能なノードにする
   AreaExtensions.selectableNodes(area, AreaExtensions.selector(), {
     accumulating: AreaExtensions.accumulateOnCtrl()
   });
@@ -95,7 +109,7 @@ export async function createEditor(container: HTMLElement) {
       const [source, target] = getSourceTarget(from, to) || [null, null];
       const { editor } = context;
       if (source && target) {
-        //console.log('addConnection:'+source.key+'==>'+target.key)
+        // console.log('addConnection:'+source.key+'==>'+target.key)
         editor.addConnection(
           new Connection(
             editor.getNode(source.nodeId),
@@ -144,6 +158,9 @@ export async function createEditor(container: HTMLElement) {
               return VuePresets.classic.Control;
             }
           }
+        },
+        connection(context) {
+          return SelectableConnection;
         }
       }
     })
@@ -153,8 +170,15 @@ export async function createEditor(container: HTMLElement) {
   area.use(connection);
   area.use(render);
 
+  // ノードの自動整列を登録
   arrange.addPreset(ArrangePresets.classic.setup());
   area.use(arrange);
+
+  // アンドゥ機能の登録
+  history.addPreset(HistoryPresets.classic.setup());
+  HistoryExtensions.keyboard(history);
+  area.use(history);
+
 
   // コンテキストメニューの定義
   const contextMenu = new ContextMenuPlugin<Schemes>({
@@ -196,29 +220,30 @@ export async function createEditor(container: HTMLElement) {
 
   AreaExtensions.simpleNodesOrder(area);
 
-  insertableNodes(area, {
-    async createConnections(node, connection) {
-      await editor.addConnection(
-        new Connection(
-          editor.getNode(connection.source),
-          connection.sourceOutput,
-          node,
-          "state"
-        )
-      );
-      await editor.addConnection(
-        new Connection(
-          node,
-          "next",
-          editor.getNode(connection.target),
-          connection.targetInput
-        )
-      );
-      arrange.layout({
-        applier: animatedApplier
-      });
-    }
-  });
+  // ★インサートモードは無効にする
+  // insertableNodes(area, {
+  //   async createConnections(node, connection) {
+  //     await editor.addConnection(
+  //       new Connection(
+  //         editor.getNode(connection.source),
+  //         connection.sourceOutput,
+  //         node,
+  //         "state"
+  //       )
+  //     );
+  //     await editor.addConnection(
+  //       new Connection(
+  //         node,
+  //         "next",
+  //         editor.getNode(connection.target),
+  //         connection.targetInput
+  //       )
+  //     );
+  //     arrange.layout({
+  //       applier: animatedApplier
+  //     });
+  //   }
+  // });
 
   // --------------------------
   // initial drawing
@@ -237,7 +262,13 @@ export async function createEditor(container: HTMLElement) {
       await module.apply(editor);
     }
 
-    await arrange.layout();
+    await arrange.layout({
+      options: {
+        'elk.layered.nodePlacement.strategy': 'SIMPLE',
+      },
+      applier: animatedApplier
+    });
+
     AreaExtensions.zoomAt(area, editor.getNodes());
 
     // 発話タイプ一覧を親コンポーネントに渡す
@@ -253,7 +284,7 @@ export async function createEditor(container: HTMLElement) {
     console.log('Call resetEditor()')
     await clearEditor(editor);
   }
-  
+
   // --------------------------
   // NodeデータExport
   // --------------------------
@@ -261,6 +292,13 @@ export async function createEditor(container: HTMLElement) {
     console.log('Call saveModule() dev:'+dev+' File='+filePath)
     // NodeをJSONにシリアライズ
     const data = await exportGraph(context.editor);
+    console.table(data)
+    // エラーチェック
+    if ('warning' in data) {
+      // エラー終了
+      return data;
+    }
+
     const datastring = JSON.stringify(data);
     // console.log('Write data :'+datastring);
     if (dev) {
@@ -278,18 +316,28 @@ export async function createEditor(container: HTMLElement) {
       formData.append('file', file);
 
       try {
-        const response = await fetch('/upload', {
+        // サーバに保存リクエスト送信(POST)
+        const response = await fetch('/save', {
           method: 'POST',
           body: formData
         });
         if (!response.ok) {
           throw new Error('Upload failed');
         }
-        console.log('File uploaded successfully');
-      } catch (error: any) {
+
+        // レスポンスのJSONを取得
+        const responseData = await response.json();
+        console.table(responseData);
+        // const msg = JSON.stringify(responseData.text);
+        if (responseData.message && responseData.message != '') {
+          alert(responseData.message);
+        }
+      }
+      catch (error: any) {
         console.error(error.message);
       }
     }
+    return {};
   }
 
   return {
@@ -324,7 +372,6 @@ export async function saveNodeValue(nodeid: string = '', setVal: any = {}) {
   // NodeにDialog入力データをセット
   if (node instanceof systemNode) {
     // System Node
-    node.controls.status.value = setVal['status'];
     node.controls.type.value = setVal['type'];
     node.controls.utterance.value = setVal['utterance'];
   }
@@ -334,6 +381,7 @@ export async function saveNodeValue(nodeid: string = '', setVal: any = {}) {
     node.controls.type.value = setVal['type'];
     node.controls.conditions.value = setVal['condition'];
     node.controls.actions.value = setVal['action'];
+    node.controls.seqnum.value = setVal['priorityNum'];
   }
   // 再レンダリング
   contextG.area.update(`node`, nodeid)

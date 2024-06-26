@@ -16,10 +16,11 @@ class saveDataForm:
         self.connects = connects
         self.types = types
 
+
 # --- Class: a node format ---
 class nodeItem:
     def __init__(self, label: str = "unknown", id: str = "",
-                inputs: Any = {}, outputs: Any = {}, controls: Any = {}):
+                 inputs: Any = {}, outputs: Any = {}, controls: Any = {}):
         self.label = label
         self.id = id
         self.inputs = inputs
@@ -29,10 +30,11 @@ class nodeItem:
     def __repr__(self):
         return f'{vars(self)}'
 
+
 # --- Class: socket connector of a node ---
 class connectorItem:
     def __init__(self, id: str = "", sourceOutput: str = "next",
-                targetInput: str = "state", source: str = "", target: str = ""):
+                 targetInput: str = "state", source: str = "", target: str = ""):
         self.id = id
         self.sourceOutput = sourceOutput
         self.targetInput = targetInput
@@ -41,6 +43,7 @@ class connectorItem:
 
     def __repr__(self):
         return f'{vars(self)}'
+
 
 # --- Class: input control of a node ---
 class controlItem:
@@ -58,10 +61,10 @@ class controlItem:
         return f'{vars(self)}'
     
 
-#--------------------
+# --------------------
 #  Excel読み込み
-#--------------------
-def read_excel(exl, sheet = None) -> DataFrame:
+# --------------------
+def read_excel(exl, sheet=None) -> DataFrame:
     # print('### read_excel start {}'.format(exl))
     try:
         df: DataFrame = pd.read_excel(exl, sheet_name=sheet)
@@ -72,15 +75,16 @@ def read_excel(exl, sheet = None) -> DataFrame:
     return df
 
 
-#--------------------
+# --------------------
 #  JSONにあるObjectを辞書にシリアライズする
-#--------------------
+# --------------------
 def obj2dict(obj):
     return obj.__dict__
 
-#--------------------
+
+# --------------------
 #  次状態→状態へNode接続コネクターを生成
-#--------------------
+# --------------------
 def generate_connectors(nodes: any = []) -> List[connectorItem]:
     # Create Dataframe
     node_list = []
@@ -112,37 +116,33 @@ def generate_connectors(nodes: any = []) -> List[connectorItem]:
     
     return connects
 
-#--------------------
+
+# --------------------
 #  状態typeを生成する
-#--------------------
+# --------------------
 def get_state_type(state_types: Set[str], row: Dict[str, str]) -> Tuple[Set[str], str]:
     type = ''
     state = row["state"]
-    if row["system utterance"] == '$skip':
-        type = 'skip'
-    if re.match('#final$', state):
-        # finelは複数あるので final-1, final-2,... にする
-        finals = [v for v in state_types if re.match('final_\d', v)]
-        n = len(finals)
-        state_types.add(f'final_{n+1}')
-
+    if re.match('#final', state):
+        # finel-xxxは finalに置き換え
+        type = 'final'
     elif state.startswith('#'):
+        # 先頭#を削除してセット
         type = state[1:]
-        if type in state_types:
-            print(f'Error: Duplicate state "{state}"')
-        else:
-            state_types.add(type)
-    elif state != '':
-        # その他はすべてother
+    elif row["system utterance"] == '$skip':
+        # system utteranceに$skipが有る場合はskip
+        type = 'skip'
+    else:
+        # 他はすべてother
         type = 'other'
-        state_types.add('other')
+    state_types.add(type)
 
     return state_types, type
 
 
-#--------------------
+# --------------------
 #  ExcelデータをNodeEditor形式のJSONに変換
-#--------------------
+# --------------------
 def convert_node_data(exl_data: DataFrame) -> Tuple[List[nodeItem], List[str]]:
     nodes = []              # create nodes to return
     state_types = set()     # Array of status types
@@ -160,19 +160,19 @@ def convert_node_data(exl_data: DataFrame) -> Tuple[List[nodeItem], List[str]]:
         if cur_state != row["state"]:
             # create system node from cell value
             sys_controls = {}
-            sys_controls["status"] = controlItem(id = id, value = row["state"])
+            sys_controls["status"] = controlItem(id=id, value=row["state"])
             id += 1
-            sys_controls["utterance"] = controlItem(id = id, value = row["system utterance"])
+            sys_controls["utterance"] = controlItem(id=id, value=row["system utterance"])
             id += 1
 
             # 状態typeを生成
             state_types, type = get_state_type(state_types, row)
-            sys_controls["type"] = controlItem(id = id, value = type)
+            sys_controls["type"] = controlItem(id=id, value=type)
             id += 1
 
             # link of ststus to user node
             con_sys2usr = f'con_sys2usr-{id}'
-            sys_controls["nextStatus"] = controlItem(id = id, value = con_sys2usr)
+            sys_controls["nextStatus"] = controlItem(id=id, value=con_sys2usr)
             id += 1
 
             # Create inputs/outputs
@@ -182,9 +182,9 @@ def convert_node_data(exl_data: DataFrame) -> Tuple[List[nodeItem], List[str]]:
             id += 1
 
             # create node
-            node_data = nodeItem(label = 'systemNode', id = id, controls = sys_controls,
-                                 inputs = json.loads(input),
-                                 outputs = json.loads(output))
+            node_data = nodeItem(label='systemNode', id=id, controls=sys_controls,
+                                 inputs=json.loads(input),
+                                 outputs=json.loads(output))
             id += 1
             nodes.append(node_data)
             cur_state = row["state"]
@@ -195,21 +195,21 @@ def convert_node_data(exl_data: DataFrame) -> Tuple[List[nodeItem], List[str]]:
         # create user node from cell value
         user_controls = {}
         # link of ststus from system node
-        user_controls["status"] = controlItem(id = id, value = con_sys2usr)
+        user_controls["status"] = controlItem(id=id, value=con_sys2usr)
         id += 1
-        user_controls["utterance"] = controlItem(id = id, value = row["user utterance example"])
+        user_controls["utterance"] = controlItem(id=id, value=row["user utterance example"])
         id += 1
         uu_type_num += 10   # Add sequence number for type
-        user_controls["seqnum"] = controlItem(id = id, value = uu_type_num)
+        user_controls["seqnum"] = controlItem(id=id, value=uu_type_num)
         id += 1
-        # user_controls["type"] = controlItem(id = id, value = f'{uu_type_num}:{row["user utterance type"]}')
-        user_controls["type"] = controlItem(id = id, value = row["user utterance type"])
+        # user_controls["type"] = controlItem(id=id, value=f'{uu_type_num}:{row["user utterance type"]}')
+        user_controls["type"] = controlItem(id=id, value=row["user utterance type"])
         id += 1
-        user_controls["conditions"] = controlItem(id = id, value = row["conditions"])
+        user_controls["conditions"] = controlItem(id=id, value=row["conditions"])
         id += 1
-        user_controls["actions"] = controlItem(id = id, value = row["actions"])
+        user_controls["actions"] = controlItem(id=id, value=row["actions"])
         id += 1
-        user_controls["nextStatus"] = controlItem(id = id, value = row["next state"])
+        user_controls["nextStatus"] = controlItem(id=id, value=row["next state"])
         id += 1
 
         # Create inputs/outputs
@@ -220,44 +220,42 @@ def convert_node_data(exl_data: DataFrame) -> Tuple[List[nodeItem], List[str]]:
 
         # Create user Node
 
-        node_data = nodeItem(label = 'userNode', id = id, controls = user_controls,
-                             inputs = json.loads(input),
-                             outputs = json.loads(output))
+        node_data = nodeItem(label='userNode', id=id, controls=user_controls,
+                             inputs=json.loads(input),
+                             outputs=json.loads(output))
         id += 1
         nodes.append(node_data)
     
     #     print(f'node_data : {json.dumps(node_data, default=obj2dict)}')
     # print(f'nodes : {nodes}')
-
     # print(f'types={state_types}')
+
     # Return nodes and status type list
     return nodes, list(state_types)
 
 
-#--------------------
+# --------------------
 #  ExcelデータをNodeEditor形式のJSONに変換
-#--------------------
-def convert2json(exl_file: str, json_file: str):
-    # Read Excel
-    utterances_df = read_excel(exl_file, 'scenario')
-    # for index, row in utterances_df.iterrows():
-    #     print(f'--------\n{row}')
+# --------------------
+def convert2json(exl_file: str = '', json_file: str = 'init.json'):
+    if exl_file:
+        # Read Excel
+        utterances_df = read_excel(exl_file, 'scenario')
 
-    # ExcelデータをNodeEditor形式のJSONに変換
-    nodes, uu_types = convert_node_data(utterances_df)
+        # ExcelデータをNodeEditor形式のJSONに変換
+        nodes, uu_types = convert_node_data(utterances_df)
 
-    # Generate connectors between nodes.
-    connects = generate_connectors(nodes)
+        # Generate connectors between nodes.
+        connects = generate_connectors(nodes)
 
-    conv_data = saveDataForm(nodes=nodes, connects=connects, types=uu_types)
+        conv_data = saveDataForm(nodes=nodes, connects=connects, types=uu_types)
+    else:
+        conv_data = saveDataForm()
 
     # Convert to JSON
     save_data = vars(conv_data)
-    # json_data = json.dumps(save_data, ensure_ascii=False, default=obj2dict)
-    # print(json_data)
     with open(json_file, 'w', encoding='utf-8') as f:
         json.dump(save_data, f, ensure_ascii=False, default=obj2dict)
-        # print('### output json file {}'.format(json_file))
 
 
 if __name__ == "__main__":
