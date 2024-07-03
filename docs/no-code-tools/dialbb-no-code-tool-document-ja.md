@@ -21,7 +21,7 @@ Windows11、MacOSで動作します。
     - ブラウザのアドレスバーに https://www.python.org/downloads/windows/ を打ち込んでEnterキーを押します。
     - 表示されている中から以下の部分を探します。3.10.11である必要があります。
 
-    ![python-install-win-ja](images\python-download-win.png)
+    ![python-install-win-ja](images/python-download-win.png)
 
     - 64bit OSの場合は、[Windows installer (64-bit)](https://www.python.org/ftp/python/3.10.11/python-3.10.11-amd64.exe)を、32bit OSの場合は[Windows installer (32 -bit)](https://www.python.org/ftp/python/3.10.11/python-3.10.11.exe)をクリックします。
 
@@ -29,11 +29,11 @@ Windows11、MacOSで動作します。
 
     - 以下の画面が現れます。
 
-      ![python-setup-win](images\python-setup-win.png)
+      ![python-setup-win](images/python-setup-win.png)
 
       - Add python.exe to PATHに**チェックを入れてから**Install Nowをクリックします。
 
-        ![python-setup-win-path](images\python-setup-win-path.png)
+        ![python-setup-win-path](images/python-setup-win-path.png)
 
       - Pythonがインストールされます。
 
@@ -47,7 +47,7 @@ Windows11、MacOSで動作します。
 
   - 遷移したページの右側の下向き矢印をクリックします。
 
-    ![github-download](images\github-download.png)
+    ![github-download](images/github-download.png)
 
   - ダウンロードフォルダにwhlファイルがダウンロードされます。
 
@@ -55,17 +55,17 @@ Windows11、MacOSで動作します。
 
   - 検索窓に"cmd"と入力して、Enterキーを押します。
 
-    ![find-cmd](images\find-cmd.png)
+    ![find-cmd](images/find-cmd.png)
 
   - コマンドプロンプトが現れます。
 
-    ![cmd-started-ja](images\cmd-started-ja.png)
+    ![cmd-started-ja](images/cmd-started-ja.png)
 
   - 以下のコマンドを打ち込んでEnterキーを押します。
 
     - pip install Downloads\dialbb_nc-0.1.5-py3-none-any.whl 
 
-      ![pip-install-win-ja](images\pip-install-win-ja.png)
+      ![pip-install-win-ja](images/pip-install-win-ja.png)
 
       \は円マーク(￥の半角)の場合があります。
 
