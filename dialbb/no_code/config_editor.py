@@ -223,9 +223,9 @@ def edit_config(parent, file_path):
     # ［Spacy利用有無］ラジオボタン
     sp_val = tk.StringVar()
     sp_val.set('use' if config.isSpacy_ner() else 'unused')
-    sp_rb1 = ttk.Radiobutton(sp_frame, text='利用する', value='use',
+    sp_rb1 = ttk.Radiobutton(sp_frame, text='used', value='use',
                              variable=sp_val)
-    sp_rb2 = ttk.Radiobutton(sp_frame, text='利用しない', value='unused',
+    sp_rb2 = ttk.Radiobutton(sp_frame, text='unused', value='unused',
                              variable=sp_val)
     sp_rb1.grid(column=0, row=0, padx=5, pady=5)
     sp_rb2.grid(column=1, row=0, padx=5, pady=5)
@@ -238,9 +238,9 @@ def edit_config(parent, file_path):
     # ［ChatGPT利用有無］ラジオボタン
     gpt_val = tk.StringVar()
     gpt_val.set('use' if config.isChatgpt_understander() else 'unused')
-    gpt_rb1 = ttk.Radiobutton(gpt_nlu_fr, text='利用する', value='use',
+    gpt_rb1 = ttk.Radiobutton(gpt_nlu_fr, text='use', value='use',
                               variable=gpt_val)
-    gpt_rb2 = ttk.Radiobutton(gpt_nlu_fr, text='利用しない', value='unused',
+    gpt_rb2 = ttk.Radiobutton(gpt_nlu_fr, text='unused', value='unused',
                               variable=gpt_val)
     gpt_rb1.grid(column=0, row=0, padx=5, pady=5)
     gpt_rb2.grid(column=1, row=0, padx=5, pady=5)

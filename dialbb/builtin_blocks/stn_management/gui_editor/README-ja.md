@@ -55,7 +55,7 @@ dialbb/no_code/README を参照.
 <img src="images/del-set.jpg" width="30%">
 
 #### ・ノード項目の入力
-ノードの上で右クリック > [Setting] を選択すると入力ダイアログが表示されます  
+ノードの上で右クリック > [Edit] を選択すると入力ダイアログが表示されます  
 
 <img src="images/sys-setting.jpg" width="30%">　<img src="images/user-setting.jpg" width="30%">
 
