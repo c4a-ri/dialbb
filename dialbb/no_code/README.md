@@ -32,27 +32,14 @@ ver0.1.6
 
 ------
 
-## インストール方法
-* whlファイルをdistフォルダからダウンロードします  
-  [dist](https://github.com/c4a-ri/dialbb/tree/dev-v2/dist)：例）dialbb_nc-x.x.x-py3-none-any.whl  
-* パッケージのインストール
-```sh
-> pip install <ダウンロードしたwhlファイルの名前> 
-```
+### 以下の項目は [ノーコード ドキュメント](../../docs/no-code-tools/dialbb-no-code-tool-document-ja.md) に移動しました。
 
-------
+## インストール方法
 
 ## DialBB ノーコードの起動コマンド
-```sh
-> dialbb-nc
-```
-
-------
 
 ## GUI操作方法
 ### コンフィグレーションGUIの使い方  
 
-
 ### シナリオ エディタの使い方  
-[ここ](../builtin_blocks/stn_management/gui_editor/README-ja.md#シナリオエディタの使い方)を参照
 
