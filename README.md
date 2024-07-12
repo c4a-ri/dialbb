@@ -1,6 +1,6 @@
 # DialBB: A Framework for Building Dialogue Systems
 
-ver.0.8.0
+ver.0.9.0
 
 [日本語版](README-ja.md)
 
@@ -25,7 +25,7 @@ This software is released for non-commercial use. For details of the license, pl
 
 ### Execution Environment
 
-We have confirmed that the following procedure works on Python 3.8.10 on Ubuntu 20.04.  We haven't heard that application dosn't work with Python 3.9 or later and on Windows10/11 and MacOS (including Apple Silicon), though we haven't completely confirmed. However, Snips NLU mentioned later does not support Python 3.9+, it may require additional procedure to install Snips NLU or it might not possible to install it.
+We have confirmed that the following procedure works on Python 3.10.13 on Ubuntu 20.04.  We haven't heard that application dosn't work with Python 3.9 or later and on Windows10/11 and MacOS (including Apple Silicon), though we haven't completely confirmed. 
 
 The following instructions assume that you are working with bash on Ubuntu. If you are using other shells or the Windows command prompt, please read the following instructions accordingly.
 

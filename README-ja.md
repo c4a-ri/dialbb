@@ -1,6 +1,6 @@
 # DialBB: 対話システム構築フレームワーク
 
-ver.0.8.0
+ver.0.9.0
 
 [English](README.md)
 
@@ -28,7 +28,7 @@ DialBBは非商用向けに公開されています．ライセンスの詳細�
 
 ### 実行環境
 
-Ubuntu 20.04/Windows 10上のpython 3.8.10で，以下の手順で動作することを確認しています．すべての組み合わせを完全に確かめたわけではありませんが，Windows 10/11やMacOS（アップルシリコンを含む）の上で，または，Python 3.9+を使って動かせなかったという報告は得ていません．ただ，後述のSnips NLUは基本的にPython 3.9+はサポートしていないため，インストールに工夫が必要かまたは，インストールができない可能性があります．
+Ubuntu 20.04/Windows 10上のpython 3.10.13で，以下の手順で動作することを確認しています．すべての組み合わせを完全に確かめたわけではありませんが，Windows 10/11やMacOS（アップルシリコンを含む）の上で，または，Python 3.9+を使って動かせなかったという報告は得ていません．
 
 以下の説明はUbuntu上のbashで作業することを仮定しています．他のシェルやWindowsコマンドプロンプトを用いる場合は，適宜読み替えてください．
 
@@ -46,7 +46,6 @@ $ git clone https://github.com/c4a-ri/dialbb.git
 
 ```sh
 $ git clone https://github.com/c4a-ri/dialbb.git <ディレクトリ名>
-
 ```
 
 できたディレクトリを以下で「DialBBディレクトリ」と呼びます．
@@ -129,9 +128,9 @@ http://<hostname>:8080
 http://<hostname>:8080/test
 ```
 
-## SNIPS+STNアプリケーション
+## Simpleアプリケーション
 
-以下の組み込みブロックを用いたサンプルアプリケーションです．`sample_apps/network_ja/`に日本語版が，`sample_apps/network_en/`に英語があります．
+以下の組み込みブロックを用いたサンプルアプリケーションです．`sample_apps/simple_ja/`に日本語版が，`sample_apps/simple_en/`に英語版があります．
 
 - 日本語アプリケーション
 
