@@ -155,26 +155,11 @@ http://<hostname>:8080/test
   # 以下のどちらかを実行
   $ pip install -r sample_apps/simple_ja/requirements.txt 
   $ pip install -r sample_apps/simple_en/requirements.txt 
-
-  # 英語アプリケーションを作成・利用する場合
-  $ python -m snips_nlu download en 
-
-  # 日本語アプリケーションを作成・利用する場合
-  $ python -m snips_nlu download ja 
   ```
 
 注意：
 
- - Windowsで
-
-   ```
-   $ python -m snips_nlu download en 
-   $ python -m snips_nlu download ja 
-   ```
-
-   を実行したとき，`Creating a shortcut link for 'ja' didn't work`というエラーが出ることがあります．この時はWindowsを開発者モードで実行してください．
-
-- Windows上のAnacondaを用いて実行する場合，Anaconda Promptを管理者モードで起動しないといけない可能性があります．
+  - Windows上のAnacondaを用いて実行する場合，Anaconda Promptを管理者モードで起動しないといけない可能性があります．
 
 
   - pyenvを使っている場合，以下のエラーが出る可能性があります．
@@ -202,7 +187,7 @@ http://<hostname>:8080/test
 - 英語アプリケーション
 
   ```sh
-  $ python run_server.py sample_apps/network_en/config.yml 
+  $ python run_server.py sample_apps/simple_en/config.yml 
   ```
   
   アプリケーションディレクトリで起動する場合は以下のようにします．
@@ -310,7 +295,7 @@ http://<hostname>:8080/test
 
 #### テスト方法
 
-  以下のコマンドで，Snips+STNアプリケーションでは使用していない機能をテストすることができます．
+  以下のコマンドで，Simpleアプリケーションでは使用していない機能をテストすることができます．
 
   ```sh
   $ cd sample_apps/lab_app_ja # 日本語の場合

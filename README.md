@@ -6,9 +6,9 @@ ver.0.9.0
 
 ## Introduction
 
-DialBB is a framework for building dialogue systems developed by [C4A Research Institute, Inc.](https://www.c4a.jp/en/) DialBB has been develped as an information technology educational material. DialBB has *extensible* architecture  and is written in *readable codes*. DialBB enables the development of dialogue systems by combining modules called *building blocks*. Developers can easily build simple systems using built-in blocks and can build advanced systems using their own developed blocks. 
+DialBB is a framework for building dialogue systems developed by [C4A Research Institute, Inc.](https://www.c4a.jp/en/) DialBB has been developed as an information technology educational material. DialBB has *extensible* architecture and is written in *readable codes*. DialBB enables the development of dialogue systems by combining modules called *building blocks*. Developers can easily build simple systems using built-in blocks and can build advanced systems using their own developed blocks. 
 
-The main module of DialBB application receives a user utterance input in JSON format via method calls or via the Web API returns a system utterance in JSON format. The main module works by calling blocks, in sequence. Each block takes JSON format (data in Python dictionary) and returns the data in JSON format. The class and input/output of each block are specified in the configuration file for each application.
+The main module of DialBB application receives a user utterance input in JSON format via method calls or via the Web API and returns a system utterance in JSON format. The main module works by calling blocks, in sequence. Each block takes JSON format (data in Python dictionary) and returns the data in JSON format. The class and input/output of each block are specified in the configuration file for each application.
 
 
 ![dialbb-arch-en](docs/images/dialbb-arch-en.jpg)
@@ -59,7 +59,7 @@ The resulting directory is referred to below as the <DialBB directory>.
   $ venv/bin/activate   # Enter the virtual environment
   ```
 
-- Next, do the following to install the minimu set of libraries.
+- Next, do the following to install the minimum set of libraries.
 
   ```sh
   $ pip install -r requirements.txt 
@@ -131,19 +131,19 @@ If the server is running on Windows 10, the dialog screen may not appear in your
 http://<hostname>:8080/test
 ```
 
-### Snips-STN Applications
+### Simple Applications
 
-This is a sample application using the following built-in blocks. The English version is available in `sample_apps/network_en/` and the Japanese version is available in `sample_apps/network_ja/`.
+This is a sample application using the following built-in blocks. The English version is available in `sample_apps/simple_en/` and the Japanese version is available in `sample_apps/simple_ja/`.
 
 - English Application
 
   - Simple Canonicalizer Block
-  - LR-CRF  Understander Block (language understanding based on Logistic Regression and Conditional Random Fileds)
+  - LR-CRF Understander Block (language understanding based on Logistic Regression and Conditional Random Fields)
   - STN Manager Block (state transition network-based dialogue manager)
 - Japanese Application
 
   - Japanese Canonicalizer Block
-  - Snips Understander  Block
+  - LR-CRF Understander  Block
   - STN Manager  Block
 
 #### Installing Required Python Libraries
@@ -156,25 +156,9 @@ This is a sample application using the following built-in blocks. The English ve
   # Run one of the following
   $ pip install -r sample_apps/simple_en/requirements.txt
   $ pip install -r sample_apps/simple_ja/requirements.txt
-
-  # To create and use an English application
-  $ python -m snips_nlu download en
-
-  # To create and use a Japanese language application
-  $ python -m snips_nlu download ja
   ```
 
 Note:
-
-- On Windows, when you run:
-
-  ```sh
-  $ python -m snips_nlu download en 
-  $ python -m snips_nlu download ja 
-  ```
-  
-  you may encounter an error `Creating a shortcut link for 'ja' didn't work`. In this case, please run Windows in developer mode.
-
 
   - When running with Anaconda on Windows, Anaconda Prompt may need to be started in administrator mode.
 
@@ -303,7 +287,7 @@ $ export OPENAI_API_KEY=<OpenAI's API key>.
 
 #### Test Method
 
-The following commands allow you to test features not used in the Snips+STN ApplicatiSNIon.
+The following commands allow you to test features not used in the Simple Application.
 
   ```sh
   $ cd sample_apps/lab_app_en # in the case of English app
