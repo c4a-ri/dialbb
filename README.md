@@ -133,18 +133,16 @@ http://<hostname>:8080/test
 
 ### Snips-STN Applications
 
-This is a sample application using the following built-in blocks. The English version is available in `sample_apps/network_en/` and Japanese version is available in `sample_apps/network_ja/`.
+This is a sample application using the following built-in blocks. The English version is available in `sample_apps/network_en/` and the Japanese version is available in `sample_apps/network_ja/`.
 
 - English Application
 
   - Simple Canonicalizer Block
-  - Whitespace Tokenizer Block
-  - Snips Understander Block (language understanding based on [Snips NLU](https://snips-nlu.readthedocs.io/en/latest/))
+  - LR-CRF  Understander Block (language understanding based on Logistic Regression and Conditional Random Fileds)
   - STN Manager Block (state transition network-based dialogue manager)
 - Japanese Application
 
   - Japanese Canonicalizer Block
-  - Sudachi Tokenizer  Block (Japanese tokenizer using [Sudachi](https://github.com/WorksApplications/SudachiPy))
   - Snips Understander  Block
   - STN Manager  Block
 
@@ -156,8 +154,8 @@ This is a sample application using the following built-in blocks. The English ve
 
   ```sh
   # Run one of the following
-  $ pip install -r sample_apps/network_en/requirements.txt
-  $ pip install -r sample_apps/network_en/requirements.txt
+  $ pip install -r sample_apps/simple_en/requirements.txt
+  $ pip install -r sample_apps/simple_ja/requirements.txt
 
   # To create and use an English application
   $ python -m snips_nlu download en
@@ -168,60 +166,13 @@ This is a sample application using the following built-in blocks. The English ve
 
 Note:
 
- - You may be asked to install additional software, such as [Rust](https://www.rust-lang.org/tools/install) (Especially on Windows), when an error occurs during the installation process. In that case, follow the instructions to install the software. 
-
-  - Basically, Snips can't work with Python3.9+, as it can work with an older version of scikit-learn, which can't work on Python 3.9 and above. If you are using Python3.9 and above and an error may occur during the instal, then the following is worth trying.
-  
-    ```sh
-	pip install Cython==0.29.36 
-    pip install --upgrade pip setuptools wheel
-	```
-    
-	If the install does not go well, feel free to email us.
-	
-
-
-  - On Windows, you might encounter an error like:
-
-    ```
-    ModuleNotFoundError: No module named 'setuptools_rust'
-    ```
-
-    In this case, first try:
-
-    ```sh
-    $ pip install --upgrade pip
-    ```
-
-    If that doesn’t resolve the issue, try the following steps:
-
-    - Download `snips_nlu_parsers-0.4.3-cp38-cp38m-win_amd64.whl` from https://pypi.org/project/snips-nlu-parsers/#files and rename it to `snips_nlu_parsers-0.4.3-cp38-cp38-win_amd64.whl`. Install it using:
-
-      ```sh
-      $ pip install snips_nlu_parsers-0.4.3-cp38-cp38-win_amd64.whl
-      ```
-
-    - Download `snips_nlu_utils-0.9.1-cp37-cp37m-win_amd64.whl` from https://pypi.org/project/snips-nlu-utils/#files and rename it to `snips_nlu_utils-0.9.1-cp38-cp38-win_amd64.whl`. Install it using:
-
-      ```sh
-      $ pip install snips_nlu_utils-0.9.1-cp38-cp38-win_amd64.whl
-      ```
-
-    - Then, run the following again:
-
-      ```sh
-      $ pip install -r sample_apps/network_ja/requirements.txt 
-      $ pip install -r sample_apps/network_en/requirements.txt 
-      ```
-
-
 - On Windows, when you run:
 
   ```sh
   $ python -m snips_nlu download en 
   $ python -m snips_nlu download ja 
   ```
-
+  
   you may encounter an error `Creating a shortcut link for 'ja' didn't work`. In this case, please run Windows in developer mode.
 
 
@@ -250,39 +201,37 @@ The following command starts the application.
 
   - English application
 
-   ```sh
-   $ python run_server.py sample_apps/network_en/config.yml 
-   ```
+    ```sh
+    $ python run_server.py sample_apps/simple_en/config.yml 
+    ```
 
     When invoking in the application directory, do the following
 
-   ```sh
-   $ export DIALBB_HOME=<DialBB home diretory>
-   $ export PYTHONPATH=$DIALBB_HOME:$PYTHONPATH
-   $ cd sample_apps/network_en  # moving to the application diretory
-   $ python $DIALBB_HOME/run_server.py config.yml 
-   ```
+    ```sh
+    $ export DIALBB_HOME=<DialBB home diretory>
+    $ export PYTHONPATH=$DIALBB_HOME:$PYTHONPATH
+    $ cd sample_apps/simple_en  # moving to the application diretory
+    $ python $DIALBB_HOME/run_server.py config.yml 
+    ```
 
   - Japanese application
 
-   ```sh
-   $ python run_server.py sample_apps/network_ja/config.yml 
-   ```
+    ```sh
+    $ python run_server.py sample_apps/simple_ja/config.yml 
+    ```
 
     When invoking in the application directory, do the following
 
-   ```sh
-   $ export DIALBB_HOME=<DialBB home diretory>
-   $ export PYTHONPATH=$DIALBB_HOME:$PYTHONPATH
-   $ cd sample_apps/network_ja  # moving to the application diretory
-   $ python $DIALBB_HOME/run_server.py config.yml 
-   ```
-
-
+    ```sh
+    $ export DIALBB_HOME=<DialBB home diretory>
+    $ export PYTHONPATH=$DIALBB_HOME:$PYTHONPATH
+    $ cd sample_apps/simple_ja  # moving to the application diretory
+    $ python $DIALBB_HOME/run_server.py config.yml 
+    ```
 
 #### Operation Check
 
-Operation check can be down with a browser. (See "Running the Parroting Application" above.)
+Operation check can be done with a browser. (See "Running the Parroting Application" above.)
 
 #### Operation Check Using Test Sets
 
@@ -291,22 +240,22 @@ The following commands can be used to test the sequential processing and interac
 - English
 
   ```sh
-  $ python dialbb/util/test.py sample_apps/network_en/config.yml \
-    sample_apps/network_en/test_inputs.txt --output \
-    sample_apps/network_en/_test_outputs.txt
+  $ python dialbb/util/test.py sample_apps/simple_en/config.yml \
+    sample_apps/simple_en/test_inputs.txt --output \
+    sample_apps/simple_en/_test_outputs.txt
   ```
 
-​	The dialog exchange is written to `sample_apps/network_en/_test_outputs.txt`.
+​	The dialog exchange is written to `sample_apps/simple_en/_test_outputs.txt`.
 
   - Japanese
 
     ```sh
-    $ python dialbb/util/test.py sample_apps/network_ja/config.yml \
-      sample_apps/network_ja/test_inputs.txt --output \
-      sample_apps/network_ja/_test_outputs.txt
+    $ python dialbb/util/test.py sample_apps/simple_ja/config.yml \
+      sample_apps/simple_ja/test_inputs.txt --output \
+      sample_apps/simple_ja/_test_outputs.txt
     ```
 
-​       The dialog exchange is written to `sample_apps/network_ja/_test_outputs.txt`.
+​       The dialog exchange is written to `sample_apps/simple_ja/_test_outputs.txt`.
 
 
 ### Experimental Applications

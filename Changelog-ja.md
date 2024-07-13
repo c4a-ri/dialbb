@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.9.0 
+
+- LR-CRF Understanderブロックを追加
+
+- LR-CRF Understanderブロックを用いたサンプルアプリケーション(simple_ja, simple_en)を追加
+
+- Snips Understanderを用いたサンプルアプリケーション(network_ja, network_en)を削除
+
 ## 0.8.0 
 
 - OpenAI API KEYをセットする環境変数のデフォルトをOPENAI_API_KEYに変更
