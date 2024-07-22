@@ -4,7 +4,7 @@
 
 ## はじめに
 
-本ドキュメントはDialBBのノーコードツール
+本ドキュメントはDialBBのノーコードツールのドキュメントです。
 
 ## 動作環境
 
@@ -79,36 +79,56 @@ Windows11、MacOSで動作します。
 > dialbb-nc
 ```
 
-- ### メイン画面
+###  メイン画面
   正常に起動するとメイン画面が表示されます。  
 
   <img src="images/gui-main.jpg" width="70%">
 
-## アプリケーションの作成・読み込み・保存
+### アプリケーションの読み込み・作成・起動・保存
 
-- ### アプリケーションファイル
+#### アプリケーションファイル
   アプリケーションファイルは次の3つがあり、zipファイルにまとめて扱います。  
   - config.yml: コンフィギュレーションファイルのテンプレート
   - scenario.xlsx: シナリオファイルのテンプレート
   - nlu-knowledge.xlsx: 言語理解知識ファイルのテンプレート
 
-- ### アプリケーションの新規作成
-  `create`ボタンをクリックし、英語/日本語を選択するとテンプレートファイルが読み込まれます。  
+#### アプリケーションの読み込み/新規作成
 
-  <img src="images/gui-create.jpg" width="40%">
+  - すでにあるアプリケーションを読み込む場合は、`select`ボタンをクリックし、読み込むアプリケーションファイルのzipファイルを開きます。  
+  
+    <img src="images/gui-file-read.jpg" width="60%">
+  
+  - アプリケーションを新たに作成する場合は、`create`ボタンをクリックし、英語/日本語を選択します。テンプレートファイルが読み込まれます。  
 
-- ### アプリケーションの読み込み
-  `select`ボタンをクリックし、読み込むアプリケーションファイルのzipファイルを開きます。  
+    <img src="images/gui-create.jpg" width="40%">
 
-  <img src="images/gui-file-read.jpg" width="60%">
+  - アプリケーションを新たに作成した場合、および、読み込んだアプリケーションがChatGPTを使っている場合は、OpenAIのAPIキーの登録が必要です。OpenAIのAPIキーの登録は以下のようにします。
+    - `setting`ボタンを押します。 
+      ![settings](C:\Users\nakano\system\dialbb\dialbb2\docs\no-code-tools\images\settings.png)
+    - `OPENAI_API_KEY`の右側に別途入手したOpenAIのAPIキーを入力し、`OK`ボタンを押します。`Saved`という表示が出るので再度`OK`ボタンを押します。
 
-- ### アプリケーションの編集
-  `edit`ボタンをクリックし、編集するアプリケーションファイルを選択します。  
+#### アプリケーションの起動
 
-  <img src="images/gui-edit-select.jpg" width="40%">
+- `start`ボタンをクリックします。コマンドプロンプトを見て、エラーが出ていないことを確認します。
 
-- ### アプリケーションの保存
-  `save`ボタンをクリックし、保存する場所/ファイル名を指定します、zipファイルにまとめて保存されます。  
+- ChromeやEdgeなどのブラウザを開き、アドレスバーに`http://localhost:8080/`を打ち込んでEnterを押します。以下のような画面が表示されます。
+
+  ![ftontend](C:\Users\nakano\system\dialbb\dialbb2\docs\no-code-tools\images\ftontend.png)
+
+- `start dialogue`ボタンを押すと会話が開始されます。
+
+- 再度最初から会話を始めたい場合はブラウザのリロードボタンを押してください。
+
+#### アプリケーションの編集
+
+- `edit`ボタンをクリックし、編集するアプリケーションファイルを選択します。
+   <img src="images/gui-edit-select.jpg" width="40%">
+
+- 編集の仕方は後で説明します。
+
+####  アプリケーションの保存
+
+- `save`ボタンをクリックし、保存する場所/ファイル名を指定します、zipファイルにまとめて保存されます。  
 
   <img src="images/gui-file-save.jpg" width="60%">
 
@@ -138,5 +158,4 @@ Windows11、MacOSで動作します。
 | models | 利用するChatGPTのモデルを選択します． |
 | situation | GPTのプロンプトに書く状況を入力します、1行ごとに状況を記述します． |
 | persona | GPTのプロンプトに書くシステムのペルソナを入力します、1行ごとにペルソナを記述します． |
-
 

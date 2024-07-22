@@ -544,7 +544,7 @@ def main():
     root = tk.Tk()
 
     # タイトルとアイコンを設定
-    root.title("DialBB Manager")
+    root.title("DialBB No Code")
     # photo = os.path.join(NC_PATH, 'img', 'dialbb-icon.png')
     # root.iconphoto(True, tk.PhotoImage(file=photo))
 
