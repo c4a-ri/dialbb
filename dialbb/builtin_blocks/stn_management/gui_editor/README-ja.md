@@ -35,39 +35,3 @@ npm run build
 dialbb/no_code/README を参照.  
 
 
-### シナリオ・エディタの使い方  
-
-#### ・概要
-
-シナリオを[systemノード]と[userノード]として扱います、それぞれのノードを[コネクタ]で接続することでsystem：userを関連付けます。
-
-<img src="images/editor-main.jpg" width="50%">
-
-#### ・ノードの追加
-背景で右クリック > [systemノード]か[userノード]を選択すると新規追加されます 
-
-<img src="images/add-node.jpg" width="30%">
-
-
-#### ・ノードの削除
-ノードの上で右クリック > [Delete] を選択すると削除されます  
-
-<img src="images/del-set.jpg" width="30%">
-
-#### ・ノード項目の入力
-ノードの上で右クリック > [Edit] を選択すると入力ダイアログが表示されます  
-
-<img src="images/sys-setting.jpg" width="30%">　<img src="images/user-setting.jpg" width="30%">
-
-#### ・コネクタの接続・削除
-ノードのoutputソケットを左クリック > 他ノードのinputソケットへドラッグして接続します  
-削除はinputソケットを摘まんで離すか、コネクター上で右クリック > [Delete] を選択します。
-
-<img src="images/editor-connection.jpg" width="30%">　<img src="images/editor-conn-del.jpg" width="30%">
-
-
-#### ・ファイルに保存(Excel)
-上部の[Save]ボタンをクリックします、ノードデータをシナリオExcelに書き込みます。（保存しないでエディタサーバを停止した場合はデータが失われます）
-
--------  
-
