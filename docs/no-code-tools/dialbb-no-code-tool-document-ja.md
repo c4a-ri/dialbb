@@ -104,7 +104,7 @@ Windows11、MacOSで動作します。
 
   - アプリケーションを新たに作成した場合、および、読み込んだアプリケーションがChatGPTを使っている場合は、OpenAIのAPIキーの登録が必要です。OpenAIのAPIキーの登録は以下のようにします。
     - `setting`ボタンを押します。 
-      ![settings](C:\Users\nakano\system\dialbb\dialbb2\docs\no-code-tools\images\settings.png)
+      ![settings](images/settings.png)
     - `OPENAI_API_KEY`の右側に別途入手したOpenAIのAPIキーを入力し、`OK`ボタンを押します。`Saved`という表示が出るので再度`OK`ボタンを押します。
 
 #### アプリケーションの起動
@@ -113,7 +113,7 @@ Windows11、MacOSで動作します。
 
 - ChromeやEdgeなどのブラウザを開き、アドレスバーに`http://localhost:8080/`を打ち込んでEnterを押します。以下のような画面が表示されます。
 
-  ![ftontend](C:\Users\nakano\system\dialbb\dialbb2\docs\no-code-tools\images\ftontend.png)
+  ![ftontend](images/ftontend.png)
 
 - `start dialogue`ボタンを押すと会話が開始されます。
 
@@ -134,14 +134,44 @@ Windows11、MacOSで動作します。
 
 
 ## シナリオファイルの編集
-- ### 編集アプリケーションの選択
+### 編集アプリケーションの選択
   __アプリケーションの編集__ 画面で`Scensrio`を選択した場合に以下の画面が表示されます、  
   `Excel`で編集するか`GUIシナリオエディタ`で編集するかボタンで選択します、"Excel"の場合はxlsxファイルに関連付けされたアプリケーションが（ExcelやOpenOfficeなど）、"GUIシナリオエディタ"の場合はブラウザベースのアプリケーションが起動します。  
 
   <img src="images/gui-edit-scenario.jpg" width="40%">
 
-- ### シナリオエディタの操作方法
-  シナリオエディタのマニュアルは、[`ここ`](../../dialbb/builtin_blocks/stn_management/gui_editor/README-ja.md#シナリオエディタの使い方)を参照してください、
+### シナリオエディタの操作方法
+
+#### ・概要
+
+シナリオを[systemノード]と[userノード]として扱います、それぞれのノードを[コネクタ]で接続することでsystem：userを関連付けます。
+
+<img src="images/editor-main.jpg" width="50%">
+
+#### ・ノードの追加
+背景で右クリック > [systemノード]か[userノード]を選択すると新規追加されます 
+
+<img src="images/add-node.jpg" width="30%">
+
+#### ・ノードの削除
+ノードの上で右クリック > [Delete] を選択すると削除されます  
+
+<img src="images/del-set.jpg" width="30%">
+
+#### ・ノード項目の入力
+ノードの上で右クリック > [Edit] を選択すると入力ダイアログが表示されます  
+
+<img src="images/sys-setting.jpg" width="30%">　<img src="images/user-setting.jpg" width="30%">
+
+#### ・コネクタの接続・削除
+ノードのoutputソケットを左クリック > 他ノードのinputソケットへドラッグして接続します  
+削除はinputソケットを摘まんで離すか、コネクター上で右クリック > [Delete] を選択します。
+
+<img src="images/editor-connection.jpg" width="30%">　<img src="images/editor-conn-del.jpg" width="30%">
+
+#### ・ファイルに保存(Excel)
+上部の[Save]ボタンをクリックします、ノードデータをシナリオExcelに書き込みます。（保存しないでエディタサーバを停止した場合はデータが失われます）
+
 
 ## 言語理解用知識の編集
   __アプリケーションの編集__ 画面で`NLU knowledge`を選択した場合は、xlsxファイルに関連付けされたアプリケーションが起動します（ExcelやOpenOfficeなど）、アプリケーション画面で編集＆保存をおこないます。  
