@@ -55,7 +55,7 @@ def exec_editor(file_path):
     print(f"exec_Editor os:{os.name} editor dir:{EDITOR_DIR}")
     # invoke server サーバ起動
     cmd = os.path.join(NC_PATH, r'start_editor.py')
-    editor_proc = ProcessManager(cmd)
+    editor_proc = ProcessManager(cmd, ['nc'])
     ret = editor_proc.start()
     if ret:
         # invoke browser ブラウザ起動

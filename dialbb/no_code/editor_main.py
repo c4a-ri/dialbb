@@ -106,7 +106,7 @@ def exec_Editor(parent):
     print(f"exec_Editor os:{os.name} editor dir:{EDITOR_DIR}")
     # サーバ起動
     cmd = os.path.join(SCRIPT_ROOT, 'start_editor.py')
-    editor_proc = Proc_mng(cmd)
+    editor_proc = Proc_mng(cmd, ['sole'])
     ret = editor_proc.start()
     if ret:
         # ブラウザ起動
