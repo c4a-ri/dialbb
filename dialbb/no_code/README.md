@@ -33,7 +33,19 @@ ver0.1.7
 
 ------
 
-### 以下の項目は [ノーコード ドキュメント](../../docs/no-code-tools/dialbb-no-code-tool-document-ja.md) に移動しました。
+## 起動方法
+
+* ノーコード起動コマンド  
+```
+dialbb-nc
+```
+
+* GUIシナリオエディタのみ起動  
+```
+python editor_main.py 
+```
+
+### ※以下の項目は [ノーコード ドキュメント](../../docs/no-code-tools/dialbb-no-code-tool-document-ja.md) に移動しました。
 
 ## インストール方法
 
