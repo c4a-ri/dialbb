@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 import sys
 import argparse
 import json
@@ -190,7 +192,7 @@ def convert_node_data(exl_data: DataFrame) -> Tuple[List[nodeItem], List[str]]:
             cur_state = row["state"]
 
             # initial number of a user utterance type
-            uu_type_num = 0
+            uu_type_num = 100
 
         # create user node from cell value
         user_controls = {}
@@ -199,8 +201,8 @@ def convert_node_data(exl_data: DataFrame) -> Tuple[List[nodeItem], List[str]]:
         id += 1
         user_controls["utterance"] = controlItem(id=id, value=row["user utterance example"])
         id += 1
-        uu_type_num += 10   # Add sequence number for type
         user_controls["seqnum"] = controlItem(id=id, value=uu_type_num)
+        uu_type_num -= 10   # Add sequence number for type
         id += 1
         # user_controls["type"] = controlItem(id=id, value=f'{uu_type_num}:{row["user utterance type"]}')
         user_controls["type"] = controlItem(id=id, value=row["user utterance type"])

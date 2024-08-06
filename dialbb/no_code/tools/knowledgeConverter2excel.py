@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 import pandas as pd
 from pandas import DataFrame
 from typing import Any
@@ -19,7 +21,8 @@ def sort_types(df: DataFrame) -> DataFrame:
 
     for st in state_list:
         # Sort by type within state
-        df_sort = df[df['state'] == st].sort_values(['seqnum'])
+        df_sort = df[df['state'] == st].sort_values(['seqnum'],
+                                                    ascending=False)
         # Delete sequence numbers & Add result dataframe
         df_result = pd.concat([df_result, df_sort.drop(columns='seqnum')])
     
