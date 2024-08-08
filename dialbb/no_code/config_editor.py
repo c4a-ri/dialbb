@@ -170,14 +170,14 @@ model: en_core_web_trf
     def set_chatgpt_understander(self, kind: str) -> None:
         if kind == 'use':
             self.change_block_ele('add', 'understander', 'chatgpt')
-        elif kind == 'unused':
+        elif kind == 'do not use':
             self.change_block_ele('del', 'understander', 'chatgpt')
 
     # spaCy blockの編集
     def set_spacy_understander(self, kind: str) -> None:
         if kind == 'use':
             self.change_block_ele('add', 'ner', 'spacy')
-        elif kind == 'unused':
+        elif kind == 'do not use':
             self.change_block_ele('del', 'ner', 'spacy')
 
     def set_chatgpt_model(self, model: str) -> None:

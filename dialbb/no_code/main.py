@@ -283,7 +283,7 @@ def select_edit_file(parent):
     chaild_position(parent, sub_menu, width=300, height=200)
     
     # Label Frameを作成
-    label_frame = ttk.Labelframe(sub_menu, text='Application file', padding=(10),
+    label_frame = ttk.Labelframe(sub_menu, text='Application', padding=(10),
                                  style='My.TLabelframe')
     label_frame.pack(side="top", padx=5, pady=5)
 
@@ -291,7 +291,7 @@ def select_edit_file(parent):
     options = [
         ("Scenario", "scenario"),
         ("NLU knowledge", "knowledge"),
-        ("Config", "config")
+        ("Configuration", "config")
     ]
     selected = tk.StringVar()
     for text, value in options:
