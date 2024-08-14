@@ -151,7 +151,8 @@ def convert_node_data(exl_data: DataFrame) -> Tuple[List[nodeItem], List[str]]:
     cur_state = ''
     con_sys2usr = ''    # connector-id from systemNode to userNode
     exl_data.fillna('', inplace=True)   # Nan -> ''
-    
+
+    print(exl_data[["state", "next state"]])
     # Create controls
     for idx, row in exl_data.iterrows():
         # if row['flag'] != 'Y':
@@ -193,6 +194,11 @@ def convert_node_data(exl_data: DataFrame) -> Tuple[List[nodeItem], List[str]]:
 
             # initial number of a user utterance type
             uu_type_num = 100
+
+        # If all data is empty, the user node is not created.
+        if ''.join(row["user utterance example":"next state"]) == '':
+            print('###>user node is not created.')
+            continue
 
         # create user node from cell value
         user_controls = {}

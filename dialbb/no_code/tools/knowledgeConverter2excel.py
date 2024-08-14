@@ -101,11 +101,13 @@ def convert_node2df(json_data: Any) -> DataFrame:
                                             (df_node['id'] == conn.target)].iterrows():
                 # create row data for knowledge excel
                 row = {}
-                row["flag"] = ""  #"Y"
+                row["flag"] = ""  # "Y"
                 row["state"] = sys_node["controls.status.value"]
-                row["system utterance"] = sys_node["controls.utterance.value"] \
-                    if blank == False else ""
-                blank = True
+                if blank is False:
+                    row["system utterance"] = sys_node["controls.utterance.value"]
+                    blank = True
+                else:
+                    row["system utterance"] = ""
                 row["seqnum"] = user_node["controls.seqnum.value"]
                 row["user utterance example"] = user_node["controls.utterance.value"]
                 row["user utterance type"] = user_node["controls.type.value"]
@@ -114,6 +116,17 @@ def convert_node2df(json_data: Any) -> DataFrame:
                 row["next state"] = user_node["controls.nextStatus.value"]
                 # Add row data
                 nodes.append(row)
+
+        # If there is no connected userNode
+        if blank is False:
+            # create row data for knowledge excel
+            row = {"flag": "", "state": sys_node["controls.status.value"],
+                   "system utterance": sys_node["controls.utterance.value"],
+                   "seqnum": "", "user utterance example": "",
+                   "user utterance type": "", "conditions": "",
+                   "actions": "", "next state": ""}
+            # Add row data
+            nodes.append(row)
 
     return pd.DataFrame(nodes)
 

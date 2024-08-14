@@ -266,7 +266,7 @@ export async function createEditor(container: HTMLElement) {
       options: {
         'elk.layered.nodePlacement.strategy': 'SIMPLE',
       },
-      applier: animatedApplier
+      // applier: animatedApplier
     });
 
     AreaExtensions.zoomAt(area, editor.getNodes());

@@ -16,7 +16,7 @@ export class userNode extends Classic.Node<
   >
   implements DataflowNode {
   width = 220;
-  height = 360;
+  height = 370;
   constructor(
     // change?: (value: number) => void,
     // initial?: { left?: number; right?: number },
@@ -24,13 +24,13 @@ export class userNode extends Classic.Node<
     private update?: (control: Classic.InputControl<"text">) => void,
     userUtter: string = "", type: string = "",
     conditions: string = "", actions: string = "",
-    seqnum: number = 0, nextSt: string = ""
+    seqnum: number = 100, nextSt: string = ""
   ) {
     super("userNode");
     // Rowソート番号
     this.addControl(
       "seqnum",
-      new CustomInputControl("number", "", { initial: seqnum, readonly: true })
+      new CustomInputControl("number", "priority", { initial: seqnum, readonly: true })
     );
     // ユーザ発話
     this.addControl(
@@ -63,8 +63,8 @@ export class userNode extends Classic.Node<
     // this.addOutput("next", new Classic.Output(socket, "Output", true));
 
     // systemNodeの状態 -> Inputソケット ->  次状態コントロールと連携 とする
-    this.addInput("state", new Classic.Input(socket, "input", false));
-    this.addOutput("next", new Classic.Output(socket, "output", false));
+    this.addInput("state", new Classic.Input(socket, "from", false));
+    this.addOutput("next", new Classic.Output(socket, "to", false));
 
   }
 

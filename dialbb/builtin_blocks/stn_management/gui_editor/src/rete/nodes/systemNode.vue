@@ -1,6 +1,7 @@
 <template>
   <div class="node" :class="{ selected: data.selected }" :style="nodeStyles()" data-testid="node">
-    <div class="title" data-testid="title">{{ data.label }}</div>
+    <!-- <div class="title" data-testid="title">{{ data.label }}</div> -->
+    <div class="title" data-testid="title">system node</div>
     <div class="socket-list">
       <!-- Inputs-->
       <div class="input" v-for="[key, input] in inputs()" :key="key + seed" :data-testid="'input-' + key">
@@ -97,7 +98,7 @@
     .title {
       color: black;
       font-family: sans-serif;
-      font-size: 20px;
+      font-size: 24px;
       padding: 8px;
     }
   

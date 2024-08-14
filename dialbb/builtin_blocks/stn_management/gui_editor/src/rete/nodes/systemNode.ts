@@ -37,8 +37,8 @@ export class systemNode extends Classic.Node<
     );
 
     // 入出力ソケットの実装
-    this.addInput("state", new Classic.Input(socket, "input", true));
-    this.addOutput("next", new Classic.Output(socket, "output", true));
+    this.addInput("state", new Classic.Input(socket, "from", true));
+    this.addOutput("next", new Classic.Output(socket, "to", true));
   }
 
   // ソケット送受信のデータ処理関数
