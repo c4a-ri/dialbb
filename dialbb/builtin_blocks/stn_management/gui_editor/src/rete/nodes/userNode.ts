@@ -24,7 +24,7 @@ export class userNode extends Classic.Node<
     private update?: (control: Classic.InputControl<"text">) => void,
     userUtter: string = "", type: string = "",
     conditions: string = "", actions: string = "",
-    seqnum: number = 100, nextSt: string = ""
+    seqnum: number = 0, nextSt: string = ""
   ) {
     super("userNode");
     // Rowソート番号

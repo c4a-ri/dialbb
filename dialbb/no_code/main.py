@@ -13,14 +13,13 @@ from tkinter import ttk
 from tkinter import messagebox
 from tkinter import filedialog
 import subprocess
-import webbrowser
 import shutil
 import zipfile
 from dialbb.no_code.tools.knowledgeConverter2json import convert2json
 from dialbb.no_code.tools.knowledgeConverter2excel import convert2excel
 from dialbb.no_code.config_editor import edit_config
 from dialbb.no_code.gui_utils import gui_settings, ProcessManager, FileTimestamp, central_position, chaild_position
-from typing import Dict, Any, List
+from typing import Dict
 
 # paths  実行環境パス
 SCRIPT_ROOT: str = os.path.dirname(os.path.abspath(__file__))
@@ -28,7 +27,6 @@ LIB_DIR: str = os.path.abspath(os.path.join(SCRIPT_ROOT, '..'))
 NC_PATH: str = SCRIPT_ROOT
 APP_FILE_DIR: str = os.path.join(NC_PATH, 'app')
 EDITOR_DIR: str = os.path.join(NC_PATH, 'gui_editor')
-#print(f'SCRIPT_ROOT={SCRIPT_ROOT}\nNC_PATH={NC_PATH}\nLIB_DIR={LIB_DIR}\nAPP_FILE_DIR={APP_FILE_DIR}\nEDITOR_DIR={EDITOR_DIR}')
 
 # define application files  アプリファイルの定義
 APP_FILES: Dict[str, str] = {
@@ -84,7 +82,7 @@ def exec_editor(file_path):
         editor_proc.stop()
 
 
-#Excel→JSON変換処理
+# Excel→JSON変換処理
 def convert_excel_to_json(xlsx: str, json: str):
     """
     Convert Excel to JSON
@@ -160,52 +158,18 @@ def set_file_frame(parent_frame, settings, label_text, file_type_list):
     file_frame.grid_rowconfigure(1, weight=1)
     
     # selectボタンの作成
-    file_button = tk.Button(file_frame, text='select', width=5,
+    file_button = ttk.Button(file_frame, text='select', width=7,
                             command=lambda: open_file_command(file_frame.edit_box,
                                                               settings,
                                                               file_type_list))
     file_button.grid(column=1, row=1, padx=5)
     
     # editボタンの作成:GUIエディタ起動
-    btnEditor = tk.Button(file_frame, text="edit",
-                          width=5, command=lambda: select_edit_file(file_frame))
+    btnEditor = ttk.Button(file_frame, text="edit",
+                          width=7, command=lambda: select_edit_file(file_frame))
     btnEditor.grid(column=2, row=1, padx=5)
 
     return file_frame
-
-
-# Scenario編集の処理選択
-def edit_scenario(parent, file_path):
-    print(f'edit_scenario :{file_path}')
-    # 編集方法の選択画面を作成
-    sub_menu = tk.Toplevel(parent)    # Subフレーム生成
-    sub_menu.title("Edit Scenario")
-    sub_menu.grab_set()        # モーダルにする
-    sub_menu.focus_set()       # フォーカスを新しいウィンドウをへ移す
-    sub_menu.resizable(0, 0)
-    sub_menu.transient(parent)
-    # サイズ＆表示位置の指定
-    chaild_position(parent, sub_menu, width=250, height=100)
-
-    # GUI画面構築
-    f1 = tk.Frame(sub_menu)    # Subフレーム生成
-
-    # Excel編集ボタンの作成
-    excel_btn = ttk.Button(f1, text="Edit Excel File",
-                           command=lambda: [edit_excel(file_path),
-                                            on_cancel(sub_menu)])
-    # GUIエディタ編集ボタンの作成
-    editor_btn = ttk.Button(f1, text="Start GUI Editor",
-                            command=lambda: [exec_editor(file_path),
-                                             on_cancel(sub_menu)])
-    # Cancelボタンの作成
-    cancel_btn = ttk.Button(sub_menu, text="cancel", command=lambda: on_cancel(sub_menu))
-
-    # 配置
-    excel_btn.pack(side=tk.LEFT, padx=5)
-    editor_btn.pack(side=tk.LEFT, padx=5)
-    f1.pack(pady=20)
-    cancel_btn.pack(side="bottom", padx=5, pady=5)
 
 
 # Excel編集処理
@@ -268,70 +232,41 @@ def open_file_command(edit_box, settings, file_type_list):
 
 # [edit]ボタン：編集するファイルを選択
 def select_edit_file(parent):
-    # dir = parent.edit_box.get()
-    # if dir == '':
-    #     messagebox.showerror("Warning", "アプリケーションファイルが選択されていません.")
-    #     return
+    global APP_FILES
 
     # 選択画面を表示
     sub_menu = tk.Toplevel(parent)
-    sub_menu.title("Select file")
+    sub_menu.title("Select the edit file")
     sub_menu.grab_set()        # モーダルにする
     sub_menu.focus_set()       # フォーカスを新しいウィンドウをへ移す
     sub_menu.transient(parent)
     # サイズ＆表示位置の指定
     chaild_position(parent, sub_menu, width=300, height=200)
     
-    # Label Frameを作成
-    label_frame = ttk.Labelframe(sub_menu, text='Application', padding=(10),
-                                 style='My.TLabelframe')
-    label_frame.pack(side="top", padx=5, pady=5)
+    # ボタンの作成
+    btn_gui = ttk.Button(sub_menu, text="Scenario(GUI Editor)", width=20,
+                         command=lambda: [exec_editor(os.path.join(
+                             APP_FILE_DIR, APP_FILES["scenario"])),
+                             on_cancel(sub_menu)])
+    btn_gui.pack(side=tk.TOP, pady=5)
+    btn_sce = ttk.Button(sub_menu, text="Scenario(Excel)", width=20,
+                         command=lambda: [edit_excel(os.path.join(
+                             APP_FILE_DIR, APP_FILES["scenario"])),
+                             on_cancel(sub_menu)])
+    btn_sce.pack(side=tk.TOP, pady=5)
+    btn_nlu = ttk.Button(sub_menu, text="NLU knowledge", width=20,
+                         command=lambda: [edit_excel(os.path.join(
+                             APP_FILE_DIR, APP_FILES["knowledge"])),
+                             on_cancel(sub_menu)])
+    btn_nlu.pack(side=tk.TOP, pady=5)
+    btn_conf = ttk.Button(sub_menu, text="Configuration", width=20,
+                          command=lambda: edit_config(sub_menu, os.path.join(
+                             APP_FILE_DIR, APP_FILES["config"])))
+    btn_conf.pack(side=tk.TOP, pady=5)
 
-    # ラジオボタンの作成
-    options = [
-        ("Scenario", "scenario"),
-        ("NLU knowledge", "knowledge"),
-        ("Configuration", "config")
-    ]
-    selected = tk.StringVar()
-    for text, value in options:
-        ttk.Radiobutton(label_frame, text=text, value=value,
-                        variable=selected).pack(anchor="w", padx=5, pady=2)
-
-    # OKボタンとCancelボタンの作成
-    ok_btn = ttk.Button(sub_menu, text="edit",
-                           command=lambda: on_selected(selected.get()))
-    cancel_btn = ttk.Button(sub_menu, text="close", command=lambda: on_cancel(sub_menu))
+    # Cancelボタン
+    cancel_btn = ttk.Button(sub_menu, text="cancel", command=lambda: on_cancel(sub_menu))
     cancel_btn.pack(side="right", padx=5, pady=5)
-    ok_btn.pack(side="right", padx=5, pady=5)
-
-
-    # 各ファイル編集処理の振り分け
-    def on_selected(selected):
-        global APP_FILES
-
-        if not selected:
-             messagebox.showerror("Warning", "Not selected.")
-             return
-
-        file_path = os.path.join(APP_FILE_DIR, APP_FILES[selected])
-        if not os.path.isfile(file_path):
-            messagebox.showerror("Error", "File does not exist.",
-                                detail=f'{file_path}')
-            return
-        
-        # 選択ファイルの編集処理を起動
-        if selected == 'scenario':
-            # シナリオファイル
-            edit_scenario(sub_menu, file_path)
-        elif selected == 'knowledge':
-            # 言語理解知識ファイル
-            edit_excel(file_path)
-        elif selected == 'config':
-            # Configファイル
-            edit_config(sub_menu, file_path)
-        else:
-            messagebox.showerror("Warning", "File is not selected.")
 
 
 # [create]ボタンの処理。templateファイルをコピーする。
@@ -357,14 +292,15 @@ def create_app_files(parent, settings):
         variable=radio_val)
 
     # Button
-    button1 = ttk.Button(sub_menu, text='OK', padding=(20, 5),
-        command=lambda : btn_click())
+    ok_btn = ttk.Button(sub_menu, text='OK', command=lambda : btn_click())
+    can_btn = ttk.Button(sub_menu, text="cancel", command=lambda: on_cancel(sub_menu))
 
     # Layout
     label_frame.pack(side="top", padx=5, pady=5)
     rb1.pack(side="left", padx=5, pady=5)
     rb2.pack(side="left", padx=5, pady=5)
-    button1.pack(side="bottom", padx=5, pady=5)
+    can_btn.pack(side="right", padx=5, pady=5)
+    ok_btn.pack(side="right", padx=5, pady=5)
     # サイズ＆表示位置の指定
     chaild_position(parent, sub_menu, width=250, height=130)
 
@@ -497,19 +433,19 @@ def set_main_frame(root_frame):
     file_frame.pack(fill=tk.BOTH)
 
     # createボタン:アプリファイルの新規作成
-    create_btn = tk.Button(appfile_label, text="create",
-        width=5, command=lambda: create_app_files(appfile_label,
+    create_btn = ttk.Button(appfile_label, text="create",
+        width=7, command=lambda: create_app_files(appfile_label,
                                                   settings))
     create_btn.pack(side=tk.LEFT, padx=10, pady=10)
 
     # saveボタン:アプリファイルのzip保存
-    save_btn = tk.Button(appfile_label, text="save", width=5,
+    save_btn = ttk.Button(appfile_label, text="save", width=7,
          command=lambda: save_appfile(file_frame.edit_box.get(), settings))
     save_btn.pack(side=tk.LEFT, padx=10, pady=10)
 
     # settingボタン:ユーザ情報の設定
-    setting_btn = tk.Button(appfile_label, text="setting",
-        width=5, command=lambda: setting_json(file_frame, settings))
+    setting_btn = ttk.Button(appfile_label, text="setting",
+        width=7, command=lambda: setting_json(file_frame, settings))
     setting_btn.pack(side=tk.LEFT, padx=10, pady=10)
 
     # DialBB Label 作成
@@ -517,20 +453,20 @@ def set_main_frame(root_frame):
         text='DialBB sever', padding=(10), style='My.TLabelframe')
     
     # startボタン:DialBBサーバ起動
-    start_btn = tk.Button(dialbb_label, text="start",
-        # width=5, command=lambda:exec_dialbb(os.path.join(DIALBB_DIR,
+    start_btn = ttk.Button(dialbb_label, text="start",
+        # width=7, command=lambda:exec_dialbb(os.path.join(DIALBB_DIR,
         #                                                  'sample_apps/chatgpt/config_ja.yml')))
-        width=5, command=lambda:exec_dialbb(os.path.join(APP_FILE_DIR,
+        width=7, command=lambda:exec_dialbb(os.path.join(APP_FILE_DIR,
                                                          APP_FILES['config'])))
     start_btn.pack(side=tk.LEFT, padx=10)
 
     # stopボタン:DialBBサーバ停止
-    stop_btn = tk.Button(dialbb_label, text="stop",
-        width=5, command=stop_dialbb)
+    stop_btn = ttk.Button(dialbb_label, text="stop",
+        width=7, command=stop_dialbb)
     stop_btn.pack(side=tk.LEFT, padx=10)
 
     # closeボタン
-    close_btn = tk.Button(root_frame, text="close", width=5,
+    close_btn = ttk.Button(root_frame, text="close", width=7,
                           command=lambda:App_Close(root_frame))
     close_btn.pack(side=tk.BOTTOM, anchor=tk.NE, padx=10, pady=10)
 

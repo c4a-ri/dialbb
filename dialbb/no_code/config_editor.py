@@ -335,7 +335,9 @@ def edit_config(parent, file_path):
 
         # 画面を閉じる
         sub_menu.destroy()
+        parent.destroy()
 
     def cancel_btn_click():
         # 画面を閉じる
         sub_menu.destroy()
+        parent.destroy()
