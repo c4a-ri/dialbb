@@ -1,14 +1,14 @@
 # DialBB: A Framework for Building Dialogue Systems
 
-ver.0.8.0
+ver.0.9.0
 
 [日本語版](README-ja.md)
 
 ## Introduction
 
-DialBB is a framework for building dialogue systems developed by [C4A Research Institute, Inc.](https://www.c4a.jp/en/) DialBB has been develped as an information technology educational material. DialBB has *extensible* architecture  and is written in *readable codes*. DialBB enables the development of dialogue systems by combining modules called *building blocks*. Developers can easily build simple systems using built-in blocks and can build advanced systems using their own developed blocks. 
+DialBB is a framework for building dialogue systems developed by [C4A Research Institute, Inc.](https://www.c4a.jp/en/) DialBB has been developed as an information technology educational material. DialBB has *extensible* architecture and is written in *readable codes*. DialBB enables the development of dialogue systems by combining modules called *building blocks*. Developers can easily build simple systems using built-in blocks and can build advanced systems using their own developed blocks. 
 
-The main module of DialBB application receives a user utterance input in JSON format via method calls or via the Web API returns a system utterance in JSON format. The main module works by calling blocks, in sequence. Each block takes JSON format (data in Python dictionary) and returns the data in JSON format. The class and input/output of each block are specified in the configuration file for each application.
+The main module of DialBB application receives a user utterance input in JSON format via method calls or via the Web API and returns a system utterance in JSON format. The main module works by calling blocks, in sequence. Each block takes JSON format (data in Python dictionary) and returns the data in JSON format. The class and input/output of each block are specified in the configuration file for each application.
 
 
 ![dialbb-arch-en](docs/images/dialbb-arch-en.jpg)
@@ -25,7 +25,7 @@ This software is released for non-commercial use. For details of the license, pl
 
 ### Execution Environment
 
-We have confirmed that the following procedure works on Python 3.8.10 on Ubuntu 20.04.  We haven't heard that application dosn't work with Python 3.9 or later and on Windows10/11 and MacOS (including Apple Silicon), though we haven't completely confirmed. However, Snips NLU mentioned later does not support Python 3.9+, it may require additional procedure to install Snips NLU or it might not possible to install it.
+We have confirmed that the following procedure works on Python 3.10.13 on Ubuntu 20.04.  We haven't heard that application dosn't work with Python 3.9 or later and on Windows10/11 and MacOS (including Apple Silicon), though we haven't completely confirmed. 
 
 The following instructions assume that you are working with bash on Ubuntu. If you are using other shells or the Windows command prompt, please read the following instructions accordingly.
 
@@ -59,7 +59,7 @@ The resulting directory is referred to below as the <DialBB directory>.
   $ venv/bin/activate   # Enter the virtual environment
   ```
 
-- Next, do the following to install the minimu set of libraries.
+- Next, do the following to install the minimum set of libraries.
 
   ```sh
   $ pip install -r requirements.txt 
@@ -131,21 +131,19 @@ If the server is running on Windows 10, the dialog screen may not appear in your
 http://<hostname>:8080/test
 ```
 
-### Snips-STN Applications
+### Simple Applications
 
-This is a sample application using the following built-in blocks. The English version is available in `sample_apps/network_en/` and Japanese version is available in `sample_apps/network_ja/`.
+This is a sample application using the following built-in blocks. The English version is available in `sample_apps/simple_en/` and the Japanese version is available in `sample_apps/simple_ja/`.
 
 - English Application
 
   - Simple Canonicalizer Block
-  - Whitespace Tokenizer Block
-  - Snips Understander Block (language understanding based on [Snips NLU](https://snips-nlu.readthedocs.io/en/latest/))
+  - LR-CRF Understander Block (language understanding based on Logistic Regression and Conditional Random Fields)
   - STN Manager Block (state transition network-based dialogue manager)
 - Japanese Application
 
   - Japanese Canonicalizer Block
-  - Sudachi Tokenizer  Block (Japanese tokenizer using [Sudachi](https://github.com/WorksApplications/SudachiPy))
-  - Snips Understander  Block
+  - LR-CRF Understander  Block
   - STN Manager  Block
 
 #### Installing Required Python Libraries
@@ -156,74 +154,11 @@ This is a sample application using the following built-in blocks. The English ve
 
   ```sh
   # Run one of the following
-  $ pip install -r sample_apps/network_en/requirements.txt
-  $ pip install -r sample_apps/network_en/requirements.txt
-
-  # To create and use an English application
-  $ python -m snips_nlu download en
-
-  # To create and use a Japanese language application
-  $ python -m snips_nlu download ja
+  $ pip install -r sample_apps/simple_en/requirements.txt
+  $ pip install -r sample_apps/simple_ja/requirements.txt
   ```
 
 Note:
-
- - You may be asked to install additional software, such as [Rust](https://www.rust-lang.org/tools/install) (Especially on Windows), when an error occurs during the installation process. In that case, follow the instructions to install the software. 
-
-  - Basically, Snips can't work with Python3.9+, as it can work with an older version of scikit-learn, which can't work on Python 3.9 and above. If you are using Python3.9 and above and an error may occur during the instal, then the following is worth trying.
-  
-    ```sh
-	pip install Cython==0.29.36 
-    pip install --upgrade pip setuptools wheel
-	```
-    
-	If the install does not go well, feel free to email us.
-	
-
-
-  - On Windows, you might encounter an error like:
-
-    ```
-    ModuleNotFoundError: No module named 'setuptools_rust'
-    ```
-
-    In this case, first try:
-
-    ```sh
-    $ pip install --upgrade pip
-    ```
-
-    If that doesn’t resolve the issue, try the following steps:
-
-    - Download `snips_nlu_parsers-0.4.3-cp38-cp38m-win_amd64.whl` from https://pypi.org/project/snips-nlu-parsers/#files and rename it to `snips_nlu_parsers-0.4.3-cp38-cp38-win_amd64.whl`. Install it using:
-
-      ```sh
-      $ pip install snips_nlu_parsers-0.4.3-cp38-cp38-win_amd64.whl
-      ```
-
-    - Download `snips_nlu_utils-0.9.1-cp37-cp37m-win_amd64.whl` from https://pypi.org/project/snips-nlu-utils/#files and rename it to `snips_nlu_utils-0.9.1-cp38-cp38-win_amd64.whl`. Install it using:
-
-      ```sh
-      $ pip install snips_nlu_utils-0.9.1-cp38-cp38-win_amd64.whl
-      ```
-
-    - Then, run the following again:
-
-      ```sh
-      $ pip install -r sample_apps/network_ja/requirements.txt 
-      $ pip install -r sample_apps/network_en/requirements.txt 
-      ```
-
-
-- On Windows, when you run:
-
-  ```sh
-  $ python -m snips_nlu download en 
-  $ python -m snips_nlu download ja 
-  ```
-
-  you may encounter an error `Creating a shortcut link for 'ja' didn't work`. In this case, please run Windows in developer mode.
-
 
   - When running with Anaconda on Windows, Anaconda Prompt may need to be started in administrator mode.
 
@@ -250,39 +185,37 @@ The following command starts the application.
 
   - English application
 
-   ```sh
-   $ python run_server.py sample_apps/network_en/config.yml 
-   ```
+    ```sh
+    $ python run_server.py sample_apps/simple_en/config.yml 
+    ```
 
     When invoking in the application directory, do the following
 
-   ```sh
-   $ export DIALBB_HOME=<DialBB home diretory>
-   $ export PYTHONPATH=$DIALBB_HOME:$PYTHONPATH
-   $ cd sample_apps/network_en  # moving to the application diretory
-   $ python $DIALBB_HOME/run_server.py config.yml 
-   ```
+    ```sh
+    $ export DIALBB_HOME=<DialBB home diretory>
+    $ export PYTHONPATH=$DIALBB_HOME:$PYTHONPATH
+    $ cd sample_apps/simple_en  # moving to the application diretory
+    $ python $DIALBB_HOME/run_server.py config.yml 
+    ```
 
   - Japanese application
 
-   ```sh
-   $ python run_server.py sample_apps/network_ja/config.yml 
-   ```
+    ```sh
+    $ python run_server.py sample_apps/simple_ja/config.yml 
+    ```
 
     When invoking in the application directory, do the following
 
-   ```sh
-   $ export DIALBB_HOME=<DialBB home diretory>
-   $ export PYTHONPATH=$DIALBB_HOME:$PYTHONPATH
-   $ cd sample_apps/network_ja  # moving to the application diretory
-   $ python $DIALBB_HOME/run_server.py config.yml 
-   ```
-
-
+    ```sh
+    $ export DIALBB_HOME=<DialBB home diretory>
+    $ export PYTHONPATH=$DIALBB_HOME:$PYTHONPATH
+    $ cd sample_apps/simple_ja  # moving to the application diretory
+    $ python $DIALBB_HOME/run_server.py config.yml 
+    ```
 
 #### Operation Check
 
-Operation check can be down with a browser. (See "Running the Parroting Application" above.)
+Operation check can be done with a browser. (See "Running the Parroting Application" above.)
 
 #### Operation Check Using Test Sets
 
@@ -291,22 +224,22 @@ The following commands can be used to test the sequential processing and interac
 - English
 
   ```sh
-  $ python dialbb/util/test.py sample_apps/network_en/config.yml \
-    sample_apps/network_en/test_inputs.txt --output \
-    sample_apps/network_en/_test_outputs.txt
+  $ python dialbb/util/test.py sample_apps/simple_en/config.yml \
+    sample_apps/simple_en/test_inputs.txt --output \
+    sample_apps/simple_en/_test_outputs.txt
   ```
 
-​	The dialog exchange is written to `sample_apps/network_en/_test_outputs.txt`.
+​	The dialog exchange is written to `sample_apps/simple_en/_test_outputs.txt`.
 
   - Japanese
 
     ```sh
-    $ python dialbb/util/test.py sample_apps/network_ja/config.yml \
-      sample_apps/network_ja/test_inputs.txt --output \
-      sample_apps/network_ja/_test_outputs.txt
+    $ python dialbb/util/test.py sample_apps/simple_ja/config.yml \
+      sample_apps/simple_ja/test_inputs.txt --output \
+      sample_apps/simple_ja/_test_outputs.txt
     ```
 
-​       The dialog exchange is written to `sample_apps/network_ja/_test_outputs.txt`.
+​       The dialog exchange is written to `sample_apps/simple_ja/_test_outputs.txt`.
 
 
 ### Experimental Applications
@@ -319,7 +252,6 @@ Experimental applications are available at `sample_apps/lab_app_ja/` (Japanese) 
   - Simple Canonicalizer Block
   - ChatGPT Understander Block
   - Spacy NER Block (NER using [spaCy](https://spacy.io/))
-
   - STN Manager Block
 
 - Japanese Application
@@ -327,7 +259,6 @@ Experimental applications are available at `sample_apps/lab_app_ja/` (Japanese) 
   - Japanese Canonicalizer Block
   - ChatGPT Understander Block
   - Spacy NER Block (NER using [spaCy](https://spacy.io/)/[GiNZA](https://megagonlabs.github.io/ginza/))
-
   - STN Manager Block
 
 #### Installing Python libraries
@@ -356,7 +287,7 @@ $ export OPENAI_API_KEY=<OpenAI's API key>.
 
 #### Test Method
 
-The following commands allow you to test features not used in the Snips+STN ApplicatiSNIon.
+The following commands allow you to test features not used in the Simple Application.
 
   ```sh
   $ cd sample_apps/lab_app_en # in the case of English app

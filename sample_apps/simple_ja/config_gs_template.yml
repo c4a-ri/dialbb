@@ -10,35 +10,27 @@ blocks:  # ブロックのリスト
       input_text: user_utterance
     output: # ブロックからの出力
       output_text: canonicalized_user_utterance
-  - name: tokenizer  # ブロック名
-    # ブロックのクラス
-    block_class: dialbb.builtin_blocks.tokenization.sudachi_tokenizer.SudachiTokenizer
-    input: # ブロックへの入力
-      input_text: canonicalized_user_utterance
-    output: # ブロックからの出力
-      tokens: tokens
-    sudachi_normalization: yes
   - name: understander
-    block_class: dialbb.builtin_blocks.understanding_with_snips.snips_understander.Understander
+    block_class: dialbb.builtin_blocks.understanding_with_lr_crf.lr_crf_understander.Understander
     canonicalizer:
       class: dialbb.builtin_blocks.preprocess.japanese_canonicalizer.JapaneseCanonicalizer
-    tokenizer:
-      class: dialbb.builtin_blocks.tokenization.sudachi_tokenizer.SudachiTokenizer
-      sudachi_normalization: yes
     input:
-      tokens: tokens
+      input_text: canonicalized_user_utterance
     output: 
       nlu_result: nlu_result
-    knowledge_file: sample-knowledge-ja.xlsx  # 知識記述ファイル
-    function_definitions: dictionary_functions  # 知識記述の中で用いる関数の定義ファイル
+    knowledge_google_sheet:
+      sheet_id: <google sheetのID>
+          # https://docs.google.com/spreadsheets/d/.../edit#gid=0 の ...の部分
+      key_file: <google sheets APIのキーファイル>
     flags_to_use:
-      - Y
-      - T
-    sudachi_normalization: yes
+      - 'Y'
+      - 'T'
     num_candidates: 5
   - name: manager
     block_class: dialbb.builtin_blocks.stn_management.stn_manager.Manager
-    knowledge_file: sample-knowledge-ja.xlsx # 知識記述ファイル
+    knowledge_google_sheet:
+      sheet_id: <google sheetのID>
+      key_file: <google sheets APIのキーファイル>
     function_definitions: scenario_functions  # 知識記述の中で用いる関数の定義ファイル
     scenario_graph: yes
     input:
@@ -51,7 +43,7 @@ blocks:  # ブロックのリスト
       final: final
       aux_data: aux_data      
     flags_to_use:
-      - Y
-      - T
+      - 'Y'
+      - 'T'
     
     

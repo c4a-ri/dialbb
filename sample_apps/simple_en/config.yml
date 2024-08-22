@@ -1,0 +1,44 @@
+# Configuration file for a state transition network-based English sample app
+
+language: en   # language
+
+blocks:  # bclock list
+  - name: canonicalizer  # block name
+    # block class
+    block_class: dialbb.builtin_blocks.preprocess.simple_canonicalizer.SimpleCanonicalizer
+    input: # input to the block
+      input_text: user_utterance
+    output: # output from the block
+      output_text: canonicalized_user_utterance
+  - name: understander
+    block_class: dialbb.builtin_blocks.understanding_with_lr_crf.lr_crf_understander.Understander
+    canonicalizer:
+      class: dialbb.builtin_blocks.preprocess.simple_canonicalizer.SimpleCanonicalizer
+    input:
+      input_text: canonicalized_user_utterance
+    output: 
+      nlu_result: nlu_result
+    knowledge_file: simple-nlu-knowledge-en.xlsx  # NLU knowledge file
+    flags_to_use:
+      - 'Y'
+      - 'T'
+    num_candidates: 5
+  - name: manager
+    block_class: dialbb.builtin_blocks.stn_management.stn_manager.Manager
+    knowledge_file: simple-scenario-en.xlsx # scenario file
+    function_definitions: scenario_functions  # developer defined functions used in the scenario
+    scenario_graph: yes
+    input:
+      sentence: canonicalized_user_utterance
+      nlu_result: nlu_result
+      user_id: user_id
+      aux_data: aux_data
+    output:
+      output_text: system_utterance
+      final: final
+      aux_data: aux_data      
+    flags_to_use:
+      - 'Y'
+      - 'T'
+    
+    

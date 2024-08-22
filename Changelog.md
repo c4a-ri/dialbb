@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.9.0 
+
+- LR-CRF Understander Block added
+
+- Sample applications using LR-CRF Understander Block (simple_ja, simple_en) added
+
+- Sample applications using Snips Understander Block (network_ja, network_en) deleted
+
 ## 0.8.0
 
 - Change the default environment variable for setting the OpenAI API key to OPENAI_API_KEY.
