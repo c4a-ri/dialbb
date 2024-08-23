@@ -68,6 +68,7 @@ instance/
 
 # Sphinx documentation
 docs/_build/
+docs/**/build/
 
 # PyBuilder
 target/
@@ -125,10 +126,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-
-#sphinx
-/docs/document-ja/build/doctrees
-/docs/document-ja/build/latex
 
 # pycharm
 .idea/
