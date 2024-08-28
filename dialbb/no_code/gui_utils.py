@@ -7,13 +7,13 @@
 __version__ = '0.1'
 __author__ = 'Mikio Nakano'
 
-import sys, os
-import tkinter as tk
-from tkinter import ttk
+import sys
+import os
 from tkinter import messagebox
 import subprocess
-from typing import List
+from typing import List, Dict, Any
 import json
+from cryptography.fernet import Fernet
 
 
 # -------- Process manager class プロセス管理クラス -------------------------------------
@@ -40,7 +40,8 @@ class ProcessManager:
 
         ret_code = self.process.poll()
         if ret_code is not None:
-            messagebox.showerror('ERROR', "Failed to start the server.", detail=self.process.stdout)
+            messagebox.showerror('ERROR', "Failed to start the server.",
+                                 detail=self.process.stdout)
             return False
         print(f'# Start process pid={self.process.pid}.')
         return True
@@ -99,24 +100,52 @@ class FileTimestamp:
 
 # -------- JSONファイルの管理クラス -------------------------------------
 class JsonInfo:
+    # データ要素
     label_gpt = 'OPENAI_API_KEY'
     label_app = 'Specify_application'
+
+    # 暗号化キー
+    key = '6QvOzPwlGXvFpvv4ZrL4RSrpxZmCUK7wSxnmd9qDzp4='
+    
     def __init__(self, filename):
 
         self.filename = filename
         self.data = {}
         self.disp = None
         try:
-            with open(self.filename, 'r', encoding='utf-8') as file:
-                # JSONファイル読み込み
-                self.data = json.load(file)
+            # ファイル読み込みデータ復号化
+            self._decryption()
         except FileNotFoundError:
             # 新規作成
             self.data = {}
-    # 保存
-    def save(self):
-        with open(self.filename, 'w', encoding='utf-8') as file:
-            json.dump(self.data, file, ensure_ascii=False, indent=4)
+
+    # ファイル暗号化ファイル書き込み
+    def _encryption(self):
+        # Fernetオブジェクトを作成する
+        fernet = Fernet(self.key)
+
+        # データをバイト列に変換
+        byte_data = json.dumps(self.data).encode()
+
+        # ファイルを暗号化する
+        encrypted = fernet.encrypt(byte_data)
+
+        # 暗号化したファイルを保存する
+        with open(self.filename, 'wb') as file:
+            file.write(encrypted)
+
+    # ファイル復号化
+    def _decryption(self):
+        # Fernetオブジェクトを作成する
+        fernet = Fernet(self.key)
+
+        # 暗号化されたファイルを読み込む
+        with open(self.filename, 'rb') as file:
+            encrypted = file.read()
+
+        # ファイルを復号化する
+        result = fernet.decrypt(encrypted)
+        self.data = json.loads(result.decode())
 
     # ゲッター
     def _get(self, key):
@@ -125,8 +154,8 @@ class JsonInfo:
     # セッター
     def _set(self, key, value):
         self.data[key] = value
-        # 変更された場合は保存
-        self.save()
+        # ファイルに保存
+        self._encryption()
 
     # アプリ名の表示
     def _disp_appname(self, app_name):
@@ -160,16 +189,16 @@ class JsonInfo:
 
 # -------- Functions -------------------------------------
 # ウィンドウのサイズと中央表示の設定
-def central_position(frame, width:int, height:int):
+def central_position(frame, width: int, height: int):
     # スクリーンの縦横サイズを取得する
-    sw=frame.winfo_screenwidth()
-    sh=frame.winfo_screenheight()
+    sw = frame.winfo_screenwidth()
+    sh = frame.winfo_screenheight()
     # ウィンドウサイズと表示位置を指定する
     frame.geometry(f"{width}x{height}+{int(sw/2-width/2)}+{int(sh/2-height/2)}")
 
 
 # 親ウジェットに重ねて子ウジェットを表示
-def chaild_position(parent, chaild, width:int = 0, height:int = 0):
+def chaild_position(parent, chaild, width: int = 0, height: int = 0):
     # 親ウィンドウの位置に子ウィンドウを配置
     x = parent.winfo_rootx() + parent.winfo_width() // 4 - chaild.winfo_width() // 4
     y = parent.winfo_rooty() + parent.winfo_height() // 4 - chaild.winfo_height() // 4
