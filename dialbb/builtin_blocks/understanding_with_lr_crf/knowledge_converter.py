@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 #
 # knowledge_converter.py
-#   convert nlu knowledge to be used in the prompt
-#   言語理解知識をプロンプトで使う形式に変換する
+#   convert nlu knowledge to be used in LR and CRF training
+#   言語理解知識をLRとCRFの訓練データ形式に変換する。
 
 __version__ = '0.1'
 __author__ = 'Mikio Nakano'
@@ -31,11 +31,6 @@ COLUMN_SLOTS: str = "slots"
 KEY_CLASS: str = "class"
 KEY_CANONICALIZER: str = "canonicalizer"
 
-ETC_STR = {"ja": "など", "en": " etc."}
-INPUT_STR = {"ja": "入力", "en": "input"}
-OUTPUT_STR = {"ja": "出力", "en": "output"}
-
-
 def check_columns(required_columns: List[str], df: DataFrame, sheet: str) -> bool:
     """
     checks if required columns exit in the sheet of the dataframe
@@ -55,7 +50,8 @@ def check_columns(required_columns: List[str], df: DataFrame, sheet: str) -> boo
 
 
 def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame,
-                          block_config: Dict[str, Any], language='ja') -> Tuple[str, str, str, Dict[str, List[str]]]:
+                          block_config: Dict[str, Any],
+                          language='ja') -> Tuple[List[Dict[str, Any]], Dict[str, List[str]], Dict[str, str]]:
 
     """
     converts nlu knowledge to parts of prompt
@@ -64,13 +60,17 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame,
     :param slots_df: slots sheet dataframe
     :param block_config: block configuration
     :param language: language of this app ('en' or 'ja')
-    :return: list of types for prompt, slot definitions for prompt, examples for prompt,
-             dict from entities synonym list
+    :return: Tuple of the folowing:
+             - list of training data, each of which is a dict having keys 'type', 'example, and 'slots'
+               e.g., {"type": "ask-weather",
+                      "example": "tell me the weather in new york tomorrow",
+                      "slots": {"place": "new york", "date": "tomorrow"}}
+             - dict from entities to synonym lists
+             - dict from slot id's to slot names
     """
 
     slot_names2entities: Dict[str, List[str]] = {}
     entities2synonyms: Dict[str, List[str]] = {}
-    types2utterances: Dict[str, List[str]] = {}
     utterances2understanding_results: Dict[str, Dict[str, Any]] = {}
 
     print(f"converting nlu knowledge.")
@@ -107,7 +107,12 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame,
                                    for x in re.split('[,，、]', row[COLUMN_SYNONYMS])]  # split synonym cell
             entities2synonyms[entity] = synonyms
 
+    training_data: List[Dict[str, Any]] = []
     # read utterances sheet
+
+    slot_ids2slot_names: Dict[str, str] = {}
+    j: int = 0
+
     if utterances_df is None:  # no utterance sheet
         abort_during_building(f"Warning: no utterances sheet.")
     else:
@@ -118,36 +123,27 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame,
                 continue
             utterance_type: str = row[COLUMN_TYPE].strip()
             utterance: str = row[COLUMN_UTTERANCE].strip()
-            if not types2utterances.get(utterance_type):
-                types2utterances[utterance_type] = []
-            types2utterances[utterance_type].append(utterance)
-
             slots: Dict[str, str] = {}
             slots_cell: str = row[COLUMN_SLOTS].strip()
             if slots_cell:
                 slots_str: List[str] = [x.strip() for x in re.split('[,，、]', slots_cell)]
                 for slot_str in slots_str:
-                    pair: List[str] = [x.strip() for x in re.split('[=＝]', slot_str)]
+                    pair: List[str] = [canonicalizer.canonicalize(x.strip()) for x in re.split('[=＝]', slot_str)]
                     if len(pair) != 2:
                         abort_during_building("illegal slot description: " + str(slots_str))
-                    slots[pair[0]] = pair[1]  # name -> value
-            understanding_results = {"type": utterance_type, "slots": slots}
-            utterances2understanding_results[utterance] = understanding_results
+                    slot_id = None
+                    for id, name in slot_ids2slot_names.items():
+                        if name == pair[0]:
+                            slot_id = id
+                            break
+                    if slot_id is None:   # new slot
+                        slot_id = "SLOT-" + str(j)  # slot id is SLOT-0, SLOT-1, ...
+                        j += 1
+                    slot_ids2slot_names[slot_id] = pair[0]
+                    slots[slot_id] = pair[1]  # name -> value
+            training_sample: Dict[str, Any] = {"type": utterance_type, "slots": slots, "example": utterance}
+            training_data.append(training_sample)
 
-    types_in_prompt: str = ""
-    for utterance_type in types2utterances.keys():
-        types_in_prompt += f"- {utterance_type}\n"
-
-    slot_definitions_in_prompt: str = ""
-    for slot_name in slot_names2entities.keys():
-        entities: List[str] = slot_names2entities[slot_name]
-        slot_definitions_in_prompt += f"- {slot_name}: {', '.join(entities)}, {ETC_STR[language]}\n"
-
-    examples_in_prompt: str = ""
-    for utterance, understanding_results in utterances2understanding_results.items():
-        examples_in_prompt += f"- {INPUT_STR[language]}: {utterance}\n"
-        examples_in_prompt += f"  {OUTPUT_STR[language]}: {str(understanding_results)}\n\n"
-
-    return types_in_prompt, slot_definitions_in_prompt, examples_in_prompt, entities2synonyms
+    return training_data, entities2synonyms, slot_ids2slot_names
 
 

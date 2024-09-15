@@ -4,7 +4,6 @@
 # logger.py
 #   logging
 
-__version__ = '0.1'
 __author__ = 'Mikio Nakano'
 __copyright__ = 'C4A Research Institute, Inc.'
 

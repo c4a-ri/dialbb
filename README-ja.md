@@ -1,6 +1,7 @@
-# DialBB: 対話システム構築フレームワーク
+- # DialBB: 対話システム構築フレームワーク
 
-ver.0.7.0
+
+ver.0.9.0
 
 [English](README.md)
 
@@ -28,7 +29,7 @@ DialBBは非商用向けに公開されています．ライセンスの詳細�
 
 ### 実行環境
 
-Ubuntu 20.04/Windows 10上のpython 3.8.10で，以下の手順で動作することを確認しています．すべての組み合わせを完全に確かめたわけではありませんが，Windows 10/11やMacOS（アップルシリコンを含む）の上で，または，Python 3.9+を使って動かせなかったという報告は得ていません．ただ，後述のSnips NLUは基本的にPython 3.9+はサポートしていないため，インストールに工夫が必要かまたは，インストールができない可能性があります．
+Ubuntu 20.04/Windows 10上のpython 3.10.13で，以下の手順で動作することを確認しています．すべての組み合わせを完全に確かめたわけではありませんが，Windows 10/11やMacOS（アップルシリコンを含む）の上で，または，Python 3.9+を使って動かせなかったという報告は得ていません．
 
 以下の説明はUbuntu上のbashで作業することを仮定しています．他のシェルやWindowsコマンドプロンプトを用いる場合は，適宜読み替えてください．
 
@@ -46,7 +47,6 @@ $ git clone https://github.com/c4a-ri/dialbb.git
 
 ```sh
 $ git clone https://github.com/c4a-ri/dialbb.git <ディレクトリ名>
-
 ```
 
 できたディレクトリを以下で「DialBBディレクトリ」と呼びます．
@@ -65,7 +65,7 @@ $ git clone https://github.com/c4a-ri/dialbb.git <ディレクトリ名>
 
 - 次に以下を実行して，最低限のライブラリをインストールします．(ver. 0.6からトップディレクトリの`requirements.txt`には最低限のライブラリのみを書くようにしました．）
 
-  ```python
+  ```sh
   $ pip install -r requirements.txt 
   ```
 
@@ -123,27 +123,25 @@ $ python run_server.py sample_apps/parrot/config.yml
 http://<hostname>:8080 
 ```
 
-サーバをWindows上で動作させた場合，ブラウザ上に対話画面が出ないことがあります．その場合は，以下のURLに接続すると，簡易な対話画面が出ます．
+サーバをWindows 10上で動作させた場合，ブラウザ上に対話画面が出ないことがあります．その場合は，以下のURLに接続すると，簡易な対話画面が出ます．
 
 ```
 http://<hostname>:8080/test
 ```
 
-## SNIPS+STNアプリケーション
+## Simpleアプリケーション
 
-以下の組み込みブロックを用いたサンプルアプリケーションです．`sample_apps/network_ja/`に日本語版が，`sample_apps/network_en/`に英語があります．
+以下の組み込みブロックを用いたサンプルアプリケーションです．`sample_apps/simple_ja/`に日本語版が，`sample_apps/simple_en/`に英語版があります．
 
 - 日本語アプリケーション
 
   - Japanese Canonicalizer Block
-  - Sudachi Tokenizer  Block ([Sudachi](https://github.com/WorksApplications/SudachiPy)を用いた日本語トークナイザ)
-  - SNIPS Understander  Block
+  - LR-CRF Understander  Block  (ロジスティック回帰と条件付き確率場を用いた言語理解)
   - STN Manager  Block (状態遷移ネットワークに基づく対話管理)
 - 英語アプリケーション
 
   - Simple Canonicalizer Block
-  - Whitespace Tokenizer Block
-  - SNIPS Understander Block ( [Snips NLU](https://snips-nlu.readthedocs.io/en/latest/)を用いた言語理解)
+  - LR-CRF Understander Block
   - STN Manager Block
 
 
@@ -155,28 +153,13 @@ http://<hostname>:8080/test
 
   ```sh
   # 以下のどちらかを実行
-  $ pip install -r sample_apps/network_ja/requirements.txt 
-  $ pip install -r sample_apps/network_en/requirements.txt 
-
-  # 英語アプリケーションを作成・利用する場合
-  $ python -m snips_nlu download en 
-
-  # 日本語アプリケーションを作成・利用する場合
-  $ python -m snips_nlu download ja 
+  $ pip install -r sample_apps/simple_ja/requirements.txt 
+  $ pip install -r sample_apps/simple_en/requirements.txt 
   ```
 
-  注意
+注意：
 
-- 途中でエラーになり，[Rust](https://www.rust-lang.org/tools/install) などの追加のソフトウェアのインストールを求められる場合があります（特にWindowsの場合）．その場合，指示にしがってインストールしてください．うまくいかない場合は我々に連絡してください．
-
-- 基本的にSnipsはscikit-learnの古いバージョンに依存しているため，Python3.9+では動きません．Python3.9+を使っている場合は，インストール中にエラーが出る可能性があります． その場合，以下のコマンドで解決する可能性があります．
-
-    ```
-    pip install Cython==0.29.36 
-    pip install --upgrade pip setuptools wheel
-    ```
-
-- Windows上のAnacondaを用いて実行する場合，Anaconda Promptを管理者モードで起動しないといけない可能性があります．
+  - Windows上のAnacondaを用いて実行する場合，Anaconda Promptを管理者モードで起動しないといけない可能性があります．
 
 
   - pyenvを使っている場合，以下のエラーが出る可能性があります．
@@ -192,7 +175,7 @@ http://<hostname>:8080/test
 
 #### Graphvizのインストール
 
-[Graphvizのサイト](https://graphviz.org/download/)などを参考にGraphvizをインストールします．ただ，Graphvizがなくてもアプリケーションを動作させることは可能です．
+[Graphvizのサイト](https://graphviz.org/download/)などを参考にGraphvizをインストールします．ただ，Graphvizがなくてもアプリケーションを動作させることは**可能**です．
 
 
 #### 起動
@@ -204,7 +187,7 @@ http://<hostname>:8080/test
 - 英語アプリケーション
 
   ```sh
-  $ python run_server.py sample_apps/network_en/config.yml 
+  $ python run_server.py sample_apps/simple_en/config.yml 
   ```
   
   アプリケーションディレクトリで起動する場合は以下のようにします．
@@ -212,7 +195,7 @@ http://<hostname>:8080/test
   ```sh
   $ export DIALBB_HOME=<DialBBのホームディレクトリ>
   $ export PYTHONPATH=$DIALBB_HOME:$PYTHONPATH
-  $ cd sample_apps/network_en  # アプリケーションディレクトリに移動
+  $ cd sample_apps/simple_en  # アプリケーションディレクトリに移動
   $ python $DIALBB_HOME/run_server.py config.yml 
   ```
 
@@ -220,7 +203,7 @@ http://<hostname>:8080/test
 - 日本語アプリケーション
 
   ```sh
-  $ python run_server.py sample_apps/network_ja/config.yml 
+  $ python run_server.py sample_apps/simple_ja/config.yml 
   ```
 
   アプリケーションディレクトリで起動する場合は以下のようにします．
@@ -228,7 +211,7 @@ http://<hostname>:8080/test
   ```sh
   $ export DIALBB_HOME=<DialBBのホームディレクトリ>
   $ export PYTHONPATH=$DIALBB_HOME:$PYTHONPATH
-  $ cd sample_apps/network_ja  # アプリケーションディレクトリに移動
+  $ cd sample_apps/simple_ja  # アプリケーションディレクトリに移動
   $ python $DIALBB_HOME/run_server.py config.yml 
   ```
 
@@ -239,22 +222,22 @@ http://<hostname>:8080/test
   - 英語
 
    ```sh
-   $ python dialbb/util/test.py sample_apps/network_en/config.yml \
-     sample_apps/network_en/test_inputs.txt --output \
-     sample_apps/network_en/_test_outputs.txt
+   $ python dialbb/util/test.py sample_apps/simple_en/config.yml \
+     sample_apps/simple_en/test_inputs.txt --output \
+     sample_apps/simple_en/_test_outputs.txt
    ```
 
-​    `sample_apps/network_en/_test_outputs.txt`に対話のやりとりが書き込まれます．
+​    `sample_apps/simple_en/_test_outputs.txt`に対話のやりとりが書き込まれます．
 
   - 日本語
 
    ```sh
-   $ python dialbb/util/test.py sample_apps/network_ja/config.yml \
-     sample_apps/network_ja/test_inputs.txt --output \
-     sample_apps/network_ja/_test_outputs.txt
+   $ python dialbb/util/test.py sample_apps/simple_ja/config.yml \
+     sample_apps/simple_ja/test_inputs.txt --output \
+     sample_apps/simple_ja/_test_outputs.txt
    ```
 
-​    `sample_apps/network_ja/_test_outputs.txt`に対話のやりとりが書き込まれます．
+​    `sample_apps/simple_ja/_test_outputs.txt`に対話のやりとりが書き込まれます．
 
 ### 実験アプリケーション
 
@@ -287,7 +270,7 @@ http://<hostname>:8080/test
 
 #### 環境変数の設定
 
-  本アプリケーションではOpenAI社のChatGPTを使います。そのため、環境変数`OPENAI_API_KEY`にOpenAIのAPIキーを設定します．以下はbashの例です．
+  本アプリケーションではOpenAI社のChatGPTを使います．そのため，環境変数`OPENAI_API_KEY`にOpenAIのAPIキーを設定します．以下はbashの例です．
 
   ```sh
   $ export OPENAI_API_KEY=<OpenAIのAPIキー>
@@ -312,7 +295,7 @@ http://<hostname>:8080/test
 
 #### テスト方法
 
-  以下のコマンドで，Snips+STNアプリケーションでは使用していない機能をテストすることができます．
+  以下のコマンドで，Simpleアプリケーションでは使用していない機能をテストすることができます．
 
   ```sh
   $ cd sample_apps/lab_app_ja # 日本語の場合

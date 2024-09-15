@@ -1,0 +1,45 @@
+# 状態遷移ネットワークベースの日本語サンプルアプリのコンフィギュレーションファイル
+
+language: ja   # 言語を指定
+
+blocks:  # ブロックのリスト
+  - name: canonicalizer  # ブロック名
+    # ブロックのクラス
+    block_class: dialbb.builtin_blocks.preprocess.japanese_canonicalizer.JapaneseCanonicalizer
+    input: # ブロックへの入力
+      input_text: user_utterance
+    output: # ブロックからの出力
+      output_text: canonicalized_user_utterance
+  - name: understander
+    block_class: dialbb.builtin_blocks.understanding_with_lr_crf.lr_crf_understander.Understander
+    canonicalizer:
+      class: dialbb.builtin_blocks.preprocess.japanese_canonicalizer.JapaneseCanonicalizer
+    input:
+      input_text: canonicalized_user_utterance
+    output: 
+      nlu_result: nlu_result
+    knowledge_file: simple-nlu-knowledge-ja.xlsx  # 知識記述ファイル
+    #function_definitions: dictionary_functions  # 知識記述の中で用いる関数の定義ファイル
+    flags_to_use:
+      - 'Y'
+      - 'T'
+    num_candidates: 5
+  - name: manager
+    block_class: dialbb.builtin_blocks.stn_management.stn_manager.Manager
+    knowledge_file: simple-scenario-ja.xlsx # 知識記述ファイル
+    function_definitions: scenario_functions  # 知識記述の中で用いる関数の定義ファイル
+    scenario_graph: yes
+    input:
+      sentence: canonicalized_user_utterance
+      nlu_result: nlu_result
+      user_id: user_id
+      aux_data: aux_data
+    output:
+      output_text: system_utterance
+      final: final
+      aux_data: aux_data      
+    flags_to_use:
+      - 'Y'
+      - 'T'
+    
+    

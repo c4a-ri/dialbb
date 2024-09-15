@@ -293,7 +293,7 @@ When the application is launched, the above knowledge is converted into Snips tr
 The Snips training data is `_training_data.json` in the application directory. By looking at this file, you can check if the conversion is successful.
 
 (chatgpt_understander)=
-## ChatGPT Understander (Language Understanding Block using Snips)
+## ChatGPT Understander (Language Understanding Block using ChatGPT)
 
 (`dialbb.builtin_blocks.understanding_with_chatgpt.chatgpt_understander.Understander`)
 
@@ -368,7 +368,7 @@ At runtime, input utterance is added to the prompt to make ChatGPT perform langu
 
 - `gpt_model` (string. The default value is `gpt-3.5-turbo`.)
 
-   Specifies the ChatGPT model. 
+   Specifies the ChatGPT model. `gpt-4-turbo` can be specified. `gpt-4` cannot be used.
 
 - `prompt_template`
 
@@ -801,7 +801,7 @@ To use these functions, the following settings are required:
 
   - `gpt_model` (string)
 
-    This specifies the model name of GPT, such as `gpt-4`, `gpt-3.5-turbo`, etc. The default value is `gpt-3.5-turbo`.
+    This specifies the model name of GPT, such as `gpt-4-turbo`, `gpt-3.5-turbo`, etc. The default value is `gpt-3.5-turbo`. `gpt-4` cannot be used.
 
   - `temperature` (float)
 
@@ -823,7 +823,7 @@ To use these functions, the following settings are required:
 
   ```yaml
     chatgpt:
-      gpt_model: gpt-4
+      gpt_model: gpt-4-turbo
       temperature: 0.7
       situation:
         - You are a dialogue system and chatting with the user.
@@ -1080,7 +1080,7 @@ When using these blocks, you need to set the OpenAI license key in the environme
 
 - `gpt_model` (string, default value is `gpt-3.5-turbo`)
 
-   Open AI GPT model. You can specify `gpt-4` and so on.
+   Open AI GPT model. You can specify `gpt-4`, `gpt-4-turbo` and so on.
 
 ### Process Details
 

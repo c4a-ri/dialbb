@@ -1,23 +1,25 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# chatgpt_understander.py
-#   understand input text using ChatGPT
+# lr_crf_understander.py
+#   understand input text using LR and CRF
 
 __version__ = '0.1'
 __author__ = 'Mikio Nakano'
 __copyright__ = 'C4A Research Institute, Inc.'
 
-import traceback
-import openai
 import pandas as pd
 from pandas import DataFrame
-from dialbb.builtin_blocks.understanding_with_chatgpt.knowledge_converter import convert_nlu_knowledge
+
 from dialbb.abstract_block import AbstractBlock
+from dialbb.builtin_blocks.understanding_with_lr_crf.crf_slot_extractor import CRFSlotExtractor
+from dialbb.builtin_blocks.understanding_with_lr_crf.knowledge_converter import convert_nlu_knowledge
+from dialbb.builtin_blocks.understanding_with_lr_crf.japanese_pos_tagger import JapanesePosTagger
+from dialbb.builtin_blocks.understanding_with_lr_crf.english_pos_tagger import EnglishPosTagger
+from dialbb.builtin_blocks.understanding_with_lr_crf.lr_type_estimator import LRTypeEstimator
 from dialbb.main import CONFIG_KEY_LANGUAGE
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Union
 import os
-import json
 import sys
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
@@ -25,8 +27,6 @@ from oauth2client.service_account import ServiceAccountCredentials
 
 from dialbb.main import ANY_FLAG, KEY_SESSION_ID
 from dialbb.util.error_handlers import abort_during_building
-from dialbb.builtin_blocks.understanding_with_chatgpt.prompt_templates_ja import PROMPT_TEMPLATE_JA
-from dialbb.builtin_blocks.understanding_with_chatgpt.prompt_templates_en import PROMPT_TEMPLATE_EN
 
 
 CONFIG_KEY_KNOWLEDGE_GOOGLE_SHEET: str = "knowledge_google_sheet"  # google sheet info
@@ -37,30 +37,23 @@ CONFIG_KEY_UTTERANCE_SHEET: str = "utterances_sheet"
 CONFIG_KEY_SLOTS_SHEET: str = "slots_sheet"
 CONFIG_KEY_PROMPT_TEMPLATE: str = "prompt_template"
 CONFIG_KEY_GPT_MODEL: str = "gpt_model"
+CONFIG_KEY_NUM_CANDIDATES: str = "num_candidates"
 
-KEY_INPUT_TEXT: str = "input_text"
 KEY_NLU_RESULT: str = "nlu_result"
-
-DEFAULT_GPT_MODEL: str = "gpt-3.5-turbo"
+KEY_INPUT_TEXT: str = "input_text"
 
 SCOPES = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
 
 
 class Understander(AbstractBlock):
     """
-    ChatGPT based understander
+    LR and CRF based understander
     """
 
     def __init__(self, *args):
 
         super().__init__(*args)
 
-        # chatgpt setting
-        openai_api_key: str = os.environ.get('OPENAI_API_KEY', os.environ.get('OPENAI_KEY', ""))
-        if not openai_api_key:
-            abort_during_building("OPENAI_API_KEY is not defined")
-        self._openai_client = openai.OpenAI(api_key=openai_api_key)
-        self._gpt_model = self.block_config.get(CONFIG_KEY_GPT_MODEL, DEFAULT_GPT_MODEL)
 
         # sheets in spreadsheet
         utterances_sheet = self.block_config.get(CONFIG_KEY_UTTERANCE_SHEET, "utterances")
@@ -68,18 +61,16 @@ class Understander(AbstractBlock):
 
         # language: "en" or "ja"
         self._language = self.config.get(CONFIG_KEY_LANGUAGE, 'en')
-        if self._language not in ('en', 'ja'):
+        if self._language == 'en':
+            self._pos_tagger = EnglishPosTagger()
+        elif self._language == 'ja':
+            self._pos_tagger = JapanesePosTagger()
+        else:
             abort_during_building("unsupported language: " + self._language)
 
-        prompt_template_file: str = self.config.get(CONFIG_KEY_PROMPT_TEMPLATE)
-        if prompt_template_file:
-            prompt_template_file = os.path.join(self.config_dir, prompt_template_file)
-            prompt_template: str = self._read_prompt_template(prompt_template_file)
-        else:
-            if self._language == 'ja':
-                prompt_template = PROMPT_TEMPLATE_JA
-            else: # english
-                prompt_template = PROMPT_TEMPLATE_EN
+        self._num_candidates = self.block_config.get(CONFIG_KEY_NUM_CANDIDATES, 1)
+        if type(self._num_candidates) != int or self._num_candidates < 1:
+            abort_during_building(f"value of {CONFIG_KEY_NUM_CANDIDATES} must be a natural number.")
 
         google_sheet_config: Dict[str, str] = self.block_config.get(CONFIG_KEY_KNOWLEDGE_GOOGLE_SHEET)
         if google_sheet_config:  # get knowledge from google sheet
@@ -92,24 +83,28 @@ class Understander(AbstractBlock):
             utterances_df, slots_df = self._get_dfs_from_excel(excel_file, utterances_sheet, slots_sheet)
 
         # convert nlu knowledge to type and slot definitions
-        types, slot_definitions, examples, self.entities2synonyms \
+        training_data, self.entities2synonyms, self._slot_ids2slot_names\
             = convert_nlu_knowledge(utterances_df, slots_df, self.block_config, language=self._language)
-        self._prompt_template = prompt_template.replace('@examples', examples).replace('@types', types)\
-            .replace('@slot_definitions', slot_definitions)
 
-    def _read_prompt_template(self, file_path: str) -> str:
-        """
-        read a file into one string
-        :return: the content of the file
-        """
+        self.log_debug(f"{len(training_data)} samples are used for training.")
 
-        with open(file_path, 'r', encoding='utf-8') as file:
-            file_contents: str = file.read()
-        return file_contents
+        for sample in training_data:
+            sample['tokens_with_pos'] = self._tokenize_and_tag(sample['example'])  # [(token, pos), (token, pos), ...]
+
+        self._slots_exist: bool = True if self._slot_ids2slot_names else False
+
+        if self._slots_exist:
+            self._slot_extractor = CRFSlotExtractor(training_data, language=self._language)  # create crf model
+            self.log_debug("CRF model is trained.")
+        else:
+            self.log_debug("No slots found in the training data. Slots will not be estimated.")
+
+        self._type_estimator = LRTypeEstimator(training_data)   # create lr model
+        self.log_debug("LR model is trained.")
+
 
     def _get_dfs_from_gs(self, google_sheet_config: Dict[str, str],
-                         utterances_sheet: str, slots_sheet: str) \
-            -> Tuple[DataFrame, DataFrame]:
+                         utterances_sheet: str, slots_sheet: str) -> Tuple[DataFrame, DataFrame]:
         """
         Get DataFrames for each sheet in knowledge in google sheets
         Google sheetに書かれた知識からDataframeを取得する。
@@ -151,10 +146,14 @@ class Understander(AbstractBlock):
         except Exception as e:
             abort_during_building(f"failed to read excel file: {excel_file_path}. {str(e)}")
 
+
     def process(self, input: Dict[str, Any], session_id: str) -> Dict[str, Any]:
         """
-        understand input sentence using ChatGPT
-        :param input: e.g. {"sentence": "I love egg salad sandwiches"}
+        understand input sentence using LR and CRF. when num_candidates in config is more than 1,
+        n-best results are returned
+        LRとCRFを用いて言語理解を行う
+        コンフィギュレーションのnum_candidatesが2以上なら、n-bestの言語理解結果が返される
+        :param input: e.g. {"input_text": "I love egg salad sandwiches"}
         :param session_id: session id sent from client
         :return: {"nlu_result": <nlu result in DialBB format>} or
                  {"nlu_result": <list of nlu results in DialBB format>}
@@ -170,15 +169,18 @@ class Understander(AbstractBlock):
 
         session_id: str = input.get(KEY_SESSION_ID, "undecided")
         self.log_debug("input: " + str(input), session_id=session_id)
-        input_text = input.get(KEY_INPUT_TEXT, "")
-        if input_text == "":
-            tentative_result: Dict[str, Any] = {"type": "", "slots": {}}
-        else:
-            tentative_result = self._understand_with_chatgpt(input_text)
 
-        nlu_result: Dict[str, Any] = {"type": tentative_result["type"], "slots": {}}
-        for slot_name in tentative_result["slots"].keys():
-            nlu_result["slots"][slot_name] = self._get_entity(tentative_result["slots"][slot_name])
+        input_text = input[KEY_INPUT_TEXT]
+        if not input_text:  # if input is empty
+            if self._num_candidates == 1:  # non n-best mode
+                nlu_result: Dict[str, Any] = {"type": "", "slots": {}}
+            else:  # n-best mode
+                nlu_result: List[Dict[str, Any]] = [{"type": "", "slots": {}}]
+        else:
+            if self._num_candidates == 1:  # non n-best mode
+                nlu_result: Dict[str, Any] = self._understand_with_lr_crf(input_text)
+            else:  # n-best mode
+                nlu_result: List[Dict[str, Any]] = self._understand_with_lr_crf(input_text, top_n=self._num_candidates)
 
         output = {KEY_NLU_RESULT: nlu_result}
         self.log_debug("output: " + str(output), session_id=session_id)
@@ -197,48 +199,41 @@ class Understander(AbstractBlock):
                 return entity
         return expression
 
-    def _understand_with_chatgpt(self, input_text: str) -> Dict[str, Any]:
+    def _understand_with_lr_crf(self, input_text: str, top_n: int=1) -> Union[Dict[str, Any], List[Dict[str, Any]]]:
         """
         understand input text using chatgpt
-        :param input_text:
+        :param input_text: input text string
+        :param top_n: number of candidates
         :return:
         """
 
-        prompt: str = self._prompt_template.replace('@input', input_text)
-        self.log_debug("prompt " + prompt)
+        tokens_with_pos: List[Tuple[str, str]] = self._tokenize_and_tag(input_text)  # [(word, pos), (word, pos) ...]
+        if self._slots_exist:
+            slots_with_ids: Dict[str, str] = self._slot_extractor.extract_slots(tokens_with_pos)
+            # change to slot names
+            slots = {self._slot_ids2slot_names[slot_id]: value for slot_id, value in slots_with_ids.items()}
+            self.log_debug("estracted slots: " + str(slots))
+        else:
+            slots: Dict[str, str] = {}
+        utterance_types, prob_distribution = self._type_estimator.estimate_type(tokens_with_pos)
+        self.log_debug("estimated types: " + str(utterance_types))
+        self.log_debug("estimated type probabilities: " + str(prob_distribution))
 
-        chat_completion = None
-        while True:
-            try:
-                chat_completion = self._openai_client.with_options(timeout=10).chat.completions.create(
-                    model=self._gpt_model,
-                    messages=[{"role": "user", "content": prompt}],
-                    temperature=0.0,
-                    response_format={"type": "json_object"}
-                    )
-            except openai.APITimeoutError:
-                continue
-            except Exception as e:
-                self.log_error("OpenAI Error: " + traceback.format_exc())
-                sys.exit(1)
-            finally:
-                if not chat_completion:
-                    continue
-                else:
-                    break
-        chatgpt_result_string: str = chat_completion.choices[0].message.content
-        self.log_debug("chatgpt result: " + chatgpt_result_string)
-        try:
-            result: Dict[str, Any] = json.loads(chatgpt_result_string)
-            print(str(result))
-            if not result.get("type"):
-                raise Exception("result doesn't have type")
-            if result.get("slots", None) is None or type(result.get("slots")) != dict:
-                raise Exception("result doesn't have valid slots")
-        except Exception as e:
-            self.log_warning("ChatGPT's output is not a valid understanding result: " + chatgpt_result_string
-                             + "Error:" + str(e))
-            result: Dict[str, Any] = {"type": "", "slots": {}}  # default result
+        if top_n == 1:
+            return {"type": utterance_types[0], "slots": slots}
+        else:  # top n candidates
+            if len(utterance_types) > top_n:
+                utterance_types = utterance_types[:top_n]
+            return [{"type": t, "slots": slots} for t in utterance_types]
+
+    def _tokenize_and_tag(self, input_text: str) -> List[Tuple[str, str]]:
+        """
+        tokenize input and tag POS labels
+        :param input_text: input text
+        :return: [(word, pos), (word pos) ...]
+        """
+
+        result: List[Tuple[str, str]] = self._pos_tagger.tag(input_text)
         return result
 
 

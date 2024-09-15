@@ -10,31 +10,22 @@ blocks:  # ブロックのリスト
       input_text: user_utterance
     output: # ブロックからの出力
       output_text: canonicalized_user_utterance
-  - name: tokenizer  # ブロック名
-    # ブロックのクラス
-    block_class: dialbb.builtin_blocks.tokenization.sudachi_tokenizer.SudachiTokenizer
-    input: # ブロックへの入力
-      input_text: canonicalized_user_utterance
-    output: # ブロックからの出力
-      tokens: tokens
-    sudachi_normalization: yes
   - name: understander
-    block_class: dialbb.builtin_blocks.understanding_with_snips.snips_understander.Understander
+    block_class: dialbb.builtin_blocks.understanding_with_lr_crf.lr_crf_understander.Understander
     canonicalizer:
       class: dialbb.builtin_blocks.preprocess.japanese_canonicalizer.JapaneseCanonicalizer
-    tokenizer:
-      class: dialbb.builtin_blocks.tokenization.sudachi_tokenizer.SudachiTokenizer
-      sudachi_normalization: yes
     input:
-      tokens: tokens
+      input_text: canonicalized_user_utterance
     output: 
       nlu_result: nlu_result
     knowledge_google_sheet:
       sheet_id: <google sheetのID>
           # https://docs.google.com/spreadsheets/d/.../edit#gid=0 の ...の部分
       key_file: <google sheets APIのキーファイル>
-    sudachi_normalization: yes
-    num_candidates: 1
+    flags_to_use:
+      - 'Y'
+      - 'T'
+    num_candidates: 5
   - name: manager
     block_class: dialbb.builtin_blocks.stn_management.stn_manager.Manager
     knowledge_google_sheet:
@@ -46,7 +37,13 @@ blocks:  # ブロックのリスト
       sentence: canonicalized_user_utterance
       nlu_result: nlu_result
       user_id: user_id
+      aux_data: aux_data
     output:
       output_text: system_utterance
       final: final
+      aux_data: aux_data      
+    flags_to_use:
+      - 'Y'
+      - 'T'
+    
     
