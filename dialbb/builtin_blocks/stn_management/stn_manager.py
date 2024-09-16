@@ -323,6 +323,7 @@ class Manager(AbstractBlock):
                 if DEBUG:  # logging for debug
                     self._log_dialogue_context_for_debug(session_id)
 
+
                 self._dialogue_context[session_id][CONTEXT_KEY_AUX_DATA] = aux_data
 
                 if aux_data.get(KEY_REWIND):  # revert
@@ -344,6 +345,11 @@ class Manager(AbstractBlock):
                         raise Exception()
                     else:
                         raise STNError()
+                elif self._network.is_final_state_or_error_state(previous_state_name):  # already session finished:
+                    self.log_debug("session already finished.")
+                    return {"output_text": "This session has already finished.", "final": True}
+
+
                 if type(nlu_result) == list:   # select nlu result from n-best candidates
                     additional_uu_types = []
                     if self._request_confirmation_at_low_confidence:  # after confirmation request 確認要求後

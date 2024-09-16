@@ -2,13 +2,19 @@
 
 ## 0.9.0 
 
-- LR-CRF Understander Block added
+- Snips Understander builtin block deleted
+
+- Whitespace Tokenzer builtin block deleted
+
+- Sudachi Tokenzer builtin block deleted
+
+- LR-CRF Understander Builtin Block added
 
 - Sample applications using LR-CRF Understander Block (simple_ja, simple_en) added
 
 - Sample applications using Snips Understander Block (network_ja, network_en) deleted
 
-## 0.8.0
+## 0.8.0 (2024.5.6)
 
 - Change the default environment variable for setting the OpenAI API key to OPENAI_API_KEY.
 
