@@ -31,7 +31,7 @@ blocks:  # list of blocks
       aux_data: aux_data
     output:
       aux_data: aux_data
-    model: en_core_web_trf
+    model: en_core_web_lg
     patterns:
       - label: Date
         pattern: yesterday
