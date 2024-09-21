@@ -17,6 +17,12 @@ The main module of DialBB application receives a user utterance input in JSON fo
 
 Refer to the [document](https://c4a-ri.github.io/dialbb/document-en/build/html/) for detailed specification and the way of application development. Documentation for other than the latest version can be found in the [Links](https://c4a-ri.github.io/dialbb/) section.
 
+## Citation
+
+Please cite the following paper when publishing a paper on work that uses DialBB.
+
+- Mikio Nakano and Kazunori Komatani. [DialBB: A Dialogue System Development Framework as an Educational Material](https://aclanthology.org/2024.sigdial-1.56). In Proceedings of the 25th Annual Meeting of the Special Interest Group on Discourse and Dialogue (SIGDIAL-24), pages 664–668, Kyoto, Japan. Association for Computational Linguistics, 2024.
+
 ## License
 
 This software is released for non-commercial use. For details of the license, please see [License](LICENSE-en).

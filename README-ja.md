@@ -16,6 +16,16 @@ DialBBのメインモジュールは，メソッド呼び出しまたはWeb API�
 
 詳細な仕様やアプリケーションの構築法は[ドキュメント](https://c4a-ri.github.io/dialbb/document-ja/build/html/)を参照して下さい．最新バージョン以外のドキュメントは[リンク集](https://c4a-ri.github.io/dialbb/)にあります．
 
+## 引用
+
+## Citation
+
+DialBBを用いた研究に関する論文発表をする際には，以下の論文の引用をお願いします．
+
+- Mikio Nakano and Kazunori Komatani. 2024. [DialBB: A Dialogue System Development Framework as an Educational Material](https://aclanthology.org/2024.sigdial-1.56). In Proceedings of the 25th Annual Meeting of the Special Interest Group on Discourse and Dialogue (SIGDIAL-24), pages 664–668, Kyoto, Japan. Association for Computational Linguistics, 2024.
+
+
+
 ## チュートリアル
 
 DialBBを簡単に説明した[チュートリアルスライド](docs/tutorial-slides/Introduction-to-DialBB-ja-v0.6.pdf)があります．
