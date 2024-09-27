@@ -251,7 +251,7 @@ def edit_config(parent, file_path):
     gpt_mng_fr.pack(expand=True, fill=tk.Y, padx=5, pady=5)
     # ［ChatGPTモデル］プルダウンメニュー
     label1 = tk.Label(gpt_mng_fr, text='model:')
-    datas = ['gpt-3.5-turbo', 'gpt-4', 'gpt-4-turbo']
+    datas = ['GPT-4-tubo', 'GPT-4o']
     v = tk.StringVar()
     combobox = ttk.Combobox(gpt_mng_fr, textvariable=v, values=datas,
                             state='normal', style='office.TCombobox')
