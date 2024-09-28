@@ -318,7 +318,13 @@ class Manager(AbstractBlock):
                     # move to initial state
                     new_state_name = INITIAL_STATE_NAME
                     self._dialogue_context[session_id][CONTEXT_KEY_CURRENT_STATE_NAME] = new_state_name
-                self._previous_dialogue_context[session_id] = copy.deepcopy(self._dialogue_context[session_id])
+                try:
+                    self._previous_dialogue_context[session_id] = copy.deepcopy(self._dialogue_context[session_id])
+                except Exception:
+                    self.log_warning("could not copy the dialogue context. "
+                                     + "Perhaps some of its contents can't be deepcopied. "
+                                     + "Note that dialogue context can't be rewound.", session_id=session_id)
+                self._previous_dialogue_context[session_id] = self._dialogue_context[session_id]
             else:  # non-first turn 2回目以降のターン
                 if DEBUG:  # logging for debug
                     self._log_dialogue_context_for_debug(session_id)
@@ -330,7 +336,13 @@ class Manager(AbstractBlock):
                     self._dialogue_context[session_id] = self._previous_dialogue_context[session_id]
                     self._log_dialogue_context_for_debug(session_id)
                 else:  # save dialogue context
-                    self._previous_dialogue_context[session_id] = copy.deepcopy(self._dialogue_context[session_id])
+                    try:
+                        self._previous_dialogue_context[session_id] = copy.deepcopy(self._dialogue_context[session_id])
+                    except Exception:
+                        self.log_warning("could not copy the dialogue context. "
+                                         + "Perhaps some of its contents can't be deepcopied. "
+                                         + "Note that dialogue context can't be rewound.", session_id=session_id)
+                        self._previous_dialogue_context[session_id] = self._dialogue_context[session_id]
 
                 # update dialogue history
                 self._dialogue_context[session_id][CONTEXT_KEY_DIALOGUE_HISTORY].append({"speaker": "user",
