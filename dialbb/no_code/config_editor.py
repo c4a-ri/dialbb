@@ -32,6 +32,7 @@ output:
 knowledge_file: nlu-knowledge.xlsx  # 知識記述ファイル
 canonicalizer:
     class: dialbb.builtin_blocks.preprocess.japanese_canonicalizer.JapaneseCanonicalizer
+model: gpt-3.5-turbo
 """,
                     'en': """name: understander
 block_class: dialbb.builtin_blocks.understanding_with_chatgpt.chatgpt_understander.Understander
@@ -42,6 +43,7 @@ output:
 knowledge_file: nlu-knowledge.xlsx  # knowledge file
 canonicalizer:
     class: dialbb.builtin_blocks.preprocess.japanese_canonicalizer.JapaneseCanonicalizer
+model: gpt-3.5-turbo
 """
     }
 
@@ -83,7 +85,7 @@ model: en_core_web_trf
         for block in self.config.get('blocks', ''):
             if block.get('name') == name:
                 result = block
-                # print(f'block data: {block}')
+                # print(f'### block data: {block}')
         return result
 
     # ChatGPTを利用するかの判定
@@ -105,9 +107,9 @@ model: en_core_web_trf
     # ChatGPTのmodelを取得
     def get_chatgpt_model(self) -> str:
         result = ''
-        chatgpt = self.get_block('manager').get('chatgpt')
-        if chatgpt:
-            result = chatgpt.get('model')
+        understander = self.get_block('understander')
+        if understander:
+            result = understander.get('model', '')
         return result
 
     # ChatGPTのsituationを取得
@@ -170,20 +172,25 @@ model: en_core_web_trf
     def set_chatgpt_understander(self, kind: str) -> None:
         if kind == 'use':
             self.change_block_ele('add', 'understander', 'chatgpt')
-        elif kind == 'do not use':
+        elif kind == 'unused':
             self.change_block_ele('del', 'understander', 'chatgpt')
 
     # spaCy blockの編集
     def set_spacy_understander(self, kind: str) -> None:
         if kind == 'use':
             self.change_block_ele('add', 'ner', 'spacy')
-        elif kind == 'do not use':
+        elif kind == 'unused':
             self.change_block_ele('del', 'ner', 'spacy')
 
     def set_chatgpt_model(self, model: str) -> None:
+        # understanderのchatgptモデル設定
+        understander = self.get_block('understander')
+        if understander:
+            understander['model'] = model
+        
+        # managerのchatgptモデル設定
         chatgpt = self.get_block('manager').get('chatgpt')
         if chatgpt:
-            # リストにして空行削除
             chatgpt['model'] = model
 
     # situationの設定
