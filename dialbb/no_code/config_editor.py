@@ -163,8 +163,8 @@ model: en_core_web_lg
 
         # block要素に対象nameが無く＆追加操作の場合
         if not find_f and op == 'add':
-            # 要素を新規追加
-            self.config['blocks'].append(self.get_fixed_element(class_id))
+            # 要素をmanagerの前に追加
+            self.config['blocks'].insert(-1, self.get_fixed_element(class_id))
 
         self.yaml.dump(self.config, sys.stdout)
 
