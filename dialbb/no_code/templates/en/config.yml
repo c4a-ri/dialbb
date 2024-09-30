@@ -25,7 +25,7 @@ blocks:  # list of blocks
       aux_data: aux_data
     output:
       aux_data: aux_data
-    model: en_core_web_trf
+    model: en_core_web_lg
   - name: manager
     block_class: dialbb.builtin_blocks.stn_management.stn_manager.Manager
     knowledge_file: scenario.xlsx # scenario file

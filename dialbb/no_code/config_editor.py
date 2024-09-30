@@ -63,7 +63,7 @@ input:
     aux_data: aux_data
 output:
     aux_data: aux_data
-model: en_core_web_trf
+model: en_core_web_lg
 """
     }
 
@@ -163,8 +163,8 @@ model: en_core_web_trf
 
         # block要素に対象nameが無く＆追加操作の場合
         if not find_f and op == 'add':
-            # 要素を新規追加
-            self.config['blocks'].append(self.get_fixed_element(class_id))
+            # 要素をmanagerの前に追加
+            self.config['blocks'].insert(-1, self.get_fixed_element(class_id))
 
         self.yaml.dump(self.config, sys.stdout)
 
@@ -230,9 +230,9 @@ def edit_config(parent, file_path):
     # ［Spacy利用有無］ラジオボタン
     sp_val = tk.StringVar()
     sp_val.set('use' if config.isSpacy_ner() else 'unused')
-    sp_rb1 = ttk.Radiobutton(sp_frame, text='used', value='use',
+    sp_rb1 = ttk.Radiobutton(sp_frame, text='use', value='use',
                              variable=sp_val)
-    sp_rb2 = ttk.Radiobutton(sp_frame, text='unused', value='unused',
+    sp_rb2 = ttk.Radiobutton(sp_frame, text="don't use", value='unused',
                              variable=sp_val)
     sp_rb1.grid(column=0, row=0, padx=5, pady=5)
     sp_rb2.grid(column=1, row=0, padx=5, pady=5)
@@ -247,7 +247,7 @@ def edit_config(parent, file_path):
     gpt_val.set('use' if config.isChatgpt_understander() else 'unused')
     gpt_rb1 = ttk.Radiobutton(gpt_nlu_fr, text='use', value='use',
                               variable=gpt_val)
-    gpt_rb2 = ttk.Radiobutton(gpt_nlu_fr, text='unused', value='unused',
+    gpt_rb2 = ttk.Radiobutton(gpt_nlu_fr, text="don't use", value='unused',
                               variable=gpt_val)
     gpt_rb1.grid(column=0, row=0, padx=5, pady=5)
     gpt_rb2.grid(column=1, row=0, padx=5, pady=5)
