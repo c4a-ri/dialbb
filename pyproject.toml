@@ -1,6 +1,6 @@
 [tool.poetry]
-name = "dialbb-nc"
-version = "0.1.16"
+name = "dialbb"
+version = "0.1.17"
 description = "Dialogue system development framework no-code."
 authors = ["Mikio Nakano <mikio.nakano@c4a.jp>"]
 readme = "README.md"

@@ -32,9 +32,9 @@ output:
 knowledge_file: nlu-knowledge.xlsx  # 知識記述ファイル
 canonicalizer:
     class: dialbb.builtin_blocks.preprocess.japanese_canonicalizer.JapaneseCanonicalizer
-model: gpt-3.5-turbo
+model: gpt-4-tubo
 """,
-                    'en': """name: understander
+                     'en': """name: understander
 block_class: dialbb.builtin_blocks.understanding_with_chatgpt.chatgpt_understander.Understander
 input:
     input_text: canonicalized_user_utterance
@@ -43,9 +43,9 @@ output:
 knowledge_file: nlu-knowledge.xlsx  # knowledge file
 canonicalizer:
     class: dialbb.builtin_blocks.preprocess.japanese_canonicalizer.JapaneseCanonicalizer
-model: gpt-3.5-turbo
+model: gpt-4-tubo
 """
-    }
+                     }
 
     block_spacy = {'ja': """name: ner
 block_class: dialbb.builtin_blocks.ner_with_spacy.ne_recognizer.SpaCyNER
@@ -56,7 +56,7 @@ output:
     aux_data: aux_data
 model: ja_ginza_electra
 """,
-                    'en': """name: ner
+                   'en': """name: ner
 block_class: dialbb.builtin_blocks.ner_with_spacy.ne_recognizer.SpaCyNER
 input:
     input_text: user_utterance
@@ -65,7 +65,7 @@ output:
     aux_data: aux_data
 model: en_core_web_lg
 """
-    }
+                   }
 
     def __init__(self, file_path: str) -> None:
         self.yaml = ruamel.yaml.YAML()
@@ -107,9 +107,10 @@ model: en_core_web_lg
     # ChatGPTのmodelを取得
     def get_chatgpt_model(self) -> str:
         result = ''
-        understander = self.get_block('understander')
-        if understander:
-            result = understander.get('model', '')
+        # managerのchatgptモデルを参照
+        chatgpt = self.get_block('manager').get('chatgpt')
+        if chatgpt:
+            result = chatgpt.get('model', '')
         return result
 
     # ChatGPTのsituationを取得
@@ -183,6 +184,8 @@ model: en_core_web_lg
             self.change_block_ele('del', 'ner', 'spacy')
 
     def set_chatgpt_model(self, model: str) -> None:
+        if not model:
+            return
         # understanderのchatgptモデル設定
         understander = self.get_block('understander')
         if understander:
@@ -219,7 +222,7 @@ def edit_config(parent, file_path):
     sub_menu.transient(parent)
     # サイズ＆表示位置の指定
     parent_x = parent.winfo_rootx() + parent.winfo_width() // 4 - sub_menu.winfo_width() // 2
-    parent_y = parent.winfo_rooty() + parent.winfo_height() // 4 - sub_menu.winfo_height() // 2
+    parent_y = parent.winfo_rooty() + parent.winfo_height() // 10 - sub_menu.winfo_height() // 2
     sub_menu.geometry(f"400x500+{parent_x}+{parent_y}")
 
     # Spacy Frameを作成
@@ -254,11 +257,11 @@ def edit_config(parent, file_path):
 
     # ChatGPT Manager Frameを作成
     gpt_mng_fr = ttk.Labelframe(sub_menu, text='ChatGPT manager', padding=(10),
-                               style='My.TLabelframe')
+                                style='My.TLabelframe')
     gpt_mng_fr.pack(expand=True, fill=tk.Y, padx=5, pady=5)
     # ［ChatGPTモデル］プルダウンメニュー
     label1 = tk.Label(gpt_mng_fr, text='model:')
-    datas = ['GPT-4-tubo', 'GPT-4o']
+    datas = ['gpt-4-tubo', 'gpt-4o']
     v = tk.StringVar()
     combobox = ttk.Combobox(gpt_mng_fr, textvariable=v, values=datas,
                             state='normal', style='office.TCombobox')
