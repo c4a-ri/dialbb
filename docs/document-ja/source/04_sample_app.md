@@ -103,7 +103,7 @@ sample_apps/network_jaには以下のファイルが含まれています．
 
 - `sample-knowledge-ja.xlsx`
 
-  Snips UndderstanderブロックとSTN Managerブロックで用いる知識を記述したものです．
+  Snips UnderstanderブロックとSTN Managerブロックで用いる知識を記述したものです．
 
 - `scenario_functions.py`
 
@@ -111,7 +111,7 @@ sample_apps/network_jaには以下のファイルが含まれています．
 
 - `dictionary_functions.py`
 
-  Snips Undderstander用の辞書をExcel記述ではなく，関数によって定義する場合の例が含まれています．
+  Snips Understander用の辞書をExcel記述ではなく，関数によって定義する場合の例が含まれています．
 
 - `test_inputs.txt`
 
