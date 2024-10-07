@@ -14,6 +14,8 @@ from tkinter import scrolledtext
 import ruamel.yaml
 from typing import Any, Dict, List
 
+from dialbb.no_code.gui_utils import chaild_position
+
 
 # -------- config.yml編集の管理するクラス -------------------------------------
 class config_mng:
@@ -211,7 +213,7 @@ model: en_core_web_lg
 
 
 # Config編集の処理
-def edit_config(parent, file_path):
+def edit_config(parent, file_path, settings):
     config = config_mng(file_path)
 
     # 編集画面を表示
@@ -261,14 +263,22 @@ def edit_config(parent, file_path):
     gpt_mng_fr.pack(expand=True, fill=tk.Y, padx=5, pady=5)
     # ［ChatGPTモデル］プルダウンメニュー
     label1 = tk.Label(gpt_mng_fr, text='model:')
-    datas = ['gpt-4-tubo', 'gpt-4o']
+    models = settings.get_gptmodels()
+    if not models:
+        # default設定
+        models = ['gpt-4-tubo', 'gpt-4o']
     v = tk.StringVar()
-    combobox = ttk.Combobox(gpt_mng_fr, textvariable=v, values=datas,
+    combobox = ttk.Combobox(gpt_mng_fr, textvariable=v, values=models,
                             state='normal', style='office.TCombobox')
     # combobox.bind('<<ComboboxSelected>>', select_combo)
 
     label1.grid(column=0, row=1)
     combobox.grid(column=1, row=1, columnspan=2, padx=5, pady=5)
+
+    # モデル候補の編集ボタンを追加
+    btnEditor = ttk.Button(gpt_mng_fr, text="edit", width=7,
+                           command=lambda: gptmodel_edit(sub_menu, settings))
+    btnEditor.grid(column=2, row=1, padx=5)
 
     # situation入力エリア
     label2 = tk.Label(gpt_mng_fr, text='situation:')
@@ -321,8 +331,53 @@ def edit_config(parent, file_path):
     # ウィンドウが表示された後にコンボボックスの値を設定する
     def on_window_shown():
         model = config.get_chatgpt_model()
-        if model in datas:
-            combobox.current(newindex=datas.index(model))
+        if model in models:
+            combobox.current(newindex=models.index(model))
+
+    # GPTモデル候補の編集処理
+    def gptmodel_edit(parent, settings):
+        sub_menu = tk.Toplevel(parent)
+        sub_menu.title("GPT models")
+        sub_menu.grab_set()        # モーダルにする
+        sub_menu.focus_set()       # フォーカスを新しいウィンドウをへ移す
+        sub_menu.transient(parent)
+        # サイズ＆表示位置の指定
+        chaild_position(parent, sub_menu)
+
+        # GPTモデル候補入力エリア
+        label1 = tk.Label(sub_menu, text='Models:')
+        mdl = scrolledtext.ScrolledText(sub_menu, wrap=tk.NONE, width=24,
+                                        height=6)
+        # configの値を設定
+        mdl.insert(0., ('\n').join(combobox['values']))
+
+        # Button
+        ok_btn = ttk.Button(sub_menu, text='OK', command=lambda: ok_click())
+        can_btn = ttk.Button(sub_menu, text="cancel",
+                             command=lambda: cancel_click(sub_menu))
+
+        # Layout
+        label1.pack(side="left", padx=2, pady=2)
+        mdl.pack(padx=1, pady=5)
+        can_btn.pack(side="right", padx=5, pady=5)
+        ok_btn.pack(side="right", padx=5, pady=5)
+
+        # ボタンクリックされた際のイベント
+        def ok_click():
+            # プルダウンリストを変更
+            in_data = mdl.get(1.0, tk.END)
+            models = [a for a in in_data.split('\n') if a != '']
+            combobox['values'] = models
+
+            # GPTモデル候補の登録
+            settings.set_gptmodels(models)
+            # 画面を閉じる
+            sub_menu.destroy()
+
+        # [cancel]ボタン：自ウィンドウを閉じる
+        def cancel_click(frame):
+            # 画面を閉じる
+            frame.destroy()
 
     # ボタンクリックの処理
     def ok_btn_click():
