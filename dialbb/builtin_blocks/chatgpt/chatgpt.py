@@ -39,7 +39,7 @@ class ChatGPT(AbstractBlock):
         self.user_name: str = self.block_config.get("user_name", "User")
         self.system_name: str = self.block_config.get("system_name", "System")
 
-        prompt_template_file = self.block_config.get("prompt_template", "")
+        prompt_template_file: str = self.block_config.get("prompt_template", "")
         if not prompt_template_file:
             abort_during_building("prompt template file is not specified")
         filepath: str = os.path.join(self.config_dir, prompt_template_file)
