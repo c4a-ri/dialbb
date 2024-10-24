@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>3. サンプルアプリケーション &mdash; DialBBドキュメント ver. 0.9 v0.9.0 ドキュメント</title>
+  <title>3. チュートリアル &mdash; DialBBドキュメント ver. 0.9 v0.9.0 ドキュメント</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
@@ -49,24 +49,63 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="01_intro.html">1. はじめに</a></li>
 <li class="toctree-l1"><a class="reference internal" href="02_concept.html">2. DialBBの概要</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">3. サンプルアプリケーション</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#dialbb">3.1. DialBB付属のサンプルアプリケーション</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id2">3.1.1. オウム返しサンプルアプリケーション</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#snips-stn">3.1.2. Snips+STNアプリケーション</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id3">3.1.3. 実験アプリケーション</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#chatgpt">3.1.4. ChatGPT対話アプリケーション</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">3. チュートリアル</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id2">3.1. はじめに</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id3">3.2. オウム返しサンプルアプリケーション</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id4">3.2.1. 説明</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id5">3.2.2. デバッグモード</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#id4">3.2. Snips＋STNアプリケーションの説明</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id5">3.2.1. システム構成</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id6">3.2.2. アプリケーションを構成するファイル</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#snips-understander">3.2.3. Snips Understanderブロック</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#id7">3.2.3.1. 言語理解結果</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#id8">3.2.3.2. 言語理解知識</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#snips">3.2.3.3. Snips用の訓練データ</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#chatgpt">3.3. ChatGPT対話アプリケーション</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id6">3.3.1. 説明</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#app-development-with-chatgpt-app">3.3.2. ChatGPTアプリケーションを利用したアプリケーション作成</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#stn-manager">3.2.4. STN Managerブロック</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id8">3.4. シンプルアプリケーション</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id9">3.4.1. システム構成</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id10">3.4.2. アプリケーションを構成するファイル</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#lr-crf-understander">3.4.3. LR-CRF Understanderブロック</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id11">3.4.3.1. 言語理解結果</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id12">3.4.3.2. 言語理解知識</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id13">3.4.3.3. 言語理解モデルの構築と利用</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#stn-manager">3.4.4. STN Managerブロック</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id14">3.4.4.1. 概要</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id15">3.4.4.2. シナリオ記述</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id16">3.4.4.3. 条件</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id17">3.4.4.4. アクション</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id18">3.4.4.5. 遷移の記述のまとめ</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id19">3.4.4.6. 特殊な状態名</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id20">3.4.4.7. シナリオグラフ</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#n-best">3.4.5. N-Best言語理解結果の利用</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id21">3.4.6. シンプルアプリケーションを利用したアプリケーション構築</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id22">3.4.6.1. 概要</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id23">3.4.6.2. 変更するファイル</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id24">3.5. 実験アプリケーション</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id25">3.5.1. ChatGPT言語理解ブロック</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#spacy-ginza">3.5.2. spaCy/GiNZAを用いた固有表現の利用</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id26">3.5.3. STN Managerの機能</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id27">3.5.3.1. システム発話中の関数呼び出し・特殊変数参照</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id28">3.5.3.2. ChatGPTを用いた発話生成</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id29">3.5.3.3. ChatGPTを用いた条件判定</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id30">3.5.3.4. リアクション発話生成</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id31">3.5.3.5. シンタクスシュガー</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id32">3.5.3.6. 音声入力に対処するための機能</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id33">3.5.3.7. スキップ遷移</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id34">3.5.3.8. サブダイアローグ</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id35">3.6. </a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id36">3.6.1. </a></li>
 </ul>
 </li>
 </ul>
@@ -90,7 +129,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active"><span class="section-number">3. </span>サンプルアプリケーション</li>
+      <li class="breadcrumb-item active"><span class="section-number">3. </span>チュートリアル</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/03_tutorial.md.txt" rel="nofollow"> View page source</a>
       </li>
@@ -101,134 +140,222 @@
            <div itemprop="articleBody">
              
   <section id="id1">
-<h1><span class="section-number">3. </span>サンプルアプリケーション<a class="headerlink" href="#id1" title="Link to this heading"></a></h1>
-<section id="dialbb">
-<h2><span class="section-number">3.1. </span>DialBB付属のサンプルアプリケーション<a class="headerlink" href="#dialbb" title="Link to this heading"></a></h2>
-<p>DialBBには以下のサンプルアプリケーションが付属しています．</p>
+<h1><span class="section-number">3. </span>チュートリアル<a class="headerlink" href="#id1" title="Link to this heading"></a></h1>
 <section id="id2">
-<h3><span class="section-number">3.1.1. </span>オウム返しサンプルアプリケーション<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
-<p>ただオウム返しを行うアプリケーションです．組み込みブロッククラスは使っていません．</p>
-<p><code class="docutils literal notranslate"><span class="pre">sample_apps/parrot</span></code>にあります．</p>
-</section>
-<section id="snips-stn">
-<h3><span class="section-number">3.1.2. </span>Snips+STNアプリケーション<a class="headerlink" href="#snips-stn" title="Link to this heading"></a></h3>
-<p>以下の組み込みブロックを用いたサンプルアプリケーションです．</p>
-<ul class="simple">
-<li><p>日本語アプリケーション</p>
-<ul>
-<li><p><a class="reference internal" href="05_builtin_blocks.html#japanese-canonicalizer"><span class="std std-ref">Japanese canonicalizer （日本語文字列正規化ブロック）</span></a></p></li>
-<li><p><span class="xref std std-ref">sudachi_tokenizer</span></p></li>
-<li><p><span class="xref std std-ref">snips_understander</span></p></li>
-<li><p><a class="reference internal" href="05_builtin_blocks.html#stn-manager"><span class="std std-ref">STN manager （状態遷移ネットワークベースの対話管理ブロック）</span></a></p></li>
-</ul>
-</li>
-<li><p>英語アプリケーション</p>
-<ul>
-<li><p><a class="reference internal" href="05_builtin_blocks.html#simple-canonicalizer"><span class="std std-ref">Simple canonicalizer （単純文字列正規化ブロック）</span></a></p></li>
-<li><p><span class="xref std std-ref">whitespace_tokenizer</span></p></li>
-<li><p><span class="xref std std-ref">snips_understander</span></p></li>
-<li><p><a class="reference internal" href="05_builtin_blocks.html#stn-manager"><span class="std std-ref">STN manager （状態遷移ネットワークベースの対話管理ブロック）</span></a></p></li>
-</ul>
-</li>
-</ul>
-<p><code class="docutils literal notranslate"><span class="pre">sample_apps/network_ja/</span></code>に日本語版が，<code class="docutils literal notranslate"><span class="pre">sample_apps/network_en/</span></code>に英語があります．</p>
+<h2><span class="section-number">3.1. </span>はじめに<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
+<p>DialBBにはいくつかのサンプルアプリケーションが付属しています．本章ではこれらのうち，日本語アプリケーションを用いて，DialBBのアプリケーションの構成と，DialBBを用いてアプリケーションを構築する方法を説明します．</p>
+<p>これらのアプリケーションの動作のさせ方は<a class="reference external" href="https://github.com/c4a-ri/dialbb">README</a>を見てください．</p>
 </section>
 <section id="id3">
-<h3><span class="section-number">3.1.3. </span>実験アプリケーション<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
-<p>ChatGPTによる言語理解とネットワークベース対話管理を軸に、組み込みブロックの様々な機能を含んでいるものです）．以下の組み込みブロックを用いています．(v0.7からSnips言語理解がChatGPT言語理解ブロックに置き換わりました）</p>
+<h2><span class="section-number">3.2. </span>オウム返しサンプルアプリケーション<a class="headerlink" href="#id3" title="Link to this heading"></a></h2>
+<section id="id4">
+<h3><span class="section-number">3.2.1. </span>説明<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
+<p>ただオウム返しを行うアプリケーションです．組み込みブロッククラスは使っていません．</p>
+<p><code class="docutils literal notranslate"><span class="pre">sample_apps/parrot</span></code>にあります．</p>
+<p><code class="docutils literal notranslate"><span class="pre">sample_apps/parrot/config.yml</span></code>が，このアプリケーションを規定するコンフィギュレーションファイルで，その内容は以下のようになっています．</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">blocks</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">parrot</span>
+<span class="w">    </span><span class="nt">block_class</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">parrot.Parrot</span>
+<span class="w">    </span><span class="nt">input</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">input_text</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">user_utterance</span><span class="w">  </span>
+<span class="w">      </span><span class="nt">input_aux_data</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aux_data</span>
+<span class="w">    </span><span class="nt">output</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">output_text</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">system_utterance</span>
+<span class="w">      </span><span class="nt">output_aux_data</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aux_data</span>
+<span class="w">      </span><span class="nt">final</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">final</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">blocks</span></code>は，本アプリケーションで用いるブロックのコンフィギュレーションのリストです．本アプリケーションでは，一つのブロックのみを用います．</p>
+<p><code class="docutils literal notranslate"><span class="pre">name</span></code>はブロックの名前を指定します．ログで用いられます．</p>
+<p><code class="docutils literal notranslate"><span class="pre">block_class</span></code>は，このブロックのクラス名を指定します．このクラスのインスタンスが作られて，メインモジュールと情報をやり取りします．クラス名は，コンフィギュレーションファイルからの相対パスまたは<code class="docutils literal notranslate"><span class="pre">dialbb</span></code>ディレクトリからの相対パスで記述します．</p>
+<p>ブロッククラスは，<code class="docutils literal notranslate"><span class="pre">diabb.abstract_block.AbstractBlock</span></code>の子孫クラスでないといけません．</p>
+<p><code class="docutils literal notranslate"><span class="pre">input</span></code>はメインモジュールからの情報の受信を規定します．例えば，</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">input_text</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">user_utteranee</span>
+</pre></div>
+</div>
+<p>は，メインモジュールの<code class="docutils literal notranslate"><span class="pre">blackboard['user_utterane']</span></code>をブロッククラスの中の<code class="docutils literal notranslate"><span class="pre">process</span></code>メソッドの入力（辞書型）の<code class="docutils literal notranslate"><span class="pre">input_text'</span></code>として参照できることを意味します．</p>
+<p><code class="docutils literal notranslate"><span class="pre">output</span></code>はメインモジュールへの情報の送信を規定します．例えば，</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">output_text</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">system_utterance</span>
+</pre></div>
+</div>
+<p>は，メインモジュールの<code class="docutils literal notranslate"><span class="pre">blackboard['output_text']</span></code>をブロッククラスの<code class="docutils literal notranslate"><span class="pre">process</span></code>メソッドの出力（辞書型）<code class="docutils literal notranslate"><span class="pre">output_text</span></code>要素で上書きまたは追加することを意味しています．</p>
+<p>これを図示すると以下のようになります。</p>
+<p><img alt="sample-arch" src="_images/parrot-arch-ja.jpg" /></p>
+<p>メインモジュールとブロックを結ぶ矢印の上の記号は，左側がメインモジュールのblackboardにおけるキーで，右側がブロックの入出力におけるキーです．</p>
+<p>さらに、<code class="docutils literal notranslate"><span class="pre">sample_apps/parrot/parrot.py</span></code>を見ることでDialBBにおけるブロッククラスの概念が理解できると思います．</p>
+</section>
+<section id="id5">
+<h3><span class="section-number">3.2.2. </span>デバッグモード<a class="headerlink" href="#id5" title="Link to this heading"></a></h3>
+<p>以下のように、環境変数<code class="docutils literal notranslate"><span class="pre">DIALBB_DEBUG</span></code>に<code class="docutils literal notranslate"><span class="pre">yes</span></code>を設定することにより、ログレベルがデバッグモードになります。</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">DIALBB_DEBUG</span><span class="o">=</span>yes<span class="p">;</span>python<span class="w"> </span>run_server.py<span class="w"> </span>sample_apps/parrot/config.yml
+</pre></div>
+</div>
+<p>これにより、コンソールに詳しいログが出力されます。</p>
+</section>
+</section>
+<section id="chatgpt">
+<h2><span class="section-number">3.3. </span>ChatGPT対話アプリケーション<a class="headerlink" href="#chatgpt" title="Link to this heading"></a></h2>
+<section id="id6">
+<h3><span class="section-number">3.3.1. </span>説明<a class="headerlink" href="#id6" title="Link to this heading"></a></h3>
+<p><a class="reference internal" href="05_builtin_blocks.html#chatgpt-dialogue"><span class="std std-ref">ChatGPT Dialogue （ChatGPTベースの対話ブロック）</span></a>を用い，OpenAIのChatGPTを用いて対話を行います．</p>
+<p><code class="docutils literal notranslate"><span class="pre">sample_apps/chatgpt/</span></code>にあります．</p>
+<p><code class="docutils literal notranslate"><span class="pre">sample_apps/chatgpt/config_ja.yml</span></code>の内容は以下のようになっています．</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">blocks</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">chatgpt</span>
+<span class="w">    </span><span class="nt">block_class</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dialbb.builtin_blocks.chatgpt.chatgpt.ChatGPT</span>
+<span class="w">    </span><span class="nt">input</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">user_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">user_id</span>
+<span class="w">      </span><span class="nt">user_utterance</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">user_utterance</span>
+<span class="w">      </span><span class="nt">aux_data</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aux_data</span>
+<span class="w">    </span><span class="nt">output</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">system_utterance</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">system_utterance</span>
+<span class="w">      </span><span class="nt">aux_data</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aux_data</span>
+<span class="w">      </span><span class="nt">final</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">final</span>
+<span class="w">    </span><span class="nt">user_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ユーザ</span>
+<span class="w">    </span><span class="nt">system_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">システム</span>
+<span class="w">    </span><span class="nt">first_system_utterance</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;こんにちは．私の名前は由衣です．少しお話させてください．スイーツって好きですか？&quot;</span>
+<span class="w">    </span><span class="nt">prompt_template</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prompt_template_ja.txt</span>
+<span class="w">    </span><span class="nt">gpt_model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpt-3.5-turbo</span>
+</pre></div>
+</div>
+<p>メインモジュールとの情報の授受を図示すると以下のようになります。</p>
+<p><img alt="sample-arch" src="_images/chatgpt-dialogue-arch-ja.jpg" /></p>
+<p>ブロックコンフィギュレーションのパラメータとして，<code class="docutils literal notranslate"><span class="pre">input</span></code>，<code class="docutils literal notranslate"><span class="pre">output</span></code>以外にいくつか設定されています．</p>
+<p><code class="docutils literal notranslate"><span class="pre">prompt_template</span></code>は，システム発話のプロンプトのテンプレートを指定します．</p>
+<p>プロンプトテンプレート<code class="docutils literal notranslate"><span class="pre">sample_apps/chatgpt/prompt_template_ja.txt</span></code>の中身は以下のようになっています．</p>
+<div class="highlight-txt notranslate"><div class="highlight"><pre><span></span># タスク説明
+
+- あなたは対話システムで，ユーザと食べ物に関して雑談をしています．あなたの次の発話を50文字以内で生成してください．
+
+# あなたのペルソナ
+
+- 名前は由衣
+- 28歳
+- 女性
+- スイーツ全般が好き
+- お酒は飲まない
+- IT会社のwebデザイナー
+- 独身
+- 非常にフレンドリーに話す
+- 外交的で陽気
+
+#  状況
+
+- ユーザとは初対面
+- ユーザは同年代
+- ユーザとは親しい感じで話す
+
+# 対話の流れ
+
+- 自己紹介する
+- 自分がスイーツが好きと伝える
+- スイーツが好きかどうか聞く
+- ユーザがスイーツが好きな場合，どんなスイーツが好きか聞く
+- ユーザがスイーツが好きでない場合，なんで好きじゃないのか聞く
+
+# 現在までの対話
+
+@dialogue_history
+</pre></div>
+</div>
+<p>最後の<code class="docutils literal notranslate"><span class="pre">&#64;dialogue_history</span></code>のところに，それまでの対話の履歴が以下のような形式で挿入されます。</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>システム：こんにちは．私の名前は由衣です．少しお話させてください．スイーツって好きですか？
+ユーザ：まあまあ好きです
+システム：そうなんですね！私も大好きです．どんなスイーツが好きですか？
+ユーザ：どっちかというと和菓子が好きなんですよね
+</pre></div>
+</div>
+<p>ここで，「システム」「ユーザ」はコンフィギュレーションの<code class="docutils literal notranslate"><span class="pre">user_name</span></code>, <code class="docutils literal notranslate"><span class="pre">system_name</span></code>で指定したものが使われます。</p>
+</section>
+<section id="app-development-with-chatgpt-app">
+<span id="id7"></span><h3><span class="section-number">3.3.2. </span>ChatGPTアプリケーションを利用したアプリケーション作成<a class="headerlink" href="#app-development-with-chatgpt-app" title="Link to this heading"></a></h3>
+<p>このアプリケーションを流用して新しいアプリケーションを作るには以下のようにします．</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">sample_apps/chatgpt</span></code>をディレクトリ毎コピーします．DialBBのディレクトリとは全く関係ないディレクトリで構いません．</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">config.yml</span></code>や<code class="docutils literal notranslate"><span class="pre">prompt_template_ja.txt</span></code>をを編集します．これらのファイルの名前を変更しても構いません．</p></li>
+<li><p>以下のコマンドで起動します．</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span>&lt;DialBBディレクトリ&gt;<span class="p">;</span>python<span class="w"> </span>run_server.py<span class="w"> </span>&lt;コンフィギュレーションファイル&gt;
+</pre></div>
+</div>
+</li>
+</ul>
+</section>
+</section>
+<section id="id8">
+<h2><span class="section-number">3.4. </span>シンプルアプリケーション<a class="headerlink" href="#id8" title="Link to this heading"></a></h2>
+<p>以下の組み込みブロックを用いたサンプルアプリケーションです．
+(v0.9からSnips言語理解を使わないアプリケーションに置き換わりました）</p>
 <ul class="simple">
 <li><p>日本語アプリケーション</p>
 <ul>
-<li><p><a class="reference internal" href="05_builtin_blocks.html#japanese-canonicalizer"><span class="std std-ref">Japanese canonicalizer （日本語文字列正規化ブロック）</span></a></p></li>
-<li><p><span class="xref std std-ref">chatgpt_understander</span></p></li>
-<li><p><a class="reference internal" href="05_builtin_blocks.html#spacy-ner"><span class="std std-ref">spaCy-Based Named Entity Recognizer （spaCyを用いた固有表現抽出ブロック）</span></a></p></li>
+<li><p><a class="reference internal" href="05_builtin_blocks.html#japanese-canonicalizer"><span class="std std-ref">Japanese Canonicalizer （日本語文字列正規化ブロック）</span></a></p></li>
+<li><p><a class="reference internal" href="05_builtin_blocks.html#lr-crf-understander"><span class="std std-ref">LR-CRF Understander （ロジスティック回帰と条件付き確率場を用いた言語理解ブロック）</span></a></p></li>
 <li><p><a class="reference internal" href="05_builtin_blocks.html#stn-manager"><span class="std std-ref">STN manager （状態遷移ネットワークベースの対話管理ブロック）</span></a></p></li>
 </ul>
 </li>
 <li><p>英語アプリケーション</p>
 <ul>
-<li><p><a class="reference internal" href="05_builtin_blocks.html#simple-canonicalizer"><span class="std std-ref">Simple canonicalizer （単純文字列正規化ブロック）</span></a></p></li>
-<li><p><span class="xref std std-ref">chatgpt_understander</span></p></li>
-<li><p><a class="reference internal" href="05_builtin_blocks.html#spacy-ner"><span class="std std-ref">spaCy-Based Named Entity Recognizer （spaCyを用いた固有表現抽出ブロック）</span></a></p></li>
+<li><p><a class="reference internal" href="05_builtin_blocks.html#simple-canonicalizer"><span class="std std-ref">Simple Canonicalizer （単純文字列正規化ブロック）</span></a></p></li>
+<li><p><a class="reference internal" href="05_builtin_blocks.html#lr-crf-understander"><span class="std std-ref">LR-CRF Understander （ロジスティック回帰と条件付き確率場を用いた言語理解ブロック）</span></a></p></li>
 <li><p><a class="reference internal" href="05_builtin_blocks.html#stn-manager"><span class="std std-ref">STN manager （状態遷移ネットワークベースの対話管理ブロック）</span></a></p></li>
 </ul>
 </li>
 </ul>
-<p>日本語版は<code class="docutils literal notranslate"><span class="pre">sample_apps/lab_app_ja/</span></code>に、英語版は<code class="docutils literal notranslate"><span class="pre">sample_apps/lab_app_en/</span></code>にあります．</p>
-</section>
-<section id="chatgpt">
-<h3><span class="section-number">3.1.4. </span>ChatGPT対話アプリケーション<a class="headerlink" href="#chatgpt" title="Link to this heading"></a></h3>
-<p>(ver. 0.6で追加）
-以下の組み込みブロックを用い，OpenAIのChatGPTを用いて対話を行います．</p>
-<ul>
-<li><p><a class="reference internal" href="05_builtin_blocks.html#chatgpt-dialogue"><span class="std std-ref">ChatGPT Dialogue （ChatGPTベースの対話ブロック）</span></a></p>
-<p><code class="docutils literal notranslate"><span class="pre">sample_apps/chatgpt/</span></code>にあります．</p>
-</li>
-</ul>
-</section>
-</section>
-<section id="id4">
-<h2><span class="section-number">3.2. </span>Snips＋STNアプリケーションの説明<a class="headerlink" href="#id4" title="Link to this heading"></a></h2>
-<p>以下では，Snips+STNアプリケーションを通して，DialBBアプリケーションの構成を説明します．</p>
-<section id="id5">
-<h3><span class="section-number">3.2.1. </span>システム構成<a class="headerlink" href="#id5" title="Link to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">sample_apps/simple_ja/</span></code>に日本語版があります．</p>
+<section id="id9">
+<h3><span class="section-number">3.4.1. </span>システム構成<a class="headerlink" href="#id9" title="Link to this heading"></a></h3>
 <p>本アプリケーションは以下のようなシステム構成をしています．</p>
-<p><img alt="sample-arch" src="_images/sample-arch.jpg" /></p>
-<p>本アプリケーションでは，以下の4つの組み込みブロックを利用しています．これらの組み込みブロックの詳細は，「<span class="xref std std-ref">builtin-blocks</span>」で説明します．</p>
+<p><img alt="sample-arch" src="_images/simple-app-arch-ja.jpg" /></p>
+<p>本アプリケーションでは，以下の3つの組み込みブロックを利用しています．これらの組み込みブロックの詳細は，「<span class="xref std std-ref">builtin-blocks</span>」で説明します．</p>
 <ul class="simple">
 <li><p>Japanese Canonicalizer: ユーザ入力文の正規化（大文字→小文字，全角→半角の変換，Unicode正規化など）を行います．</p></li>
-<li><p>Sudachi Tokenizer: 正規化されたユーザ入力文を単語に分割します．形態素解析器<a class="reference external" href="https://github.com/WorksApplications/Sudachi">Sudachi</a>を用います．</p></li>
-<li><p>Snips Understander: 言語理解を行います．<a class="reference external" href="https://snips-nlu.readthedocs.io/en/latest/">Snips_NLU</a>を利用して，ユーザ発話タイプ（インテントとも呼びます）の決定とスロットの抽出を行います．</p></li>
+<li><p>LR-CRF Understander: 言語理解を行います．ロジスティック回帰 (Logistic Regression) と条件付き確率場(Conditional Random Fields) を利用して，ユーザ発話タイプ（インテントとも呼びます）の決定とスロットの抽出を行います．</p></li>
 <li><p>STN Manager: 対話管理と言語生成を行います．状態遷移ネットワーク(State Transition Network)を用いて対話管理を行い，システム発話を出力します．</p></li>
 </ul>
-<p>メインモジュールとブロックを結ぶ矢印の上の記号は，左側がメインモジュールのblackboardにおけるキーで，右側がブロックの入出力におけるキーです．</p>
 </section>
-<section id="id6">
-<h3><span class="section-number">3.2.2. </span>アプリケーションを構成するファイル<a class="headerlink" href="#id6" title="Link to this heading"></a></h3>
-<p>本アプリケーションを構成するファイルは<code class="docutils literal notranslate"><span class="pre">sample_apps/network_ja</span></code>ディレクトリ（フォルダ）にあります．ここにあるファイルを変更することで，どのようにすればアプリケーションを変更することができるかを知ることができます．ファイルを大幅に変更すれば全く異なる対話システムも作ることができます．</p>
-<p>sample_apps/network_jaには以下のファイルが含まれています．</p>
+<section id="id10">
+<h3><span class="section-number">3.4.2. </span>アプリケーションを構成するファイル<a class="headerlink" href="#id10" title="Link to this heading"></a></h3>
+<p>本アプリケーションを構成するファイルは<code class="docutils literal notranslate"><span class="pre">sample_apps/simple_ja</span></code>ディレクトリ（フォルダ）にあります．</p>
+<p><code class="docutils literal notranslate"><span class="pre">sample_apps/simple_ja</span></code>には以下のファイルが含まれています．</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">config.yml</span></code></p>
 <p>アプリケーションを規定するコンフィギュレーションファイルです．どのようなブロックを使うかや，各ブロックが読み込むファイルなどが指定されています．このファイルのフォーマットは「<a class="reference internal" href="04_framework.html#configuration"><span class="std std-ref">コンフィギュレーション</span></a>」で詳細に説明します</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">config_gs_template.yml</span></code></p>
-<p>Snips UnderstanderブロックとSTN Manageブロックで用いる知識をExcelではなく，Google Spreadsheetを用いる場合のコンフィギュレーションファイルのテンプレートです．これをコピーし，Google Spreadsheetにアクセスするための情報を加えることで使用できます．</p>
+<p>LR-CRF UnderstanderブロックとSTN Manageブロックで用いる知識をExcelではなく，Google Spreadsheetを用いる場合のコンフィギュレーションファイルのテンプレートです．これをコピーし，Google Spreadsheetにアクセスするための情報を加えることで使用できます．</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">sample-knowledge-ja.xlsx</span></code></p>
-<p>Snips UndderstanderブロックとSTN Managerブロックで用いる知識を記述したものです．</p>
+<p>LR-CRF UnderstanderブロックとSTN Managerブロックで用いる知識を記述したものです．</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">scenario_functions.py</span></code></p>
-<p>STN Managerブロックで用いるプログラムです．</p>
-</li>
-<li><p><code class="docutils literal notranslate"><span class="pre">dictionary_functions.py</span></code></p>
-<p>Snips Undderstander用の辞書をExcel記述ではなく，関数によって定義する場合の例が含まれています．</p>
+<p>STN Managerブロックで用いるプログラムです</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">test_inputs.txt</span></code></p>
 <p>システムテストで使うテストシナリオです．</p>
 </li>
 </ul>
 </section>
-<section id="snips-understander">
-<h3><span class="section-number">3.2.3. </span>Snips Understanderブロック<a class="headerlink" href="#snips-understander" title="Link to this heading"></a></h3>
-<section id="id7">
-<h4><span class="section-number">3.2.3.1. </span>言語理解結果<a class="headerlink" href="#id7" title="Link to this heading"></a></h4>
-<p>Snips Understanderブロックは，入力発話を解析し，言語理解結果を出力します．
+<section id="lr-crf-understander">
+<h3><span class="section-number">3.4.3. </span>LR-CRF Understanderブロック<a class="headerlink" href="#lr-crf-understander" title="Link to this heading"></a></h3>
+<section id="id11">
+<h4><span class="section-number">3.4.3.1. </span>言語理解結果<a class="headerlink" href="#id11" title="Link to this heading"></a></h4>
+<p>LR-CRF Understanderブロックは，入力発話を解析し，言語理解結果を出力します．
 言語理解結果はタイプとスロットの集合からなります．</p>
 <p>例えば，「好きなのは醤油」の言語理解結果は次のようになります．</p>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;特定のラーメンが好き&quot;</span><span class="p">,</span><span class="w"> </span>
 <span class="w">  </span><span class="nt">&quot;slots&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">     </span><span class="nt">&quot;favarite_ramen&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;醤油ラーメン&quot;</span>
+<span class="w">     </span><span class="nt">&quot;好きなラーメン&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;醤油ラーメン&quot;</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">&quot;特定のラーメンが好き&quot;</span></code>がタイプで，<code class="docutils literal notranslate"><span class="pre">&quot;favarite_ramen&quot;</span></code>スロットの値が<code class="docutils literal notranslate"><span class="pre">&quot;醤油ラーメン&quot;</span></code>です．複数のスロットを持つような発話もあり得ます．</p>
 </section>
-<section id="id8">
-<h4><span class="section-number">3.2.3.2. </span>言語理解知識<a class="headerlink" href="#id8" title="Link to this heading"></a></h4>
-<p>Snips Understanderブロックが用いる言語理解用の知識は，<code class="docutils literal notranslate"><span class="pre">sample-knowledge-ja.xlsx</span></code>に書かれています．</p>
-<p>言語理解知識は，以下の４つのシートからなります．</p>
+<section id="id12">
+<h4><span class="section-number">3.4.3.2. </span>言語理解知識<a class="headerlink" href="#id12" title="Link to this heading"></a></h4>
+<p>LR-CRF Understanderブロックが用いる言語理解用の知識は，<code class="docutils literal notranslate"><span class="pre">simple-nlu-knowledge-ja.xlsx</span></code>に書かれています．言語理解知識の記述法の詳細は「<span class="xref std std-ref">nlu_knowledge</span>」を参照してください．以下に簡単に説明します。</p>
+<p>言語理解知識は，以下の2つのシートからなります．</p>
 <table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>シート名</p></th>
@@ -237,35 +364,308 @@
 </thead>
 <tbody>
 <tr class="row-even"><td><p>utterances</p></td>
-<td><p>タイプ毎の発話例</p></td>
+<td><p>タイプ毎の発話例と、その発話例から抽出されるべきスロット</p></td>
 </tr>
 <tr class="row-odd"><td><p>slots</p></td>
 <td><p>スロットとエンティティの関係</p></td>
 </tr>
-<tr class="row-even"><td><p>entities</p></td>
-<td><p>エンティティに関する情報</p></td>
+</tbody>
+</table>
+<p>utterancesシートの一部を以下に示します。</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>flag</p></th>
+<th class="head"><p>type</p></th>
+<th class="head"><p>utterance</p></th>
+<th class="head"><p>slots</p></th>
 </tr>
-<tr class="row-odd"><td><p>dictionary</p></td>
-<td><p>エンティティ毎の辞書エントリーと同義語</p></td>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Y</p></td>
+<td><p>肯定</p></td>
+<td><p>はい</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p>Y</p></td>
+<td><p>否定</p></td>
+<td><p>そうでもない</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p>Y</p></td>
+<td><p>特定のラーメンが好き</p></td>
+<td><p>豚骨ラーメンが好きです</p></td>
+<td><p>好きなラーメン=豚骨ラーメン</p></td>
+</tr>
+<tr class="row-odd"><td><p>Y</p></td>
+<td><p>地方を言う</p></td>
+<td><p>荻窪</p></td>
+<td><p>地方=荻窪</p></td>
+</tr>
+<tr class="row-even"><td><p>Y</p></td>
+<td><p>ある地方の特定のラーメンが好き</p></td>
+<td><p>札幌の味噌ラーメンが好きです</p></td>
+<td><p>地方=札幌, 好きなラーメン=味噌ラーメン</p></td>
 </tr>
 </tbody>
 </table>
-<p>これらの詳細は「<span class="xref std std-ref">nlu_knowledge</span>」を参照してください．</p>
+<p>一行目は「はい」のタイプが「肯定」で、スロットはないことを示しています。「はい」の言語理解結果は以下のようになります。</p>
+<div class="highlight-JSON notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="w">  </span>
+<span class="w">   </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;はい&quot;</span><span class="w">   </span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>「札幌の味噌ラーメンが好きです」の言語理解結果は以下のようになります。</p>
+<div class="highlight-JSON notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ある地方の特定のラーメンが好き&quot;</span><span class="p">,</span><span class="w"> </span>
+<span class="w">  </span><span class="nt">&quot;slots&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">     </span><span class="nt">&quot;好きなラーメン&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;味噌ラーメン&quot;</span><span class="p">,</span>
+<span class="w">     </span><span class="nt">&quot;地方&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;札幌&quot;</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">flag</span></code>列は、その行を使用するかどうかをコンフィギュレーションで規定するためのものです。</p>
+<p>次に、<code class="docutils literal notranslate"><span class="pre">slots</span></code>シートの内容の一部を以下に示します。</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>flag</p></th>
+<th class="head"><p>slot name</p></th>
+<th class="head"><p>entity</p></th>
+<th class="head"><p>synonyms</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Y</p></td>
+<td><p>好きなラーメン</p></td>
+<td><p>豚骨ラーメン</p></td>
+<td><p>とんこつラーメン、豚骨スープのラーメン、豚骨</p></td>
+</tr>
+<tr class="row-odd"><td><p>Y</p></td>
+<td><p>好きなラーメン</p></td>
+<td><p>味噌ラーメン</p></td>
+<td><p>みそらーめん、みそ味のラーメン、味噌</p></td>
+</tr>
+</tbody>
+</table>
+<p><code class="docutils literal notranslate"><span class="pre">slot</span> <span class="pre">name</span></code>列はスロット名、<code class="docutils literal notranslate"><span class="pre">entity</span></code>はスロット値、<code class="docutils literal notranslate"><span class="pre">synonyms</span></code>は同義語のリストです。
+例えば、一行目は、<code class="docutils literal notranslate"><span class="pre">好きなラーメン</span></code>のスロット値として、<code class="docutils literal notranslate"><span class="pre">とんこつラーメン</span></code>や<code class="docutils literal notranslate"><span class="pre">豚骨</span></code>などが得られた場合、言語理解結果においては、<code class="docutils literal notranslate"><span class="pre">豚骨ラーメン</span></code>に置き換えられる、ということを表しています。</p>
 </section>
-<section id="snips">
-<h4><span class="section-number">3.2.3.3. </span>Snips用の訓練データ<a class="headerlink" href="#snips" title="Link to this heading"></a></h4>
-<p>アプリを立ち上げると上記の知識はSnips用の訓練データに変換され，モデルが作られます．</p>
-<p>Snips用の訓練データはアプリのディレクトリの<code class="docutils literal notranslate"><span class="pre">_training_data.json</span></code>です．このファイルを見ることで，うまく変換されているかどうかを確認できます．</p>
+<section id="id13">
+<h4><span class="section-number">3.4.3.3. </span>言語理解モデルの構築と利用<a class="headerlink" href="#id13" title="Link to this heading"></a></h4>
+<p>アプリを立ち上げると、上記の知識から、ロジスティック回帰と条件付き確率場のモデルが作られ、実行時に用いられます。</p>
 </section>
 </section>
 <section id="stn-manager">
-<h3><span class="section-number">3.2.4. </span>STN Managerブロック<a class="headerlink" href="#stn-manager" title="Link to this heading"></a></h3>
-<p>対話管理知識（シナリオ）は，<code class="docutils literal notranslate"><span class="pre">sample-knowledge-ja.xlsx</span></code>ファイルの<code class="docutils literal notranslate"><span class="pre">scenario</span></code>シートです．
-このシートの書き方の詳細は「<a class="reference internal" href="05_builtin_blocks.html#scenario"><span class="std std-ref">対話管理の知識記述</span></a>」を参照してください．</p>
-<p>Graphvizがインストールされていれば，アプリケーションを起動したとき，シナリオファイルから生成した状態遷移ネットワークの画像ファイル(<code class="docutils literal notranslate"><span class="pre">_stn_graph.jpg</span></code>)を出力します．以下が本アプリケーションの状態遷移ネットワークです．</p>
-<p><img alt="sample-ja-stn-graph" src="_images/sample-ja-stn-graph.jpg" /></p>
-<p>シナリオファイルで用いている遷移の条件や遷移後に実行する関数のうち，組み込み関数でないものが
-<code class="docutils literal notranslate"><span class="pre">scenario_functions.py</span></code>で定義されています．</p>
+<h3><span class="section-number">3.4.4. </span>STN Managerブロック<a class="headerlink" href="#stn-manager" title="Link to this heading"></a></h3>
+<section id="id14">
+<h4><span class="section-number">3.4.4.1. </span>概要<a class="headerlink" href="#id14" title="Link to this heading"></a></h4>
+<p>STN Managerブロックは、状態遷移ネットワーク（State-Transition Network）を用いて対話管理と言語生成を行います。状態遷移ネットワークのことをシナリオとも呼びます。シナリオは，<code class="docutils literal notranslate"><span class="pre">simple-scenario-ja.xlsx</span></code>ファイルの<code class="docutils literal notranslate"><span class="pre">scenario</span></code>シートに書かれています。このシートの書き方の詳細は「<a class="reference internal" href="05_builtin_blocks.html#scenario"><span class="std std-ref">対話管理の知識記述</span></a>」を参照してください．</p>
+</section>
+<section id="id15">
+<h4><span class="section-number">3.4.4.2. </span>シナリオ記述<a class="headerlink" href="#id15" title="Link to this heading"></a></h4>
+<p>シナリオ記述の一部を以下に示します。</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>flag</p></th>
+<th class="head"><p>state</p></th>
+<th class="head"><p>system  utterance</p></th>
+<th class="head"><p>user utterance  example</p></th>
+<th class="head"><p>user utterance  type</p></th>
+<th class="head"><p>conditions</p></th>
+<th class="head"><p>actions</p></th>
+<th class="head"><p>next state</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Y</p></td>
+<td><p>好き</p></td>
+<td><p>豚骨ラーメンとか塩ラーメンなどいろんな種類のラーメンがありますが、どんなラーメンが好きですか？</p></td>
+<td><p>豚骨ラーメンが好きです。</p></td>
+<td><p>特定のラーメンが好き</p></td>
+<td><p>_eq(#好きなラーメン,  &quot;豚骨ラーメン&quot;)</p></td>
+<td><p>_set(&amp;topic_ramen,  #好きなラーメン)</p></td>
+<td><p>豚骨ラーメンが好き</p></td>
+</tr>
+<tr class="row-odd"><td><p>Y</p></td>
+<td><p>好き</p></td>
+<td><p></p></td>
+<td><p>豚骨ラーメンが好きです。</p></td>
+<td><p>特定のラーメンが好き</p></td>
+<td><p>is_known_ramen(#好きなラーメン)</p></td>
+<td><p>_set(&amp;topic_ramen,  #好きなラーメン); get_ramen_location(*topic_ramen, &amp;location)</p></td>
+<td><p>特定のラーメンが好き</p></td>
+</tr>
+<tr class="row-even"><td><p>Y</p></td>
+<td><p>好き</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>特定のラーメンが好き</p></td>
+<td><p>is_novel_ramen(#好きなラーメン)</p></td>
+<td><p>_set(&amp;topic_ramen,  #好きなラーメン)</p></td>
+<td><p>知らないラーメンが好き</p></td>
+</tr>
+<tr class="row-odd"><td><p>Y</p></td>
+<td><p>好き</p></td>
+<td><p></p></td>
+<td><p>近所の街中華のラーメンが好きなんだよね</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>#final</p></td>
+</tr>
+</tbody>
+</table>
+<p>各行が一つの遷移を示します。</p>
+<p><code class="docutils literal notranslate"><span class="pre">flag</span></code>列はは言語理解知識と同じく、その行を使用するかどうかをコンフィギュレーションで規定するためのものです。</p>
+<p><code class="docutils literal notranslate"><span class="pre">state</span></code>列は遷移元の状態の名前、<code class="docutils literal notranslate"><span class="pre">next</span> <span class="pre">state</span></code>列は遷移先の状態の名前です。</p>
+<p><code class="docutils literal notranslate"><span class="pre">system</span> <span class="pre">utterance</span></code>列はその状態で出力されるシステム発話です。システム発話はその行の遷移とは関係なく、左側の<code class="docutils literal notranslate"><span class="pre">state</span></code>列の値と結びついています。</p>
+<p><code class="docutils literal notranslate"><span class="pre">user</span> <span class="pre">utterance</span> <span class="pre">example</span></code>列は、その遷移で想定する発話の例です。実際には使いません。</p>
+<p><code class="docutils literal notranslate"><span class="pre">user</span> <span class="pre">utterance</span> <span class="pre">type</span></code>列と<code class="docutils literal notranslate"><span class="pre">conditions</span></code>列はその遷移の条件を表します。以下の場合に遷移が満たされます。</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">user</span> <span class="pre">utterance</span> <span class="pre">type</span></code>列が空か、または、<code class="docutils literal notranslate"><span class="pre">user</span> <span class="pre">utterance</span> <span class="pre">type</span></code>列の値が言語理解結果のユーザ発話タイプがその値と同じで、かつ、</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">conditions</span></code>列が空か、または、<code class="docutils literal notranslate"><span class="pre">conditions</span></code>列のすべての条件が満たされるとき</p></li>
+</ul>
+<p>これらの条件は、上に書いてある遷移から順に、満たされるかどうかを調べて行きます。</p>
+<p><code class="docutils literal notranslate"><span class="pre">user</span> <span class="pre">utterance</span> <span class="pre">type</span></code>列も<code class="docutils literal notranslate"><span class="pre">conditions</span></code>列も空のものをデフォルト遷移と呼びます。
+基本的に、一つのstateにデフォルト遷移が一つ必要で、そのstateが遷移元になっている行のうち一番下にないといけません。</p>
+<p>（デフォルト遷移がなくても良い場合がありますが、それについては「<a class="reference internal" href="05_builtin_blocks.html#scenario"><span class="std std-ref">対話管理の知識記述</span></a>」を参照してください。</p>
+</section>
+<section id="id16">
+<h4><span class="section-number">3.4.4.3. </span>条件<a class="headerlink" href="#id16" title="Link to this heading"></a></h4>
+<p><code class="docutils literal notranslate"><span class="pre">conditions</span></code>列の条件は、関数呼び出しのリストです。関数呼び出しが複数ある場合は、<code class="docutils literal notranslate"><span class="pre">;</span></code>でつなぎます。</p>
+<p><code class="docutils literal notranslate"><span class="pre">conditions</span></code>列で使われる関数は、条件関数と呼ばれ、<code class="docutils literal notranslate"><span class="pre">True</span></code>か<code class="docutils literal notranslate"><span class="pre">False</span></code>を返す関数です。すべての関数呼び出しが<code class="docutils literal notranslate"><span class="pre">True</span></code>を返した場合、条件が満たされます。</p>
+<p><code class="docutils literal notranslate"><span class="pre">_</span></code>で始まる関数は、組み込み関数です。それ以外の関数は、開発者が作成する関数で、このアプリケーションの場合、<code class="docutils literal notranslate"><span class="pre">scenario_functions.py</span></code>で定義されています。</p>
+<p><code class="docutils literal notranslate"><span class="pre">_eq</span></code>は二つの引数の値が同じ文字列なら、<code class="docutils literal notranslate"><span class="pre">True</span></code>を返す組み込み関数です。</p>
+<p><code class="docutils literal notranslate"><span class="pre">#好きなラーメン</span></code>のように、<code class="docutils literal notranslate"><span class="pre">#</span></code>で始まる引数は特殊な引数です。例えば言語理解結果のスロット名に<code class="docutils literal notranslate"><span class="pre">#</span></code>をつけたものはスロット値を表す引数です。<code class="docutils literal notranslate"><span class="pre">#好きなラーメン</span></code>は<code class="docutils literal notranslate"><span class="pre">好きなラーメン</span></code>スロットの値です。</p>
+<p><code class="docutils literal notranslate"><span class="pre">&quot;豚骨ラーメン&quot;</span></code>のように、<code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code>で囲まれた引数はその中の文字列がその値になります。</p>
+<p><code class="docutils literal notranslate"><span class="pre">_eq(#好きなラーメン,</span>&#160; <span class="pre">&quot;豚骨ラーメン&quot;)</span></code>は、<code class="docutils literal notranslate"><span class="pre">好きなラーメン</span></code>スロットの値が<code class="docutils literal notranslate"><span class="pre">豚骨ラーメン</span></code>の時に<code class="docutils literal notranslate"><span class="pre">True</span></code>になります。</p>
+<p><code class="docutils literal notranslate"><span class="pre">is_known_ramen(#好きなラーメン)</span></code>はシステムが<code class="docutils literal notranslate"><span class="pre">好きなラーメン</span></code>スロットの値を知っていれば<code class="docutils literal notranslate"><span class="pre">True</span></code>を返し、そうでなければ<code class="docutils literal notranslate"><span class="pre">False</span></code>を返すように<code class="docutils literal notranslate"><span class="pre">scenario_functions.py</span></code>の中で定義されています。</p>
+<p>条件関数の定義の中では、文脈情報と呼ばれるデータにアクセスすることができます。文脈情報は辞書型のデータで、条件関数や後述のアクション関数の中で、キーを追加することができます。また、あらかじめ値が入っている特殊なキーもあります。詳細は「<a class="reference internal" href="05_builtin_blocks.html#context-information"><span class="std std-ref">文脈情報</span></a>」を参照してください。</p>
+</section>
+<section id="id17">
+<h4><span class="section-number">3.4.4.4. </span>アクション<a class="headerlink" href="#id17" title="Link to this heading"></a></h4>
+<p><code class="docutils literal notranslate"><span class="pre">actionss</span></code>列には、その行の遷移が行われたときに、実行される処理を書きます。これは、関数呼び出しの列です。関数呼び出しが複数ある場合は、<code class="docutils literal notranslate"><span class="pre">;</span></code>でつなぎます。</p>
+<p><code class="docutils literal notranslate"><span class="pre">actions</span></code>列で使われる関数は、アクション関数と呼ばれ、何も返しません。</p>
+<p>条件関数と同様、<code class="docutils literal notranslate"><span class="pre">_</span></code>で始まる関数は、組み込み関数です。それ以外の関数は、開発者が作成する関数で、このアプリケーションの場合、<code class="docutils literal notranslate"><span class="pre">scenario_functions.py</span></code>で定義されています。</p>
+<p><code class="docutils literal notranslate"><span class="pre">_set</span></code>は第2引数の値を第1引数に代入する処理を行います。<code class="docutils literal notranslate"><span class="pre">_set(&amp;topic_ramen,</span>&#160; <span class="pre">#好きなラーメン)</span></code>の第１引数&amp;topic_ramenは、部文脈情報の<code class="docutils literal notranslate"><span class="pre">topic_ramen</span></code>キーの意味で、この関数呼び出しは文脈情報の<code class="docutils literal notranslate"><span class="pre">topic_ramen</span></code>に<code class="docutils literal notranslate"><span class="pre">#好きなラーメン</span></code>スロットの値をセットします。文脈情報の値は、<code class="docutils literal notranslate"><span class="pre">*&lt;キー名&gt;</span></code>で、条件やアクションの中で取り出せます。</p>
+<p><code class="docutils literal notranslate"><span class="pre">get_ramen_location(*topic_ramen,</span> <span class="pre">&amp;location)</span></code>は、開発者の作成した関数の呼び出しです。<code class="docutils literal notranslate"><span class="pre">get_ramen_location</span></code>は<code class="docutils literal notranslate"><span class="pre">scenario_functions.py</span></code>で定義されています。この関数は第1引数の値であるラーメンの種類が名物である場所を検索し、文脈情報の第2引数で指定されたキーの値にセットします。例えば<code class="docutils literal notranslate"><span class="pre">topic_ramen</span></code>キーの値が<code class="docutils literal notranslate"><span class="pre">味噌ラーメン</span></code>の場合、味噌ラーメンが名物である場所を検索し、その値が<code class="docutils literal notranslate"><span class="pre">札幌</span></code>であれば、文脈情報の<code class="docutils literal notranslate"><span class="pre">location</span></code>の値を札幌に設定する、という処理を行います。</p>
+</section>
+<section id="id18">
+<h4><span class="section-number">3.4.4.5. </span>遷移の記述のまとめ<a class="headerlink" href="#id18" title="Link to this heading"></a></h4>
+<p>まとめると、1行目は、状態が<code class="docutils literal notranslate"><span class="pre">好き</span></code>の時、「豚骨ラーメンとか塩ラーメンなどいろんな種類のラーメンがありますが、どんなラーメンが好きですか？」を発話し、次のユーザの発話の言語理解結果のタイプが<code class="docutils literal notranslate"><span class="pre">特定のラーメンが好き</span></code>で、<code class="docutils literal notranslate"><span class="pre">好きなラーメン</span></code>スロットの値が<code class="docutils literal notranslate"><span class="pre">豚骨ラーメン</span></code>であれば、条件が満たされて遷移が行われ、<code class="docutils literal notranslate"><span class="pre">好きなラーメン</span></code>スロットの値、すなわち、<code class="docutils literal notranslate"><span class="pre">豚骨ラーメン</span></code>が、文脈情報の<code class="docutils literal notranslate"><span class="pre">topic_ramen</span></code>の値にセットされ、<code class="docutils literal notranslate"><span class="pre">豚骨ラーメンが好き</span></code>状態に移行します。条件が満たされない場合、2行目の条件が調べられます。</p>
+<p>これを図示すると以下のようになります。</p>
+<p><img alt="scenario_graph_simple_ja" src="....%5Cimages%5Cstn-ja.jpg" /></p>
+</section>
+<section id="id19">
+<h4><span class="section-number">3.4.4.6. </span>特殊な状態名<a class="headerlink" href="#id19" title="Link to this heading"></a></h4>
+<p>状態名には特殊なものがあります。</p>
+<p><code class="docutils literal notranslate"><span class="pre">#prep</span></code>は、対話が始まる前の状態で、セッション開始後、条件判定とアクションが実行されます。</p>
+<p><code class="docutils literal notranslate"><span class="pre">#initial</span></code>は、最初のユーザ発話を生成する状態です。</p>
+<p><code class="docutils literal notranslate"><span class="pre">#final</span></code>で始まる名前の状態は、最終状態です。ブロックの出力の<code class="docutils literal notranslate"><span class="pre">final</span></code>に<code class="docutils literal notranslate"><span class="pre">True</span></code>を入れて返すので、対話が終了します。</p>
+<p><code class="docutils literal notranslate"><span class="pre">#error</span></code>は、内部エラーが起きた場合に遷移する状態です。これもブロックの出力の<code class="docutils literal notranslate"><span class="pre">final</span></code>に<code class="docutils literal notranslate"><span class="pre">True</span></code>を入れて返します。</p>
+</section>
+<section id="id20">
+<h4><span class="section-number">3.4.4.7. </span>シナリオグラフ<a class="headerlink" href="#id20" title="Link to this heading"></a></h4>
+<p>Graphvizがインストールされていれば，アプリケーションを起動したとき，<code class="docutils literal notranslate"><span class="pre">system</span> <span class="pre">utterance</span></code>列のシステム発話と<code class="docutils literal notranslate"><span class="pre">user</span> <span class="pre">utterance</span>&#160; <span class="pre">example</span></code>列のユーザ発話例を利用したグラフ(シナリオグラフ<code class="docutils literal notranslate"><span class="pre">_scenario_graph.jpg</span></code>)を出力します．以下が本アプリケーションのシナリオグラフです．</p>
+<p><img alt="scenario_graph_simple_ja" src="....%5Cimages%5Cscenario_graph_simple_ja.jpg" /></p>
+</section>
+</section>
+<section id="n-best">
+<h3><span class="section-number">3.4.5. </span>N-Best言語理解結果の利用<a class="headerlink" href="#n-best" title="Link to this heading"></a></h3>
+<p>本アプリケーションでは、LR-CRF言語理解ブロックが5-Bestの理解結果を出力するようになっています。これは、コンフィギュレーションファイルの以下の<code class="docutils literal notranslate"><span class="pre">num_candidates</span></code>要素で指定されています。</p>
+<div class="highlight-yml notranslate"><div class="highlight"><pre><span></span>blocks:  # bclock list
+  - ....
+  - name: understander
+    ....
+    num_candidates: 5
+  - ....
+</pre></div>
+</div>
+<p>STN Managerブロックでは、遷移の条件を調べるときに上位の言語理解結果から順に調べ、条件を満たすものがあれば。その結果を用いてアクションを実行して、次の状態に遷移します。</p>
+</section>
+<section id="id21">
+<h3><span class="section-number">3.4.6. </span>シンプルアプリケーションを利用したアプリケーション構築<a class="headerlink" href="#id21" title="Link to this heading"></a></h3>
+<section id="id22">
+<h4><span class="section-number">3.4.6.1. </span>概要<a class="headerlink" href="#id22" title="Link to this heading"></a></h4>
+<p>「<a class="reference internal" href="#app-development-with-chatgpt-app"><span class="std std-ref">ChatGPTアプリケーションを利用したアプリケーション作成</span></a>」と同様に、シンプルアプリケーションを利用したアプリケーション構築法を説明します。</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">sample_apps/simple_ja</span></code>をディレクトリ毎コピーします．DialBBのディレクトリとは全く関係ないディレクトリで構いません．</p></li>
+<li><p>各ファイルを編集します。．これらのファイルの名前を変更しても構いません．</p></li>
+<li><p>以下のコマンドで起動します．</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span>&lt;DialBBディレクトリ&gt;<span class="p">;</span>python<span class="w"> </span>run_server.py<span class="w"> </span>&lt;コンフィギュレーションファイル&gt;
+</pre></div>
+</div>
+</li>
+</ul>
+</section>
+<section id="id23">
+<h4><span class="section-number">3.4.6.2. </span>変更するファイル<a class="headerlink" href="#id23" title="Link to this heading"></a></h4>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">simple-nlu-knowledge-ja.xlsx</span></code></p>
+<p>LR-CRF言語理解ブロックで用いる知識を編集します。</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">simple-scenario-ja.xlsx</span></code></p>
+<p>シナリオを編集します。</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">scenario_functions.py</span></code></p>
+<p>シナリオに付け加えた関数（条件関数、アクション関数）の定義を行います。（「<a class="reference internal" href="05_builtin_blocks.html#custom-functions"><span class="std std-ref">開発者による関数定義</span></a>」参照。）</p>
+<p>各関数の定義では、シナリオで用いる引数にプラスして、文脈情報を表す辞書型の引数を付加する必要があります。一般的には、<code class="docutils literal notranslate"><span class="pre">context:</span> <span class="pre">Dict[str,</span> <span class="pre">Any]</span></code>とします。文脈情報には、あらかじめ登録されている情報と対話中にアクション関数によって登録される情報があります。詳細は「<a class="reference internal" href="05_builtin_blocks.html#context-information"><span class="std std-ref">文脈情報</span></a>」を見てください。</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">config.yml</span></code></p>
+<p>基本的な機能のみを用いるならば、あまり変更する必要はないと思います。</p>
+</li>
+</ul>
+</section>
+</section>
+</section>
+<section id="id24">
+<h2><span class="section-number">3.5. </span>実験アプリケーション<a class="headerlink" href="#id24" title="Link to this heading"></a></h2>
+<p>ChatGPTによる言語理解とネットワークベース対話管理を軸に，組み込みブロックの様々な機能を含んでいるものです．<code class="docutils literal notranslate"><span class="pre">sample_apps/lab_app_ja/</span></code>にあります．以下の組み込みブロックを用いています．</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="05_builtin_blocks.html#japanese-canonicalizer"><span class="std std-ref">Japanese Canonicalizer （日本語文字列正規化ブロック）</span></a></p></li>
+<li><p><a class="reference internal" href="05_builtin_blocks.html#chatgpt-understander"><span class="std std-ref">ChatGPT Understander （ChatGPTを用いた言語理解ブロック）</span></a></p></li>
+<li><p><a class="reference internal" href="05_builtin_blocks.html#spacy-ner"><span class="std std-ref">spaCy-Based Named Entity Recognizer （spaCyを用いた固有表現抽出ブロック）</span></a></p></li>
+<li><p><a class="reference internal" href="05_builtin_blocks.html#stn-manager"><span class="std std-ref">STN manager （状態遷移ネットワークベースの対話管理ブロック）</span></a></p></li>
+</ul>
+<p>シンプルアプリケーションとの大きな違いは、ChatGPT言語理解ブロックとspaCy固有表現抽出ブロックを用いているところと、STN Managerブロックの先進的な機能を用いているところです。</p>
+<section id="id25">
+<h3><span class="section-number">3.5.1. </span>ChatGPT言語理解ブロック<a class="headerlink" href="#id25" title="Link to this heading"></a></h3>
+</section>
+<section id="spacy-ginza">
+<h3><span class="section-number">3.5.2. </span>spaCy/GiNZAを用いた固有表現の利用<a class="headerlink" href="#spacy-ginza" title="Link to this heading"></a></h3>
+</section>
+<section id="id26">
+<h3><span class="section-number">3.5.3. </span>STN Managerの機能<a class="headerlink" href="#id26" title="Link to this heading"></a></h3>
+<section id="id27">
+<h4><span class="section-number">3.5.3.1. </span>システム発話中の関数呼び出し・特殊変数参照<a class="headerlink" href="#id27" title="Link to this heading"></a></h4>
+</section>
+<section id="id28">
+<h4><span class="section-number">3.5.3.2. </span>ChatGPTを用いた発話生成<a class="headerlink" href="#id28" title="Link to this heading"></a></h4>
+</section>
+<section id="id29">
+<h4><span class="section-number">3.5.3.3. </span>ChatGPTを用いた条件判定<a class="headerlink" href="#id29" title="Link to this heading"></a></h4>
+</section>
+<section id="id30">
+<h4><span class="section-number">3.5.3.4. </span>リアクション発話生成<a class="headerlink" href="#id30" title="Link to this heading"></a></h4>
+</section>
+<section id="id31">
+<h4><span class="section-number">3.5.3.5. </span>シンタクスシュガー<a class="headerlink" href="#id31" title="Link to this heading"></a></h4>
+</section>
+<section id="id32">
+<h4><span class="section-number">3.5.3.6. </span>音声入力に対処するための機能<a class="headerlink" href="#id32" title="Link to this heading"></a></h4>
+</section>
+<section id="id33">
+<h4><span class="section-number">3.5.3.7. </span>スキップ遷移<a class="headerlink" href="#id33" title="Link to this heading"></a></h4>
+</section>
+<section id="id34">
+<h4><span class="section-number">3.5.3.8. </span>サブダイアローグ<a class="headerlink" href="#id34" title="Link to this heading"></a></h4>
+</section>
+</section>
+</section>
+<section id="id35">
+<h2><span class="section-number">3.6. </span><a class="headerlink" href="#id35" title="Link to this heading"></a></h2>
+<section id="id36">
+<h3><span class="section-number">3.6.1. </span><a class="headerlink" href="#id36" title="Link to this heading"></a></h3>
 </section>
 </section>
 </section>
