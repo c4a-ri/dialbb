@@ -222,9 +222,13 @@ blocks:
 
   LR-CRF UnderstanderブロックとSTN Manageブロックで用いる知識をExcelではなく，Google Spreadsheetを用いる場合のコンフィギュレーションファイルのテンプレートです．これをコピーし，Google Spreadsheetにアクセスするための情報を加えることで使用できます．
 
-- `sample-knowledge-ja.xlsx`
+- `simple-nlu-knowledge-ja.xlsx`
 
-  LR-CRF UnderstanderブロックとSTN Managerブロックで用いる知識を記述したものです．
+  LR-CRF Understanderブロックで用いる知識（言語理解知識）を記述したものです．
+
+- `simple-scenario-ja.xlsx`
+
+  STN Managerブロックで用いる知識（シナリオ）を記述したものです．
 
 - `scenario_functions.py`
 
@@ -462,7 +466,9 @@ STN Managerブロックでは、遷移の条件を調べるときに上位の言
 
 ## 実験アプリケーション
 
-ChatGPTによる言語理解とネットワークベース対話管理を軸に，組み込みブロックの様々な機能を含んでいるものです．`sample_apps/lab_app_ja/`にあります．以下の組み込みブロックを用いています．
+### 概要
+
+ChatGPTによる言語理解とネットワークベース対話管理を軸に，組み込みブロックの様々な機能を含んでいるものです．以下の組み込みブロックを用いています．
 
 - {ref}`japanese_canonicalizer`
 - {ref}`chatgpt_understander`
@@ -471,11 +477,37 @@ ChatGPTによる言語理解とネットワークベース対話管理を軸に�
 
 シンプルアプリケーションとの大きな違いは、ChatGPT言語理解ブロックとspaCy固有表現抽出ブロックを用いているところと、STN Managerブロックの先進的な機能を用いているところです。
 
+### アプリケーションを構成するファイル
+
+本アプリケーションを構成するファイルは`sample_apps/simple_ja`ディレクトリ（フォルダ）にあります．そのディレクトリには以下のファイルが含まれています．
+
+- `config.yml`
+
+  アプリケーションを規定するコンフィギュレーションファイルです．
+
+- `sample-knowledge-ja.xlsx`
+
+  ChatGPT言語理解ブロックとSTN Managerブロックで用いる知識を記述したものです．
+
+- `scenario_functions.py`
+
+  STN Managerブロックで用いるプログラムです
+
+- `test_inputs.txt`
+
+  システムテストで使うテストシナリオです．
+
 ### ChatGPT言語理解ブロック
 
+ChatGPTのJSONモードを用いて言語理解を行います。言語理解用の知識はLR-CRF言語理解ブロックと同じ形式のものを用います。これをFew-shot learningに用いて、入力テキストに対して言語理解を行います。入出力LR-CRF言語理解ブロックも同じです。
 
+GPTのモデルは、ブロックコンフィギュレーションの`gpt_model`で指定しています。
+
+ChatGPTに言語理解を行わせる場合のプロンプトのテンプレートはデフォルトのものを用いていいます。詳細は「」を参照してください。
 
 ### spaCy/GiNZAを用いた固有表現の利用
+
+
 
 ### STN Managerの機能
 

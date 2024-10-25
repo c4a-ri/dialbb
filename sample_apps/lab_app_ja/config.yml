@@ -21,7 +21,7 @@ blocks:  # ブロックのリスト
     knowledge_file: lab_app_nlu_knowledge_ja.xlsx  # 知識記述ファイル
     canonicalizer:
       class: dialbb.builtin_blocks.preprocess.japanese_canonicalizer.JapaneseCanonicalizer
-    gpt_model: gpt-3.5-turbo
+    gpt_model: gpt-4o-mini
     flags_to_use: 
       - 'Y'
       - 'T'
@@ -67,7 +67,7 @@ blocks:  # ブロックのリスト
       - 'Y'
       - 'T'
     chatgpt:
-      gpt_model: gpt-3.5-turbo
+      gpt_model: gpt-4o-mini
       temperature: 0.7
       situation:
         - あなたは対話システムで、ユーザと食べ物に関して雑談をしています。
