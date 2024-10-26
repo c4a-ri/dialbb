@@ -56,7 +56,7 @@ It uses the following built-in blocks to engage in dialogue using OpenAI's ChatG
 
 It is located in `sample_apps/chatgpt/`.
 
-## Exaplanation of Snips+STN Appplication
+## Explanation of Snips+STN Application
 
 This section describes the structure of a DialBB application through the English Snips+STN Application.
 
@@ -135,7 +135,7 @@ The type is `"tell-like-specific-sandwich"` and the value of the `"favarite_sand
 
 The knowledge for language understanding used by the Snips Understander block is written in `sample-knowledge-ja.xlsx`.
 
-The language understanding knowledge consisits of the following four sheets.
+The language understanding knowledge consists of the following four sheets.
 
 | Sheet name | Contents                                   |
 | ---------- | -------------------------------------- |
@@ -165,7 +165,7 @@ application.
 ![sample-en-stn-graph](../../images/sample-en-stn-graph.jpg)
 
 
-Among the functions used in the conditions of transisions and actions that are executed after transitions, those which are not built-in are defined in `scenario_functions.py`.
+Among the functions used in the conditions of transitions and actions that are executed after transitions, those that are not built-in are defined in `scenario_functions.py`.
 
 
 

@@ -1,21 +1,23 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>4. Framework Specifications &mdash; DialBB ver. 0.8 Document v0.8.0 documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="_static/doctools.js"></script>
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=b3dab91b"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -28,11 +30,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> DialBB ver. 0.8 Document
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            DialBB ver. 0.8 Document
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -87,8 +93,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li><span class="section-number">4. </span>Framework Specifications</li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active"><span class="section-number">4. </span>Framework Specifications</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/05_framework.md.txt" rel="nofollow"> View page source</a>
       </li>
@@ -99,21 +105,21 @@
            <div itemprop="articleBody">
              
   <section id="framework-specifications">
-<span id="framework"></span><h1><span class="section-number">4. </span>Framework Specifications<a class="headerlink" href="#framework-specifications" title="Permalink to this heading"></a></h1>
+<span id="framework"></span><h1><span class="section-number">4. </span>Framework Specifications<a class="headerlink" href="#framework-specifications" title="Link to this heading"></a></h1>
 <p>This section describes the specifications of DialBB as a framework.</p>
 <p>We assume that the reader has knowledge of Python programming.</p>
 <section id="input-and-output">
-<h2><span class="section-number">4.1. </span>Input and Output<a class="headerlink" href="#input-and-output" title="Permalink to this heading"></a></h2>
+<h2><span class="section-number">4.1. </span>Input and Output<a class="headerlink" href="#input-and-output" title="Link to this heading"></a></h2>
 <p>The main module of DialBB has the class API (method call), which accepts user utterance and auxiliary information in JSON format and returns system utterance and auxiliary information in JSON format.</p>
 <p>The main module works by calling blocks in sequence. Each block receives data  formatted in JSON (Python dictionary type) and returns the data in JSON format.</p>
 <p>The class and input/output specifications of each block are specified in the configuration file for each application.</p>
 <section id="the-dialogueprocessor-class">
-<h3><span class="section-number">4.1.1. </span>The DialogueProcessor Class<a class="headerlink" href="#the-dialogueprocessor-class" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">4.1.1. </span>The DialogueProcessor Class<a class="headerlink" href="#the-dialogueprocessor-class" title="Link to this heading"></a></h3>
 <p>The application is built by creating an object of class <code class="docutils literal notranslate"><span class="pre">dialbb.main.DialogueProcessor</span></code></p>
 <p>This is done by the following procedure.</p>
 <ul>
 <li><p>Add the DialBB directory to the <code class="docutils literal notranslate"><span class="pre">PYTHONPATH</span></code> environment variable.</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">PYTHONPATH</span><span class="o">=</span>&lt;DialBB directory&gt;:<span class="nv">$PYTHONPATH</span>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span>&lt;DialBB<span class="w"> </span>directory&gt;:<span class="nv">$PYTHONPATH</span>
 </pre></div>
 </div>
 </li>
@@ -126,11 +132,11 @@ and calls process method.</p>
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">&lt;additional</span> <span class="pre">configuration&gt;</span></code> is data in dictionary form, where keys must be a string, such as</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span>{
-  &quot;&lt;key1&gt;&quot;: &lt;value1&gt;,
-  &quot;&lt;key2&gt;&quot;: &lt;value2&gt;,
-  ...
-}
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;&lt;key1&gt;&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;value</span><span class="mi">1</span><span class="err">&gt;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;&lt;key2&gt;&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;value</span><span class="mi">2</span><span class="err">&gt;</span><span class="p">,</span>
+<span class="w">  </span><span class="err">...</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>This is used in addition to the data read from the configuration file. If the same key is used in the
@@ -141,14 +147,14 @@ configuration file and in the additional configuration, the value of the additio
 </ul>
 </section>
 <section id="request">
-<h3><span class="section-number">4.1.2. </span>Request<a class="headerlink" href="#request" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">4.1.2. </span>Request<a class="headerlink" href="#request" title="Link to this heading"></a></h3>
 <section id="at-the-start-of-the-session">
-<h4><span class="section-number">4.1.2.1. </span>At the start of the session<a class="headerlink" href="#at-the-start-of-the-session" title="Permalink to this heading"></a></h4>
+<h4><span class="section-number">4.1.2.1. </span>At the start of the session<a class="headerlink" href="#at-the-start-of-the-session" title="Link to this heading"></a></h4>
 <p>JSON in the following form.</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span>{
-  &quot;user_id&quot;: &lt;user id: string&gt;,
-  &quot;aux_data&quot;: &lt;auxiliary data: object (types of values are arbitrary)&gt;}
-}
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;user_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;user</span><span class="w"> </span><span class="err">id</span><span class="p">:</span><span class="w"> </span><span class="err">s</span><span class="kc">tr</span><span class="err">i</span><span class="kc">n</span><span class="err">g&gt;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;aux_data&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;auxiliary</span><span class="w"> </span><span class="err">da</span><span class="kc">ta</span><span class="p">:</span><span class="w"> </span><span class="err">objec</span><span class="kc">t</span><span class="w"> </span><span class="err">(</span><span class="kc">t</span><span class="err">ypes</span><span class="w"> </span><span class="err">o</span><span class="kc">f</span><span class="w"> </span><span class="err">values</span><span class="w"> </span><span class="err">are</span><span class="w"> </span><span class="err">arbi</span><span class="kc">trar</span><span class="err">y)&gt;</span><span class="p">}</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <ul class="simple">
@@ -158,14 +164,14 @@ configuration file and in the additional configuration, the value of the additio
 </ul>
 </section>
 <section id="after-the-session-starts">
-<h4><span class="section-number">4.1.2.2. </span>After the session starts<a class="headerlink" href="#after-the-session-starts" title="Permalink to this heading"></a></h4>
+<h4><span class="section-number">4.1.2.2. </span>After the session starts<a class="headerlink" href="#after-the-session-starts" title="Link to this heading"></a></h4>
 <p>JSON in the following form.</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span>{
-  &quot;user_id&quot;: &lt;user id: string&gt;,
-  &quot;session_id&quot;: &lt;session id: string&gt;,
-  &quot;user_utterance&quot;: &lt;user utterance string: string&gt;,
-  &quot;aux_data&quot;: &lt;auxiliary data: object (types of values are arbitrary)&gt;
-}
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;user_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;user</span><span class="w"> </span><span class="err">id</span><span class="p">:</span><span class="w"> </span><span class="err">s</span><span class="kc">tr</span><span class="err">i</span><span class="kc">n</span><span class="err">g&gt;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;session_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;sessio</span><span class="kc">n</span><span class="w"> </span><span class="err">id</span><span class="p">:</span><span class="w"> </span><span class="err">s</span><span class="kc">tr</span><span class="err">i</span><span class="kc">n</span><span class="err">g&gt;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;user_utterance&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;user</span><span class="w"> </span><span class="err">u</span><span class="kc">tteran</span><span class="err">ce</span><span class="w"> </span><span class="err">s</span><span class="kc">tr</span><span class="err">i</span><span class="kc">n</span><span class="err">g</span><span class="p">:</span><span class="w"> </span><span class="err">s</span><span class="kc">tr</span><span class="err">i</span><span class="kc">n</span><span class="err">g&gt;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;aux_data&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;auxiliary</span><span class="w"> </span><span class="err">da</span><span class="kc">ta</span><span class="p">:</span><span class="w"> </span><span class="err">objec</span><span class="kc">t</span><span class="w"> </span><span class="err">(</span><span class="kc">t</span><span class="err">ypes</span><span class="w"> </span><span class="err">o</span><span class="kc">f</span><span class="w"> </span><span class="err">values</span><span class="w"> </span><span class="err">are</span><span class="w"> </span><span class="err">arbi</span><span class="kc">trar</span><span class="err">y)&gt;</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <ul class="simple">
@@ -176,15 +182,14 @@ configuration file and in the additional configuration, the value of the additio
 </section>
 </section>
 <section id="response">
-<h3><span class="section-number">4.1.3. </span>Response<a class="headerlink" href="#response" title="Permalink to this heading"></a></h3>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span>{
-  &quot;session_id&quot;:&lt;session id: string&gt;,
-  &quot;system_utterance&quot;: &lt;system utterance string: string&gt;, 
-  &quot;user_id&quot;:&lt;user id: string&gt;, 
-  &quot;final&quot;: &lt;end-of-dialogue flag: bool&gt; 
-  &quot;aux_data&quot;: &lt;auxiliary data: object (types of values are arbitrary)&gt;
-}
-
+<h3><span class="section-number">4.1.3. </span>Response<a class="headerlink" href="#response" title="Link to this heading"></a></h3>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;session_id&quot;</span><span class="p">:</span><span class="err">&lt;sessio</span><span class="kc">n</span><span class="w"> </span><span class="err">id</span><span class="p">:</span><span class="w"> </span><span class="err">s</span><span class="kc">tr</span><span class="err">i</span><span class="kc">n</span><span class="err">g&gt;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;system_utterance&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;sys</span><span class="kc">te</span><span class="err">m</span><span class="w"> </span><span class="err">u</span><span class="kc">tteran</span><span class="err">ce</span><span class="w"> </span><span class="err">s</span><span class="kc">tr</span><span class="err">i</span><span class="kc">n</span><span class="err">g</span><span class="p">:</span><span class="w"> </span><span class="err">s</span><span class="kc">tr</span><span class="err">i</span><span class="kc">n</span><span class="err">g&gt;</span><span class="p">,</span><span class="w"> </span>
+<span class="w">  </span><span class="nt">&quot;user_id&quot;</span><span class="p">:</span><span class="err">&lt;user</span><span class="w"> </span><span class="err">id</span><span class="p">:</span><span class="w"> </span><span class="err">s</span><span class="kc">tr</span><span class="err">i</span><span class="kc">n</span><span class="err">g&gt;</span><span class="p">,</span><span class="w"> </span>
+<span class="w">  </span><span class="nt">&quot;final&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;e</span><span class="kc">n</span><span class="err">d</span><span class="mi">-</span><span class="err">o</span><span class="kc">f</span><span class="mi">-</span><span class="err">dialogue</span><span class="w"> </span><span class="kc">fla</span><span class="err">g</span><span class="p">:</span><span class="w"> </span><span class="err">bool&gt;</span><span class="w"> </span>
+<span class="w">  </span><span class="nt">&quot;aux_data&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;auxiliary</span><span class="w"> </span><span class="err">da</span><span class="kc">ta</span><span class="p">:</span><span class="w"> </span><span class="err">objec</span><span class="kc">t</span><span class="w"> </span><span class="err">(</span><span class="kc">t</span><span class="err">ypes</span><span class="w"> </span><span class="err">o</span><span class="kc">f</span><span class="w"> </span><span class="err">values</span><span class="w"> </span><span class="err">are</span><span class="w"> </span><span class="err">arbi</span><span class="kc">trar</span><span class="err">y)&gt;</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <ul class="simple">
@@ -198,22 +203,22 @@ information such as server status.</p></li>
 </section>
 </section>
 <section id="webapi">
-<h2><span class="section-number">4.2. </span>WebAPI<a class="headerlink" href="#webapi" title="Permalink to this heading"></a></h2>
+<h2><span class="section-number">4.2. </span>WebAPI<a class="headerlink" href="#webapi" title="Link to this heading"></a></h2>
 <p>Applications can also be accessed via WebAPI.</p>
 <section id="server-startup">
-<h3><span class="section-number">4.2.1. </span>Server Startup<a class="headerlink" href="#server-startup" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">4.2.1. </span>Server Startup<a class="headerlink" href="#server-startup" title="Link to this heading"></a></h3>
 <p>Set the PYTHONPATH environment variable.</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">PYTHONPATH</span><span class="o">=</span>&lt;DialBB directory&gt;:<span class="nv">$PYTHONPATH</span>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span>&lt;DialBB<span class="w"> </span>directory&gt;:<span class="nv">$PYTHONPATH</span>
 </pre></div>
 </div>
 <p>Start the server by specifying a configuration file.</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>python &lt;DialBB directory&gt;/run_server.py <span class="o">[</span>--port &lt;port&gt;<span class="o">]</span> &lt;config file&gt;
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>&lt;DialBB<span class="w"> </span>directory&gt;/run_server.py<span class="w"> </span><span class="o">[</span>--port<span class="w"> </span>&lt;port&gt;<span class="o">]</span><span class="w"> </span>&lt;config<span class="w"> </span>file&gt;
 </pre></div>
 </div>
 <p>The default port number is 8080.</p>
 </section>
 <section id="connection-from-client-at-the-start-of-a-session">
-<h3><span class="section-number">4.2.2. </span>Connection from Client (At the Start of a Session)<a class="headerlink" href="#connection-from-client-at-the-start-of-a-session" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">4.2.2. </span>Connection from Client (At the Start of a Session)<a class="headerlink" href="#connection-from-client-at-the-start-of-a-session" title="Link to this heading"></a></h3>
 <ul>
 <li><p>URI</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">http</span><span class="p">:</span><span class="o">//&lt;</span><span class="n">server</span><span class="o">&gt;</span><span class="p">:</span><span class="o">&lt;</span><span class="n">port</span><span class="o">&gt;/</span><span class="n">init</span>
@@ -234,7 +239,7 @@ information such as server status.</p></li>
 </ul>
 </section>
 <section id="connection-from-client-after-the-session-started">
-<h3><span class="section-number">4.2.3. </span>Connection from Client (After the Session Started)<a class="headerlink" href="#connection-from-client-after-the-session-started" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">4.2.3. </span>Connection from Client (After the Session Started)<a class="headerlink" href="#connection-from-client-after-the-session-started" title="Link to this heading"></a></h3>
 <ul>
 <li><p>URI</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">http</span><span class="p">:</span><span class="o">//&lt;</span><span class="n">server</span><span class="o">&gt;</span><span class="p">:</span><span class="o">&lt;</span><span class="n">port</span><span class="o">&gt;/</span><span class="n">dialogue</span>
@@ -256,7 +261,7 @@ information such as server status.</p></li>
 </section>
 </section>
 <section id="configuration">
-<span id="id1"></span><h2><span class="section-number">4.3. </span>Configuration<a class="headerlink" href="#configuration" title="Permalink to this heading"></a></h2>
+<span id="id1"></span><h2><span class="section-number">4.3. </span>Configuration<a class="headerlink" href="#configuration" title="Link to this heading"></a></h2>
 <p>The configuration is data in dictionary format and is assumed to be provided with a yaml file.</p>
 <p>Only the <code class="docutils literal notranslate"><span class="pre">blocks</span></code> element is required for configuration; the blocks element is a list of what each block specifies (this is called the block configuration) and has the following form</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">blocks</span><span class="p">:</span>
@@ -280,15 +285,15 @@ information such as server status.</p></li>
 <p>This defines the input from the main module to the block. It is a dictionary type data, where keys are used for references within the block and values are used for references in the blackboard (data stored in the main module). For example, if the following is in a block configuration,
 then what can be referenced by <code class="docutils literal notranslate"><span class="pre">input['sentence']</span></code> in the block is <code class="docutils literal notranslate"><span class="pre">blackboard['canonicalized_user_utterance']</span></code> in the main module.</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">input</span><span class="p">:</span><span class="w"> </span>
-<span class="w">  </span><span class="nt">sentence</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">canonicalized_user_utterance</span><span class="w"></span>
+<span class="w">  </span><span class="nt">sentence</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">canonicalized_user_utterance</span>
 </pre></div>
 </div>
 <p>If the specified key is not in the blackboard, the corresponding element of the input becomes <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">output</span></code></p>
 <p>Like <code class="docutils literal notranslate"><span class="pre">input</span></code>, it is data of dictionary type, where keys are used for references within the block and values are used for references on the blackboard. If the following is specified:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">output</span><span class="p">:</span><span class="w"></span>
-<span class="w">  </span><span class="nt">output_text</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">system_utterance</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">output</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">output_text</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">system_utterance</span>
 </pre></div>
 </div>
 <p>and if the output from the block is <code class="docutils literal notranslate"><span class="pre">output</span></code>, then the following process is performed.</p>
@@ -300,11 +305,11 @@ then what can be referenced by <code class="docutils literal notranslate"><span 
 </ul>
 </section>
 <section id="how-to-make-your-own-blocks">
-<h2><span class="section-number">4.4. </span>How to make your own blocks<a class="headerlink" href="#how-to-make-your-own-blocks" title="Permalink to this heading"></a></h2>
+<h2><span class="section-number">4.4. </span>How to make your own blocks<a class="headerlink" href="#how-to-make-your-own-blocks" title="Link to this heading"></a></h2>
 <p>Developers can create their own blocks.</p>
 <p>The block class must be a descendant of <code class="docutils literal notranslate"><span class="pre">diabb.abstract_block.AbstractBlock</span></code>.</p>
 <section id="methods-to-be-implemented">
-<h3><span class="section-number">4.4.1. </span>Methods to be Implemented<a class="headerlink" href="#methods-to-be-implemented" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">4.4.1. </span>Methods to be Implemented<a class="headerlink" href="#methods-to-be-implemented" title="Link to this heading"></a></h3>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">__init__(self,</span> <span class="pre">*args)</span></code></p>
 <p>Constructor. It is defined as follows:</p>
@@ -323,7 +328,7 @@ blackboard is defined by the configuration (see “<a class="reference internal"
 </ul>
 </section>
 <section id="available-variables">
-<h3><span class="section-number">4.4.2. </span>Available Variables<a class="headerlink" href="#available-variables" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">4.4.2. </span>Available Variables<a class="headerlink" href="#available-variables" title="Link to this heading"></a></h3>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">self.config</span></code> (dictionary)</p>
 <p>This is a dictionary type data of the contents of the configuration. By referring to this data, it is possible to read in elements that have been added by the user.</p>
@@ -340,7 +345,7 @@ blackboard is defined by the configuration (see “<a class="reference internal"
 </ul>
 </section>
 <section id="available-methods">
-<h3><span class="section-number">4.4.3. </span>Available Methods<a class="headerlink" href="#available-methods" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">4.4.3. </span>Available Methods<a class="headerlink" href="#available-methods" title="Link to this heading"></a></h3>
 <p>The following logging methods are available</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">log_debug(self,</span> <span class="pre">message:</span> <span class="pre">str,</span> <span class="pre">session_id:</span> <span class="pre">str=&quot;unknown&quot;)</span></code></p>
@@ -359,15 +364,15 @@ blackboard is defined by the configuration (see “<a class="reference internal"
 </section>
 </section>
 <section id="debug-mode">
-<h2><span class="section-number">4.5. </span>Debug Mode<a class="headerlink" href="#debug-mode" title="Permalink to this heading"></a></h2>
+<h2><span class="section-number">4.5. </span>Debug Mode<a class="headerlink" href="#debug-mode" title="Link to this heading"></a></h2>
 <p>When the environment variable <code class="docutils literal notranslate"><span class="pre">DIALBB_DEBUG</span></code> is set to <code class="docutils literal notranslate"><span class="pre">yes</span></code> (case-insensitive) during Python startup, the program runs in debug mode. In this case, the value of <code class="docutils literal notranslate"><span class="pre">dialbb.main.DEBUG</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code>. This value can also be referenced in blocks created by the application developer.</p>
 <p>If <code class="docutils literal notranslate"><span class="pre">dialbb.main.DEBUG</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code>, the logging level is set to debug; otherwise it is set to info.</p>
 </section>
 <section id="test-using-test-scenarios">
-<h2><span class="section-number">4.6. </span>Test Using Test Scenarios<a class="headerlink" href="#test-using-test-scenarios" title="Permalink to this heading"></a></h2>
+<h2><span class="section-number">4.6. </span>Test Using Test Scenarios<a class="headerlink" href="#test-using-test-scenarios" title="Link to this heading"></a></h2>
 <p>The following commands can be used to test with test scenarios.</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ python dialbb/util/test.py &lt;application configuration&gt; <span class="se">\</span>
-  &lt;<span class="nb">test</span> scenario&gt; <span class="o">[</span>--output &lt;output file&gt;<span class="o">]</span>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python<span class="w"> </span>dialbb/util/test.py<span class="w"> </span>&lt;application<span class="w"> </span>configuration&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>&lt;<span class="nb">test</span><span class="w"> </span>scenario&gt;<span class="w"> </span><span class="o">[</span>--output<span class="w"> </span>&lt;output<span class="w"> </span>file&gt;<span class="o">]</span>
 </pre></div>
 </div>
 <p>The test scenario is a text file in the following format:</p>
