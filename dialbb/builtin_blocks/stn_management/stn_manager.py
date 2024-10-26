@@ -523,7 +523,7 @@ class Manager(AbstractBlock):
                 slot_name = expression[1:]
                 if slot_name == "sentence":
                     value: str = sentence
-                if slot_name == "user_id":
+                elif slot_name == "user_id":
                     value: str = user_id
                 elif slot_name in nlu_result["slots"].keys():
                     value: str = nlu_result["slots"][slot_name]
@@ -531,6 +531,8 @@ class Manager(AbstractBlock):
                     value: str = aux_data[slot_name]
                 else:
                     self.log_warning(f"special variable #{slot_name} is not realized.", session_id=session_id)
+                    value: str = to_be_replaced
+                result = result.replace(to_be_replaced, value)
             elif expression in self._dialogue_context[session_id].keys():
                 result = result.replace(to_be_replaced, self._dialogue_context[session_id][expression])
             else:
@@ -700,7 +702,7 @@ class Manager(AbstractBlock):
             return GENERATION_FAILURE_STRING
         if DEBUG:  # print details
             argument_value_strings: List[str] = [str(x) for x in argument_values]
-            self.log_debug(f"condition is realized: {function_name}({','.join(argument_value_strings)})",
+            self.log_debug(f"function call in system utterance is realized: {function_name}({','.join(argument_value_strings)})",
                            session_id=session_id)
         argument_names.append("context")  # add context to the arguments 対話文脈を引数に加える
         argument_values.append(self._dialogue_context[session_id])
