@@ -44,13 +44,15 @@ if __name__ == '__main__':
         session_id = ""
         for request in requests:
             if session_id == "":
-                request['user_id'] = USER_ID
+                if not request.get('user_id'):
+                    request['user_id'] = USER_ID
                 print("request: " + str(request))
                 session_log.append({"request": request})
                 response: Dict[str, Any] = dialogue_processor.process(request, initial=True)
                 session_id: str = response['session_id']
             else:
-                request['user_id'] = USER_ID
+                if not request.get('user_id'):
+                    request['user_id'] = USER_ID
                 request["session_id"] = session_id
                 print("request: " + str(request))
                 session_log.append({"request": request})

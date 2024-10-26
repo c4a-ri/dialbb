@@ -75,7 +75,8 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#id16">4.5. デバッグモード</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id17">4.6. テストシナリオを用いたテスト</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#test-scenario">4.6. テストシナリオを用いたテスト</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#test-requests">4.7. テストリクエストを用いたテスト</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="05_builtin_blocks.html">5. 組み込みブロッククラスの仕様</a></li>
@@ -286,7 +287,7 @@
 </pre></div>
 </div>
 <p>のように指定されていたとすると，ブロック内で<code class="docutils literal notranslate"><span class="pre">input['sentence']</span></code>で参照できるものは，メインモジュールの<code class="docutils literal notranslate"><span class="pre">blackboard['canonicalized_user_utterance']</span></code>です．</p>
-<p>指定されたキーがblackboardにない場合、該当するinputの要素は<code class="docutils literal notranslate"><span class="pre">None</span></code>になります。</p>
+<p>指定されたキーがblackboardにない場合，該当するinputの要素は<code class="docutils literal notranslate"><span class="pre">None</span></code>になります．</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">output</span></code></p>
 <p>ブロックからメインモジュールへの出力を規定します．<code class="docutils literal notranslate"><span class="pre">input</span></code>同様，辞書型のデータで，keyがブロック内での参照に用いられ，valueがblackboardでの参照に用いられます．</p>
@@ -320,7 +321,7 @@
 </div>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">process(self,</span> <span class="pre">input:</span> <span class="pre">Dict[str,</span> <span class="pre">Any],</span> <span class="pre">session_id:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">False)</span> <span class="pre">-&gt;</span> <span class="pre">Dict[str,</span> <span class="pre">Any]</span></code></p>
-<p>入力inputを処理し，出力を返します．入力，出力とメインモジュールのblackboardの関係はコンフィギュレーションで規定されます（「<a class="reference internal" href="#configuration"><span class="std std-ref">コンフィギュレーション</span></a>」を参照）．
+<p>入力inputを処理し，出力を返します．入力，出力とメインモジュールのblackboardの関係はコンフィギュレーションで規定されます（<a class="reference internal" href="#configuration"><span class="std std-numref">4.3 章</span></a>を参照）．
 <code class="docutils literal notranslate"><span class="pre">session_id</span></code>はメインモジュールから渡される文字列で，対話のセッション毎にユニークなものです．</p>
 </li>
 </ul>
@@ -367,10 +368,10 @@
 <p>Python起動時の環境変数 <code class="docutils literal notranslate"><span class="pre">DIALBB_DEBUG</span></code>の値が<code class="docutils literal notranslate"><span class="pre">yes</span></code> （大文字小文字は問わない）の時，デバッグモードで動作します．この時，<code class="docutils literal notranslate"><span class="pre">dialbb.main.DEBUG</span></code>の値が<code class="docutils literal notranslate"><span class="pre">True</span></code>になります．アプリ開発者が作成するブロックの中でもこの値を参照することができます．</p>
 <p><code class="docutils literal notranslate"><span class="pre">dialbb.main.DEBUG</span></code>が<code class="docutils literal notranslate"><span class="pre">True</span></code>の場合，ロギングレベルはdebugに設定され，その他の場合はinfoに設定されます．</p>
 </section>
-<section id="id17">
-<h2><span class="section-number">4.6. </span>テストシナリオを用いたテスト<a class="headerlink" href="#id17" title="Link to this heading"></a></h2>
+<section id="test-scenario">
+<span id="id17"></span><h2><span class="section-number">4.6. </span>テストシナリオを用いたテスト<a class="headerlink" href="#test-scenario" title="Link to this heading"></a></h2>
 <p>以下のコマンドでテストシナリオを用いたテストができます．</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python<span class="w"> </span>dialbb/util/test.py<span class="w"> </span>&lt;アプリケーションコンフィギュレーション&gt;<span class="w"> </span><span class="se">\</span>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python<span class="w"> </span>dialbb/util/test.py<span class="w"> </span>&lt;アプリケーションコンフィギュレーションファイル&gt;<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>&lt;テストシナリオ&gt;<span class="w"> </span><span class="o">[</span>--output<span class="w"> </span>&lt;出力ファイル&gt;<span class="o">]</span>
 </pre></div>
 </div>
@@ -400,6 +401,68 @@
 </div>
 <p>&lt;対話の区切り&gt;は，&quot;----init&quot;で始まる文字列です．</p>
 <p>テストスクリプトは，&lt;ユーザ発話&gt;を順番にアプリケーションに入力して，システム発話を受け取ります．システム発話がスクリプトのシステム発話と異なる場合はwarningを出します．テストが終了すると，出力されたシステム発話を含め，テストシナリオと同じ形式で対話を出力することができます．テストシナリオと出力ファイルを比較することで，応答の変化を調べることができます．</p>
+</section>
+<section id="test-requests">
+<span id="id18"></span><h2><span class="section-number">4.7. </span>テストリクエストを用いたテスト<a class="headerlink" href="#test-requests" title="Link to this heading"></a></h2>
+<p>テストシナリオを用いたテストでは<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>を入力できません．aux_dataを入力するテストを行うには，テストリクエストを用いたテストを行います．</p>
+<p>以下のコマンドで実行します．</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python<span class="w"> </span>dialbb/util/send_test_requests.py<span class="w"> </span>&lt;アプリケーションコンフィギュレーションファイル&gt;<span class="w"> </span><span class="se">\ </span><span class="w">            </span>＜テストリクエストファイル＞
+</pre></div>
+</div>
+<p>テストリクエストファイルは以下の形式のJSONファイルです．</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">[</span>
+<span class="w">    </span><span class="p">[</span>
+<span class="w">      </span><span class="err">&lt;最初のセッションの最初の入力&gt;</span><span class="p">,</span><span class="w"> </span>
+<span class="w">      </span><span class="err">&lt;最初のセッションの</span><span class="mi">2</span><span class="err">番目の入力&gt;</span><span class="p">,</span><span class="w"> </span>
+<span class="w">      </span><span class="err">...</span>
+<span class="w">    </span><span class="p">],</span>
+<span class="w">    </span><span class="p">[</span>
+<span class="w">      </span><span class="err">&lt;</span><span class="mi">2</span><span class="err">番目のセッションの最初の入力&gt;</span><span class="p">,</span><span class="w"> </span>
+<span class="w">      </span><span class="err">&lt;</span><span class="mi">2</span><span class="err">番目のセッションの</span><span class="mi">2</span><span class="err">番目の入力&gt;</span><span class="p">,</span><span class="w"> </span>
+<span class="w">      </span><span class="err">...</span>
+<span class="w">    </span><span class="p">],</span><span class="w"> </span>
+<span class="w">    </span><span class="err">...</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>各入力は，以下の形をしています．</p>
+<ul>
+<li><p>各セッションの最初の入力（aux_dataがない場合）</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;user_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;ユーザID&gt;</span><span class="p">}</span>
+</pre></div>
+</div>
+</li>
+<li><p>各セッションの最初の入力（aux_dataがある場合）</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="w"> </span>
+<span class="w">    </span><span class="nt">&quot;user_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;ユーザID&gt;</span><span class="p">,</span><span class="w"> </span>
+<span class="w">    </span><span class="nt">&quot;aux_data&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;aux_da</span><span class="kc">ta</span><span class="err">の値（辞書）&gt;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li></li>
+</ul>
+</li>
+<li><p>2番目以降の入力（aux_dataがない場合）</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="w">  </span>
+<span class="w">    </span><span class="nt">&quot;user_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;ユーザID&gt;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;user_utterance&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;ユーザ発話テキスト&gt;&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+<li><p>2番目以降の入力（aux_dataがある場合）</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="w"> </span>
+<span class="w">    </span><span class="nt">&quot;user_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;ユーザID&gt;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;user_utterance&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;ユーザ発話テキスト&gt;&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;aux_data&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;aux_da</span><span class="kc">ta</span><span class="err">の値（辞書）&gt;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+<p>各セッション最初の入力はそのまま，2番目以降は<code class="docutils literal notranslate"><span class="pre">session_id</span></code>が付加されてDialBBアプリケーションに入力されます．</p>
+<p><code class="docutils literal notranslate"><span class="pre">user_id</span></code>は省略しても構いません．その場合，各セッションの最初の入力は，<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>がない場合，空辞書になります．</p>
 <hr class="footnotes docutils" />
 <aside class="footnote-list brackets">
 <aside class="footnote brackets" id="fn-process" role="doc-footnote">

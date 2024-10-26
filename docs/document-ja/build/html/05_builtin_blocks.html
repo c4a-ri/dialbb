@@ -74,7 +74,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#chatgpt-understander-chatgpt">5.4. ChatGPT Understander （ChatGPTを用いた言語理解ブロック）</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#id12">5.4.1. 入出力</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id13">5.4.2. ブロックコンフィギュレーションのパラメータ</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chatgpt-understander-params">5.4.2. ブロックコンフィギュレーションのパラメータ</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#id14">5.4.3. 言語理解知識</a></li>
 </ul>
 </li>
@@ -99,7 +99,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#id29">5.5.8. 言語理解結果候補が複数ある場合の処理</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#id30">5.5.9. リアクション</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#subdialogue">5.5.10. Subdialogue</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id31">5.5.11. 音声入力を扱うための仕組み</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#handling-speech-input">5.5.11. 音声入力を扱うための仕組み</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#id32">5.5.11.1. ブロックコンフィギュレーションパラメータの追加</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#id33">5.5.11.2. 組み込み条件関数の追加</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#id34">5.5.11.3. 直前の誤った入力を無視する</a></li>
@@ -446,8 +446,8 @@
 </li>
 </ul>
 </section>
-<section id="id13">
-<h3><span class="section-number">5.4.2. </span>ブロックコンフィギュレーションのパラメータ<a class="headerlink" href="#id13" title="Link to this heading"></a></h3>
+<section id="chatgpt-understander-params">
+<span id="id13"></span><h3><span class="section-number">5.4.2. </span>ブロックコンフィギュレーションのパラメータ<a class="headerlink" href="#chatgpt-understander-params" title="Link to this heading"></a></h3>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">knowledge_file</span></code>（文字列）</p>
 <p>知識を記述したExcelファイルを指定します．コンフィギュレーションファイルのあるディレクトリからの相対パスで記述します．</p>
@@ -496,7 +496,7 @@
 </section>
 <section id="id14">
 <h3><span class="section-number">5.4.3. </span>言語理解知識<a class="headerlink" href="#id14" title="Link to this heading"></a></h3>
-<p>本ブロックの言語理解知識の記述形式は，LR-CRF Understanderの言語理解知識の記述形式と全く同じです．詳細はLR-CRF Understanderの説明の「<a class="reference internal" href="#lr-crf-nlu-knowledge"><span class="std std-ref">言語理解知識</span></a>」を参照してください．</p>
+<p>本ブロックの言語理解知識の記述形式は，LR-CRF Understanderの言語理解知識の記述形式と全く同じです．詳細はLR-CRF Understanderの説明の<a class="reference internal" href="#lr-crf-nlu-knowledge"><span class="std std-numref">5.3.3 章</span></a>を参照してください．</p>
 </section>
 </section>
 <section id="stn-manager">
@@ -537,7 +537,7 @@
 <p>シナリオを記述したExcelファイルを指定します．コンフィギュレーションファイルのあるディレクトリからの相対パスで記述します．</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">function_definitions</span></code>（文字列）</p>
-<p>シナリオ関数（<span class="xref std std-ref">dictionary_function</span>を参照）を定義したモジュールの名前です．複数ある場合は<code class="docutils literal notranslate"><span class="pre">':'</span></code>でつなぎます．モジュール検索パスにある必要があります．（コンフィギュレーションファイルのあるディレクトリはモジュール検索パスに入っています．）</p>
+<p>シナリオ関数（<code class="xref std std-numref docutils literal notranslate"><span class="pre">dictionary_function</span></code>を参照）を定義したモジュールの名前です．複数ある場合は<code class="docutils literal notranslate"><span class="pre">':'</span></code>でつなぎます．モジュール検索パスにある必要があります．（コンフィギュレーションファイルのあるディレクトリはモジュール検索パスに入っています．）</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">flags_to_use</span></code>（文字列のリスト）</p>
 <p>各シートの<code class="docutils literal notranslate"><span class="pre">flag</span></code>カラムにこの値のうちのどれかが書かれていた場合に読み込みます．</p>
@@ -549,7 +549,7 @@
 <p>この値が<code class="docutils literal notranslate"><span class="pre">True</span></code>の場合，シナリオシートの<code class="docutils literal notranslate"><span class="pre">system</span> <span class="pre">utterance</span></code>カラムと<code class="docutils literal notranslate"><span class="pre">user</span> <span class="pre">utterance</span> <span class="pre">example</span></code>カラムの値を使って，グラフを作成します．これにより，シナリオ作成者が直感的に状態遷移ネットワークを確認できます．</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">repeat_when_no_available_transitions</span></code> （ブール値．デフォルト値<code class="docutils literal notranslate"><span class="pre">False</span></code>．ver. 0.4.0で追加）</p>
-<p>この値が<code class="docutils literal notranslate"><span class="pre">True</span></code>のとき，デフォルト遷移（後述）以外の遷移で条件に合う遷移がないとき，遷移せず同じ発話を繰り返します．</p>
+<p>この値が<code class="docutils literal notranslate"><span class="pre">True</span></code>のとき，条件に合う遷移がないとき，遷移せず同じ発話を繰り返します．</p>
 </li>
 </ul>
 </section>
@@ -566,7 +566,7 @@
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">system</span> <span class="pre">utterance</span></code></p>
 <p><code class="docutils literal notranslate"><span class="pre">state</span></code>の状態で生成されるシステム発話の候補．</p>
-<p>システム発話文字列に含まれる<code class="docutils literal notranslate"><span class="pre">{&lt;変数&gt;}</span></code>または{&lt;関数呼び出し&gt;}<code class="docutils literal notranslate"><span class="pre">は，対話中にその変数に代入された値や関数呼び出しの結果で置き換えられます．これについては，以下の「{ref}</span></code>realization_in_system_utterance`」で詳しく説明します．</p>
+<p>システム発話文字列に含まれる<code class="docutils literal notranslate"><span class="pre">{&lt;変数&gt;}</span></code>または{&lt;関数呼び出し&gt;}<code class="docutils literal notranslate"><span class="pre">は，対話中にその変数に代入された値や関数呼び出しの結果で置き換えられます．これについては，以下の{numref}</span></code>realization_in_system_utterance`で詳しく説明します．</p>
 <p><code class="docutils literal notranslate"><span class="pre">state</span></code>が同じ行は複数あり得ますが，同じ<code class="docutils literal notranslate"><span class="pre">state</span></code>の行の<code class="docutils literal notranslate"><span class="pre">system</span> <span class="pre">utterance</span></code>すべてが発話の候補となり，ランダムに生成されます．</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">user</span> <span class="pre">utterance</span> <span class="pre">example</span></code></p>
@@ -576,10 +576,10 @@
 <p>ユーザ発話を言語理解した結果得られるユーザ発話のタイプ．遷移の条件となります．</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">conditions</span></code></p>
-<p>条件（の並び）．遷移の条件を表す関数呼び出し．複数あっても構いません．複数ある場合は，<code class="docutils literal notranslate"><span class="pre">';'</span></code>で連結します．各条件は<code class="docutils literal notranslate"><span class="pre">&lt;関数名&gt;(&lt;引数1&gt;,</span> <span class="pre">&lt;引数2&gt;,</span> <span class="pre">...,</span> <span class="pre">&lt;引数n&gt;)</span></code>の形をしています．引数は0個でも構いません．各条件で使える引数については，「<a class="reference internal" href="#arguments"><span class="std std-ref">関数の引数</span></a>」を参照してください．</p>
+<p>条件（の並び）．遷移の条件を表す関数呼び出し．複数あっても構いません．複数ある場合は，<code class="docutils literal notranslate"><span class="pre">';'</span></code>で連結します．各条件は<code class="docutils literal notranslate"><span class="pre">&lt;関数名&gt;(&lt;引数1&gt;,</span> <span class="pre">&lt;引数2&gt;,</span> <span class="pre">...,</span> <span class="pre">&lt;引数n&gt;)</span></code>の形をしています．引数は0個でも構いません．各条件で使える引数については，<a class="reference internal" href="#arguments"><span class="std std-numref">5.5.4.2 章</span></a>を参照してください．</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">actions</span></code></p>
-<p>アクション（の並び）．遷移した際に実行する関数呼び出し．複数あっても構いません．複数ある場合は，<code class="docutils literal notranslate"><span class="pre">;</span></code>で連結します．各条件は<code class="docutils literal notranslate"><span class="pre">&lt;関数名&gt;(&lt;引数1&gt;,</span> <span class="pre">&lt;引数2&gt;,</span> <span class="pre">...,</span> <span class="pre">&lt;引数n&gt;)</span></code>の形をしています．引数は0個でも構いません．各条件で使える引数については，<a class="reference internal" href="#arguments"><span class="std std-ref">関数の引数</span></a>を参照してください．</p>
+<p>アクション（の並び）．遷移した際に実行する関数呼び出し．複数あっても構いません．複数ある場合は，<code class="docutils literal notranslate"><span class="pre">;</span></code>で連結します．各条件は<code class="docutils literal notranslate"><span class="pre">&lt;関数名&gt;(&lt;引数1&gt;,</span> <span class="pre">&lt;引数2&gt;,</span> <span class="pre">...,</span> <span class="pre">&lt;引数n&gt;)</span></code>の形をしています．引数は0個でも構いません．各条件で使える引数については，<a class="reference internal" href="#arguments"><span class="std std-numref">5.5.4.2 章</span></a>を参照してください．</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">next</span> <span class="pre">state</span></code></p>
 <p>遷移先の状態名</p>
@@ -912,8 +912,8 @@
 <p>例えば，遷移先の状態名が<code class="docutils literal notranslate"><span class="pre">#gosub:request_confirmation:confirmed</span></code>の形の場合，<code class="docutils literal notranslate"><span class="pre">request_confirmatin</span></code>から始まるsubdialogueを実行し，遷移先が<code class="docutils literal notranslate"><span class="pre">:exit</span></code>になったら，<code class="docutils literal notranslate"><span class="pre">confirmed</span></code>に戻ります．</p>
 <p>subdialogueの中でsubdialogueに遷移することも可能です．</p>
 </section>
-<section id="id31">
-<h3><span class="section-number">5.5.11. </span>音声入力を扱うための仕組み<a class="headerlink" href="#id31" title="Link to this heading"></a></h3>
+<section id="handling-speech-input">
+<span id="id31"></span><h3><span class="section-number">5.5.11. </span>音声入力を扱うための仕組み<a class="headerlink" href="#handling-speech-input" title="Link to this heading"></a></h3>
 <p>ver. 0.4.0で，音声認識結果を入力として扱うときに生じる問題に対処するため，以下の変更が行われました．</p>
 <section id="id32">
 <h4><span class="section-number">5.5.11.1. </span>ブロックコンフィギュレーションパラメータの追加<a class="headerlink" href="#id32" title="Link to this heading"></a></h4>

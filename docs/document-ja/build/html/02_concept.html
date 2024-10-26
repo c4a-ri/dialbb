@@ -22,7 +22,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="索引" href="genindex.html" />
     <link rel="search" title="検索" href="search.html" />
-    <link rel="next" title="3. サンプルアプリケーション" href="03_tutorial.html" />
+    <link rel="next" title="3. チュートリアル" href="03_tutorial.html" />
     <link rel="prev" title="1. はじめに" href="01_intro.html" /> 
 </head>
 
@@ -49,7 +49,7 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="01_intro.html">1. はじめに</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">2. DialBBの概要</a></li>
-<li class="toctree-l1"><a class="reference internal" href="03_tutorial.html">3. サンプルアプリケーション</a></li>
+<li class="toctree-l1"><a class="reference internal" href="03_tutorial.html">3. チュートリアル</a></li>
 <li class="toctree-l1"><a class="reference internal" href="04_framework.html">4. フレームワーク仕様</a></li>
 <li class="toctree-l1"><a class="reference internal" href="05_builtin_blocks.html">5. 組み込みブロッククラスの仕様</a></li>
 <li class="toctree-l1"><a class="reference internal" href="06_appendix.html">6. Appendix</a></li>
@@ -81,14 +81,14 @@
              
   <section id="dialbb">
 <h1><span class="section-number">2. </span>DialBBの概要<a class="headerlink" href="#dialbb" title="Link to this heading"></a></h1>
-<p><a class="reference internal" href="01_intro.html#intro"><span class="std std-ref">はじめに</span></a>に書いたように，DialBBは対話システムを作るためのフレームワークです．</p>
+<p><a class="reference internal" href="01_intro.html#intro"><span class="std std-numref">1 章</span></a>に書いたように，DialBBは対話システムを作るためのフレームワークです．</p>
 <p>フレームワークとは，それ単体でアプリケーションとして成立はしないが，データや追加のプログラムを与えることでアプリケーションを作成するものです．</p>
 <p>以下にDialBBのアプリケーションの基本的なアーキテクチャを示します．</p>
 <p><img alt="dialbb-arch" src="_images/dialbb-arch.jpg" /></p>
 <p>メインモジュールは，対話の各ターンで入力されたデータ（ユーザ発話を含みます）を各ブロックに順次処理させることにより，システム発話を作成して返します．この入力の内容は同じJSON形式のデータblackboard<a class="footnote-reference brackets" href="#fn" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> に書き込まれます．各ブロックは，blackboardの要素のいくつかを受け取り，辞書形式のデータを返します．返されたデータはblackboardに追加されます．すでに同じキーを持つ要素がblackboardにある場合は上書きされます．</p>
 <p>どのようなブロックを使うかは，コンフィギュレーションファイルで設定します．ブロックは，あらかじめDialBBが用意しているブロック（組み込みブロック）でもアプリケーション開発者が作成するブロックでも構いません．</p>
 <p>メインモジュールが各ブロックにどのようなデータを渡し，どのようなデータを受け取るかもコンフィギュレーションファイルで指定します．</p>
-<p>詳細は「<a class="reference internal" href="04_framework.html#framework"><span class="std std-ref">フレームワーク仕様</span></a>」で説明します．</p>
+<p>詳細は<a class="reference internal" href="04_framework.html#framework"><span class="std std-numref">4 章</span></a>で説明します．</p>
 <hr class="footnotes docutils" />
 <aside class="footnote-list brackets">
 <aside class="footnote brackets" id="fn" role="doc-footnote">
@@ -103,7 +103,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="01_intro.html" class="btn btn-neutral float-left" title="1. はじめに" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="03_tutorial.html" class="btn btn-neutral float-right" title="3. サンプルアプリケーション" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="03_tutorial.html" class="btn btn-neutral float-right" title="3. チュートリアル" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

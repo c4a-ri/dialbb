@@ -346,7 +346,7 @@ It perfomrs dialogue management using a state-transition neetwork.
 
 - `repeat_when_no_available_transitions` (Boolean. Default value is `False`)
 
-   When this value is `True`, if there is no transition other than the default transition (see below) that matches the condition, the same utterance is repeated without transition.
+   When this value is `True`, if there is no transition that matches the condition, the same utterance is repeated without transition.
 
 (scenario)=
 ### Dialogue Management Knowledge Description
