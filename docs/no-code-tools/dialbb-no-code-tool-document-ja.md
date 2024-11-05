@@ -102,8 +102,8 @@ dialbb-nc
 
     <img src="images/gui-create.jpg" width="40%">
 
-  - アプリケーションを新たに作成した場合、および、読み込んだアプリケーションがChatGPTを使っている場合は、OpenAIのAPIキーの登録が必要です。OpenAIのAPIキーの登録は以下のようにします。
-    - `setting`ボタンを押します。 
+  - アプリケーションを新たに作成した場合、および、読み込んだアプリケーションがChatGPTを使っている場合は、OpenAIのAPIキーの登録が必要です。OpenAIのAPIキーの登録は以下のようにします。  
+    - `setting`ボタンを押します。  
       ![settings](images/settings.png)
     - `OPENAI_API_KEY`の右側に別途入手したOpenAIのAPIキーを入力し、`OK`ボタンを押します。`Saved`という表示が出るので再度`OK`ボタンを押します。
 
@@ -121,7 +121,7 @@ dialbb-nc
 
 #### アプリケーションの編集
 
-- `edit`ボタンをクリックし、編集するアプリケーションファイルを選択します。
+- `edit`ボタンをクリックし、編集するアプリケーションファイルを選択します。  
    <img src="images/gui-edit-select.jpg" width="40%">
 
 - 編集の仕方は後述します。
@@ -147,15 +147,16 @@ dialbb-nc
 | situation | GPTのプロンプトに書く状況を入力します、1行ごとに状況を記述します． |
 | persona | GPTのプロンプトに書くシステムのペルソナを入力します、1行ごとにペルソナを記述します． |
 
+-  __GPT モデルの編集__ `edit`ボタンをクリックし、選択するGPT モデルの追加変更が可能です。  
+  <img src="images/gui-edit-gptmodels.jpg" width="40%">
+
 ## 言語理解用知識の編集
   __アプリケーションの編集__ 画面で`NLU knowledge`を選択した場合は、xlsxファイルに関連付けされたアプリケーションが起動します（ExcelやOpenOfficeなど）、アプリケーション画面で編集＆保存をおこないます。  
 
 ## シナリオファイルの編集
 ### 編集アプリケーションの選択
-  __アプリケーションの編集__ 画面で`Scensrio`を選択した場合に以下の画面が表示されます、  
-  `Excel`で編集するか`GUIシナリオエディタ`で編集するかボタンで選択します、"Excel"の場合はxlsxファイルに関連付けされたアプリケーションが（ExcelやOpenOfficeなど）、"GUIシナリオエディタ"の場合はブラウザベースのアプリケーションが起動します。  
+  __アプリケーションの編集__ 画面で Excel で編集するか（`Scenario(Excel)`ボタン）、 GUIシナリオエディタ で編集するか（`Scenario(GUI Editor)`ボタン）を選択します、 Excel の場合はxlsxファイルに関連付けされたアプリケーションが（ExcelやOpenOfficeなど）、 GUIシナリオエディタ の場合はブラウザベースのアプリケーションが起動します。  
 
-  <img src="images/gui-edit-scenario.jpg" width="40%">
 
 ### シナリオエディタの操作方法
 
