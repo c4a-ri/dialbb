@@ -2,7 +2,7 @@
 
 ## はじめに
 
-DialBBにはいくつかのサンプルアプリケーションが付属しています．本章ではこれらのうち，日本語アプリケーションを用いて，DialBBのアプリケーションの構成と，DialBBを用いてアプリケーションを構築する方法を説明します．
+DialBBにはいくつかのサンプルアプリケーションが付属しています．本章ではこれらのうち，日本語のアプリケーションを用いて，DialBBのアプリケーションの構成と，DialBBを用いてアプリケーションを構築する方法を説明します．
 
 これらのアプリケーションの動作のさせ方は[README](https://github.com/c4a-ri/dialbb)を見てください．
 
@@ -43,7 +43,7 @@ blocks:
 input_text: user_utteranee
 ```
 
-は，メインモジュールの`blackboard['user_utterane']`をブロッククラスの中の`process`メソッドの入力（辞書型）の`input_text'`として参照できることを意味します．
+は，メインモジュールの`blackboard['user_utterane']`を、ブロッククラスの`process`メソッドの引数（辞書型）の`input_text`要素として参照できることを意味します．
 
 `output`はメインモジュールへの情報の送信を規定します．例えば，
 
@@ -51,7 +51,7 @@ input_text: user_utteranee
 output_text: system_utterance
 ```
 
-は，メインモジュールの`blackboard['output_text']`をブロッククラスの`process`メソッドの出力（辞書型）`output_text`要素で上書きまたは追加することを意味しています．
+は，メインモジュールの`blackboard['output_text']`を、ブロッククラスの`process`メソッドの出力（辞書型）の`output_text`要素で上書きまたは追加することを意味しています．
 
 これを図示すると以下のようになります．
 
@@ -69,7 +69,7 @@ output_text: system_utterance
 export DIALBB_DEBUG=yes;python run_server.py sample_apps/parrot/config.yml
 ```
 
-これにより，コンソールに詳しいログが出力されます．
+これにより，コンソールに詳しいログが出力されますので、それを見ることで理解が深まると思います。
 
 ## ChatGPT対話アプリケーション
 
@@ -275,7 +275,7 @@ utterancesシートの一部を以下に示します．
 
 ```JSON
 {  
-   "type": "はい"   
+   "type": "肯定"   
 }
 ```
 
@@ -342,10 +342,7 @@ STN Managerブロックは，状態遷移ネットワーク（State-Transition N
 
 これらの条件は，上に書いてある遷移から順に，満たされるかどうかを調べて行きます．
 
-`user utterance type`列も`conditions`列も空のものをデフォルト遷移と呼びます．
-基本的に，一つのstateにデフォルト遷移が一つ必要で，そのstateが遷移元になっている行のうち一番下にないといけません．
-
-（デフォルト遷移がなくても良い場合がありますが，それについては{ref}`scenario`を参照してください．
+`user utterance type`列も`conditions`列も空のものをデフォルト遷移と呼びます．基本的に，一つのstateにデフォルト遷移が一つ必要で，そのstateが遷移元になっている行のうち一番下にないといけません．
 
 #### 条件
 
@@ -385,7 +382,7 @@ STN Managerブロックは，状態遷移ネットワーク（State-Transition N
 
 これを図示すると以下のようになります．
 
-![scenario_graph_simple_ja](..\..\images\stn-ja.jpg)
+![scenario_graph_simple_ja](../../images/stn-ja.jpg)
 
 #### 特殊な状態名
 
@@ -403,7 +400,7 @@ STN Managerブロックは，状態遷移ネットワーク（State-Transition N
 
 Graphvizがインストールされていれば，アプリケーションを起動したとき，`system utterance`列のシステム発話と`user utterance  example`列のユーザ発話例を利用したグラフ(シナリオグラフ`_scenario_graph.jpg`)を出力します．以下が本アプリケーションのシナリオグラフです．
 
-![scenario_graph_simple_ja](..\..\images\scenario_graph_simple_ja.jpg)
+![scenario_graph_simple_ja](../../images/scenario_graph_simple_ja.jpg)
 
 ### N-Best言語理解結果の利用
 

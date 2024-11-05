@@ -104,3 +104,5 @@ latex_elements = {
   'extraclassoptions': 'openany,oneside'
 }
 
+#def setup(app):
+#    app.add_css_file('custom.css')

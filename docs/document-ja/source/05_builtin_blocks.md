@@ -454,6 +454,7 @@ OpenAI社のChatGPTを用いて，ユーザ発話タイプ（インテントと�
 
 デフォルト遷移（`user utterance type`カラムも`conditions`カラムも空の行）は，`state`カラムが同じ行の中で一番下に書かれていなくてはなりません．
 
+`repeat_when_no_available_transitions`がTrueの場合以外は，デフォルト遷移が必要です．
 
 ### 特別な状態
 

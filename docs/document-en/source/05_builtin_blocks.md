@@ -402,6 +402,8 @@ Rows with the same `state` column (transitions with the same source state) are c
 
 The default transition (a line with both `user utterance type` and `conditions` columns empty) must be at the bottom of the rows having the `state` column values.
 
+Unless `repeat_when_no_available_transitions` is `True`, the default transition is necessary.
+
 
 ### Special status
 

@@ -141,7 +141,7 @@
 <h1><span class="section-number">3. </span>チュートリアル<a class="headerlink" href="#id1" title="Link to this heading"></a></h1>
 <section id="id2">
 <h2><span class="section-number">3.1. </span>はじめに<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
-<p>DialBBにはいくつかのサンプルアプリケーションが付属しています．本章ではこれらのうち，日本語アプリケーションを用いて，DialBBのアプリケーションの構成と，DialBBを用いてアプリケーションを構築する方法を説明します．</p>
+<p>DialBBにはいくつかのサンプルアプリケーションが付属しています．本章ではこれらのうち，日本語のアプリケーションを用いて，DialBBのアプリケーションの構成と，DialBBを用いてアプリケーションを構築する方法を説明します．</p>
 <p>これらのアプリケーションの動作のさせ方は<a class="reference external" href="https://github.com/c4a-ri/dialbb">README</a>を見てください．</p>
 </section>
 <section id="id3">
@@ -171,12 +171,12 @@
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">input_text</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">user_utteranee</span>
 </pre></div>
 </div>
-<p>は，メインモジュールの<code class="docutils literal notranslate"><span class="pre">blackboard['user_utterane']</span></code>をブロッククラスの中の<code class="docutils literal notranslate"><span class="pre">process</span></code>メソッドの入力（辞書型）の<code class="docutils literal notranslate"><span class="pre">input_text'</span></code>として参照できることを意味します．</p>
+<p>は，メインモジュールの<code class="docutils literal notranslate"><span class="pre">blackboard['user_utterane']</span></code>を、ブロッククラスの<code class="docutils literal notranslate"><span class="pre">process</span></code>メソッドの引数（辞書型）の<code class="docutils literal notranslate"><span class="pre">input_text</span></code>要素として参照できることを意味します．</p>
 <p><code class="docutils literal notranslate"><span class="pre">output</span></code>はメインモジュールへの情報の送信を規定します．例えば，</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">output_text</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">system_utterance</span>
 </pre></div>
 </div>
-<p>は，メインモジュールの<code class="docutils literal notranslate"><span class="pre">blackboard['output_text']</span></code>をブロッククラスの<code class="docutils literal notranslate"><span class="pre">process</span></code>メソッドの出力（辞書型）<code class="docutils literal notranslate"><span class="pre">output_text</span></code>要素で上書きまたは追加することを意味しています．</p>
+<p>は，メインモジュールの<code class="docutils literal notranslate"><span class="pre">blackboard['output_text']</span></code>を、ブロッククラスの<code class="docutils literal notranslate"><span class="pre">process</span></code>メソッドの出力（辞書型）の<code class="docutils literal notranslate"><span class="pre">output_text</span></code>要素で上書きまたは追加することを意味しています．</p>
 <p>これを図示すると以下のようになります．</p>
 <p><img alt="sample-arch" src="_images/parrot-arch-ja.jpg" /></p>
 <p>メインモジュールとブロックを結ぶ矢印の上の記号は，左側がメインモジュールのblackboardにおけるキーで，右側がブロックの入出力におけるキーです．</p>
@@ -188,7 +188,7 @@
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">DIALBB_DEBUG</span><span class="o">=</span>yes<span class="p">;</span>python<span class="w"> </span>run_server.py<span class="w"> </span>sample_apps/parrot/config.yml
 </pre></div>
 </div>
-<p>これにより，コンソールに詳しいログが出力されます．</p>
+<p>これにより，コンソールに詳しいログが出力されますので、それを見ることで理解が深まると思います。</p>
 </section>
 </section>
 <section id="chatgpt">
@@ -400,7 +400,7 @@
 </table>
 <p>一行目は「はい」のタイプが「肯定」で，スロットはないことを示しています．「はい」の言語理解結果は以下のようになります．</p>
 <div class="highlight-JSON notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="w">  </span>
-<span class="w">   </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;はい&quot;</span><span class="w">   </span>
+<span class="w">   </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;肯定&quot;</span><span class="w">   </span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -518,7 +518,7 @@
 <p>これらの条件は，上に書いてある遷移から順に，満たされるかどうかを調べて行きます．</p>
 <p><code class="docutils literal notranslate"><span class="pre">user</span> <span class="pre">utterance</span> <span class="pre">type</span></code>列も<code class="docutils literal notranslate"><span class="pre">conditions</span></code>列も空のものをデフォルト遷移と呼びます．
 基本的に，一つのstateにデフォルト遷移が一つ必要で，そのstateが遷移元になっている行のうち一番下にないといけません．</p>
-<p>（デフォルト遷移がなくても良い場合がありますが，それについては<a class="reference internal" href="05_builtin_blocks.html#scenario"><span class="std std-ref">対話管理の知識記述</span></a>を参照してください．</p>
+<p>（デフォルト遷移がなくても良い場合がありますが，それについては<a class="reference internal" href="05_builtin_blocks.html#scenario"><span class="std std-numref">5.5.2 章</span></a>を参照してください．</p>
 </section>
 <section id="id16">
 <h4><span class="section-number">3.4.4.3. </span>条件<a class="headerlink" href="#id16" title="Link to this heading"></a></h4>
