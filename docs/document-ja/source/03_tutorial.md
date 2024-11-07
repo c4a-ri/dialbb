@@ -4,7 +4,7 @@
 
 DialBBにはいくつかのサンプルアプリケーションが付属しています．本章ではこれらのうち，日本語のアプリケーションを用いて，DialBBのアプリケーションの構成と，DialBBを用いてアプリケーションを構築する方法を説明します．
 
-これらのアプリケーションの動作のさせ方は[README](https://github.com/c4a-ri/dialbb)を見てください．
+これらのアプリケーションの動作のさせ方は[README](https://github.com/c4a-ri/dialbb/blob/main/README-ja.md)を見てください．
 
 ## オウム返しサンプルアプリケーション
 
@@ -97,13 +97,11 @@ blocks:
     system_name: システム
     first_system_utterance: "こんにちは．私の名前は由衣です．少しお話させてください．スイーツって好きですか？"
     prompt_template: prompt_template_ja.txt
-    gpt_model: gpt-3.5-turbo
+    gpt_model: gpt-4o-mini
 ```
-
 メインモジュールとの情報の授受を図示すると以下のようになります．
 
 ![sample-arch](../../images/chatgpt-dialogue-arch-ja.jpg)
-
 
 
 ブロックコンフィギュレーションのパラメータとして，`input`，`output`以外にいくつか設定されています．
@@ -193,7 +191,7 @@ blocks:
 ![sample-arch](../../images/simple-app-arch-ja.jpg)
 
 
-本アプリケーションでは，以下の3つの組み込みブロックを利用しています．これらの組み込みブロックの詳細は，「{ref}`builtin-blocks`」で説明します．
+本アプリケーションでは，以下の3つの組み込みブロックを利用しています．これらの組み込みブロックの詳細は，{numref}`builtin_blocks`で説明します．
 
 - Japanese Canonicalizer: ユーザ入力文の正規化（大文字→小文字，全角→半角の変換，Unicode正規化など）を行います．
 - LR-CRF Understander: 言語理解を行います．ロジスティック回帰 (Logistic Regression) と条件付き確率場(Conditional Random Fields) を利用して，ユーザ発話タイプ（インテントとも呼びます）の決定とスロットの抽出を行います．

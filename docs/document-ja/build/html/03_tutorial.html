@@ -142,7 +142,7 @@
 <section id="id2">
 <h2><span class="section-number">3.1. </span>はじめに<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
 <p>DialBBにはいくつかのサンプルアプリケーションが付属しています．本章ではこれらのうち，日本語のアプリケーションを用いて，DialBBのアプリケーションの構成と，DialBBを用いてアプリケーションを構築する方法を説明します．</p>
-<p>これらのアプリケーションの動作のさせ方は<a class="reference external" href="https://github.com/c4a-ri/dialbb">README</a>を見てください．</p>
+<p>これらのアプリケーションの動作のさせ方は<a class="reference external" href="https://github.com/c4a-ri/dialbb/blob/main/README-ja.md">README</a>を見てください．</p>
 </section>
 <section id="id3">
 <h2><span class="section-number">3.2. </span>オウム返しサンプルアプリケーション<a class="headerlink" href="#id3" title="Link to this heading"></a></h2>
@@ -213,7 +213,7 @@
 <span class="w">    </span><span class="nt">system_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">システム</span>
 <span class="w">    </span><span class="nt">first_system_utterance</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;こんにちは．私の名前は由衣です．少しお話させてください．スイーツって好きですか？&quot;</span>
 <span class="w">    </span><span class="nt">prompt_template</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prompt_template_ja.txt</span>
-<span class="w">    </span><span class="nt">gpt_model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpt-3.5-turbo</span>
+<span class="w">    </span><span class="nt">gpt_model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpt-4o-mini</span>
 </pre></div>
 </div>
 <p>メインモジュールとの情報の授受を図示すると以下のようになります．</p>
@@ -293,7 +293,7 @@
 <h3><span class="section-number">3.4.1. </span>システム構成<a class="headerlink" href="#id9" title="Link to this heading"></a></h3>
 <p>本アプリケーションは以下のようなシステム構成をしています．</p>
 <p><img alt="sample-arch" src="_images/simple-app-arch-ja.jpg" /></p>
-<p>本アプリケーションでは，以下の3つの組み込みブロックを利用しています．これらの組み込みブロックの詳細は，「<span class="xref std std-ref">builtin-blocks</span>」で説明します．</p>
+<p>本アプリケーションでは，以下の3つの組み込みブロックを利用しています．これらの組み込みブロックの詳細は，<a class="reference internal" href="05_builtin_blocks.html#builtin-blocks"><span class="std std-numref">5 章</span></a>で説明します．</p>
 <ul class="simple">
 <li><p>Japanese Canonicalizer: ユーザ入力文の正規化（大文字→小文字，全角→半角の変換，Unicode正規化など）を行います．</p></li>
 <li><p>LR-CRF Understander: 言語理解を行います．ロジスティック回帰 (Logistic Regression) と条件付き確率場(Conditional Random Fields) を利用して，ユーザ発話タイプ（インテントとも呼びます）の決定とスロットの抽出を行います．</p></li>
@@ -516,9 +516,7 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">conditions</span></code>列が空か，または，<code class="docutils literal notranslate"><span class="pre">conditions</span></code>列のすべての条件が満たされるとき</p></li>
 </ul>
 <p>これらの条件は，上に書いてある遷移から順に，満たされるかどうかを調べて行きます．</p>
-<p><code class="docutils literal notranslate"><span class="pre">user</span> <span class="pre">utterance</span> <span class="pre">type</span></code>列も<code class="docutils literal notranslate"><span class="pre">conditions</span></code>列も空のものをデフォルト遷移と呼びます．
-基本的に，一つのstateにデフォルト遷移が一つ必要で，そのstateが遷移元になっている行のうち一番下にないといけません．</p>
-<p>（デフォルト遷移がなくても良い場合がありますが，それについては<a class="reference internal" href="05_builtin_blocks.html#scenario"><span class="std std-numref">5.5.2 章</span></a>を参照してください．</p>
+<p><code class="docutils literal notranslate"><span class="pre">user</span> <span class="pre">utterance</span> <span class="pre">type</span></code>列も<code class="docutils literal notranslate"><span class="pre">conditions</span></code>列も空のものをデフォルト遷移と呼びます．基本的に，一つのstateにデフォルト遷移が一つ必要で，そのstateが遷移元になっている行のうち一番下にないといけません．</p>
 </section>
 <section id="id16">
 <h4><span class="section-number">3.4.4.3. </span>条件<a class="headerlink" href="#id16" title="Link to this heading"></a></h4>
@@ -544,7 +542,7 @@
 <h4><span class="section-number">3.4.4.5. </span>遷移の記述のまとめ<a class="headerlink" href="#id18" title="Link to this heading"></a></h4>
 <p>まとめると，1行目は，状態が<code class="docutils literal notranslate"><span class="pre">好き</span></code>の時，「豚骨ラーメンとか塩ラーメンなどいろんな種類のラーメンがありますが，どんなラーメンが好きですか？」を発話し，次のユーザの発話の言語理解結果のタイプが<code class="docutils literal notranslate"><span class="pre">特定のラーメンが好き</span></code>で，<code class="docutils literal notranslate"><span class="pre">好きなラーメン</span></code>スロットの値が<code class="docutils literal notranslate"><span class="pre">豚骨ラーメン</span></code>であれば，条件が満たされて遷移が行われ，<code class="docutils literal notranslate"><span class="pre">好きなラーメン</span></code>スロットの値，すなわち，<code class="docutils literal notranslate"><span class="pre">豚骨ラーメン</span></code>が，文脈情報の<code class="docutils literal notranslate"><span class="pre">topic_ramen</span></code>の値にセットされ，<code class="docutils literal notranslate"><span class="pre">豚骨ラーメンが好き</span></code>状態に移行します．条件が満たされない場合，2行目の条件が調べられます．</p>
 <p>これを図示すると以下のようになります．</p>
-<p><img alt="scenario_graph_simple_ja" src="....%5Cimages%5Cstn-ja.jpg" /></p>
+<p><img alt="scenario_graph_simple_ja" src="_images/stn-ja.jpg" /></p>
 </section>
 <section id="id19">
 <h4><span class="section-number">3.4.4.6. </span>特殊な状態名<a class="headerlink" href="#id19" title="Link to this heading"></a></h4>
@@ -557,7 +555,7 @@
 <section id="id20">
 <h4><span class="section-number">3.4.4.7. </span>シナリオグラフ<a class="headerlink" href="#id20" title="Link to this heading"></a></h4>
 <p>Graphvizがインストールされていれば，アプリケーションを起動したとき，<code class="docutils literal notranslate"><span class="pre">system</span> <span class="pre">utterance</span></code>列のシステム発話と<code class="docutils literal notranslate"><span class="pre">user</span> <span class="pre">utterance</span>&#160; <span class="pre">example</span></code>列のユーザ発話例を利用したグラフ(シナリオグラフ<code class="docutils literal notranslate"><span class="pre">_scenario_graph.jpg</span></code>)を出力します．以下が本アプリケーションのシナリオグラフです．</p>
-<p><img alt="scenario_graph_simple_ja" src="....%5Cimages%5Cscenario_graph_simple_ja.jpg" /></p>
+<p><img alt="scenario_graph_simple_ja" src="_images/scenario_graph_simple_ja.jpg" /></p>
 </section>
 </section>
 <section id="n-best">

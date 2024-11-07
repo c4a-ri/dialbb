@@ -1,4 +1,4 @@
-(builtin-blocks)=
+(builtin_blocks)=
 # Built-in Block Classes
 
 Built-in block classes are block classes that are included in DialBB in advance.
