@@ -433,12 +433,13 @@ In a final state, the system generates a system utterance and terminates the dia
 
 ### Conditions and Actions
 
-#### Contextual information
+(context_information)=
+#### Context information
 
-STN Manager maintains contextual information for each dialogue session. The contextual information is a set of variables and their values (python dictionary type data), and the values can be any data structure.
+STN Manager maintains context information for each dialogue session. The context information is a set of variables and their values (python dictionary type data), and the values can be any data structure.
 
 
-Condition and action functions access contextual information.
+Condition and action functions access context information.
 
 
 The context information is pre-set with the following key-value pairs.
@@ -506,11 +507,11 @@ The arguments of the functions used in conditions and actions are of the followi
 
 - Variables (strings beginning with `*`)
 
-  The value of a variable in contextual information. It is in the form `*<variable name>`. The value of a variable must be a string. If the variable is not in the context information, it is an empty string.
+  The value of a variable in context information. It is in the form `*<variable name>`. The value of a variable must be a string. If the variable is not in the context information, it is an empty string.
 
 - Variable reference (string beginning with `&`)
 
-  Refers to a contextual variable in function definitions. It is in the form `&<contextual variable name>` 
+  Refers to a context variable in function definitions. It is in the form `&<context variable name>` 
 
 - Constant (string enclosed in `""`)
 
@@ -741,7 +742,7 @@ def get_ramen_location(ramen: str, variable: str, context: Dict[str, Any]) -> No
     context[variable] = location
 ```
 
-In addition to the arguments used in the scenario, variable of dictionary type must be added to receive contextual information.
+In addition to the arguments used in the scenario, variable of dictionary type must be added to receive context information.
 
 All arguments used in the scenario must be strings.
 In the case of a special variable or variables, the value of the variable is passed as an argument.
@@ -851,7 +852,7 @@ If the value of `rewind` in the input `aux_data` is `True`, a transition is made
 Any changes to the dialog context due to actions taken during the previous response will also be undone.
 This function is used when a user utterance is accidentally split in the middle during speech recognition and only the first half of the utterance is responded to.
 
-Note that the contextual information is reverted, but not if you have changed the value of a global variable in an action function or the contents of an external database.
+Note that the context information is reverted, but not if you have changed the value of a global variable in an action function or the contents of an external database.
 
 (chatgpt_dialogue)=
 ## ChatGPT Dialogue (ChatGPT-based Dialogue Block)

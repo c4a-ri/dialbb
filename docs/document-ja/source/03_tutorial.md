@@ -333,7 +333,7 @@ STN Managerブロックは，状態遷移ネットワーク（State-Transition N
 
 `user utterance example`列は，その遷移で想定する発話の例です．実際には使いません．
 
-`user utterance type`列と`conditions`列はその遷移の条件を表します．以下の場合に遷移が満たされます．
+`user utterance type`列と`conditions`列はその遷移の条件を表します．以下の場合に遷移の条件が満たされます．
 
 - `user utterance type`列が空か，または，`user utterance type`列の値が言語理解結果のユーザ発話タイプがその値と同じで，かつ，
 - `conditions`列が空か，または，`conditions`列のすべての条件が満たされるとき
