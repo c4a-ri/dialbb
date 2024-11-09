@@ -318,13 +318,13 @@ class Manager(AbstractBlock):
                     # move to initial state
                     new_state_name = INITIAL_STATE_NAME
                     self._dialogue_context[session_id][CONTEXT_KEY_CURRENT_STATE_NAME] = new_state_name
-                    try:
-                        self._previous_dialogue_context[session_id] = copy.deepcopy(self._dialogue_context[session_id])
-                    except Exception:
-                        self.log_warning("could not copy the dialogue context. "
-                                         + "Perhaps some of its contents can't be deepcopied. "
-                                         + "Note that dialogue context can't be rewound.", session_id=session_id)
-                        self._previous_dialogue_context[session_id] = self._dialogue_context[session_id]
+                try:
+                    self._previous_dialogue_context[session_id] = copy.deepcopy(self._dialogue_context[session_id])
+                except Exception:
+                    self.log_warning("could not copy the dialogue context. "
+                                     + "Perhaps some of its contents can't be deepcopied. "
+                                     + "Note that dialogue context can't be rewound.", session_id=session_id)
+                    self._previous_dialogue_context[session_id] = self._dialogue_context[session_id]
             else:  # non-first turn 2回目以降のターン
                 if DEBUG:  # logging for debug
                     self._log_dialogue_context_for_debug(session_id)
@@ -356,6 +356,11 @@ class Manager(AbstractBlock):
                         raise Exception()
                     else:
                         raise STNError()
+                elif self._network.is_final_state_or_error_state(previous_state_name):  # already session finished:
+                    self.log_debug("session already finished.")
+                    return {"output_text": "This session has already finished.", "final": True, "aux_data": {}}
+
+
                 if type(nlu_result) == list:   # select nlu result from n-best candidates
                     additional_uu_types = []
                     if self._request_confirmation_at_low_confidence:  # after confirmation request 確認要求後
@@ -708,7 +713,7 @@ class Manager(AbstractBlock):
             return GENERATION_FAILURE_STRING
         if DEBUG:  # print details
             argument_value_strings: List[str] = [str(x) for x in argument_values]
-            self.log_debug(f"condition is realized: {function_name}({','.join(argument_value_strings)})",
+            self.log_debug(f"function call in system utterance is realized: {function_name}({','.join(argument_value_strings)})",
                            session_id=session_id)
         argument_names.append("context")  # add context to the arguments 対話文脈を引数に加える
         argument_values.append(self._dialogue_context[session_id])

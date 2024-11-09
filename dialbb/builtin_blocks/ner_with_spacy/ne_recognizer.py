@@ -59,5 +59,5 @@ class SpaCyNER(AbstractBlock):
             self.log_debug(f"NEs {entities} in the class {key} is found.", session_id=session_id)
 
         output: Dict[str, Any] = {"aux_data": aux_data}
-        self.log_debug("output: " + str(output))
+        self.log_debug("output: " + str(output), session_id=session_id)
         return output

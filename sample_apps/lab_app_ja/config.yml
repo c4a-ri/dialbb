@@ -18,12 +18,13 @@ blocks:  # ブロックのリスト
       input_text: canonicalized_user_utterance
     output: 
       nlu_result: nlu_result
-    knowledge_file: lab_app_ja_knowledge.xlsx  # 知識記述ファイル
+    knowledge_file: lab_app_nlu_knowledge_ja.xlsx  # 知識記述ファイル
     canonicalizer:
       class: dialbb.builtin_blocks.preprocess.japanese_canonicalizer.JapaneseCanonicalizer
-    flags_to_use:
-      - Y
-      - T
+    gpt_model: gpt-4o-mini
+    flags_to_use: 
+      - 'Y'
+      - 'T'
   - name: ner
     block_class: dialbb.builtin_blocks.ner_with_spacy.ne_recognizer.SpaCyNER
     input:
@@ -39,7 +40,7 @@ blocks:  # ブロックのリスト
         pattern: ダルビッシュ
   - name: manager
     block_class: dialbb.builtin_blocks.stn_management.stn_manager.Manager
-    knowledge_file: lab_app_ja_knowledge.xlsx # 知識記述ファイル
+    knowledge_file: lab_app_scenario_ja.xlsx # 知識記述ファイル
     function_definitions: scenario_functions  # 知識記述の中で用いる関数の定義ファイル
     scenario_graph: yes
     input:
@@ -63,11 +64,10 @@ blocks:  # ブロックのリスト
       action: repeat
       #destination: state1
     flags_to_use:
-      - Y
-      - T
+      - 'Y'
+      - 'T'
     chatgpt:
-      gpt_model: gpt-3.5-turbo
-      #gpt_model: gpt-4
+      gpt_model: gpt-4o-mini
       temperature: 0.7
       situation:
         - あなたは対話システムで、ユーザと食べ物に関して雑談をしています。

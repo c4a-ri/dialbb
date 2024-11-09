@@ -561,47 +561,7 @@ class StateTransitionNetwork:
         # todo check if set command has two args and its first argument is a variable
         return result
 
-    def output_graph(self, filename: str) -> None:
-        """
-        output graphviz dot file for this network
-        このネットワークのgraphvizのdot fileを作成する
-        :param filename: filename of the dot file
-        """
-        result = "digraph state_transition_network {\n"
-        result += '  rankdir="TB"\n'
-        result += "\n"
-        for state in self._states:
-            result += f'  "{state.get_name()}" [shape = circle];\n'
-        result += "\n"
-        n_trans: int = 0
-        for state in self._states:
-            for transition in state.get_transitions():
-                n_trans += 1
-                label = ""
-                uutype: str = transition.get_user_utterance_type()
-                if uutype:
-                    label += f"uu_type: {uutype}"
-                conditions = ','.join([str(condition).replace('"', '\\"') for condition in transition.get_conditions()])
-                if conditions:
-                    if label:
-                        label += "\\n"
-                    label += f"conditions: {conditions}"
-                actions = ','.join([str(action).replace('"', '\\"') for action in transition.get_actions()])
-                if actions:
-                    if label:
-                        label += "\\n"
-                    label += f"actions: {actions}"
-                if label:
-                    result += f'  "{state.get_name()}" -> "{transition.get_destination()}" [label = "{label}" ] ;\n'
-                else:
-                    result += f'  "{state.get_name()}" -> "{transition.get_destination()}" ;\n'
-        result += "}"
 
-        with open(filename, "w", encoding='utf-8') as fp:
-            fp.write(result)
-
-        print(f"state transition network has {len(self._states)} states.")
-        print(f"state transition network has {n_trans} transitions.")
 
 
 

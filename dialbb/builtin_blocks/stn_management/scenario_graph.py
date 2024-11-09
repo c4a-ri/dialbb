@@ -64,7 +64,7 @@ def create_scenario_graph(scenario_df: DataFrame, config_dir: str, language: str
     result = "digraph scenario_graph {\n"
     result += '  rankdir="TB"\n'
     result += "\n"
-    print(f"natural language scenario has {int(len(states_dict.keys()))} states.")
+    print(f"state transition network has {int(len(states_dict.keys()))} states.")
     for state_name, state in states_dict.items():
         su_list = ""
         for su in state.system_utterances:
@@ -87,7 +87,7 @@ def create_scenario_graph(scenario_df: DataFrame, config_dir: str, language: str
             else:
                 result += f'  "{state_name}" -> "{transition.next_state}" ;\n'
     result += "}"
-    print(f"natural language scenario has {int(n_trans)} transitions.")
+    print(f"state transition network has {int(n_trans)} transitions.")
 
     with open(dot_file, "w", encoding='utf-8') as fp:
         fp.write(result)

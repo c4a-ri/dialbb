@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>1. はじめに &mdash; DialBBドキュメント ver. 0.8 v0.8.0 ドキュメント</title>
+  <title>1. はじめに &mdash; DialBBドキュメント ver. 0.9 v0.9.0 ドキュメント</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
@@ -15,7 +15,7 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=2ac002b5"></script>
+        <script src="_static/documentation_options.js?v=5b1548ec"></script>
         <script src="_static/doctools.js?v=9a2dae69"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script src="_static/translations.js?v=4dbe4bdc"></script>
@@ -23,7 +23,7 @@
     <link rel="index" title="索引" href="genindex.html" />
     <link rel="search" title="検索" href="search.html" />
     <link rel="next" title="2. DialBBの概要" href="02_concept.html" />
-    <link rel="prev" title="DialBB ver. 0.8 ドキュメント" href="index.html" /> 
+    <link rel="prev" title="DialBB ver. 0.9 ドキュメント" href="index.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -35,7 +35,7 @@
           
           
           <a href="index.html" class="icon icon-home">
-            DialBBドキュメント ver. 0.8
+            DialBBドキュメント ver. 0.9
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -49,9 +49,10 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">1. はじめに</a></li>
 <li class="toctree-l1"><a class="reference internal" href="02_concept.html">2. DialBBの概要</a></li>
-<li class="toctree-l1"><a class="reference internal" href="04_sample_app.html">3. サンプルアプリケーション</a></li>
-<li class="toctree-l1"><a class="reference internal" href="05_framework.html">4. フレームワーク仕様</a></li>
-<li class="toctree-l1"><a class="reference internal" href="06_builtin_blocks.html">5. 組み込みブロッククラスの仕様</a></li>
+<li class="toctree-l1"><a class="reference internal" href="03_tutorial.html">3. チュートリアル</a></li>
+<li class="toctree-l1"><a class="reference internal" href="04_framework.html">4. フレームワーク仕様</a></li>
+<li class="toctree-l1"><a class="reference internal" href="05_builtin_blocks.html">5. 組み込みブロッククラスの仕様</a></li>
+<li class="toctree-l1"><a class="reference internal" href="06_appendix.html">6. Appendix</a></li>
 </ul>
 
         </div>
@@ -60,7 +61,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">DialBBドキュメント ver. 0.8</a>
+          <a href="index.html">DialBBドキュメント ver. 0.9</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -81,10 +82,10 @@
   <section id="intro">
 <span id="id1"></span><h1><span class="section-number">1. </span>はじめに<a class="headerlink" href="#intro" title="Link to this heading"></a></h1>
 <p><a class="reference external" href="https://github.com/c4a-ri/dialbb">DialBB (<em>Dial</em>ogue System Development Framework with <em>B</em>uilding <em>B</em>locks)</a>は対話システムを構築するためのフレームワークです．</p>
-<p>対話システムは情報分野の様々な技術を統合して構築されます．本フレームワークを用いることで，対話システム技術の知識や情報システム開発経験の少ない人でも対話システムが構築でき，様々な情報技術を学ぶことができることを目指しています．また，アーキテクチャのわかりやすさ，拡張性の高さ，コードの読みやすさなどを重視し，プログラミング・システム開発教育の教材にしてもらえることも目指しています．DialBB開発の目的については，<a class="reference external" href="https://www.jstage.jst.go.jp/article/pjsai/JSAI2023/0/JSAI2023_4A2GS604/_article/-char/ja/">人工知能学会全国大会の論文</a>に書きましたので，そちらも合わせてご参照ください．</p>
+<p>対話システムは情報分野の様々な技術を統合して構築されます．本フレームワークを用いることで，対話システム技術の知識や情報システム開発経験の少ない人でも対話システムが構築でき，様々な情報技術を学ぶことができることを目指しています．また，アーキテクチャのわかりやすさ，拡張性の高さ，コードの読みやすさなどを重視し，プログラミング・システム開発教育の教材にしてもらえることも目指しています．DialBB開発の目的については，<a class="reference external" href="https://aclanthology.org/2024.sigdial-1.56/">SIGDIALの論文</a>や<a class="reference external" href="https://www.jstage.jst.go.jp/article/pjsai/JSAI2023/0/JSAI2023_4A2GS604/_article/-char/ja/">人工知能学会全国大会の論文</a>に書きましたので，そちらも合わせてご参照ください．</p>
 <p>DialBBで対話システムを構築するには，Pythonを動かす環境が必要です．もし，Pythonを動かす環境がないなら，<a class="reference external" href="https://www.python.jp/install/install.html">Python環境構築ガイド</a>などを参考に，環境構築を行ってください．</p>
 <p>DialBBのインストールの仕方とサンプルアプリケーションの動かし方は<a class="reference external" href="https://github.com/c4a-ri/dialbb/blob/main/README-ja.md">README</a>を見てください．</p>
-<p>対話システムの一般向けの解説として，<a class="reference external" href="https://www.kadokawa.co.jp/product/321902000134/">東中竜一郎著：AIの雑談力</a>や<a class="reference external" href="https://www.c4a.jp/wp-content/uploads/2021/09/%E6%83%85%E5%A0%B1%E5%87%A6%E7%90%86-2021-10-%E5%AF%BE%E8%A9%B1%E3%82%B7%E3%82%B9%E3%83%86%E3%83%A0%E3%82%92%E7%9F%A5%E3%82%8D%E3%81%86.pdf">情報処理学会誌の解説記事「対話システムを知ろう」</a>があります．</p>
+<p>対話システムの一般向けの解説として，<a class="reference external" href="https://www.kadokawa.co.jp/product/321902000134/">東中著：AIの雑談力</a>や<a class="reference external" href="https://www.c4a.jp/wp-content/uploads/2021/09/%E6%83%85%E5%A0%B1%E5%87%A6%E7%90%86-2021-10-%E5%AF%BE%E8%A9%B1%E3%82%B7%E3%82%B9%E3%83%86%E3%83%A0%E3%82%92%E7%9F%A5%E3%82%8D%E3%81%86.pdf">情報処理学会誌の中野の解説記事「対話システムを知ろう」</a>があります．</p>
 <p>また，<a class="reference external" href="https://www.amazon.co.jp/Python%E3%81%A7%E3%81%A4%E3%81%8F%E3%82%8B%E5%AF%BE%E8%A9%B1%E3%82%B7%E3%82%B9%E3%83%86%E3%83%A0-%E6%9D%B1%E4%B8%AD-%E7%AB%9C%E4%B8%80%E9%83%8E/dp/4274224791">東中，稲葉，水上著：Pythonでつくる対話システム</a>は，対話システムの実装の仕方についてPythonのコードを用いて説明しています．</p>
 <p>DialBBは<a class="reference external" href="https://www.c4a.jp">株式会社C4A研究所</a>が開発し，著作権を保有し，非商用向けに公開しています．詳しくは<a class="reference external" href="https://github.com/c4a-ri/dialbb/blob/main/LICENSE">ライセンス</a>を参照ください．</p>
 </section>
@@ -93,7 +94,7 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="index.html" class="btn btn-neutral float-left" title="DialBB ver. 0.8 ドキュメント" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="index.html" class="btn btn-neutral float-left" title="DialBB ver. 0.9 ドキュメント" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="02_concept.html" class="btn btn-neutral float-right" title="2. DialBBの概要" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

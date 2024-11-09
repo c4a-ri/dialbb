@@ -108,7 +108,7 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame,
             entities2synonyms[entity] = synonyms
 
     # read utterances sheet
-    if utterances_df is None:  # no dictionary sheet
+    if utterances_df is None:  # no utterance sheet
         abort_during_building(f"Warning: no utterances sheet.")
     else:
         utterances_df.fillna('', inplace=True)

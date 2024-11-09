@@ -1,6 +1,20 @@
 # Changelog
 
-## 0.8.0 
+## 0.9.0 (2024.11.9)
+
+- Snips Understander組み込みブロックを削除
+
+- Whitespace Tokenzer組み込みブロックを削除
+
+- Sudachi Tokenzer組み込みブロックを削除
+
+- LR-CRF Understander組み込みブロックを追加
+
+- LR-CRF Understander組み込みブロックを用いたサンプルアプリケーション(simple_ja, simple_en)を追加
+
+- Snips Understanderを用いたサンプルアプリケーション(network_ja, network_en)を削除
+
+## 0.8.0  (2024.5.6)
 
 - OpenAI API KEYをセットする環境変数のデフォルトをOPENAI_API_KEYに変更
 
