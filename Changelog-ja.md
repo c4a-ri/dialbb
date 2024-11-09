@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.9.0 
+## 0.9.0 (2024.11.9)
 
 - Snips Understander組み込みブロックを削除
 

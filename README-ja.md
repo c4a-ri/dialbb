@@ -27,7 +27,7 @@ DialBBを用いた研究に関する論文発表をする際には，以下の�
 
 ## チュートリアル
 
-DialBBを簡単に説明した[チュートリアルスライド](docs/tutorial-slides/DialBB-tutorial-ja-v0.8.pdf)があります．(これはver.0.8用なので近々アップデート予定です．）
+DialBBを簡単に説明した[チュートリアルスライド](docs/tutorial-slides/DialBB-tutorial-ja-v0.9.pdf)があります．
 
 ## ライセンス
 
