@@ -312,7 +312,7 @@ A portion of the scenario description is provided below.
 | ---- | ----------------- | ----------------------------------- | ------------------------------------------------------------ | --------------------------- | ----------------------------------------------- | ------------------------------------------ | ------------------ |
 | Y    | like-sandwich好き | what kind of  sandwich do you like? | I like egg  salad sandwiches.                                | tell-like-specific-sandwich | \_eq(#favorite-sandwich,  "egg salad sandwich") | _set(&topic_sandwich,  #favorite-sandwich) | egg-salad-sandwich |
 | Y    | like-sandwich     |                                     | I  like roast beef sandwiches.                               | tell-like-specific-sandwich | is_known_sandwich(#favorite-sandwich)           | _set(&topic_sandwich,#favorite-sandwich)   | known-sandwich     |
-| Y    | like-sandwich     |                                     | I  like tomato and egg sandwich                              | tell-like-specific-sandwich | is_novel_sandwich(#favorite-sandwich)           |                                            | new-sandwich       |
+| Y    | like-sandwich     |                                     | I  like tomato and egg sandwich.                             | tell-like-specific-sandwich | is_novel_sandwich(#favorite-sandwich)           |                                            | new-sandwich       |
 | Y    | like-sandwich     |                                     | Any  sandwich is fine with me.近所の街中華のラーメンが好きなんだよね |                             |                                                 |                                            | #final             |
 
 Each row represents a single transition.
@@ -325,14 +325,34 @@ The `system utterance` column contains the system's response output in that stat
 
 The `user utterance example` column provides an example of the expected user response for that transition. This example is not actually used in practice.
 
-The `user utterance type` and `conditions` columns specify the conditions for the transition. A transition is fulfilled under the following conditions:
+The `user utterance type` and `conditions` columns specify the conditions for the transition. The conditions for a transition are satisfied under the following conditions:
 
-- If the `user utterance type` column is empty, or if the value in the `user utterance type` column matches the user utterance type determined by language understanding, and
-- If the `conditions` column is empty, or if all conditions listed in the `conditions` column are satisfied.
+- The `user utterance type` column is empty, or the value in the `user utterance type` column matches the user utterance type of the language understanding result, and
+- The `conditions` column is empty, or all conditions listed in the `conditions` column are satisfied.
 
 These conditions are checked sequentially, starting from the topmost transition.
 
 A row with both an empty `user utterance type` and an empty `conditions` column is referred to as a default transition. Generally, each state requires one default transition, which should be positioned at the bottom among the rows originating from that state.
+
+#### Conditions
+
+The `conditions` column contains a list of function calls representing specific conditions. If multiple function calls are present, they are separated by `;`.
+
+The functions in the `conditions` column, known as *condition functions*, each return either `True` or `False`. When all function calls return `True`, the condition is considered satisfied.
+
+Functions beginning with `_` are built-in functions. Other functions, defined in `scenario_functions.py` for this application, are custom functions created by developers.
+
+The `_eq` function is a built-in function that returns `True` if two arguments contain the same string.
+
+Arguments beginning with `#`, like `#favorite_sandwich`, are special arguments. For example, `#` followed by the name of a slot   in the language understanding result denotes the value of the slot.  `#favorite_sandwich` is the value of the `#favorite_sandwich` slot.
+
+The values of the arguments enclosed by `""` like `"tuna sandwich"` are the enclosed strings.
+
+`_eq(#favorite_sandwich, "tuna sandwich")` returns `True` when the `favorite-sandwich` slot value is `tuna sandwich`.
+
+The function `is_known_ramen(#favorite_sandwich)` is defined in `scenario_functions.py` so that it returns `True` when the system recognizes the value in the `favorite-sandwich` slot and returns `False` otherwise.
+
+Condition functions can access data known as *context information* which is a dictionary-type data structure. Keys can be added to this structure within the condition or action functions. Some keys are pre-set with values, as detailed in the reference section `{numref}context_information`.
 
 #### Actions
 
@@ -342,17 +362,17 @@ Functions used in the `actions` column are called action functions, and they do 
 
 Similar to condition functions, functions that start with an underscore (`_`) are built-in functions. Other functions are custom functions created by the developer and are defined in `scenario_functions.py` for this application.
 
-The `_set` function assigns the value of the second argument to the first argument. For instance, `_set(&topic_ramen, #好きなラーメン)` assigns the value of the `#好きなラーメン` slot to the `topic_ramen` key in the context information. Context information values can be accessed within conditions and actions by referencing `*<key name>`.
+The `_set` function assigns the value of the second argument to the first argument. For instance, `_set(&topic_sandwich, #favorite-sandwich)` assigns the value of the `#favorite-sandwich` slot to the `topic_sandwich` key in the context information. Context information values can be accessed within conditions and actions by referencing `*<key name>`.
 
-`get_ramen_location(*topic_ramen, &location)` is an example of a developer-defined function. This function, defined in `scenario_functions.py`, searches for a location known for the type of ramen specified in the first argument and sets that location to the key specified by the second argument in the context information. For example, if the value of the `topic_ramen` key is `味噌ラーメン` (miso ramen), the function would search for a location famous for miso ramen. If it finds `札幌` (Sapporo) as the result, it sets the `location` key in the context information to `札幌`.
+`is_known_sandwich(#favorite-sandwich)` is an example of a developer-defined function. This function, defined in `scenario_functions.py`, judges whether the value of the `favorite-sandwich` slot of the language understanding result is one of the sandwiches that the system knows using its known sandwich list.
 
 #### Summary of Transition Description
 
-To summarize, in the first row, when the state is `好き` (Likes), the system utters, "豚骨ラーメンとか塩ラーメンなどいろんな種類のラーメンがありますが，どんなラーメンが好きですか？" ("There are various types of ramen, such as tonkotsu ramen and shio ramen. Which ramen do you like?"). If the type of the user's next utterance, as determined by language understanding, is `特定のラーメンが好き` (Likes a specific ramen), and the value in the `好きなラーメン` (Favorite ramen) slot is `豚骨ラーメン` (tonkotsu ramen), then the conditions are met, and the transition occurs. The value of the `好きなラーメン` slot, i.e., `豚骨ラーメン`, is then set as the value for `topic_ramen` in the context information, and the state changes to `豚骨ラーメンが好き` (Likes tonkotsu ramen). If the conditions are not met, the conditions for the second row are checked.
+To summarize, in the first row, when the state is `like-sandwich`, the system utters, "what kind of sandwich do you like?". If the type of the user's next utterance, as determined by language understanding, is `tell-like-specific-sandwich`, and the value of the `favorite-sandwich` slot is `egg salad sandwich` , then the conditions are met, and the transition occurs. The value of the `favorite-sandwich` slot, i.e., `egg salad sandwich`, is then set as the value for `topic_sandwich` in the context information, and the state changes to `egg-salad-sadwich`. If the conditions are not met, the conditions for the second row are checked.
 
 A diagram would illustrate this as follows:
 
-![scenario_graph_simple_ja](../../images/stn-ja.jpg)
+![stn-en](../../images/stn-en.jpg)
 
 #### Special State Names
 
@@ -430,7 +450,7 @@ This section explains how to construct an application using a simple application
 
 It is based on language understanding by ChatGPT and network-based dialogue management, incorporating various functionalities of embedded blocks. The following embedded blocks are used:
 
-- {ref}`japanese_canonicalizer`
+- {ref}`simple_canonicalizer`
 - {ref}`chatgpt_understander`
 - {ref}`spacy_ner`
 - {ref}`stn_manager`
@@ -440,7 +460,7 @@ The main differences from simple applications are the use of the ChatGPT languag
 
 ### Files Comprising the Application
 
-The files that make up this application are located in the `sample_apps/simple_ja` directory (folder). This directory includes the following files:
+The files that make up this application are located in the `sample_apps/simple_ja` directory. This directory includes the following files:
 
 - `config.yml`
 
@@ -471,10 +491,10 @@ The default prompt template is used for prompting ChatGPT to conduct language un
 Named entity recognition (NER) is conducted using spaCy. The extracted entities are included in the `aux_data` section of the block's output. An example of the output format is as follows:
 
 ```json
-{"NE_Person": "田中", "NE_Dish": "味噌ラーメン"}
+{"NE_PERSON": "John", "NE_DATE": "Friday"}
 ```
 
-Here, `Person` and `Dish` are entity classes defined within the spaCy model. These extracted entities can be accessed within the STN Manager block using special variables such as `#Person` and `#Dish`.
+Here, `Person` and `Date` are entity classes defined within the spaCy model. These extracted entities can be accessed within the STN Manager block using special variables such as `#PERSON` and `#DATE`.
 
 The specific model for spaCy is designated in the block configuration under `model`, with the current setting being `en_core_web_trf`.
 
@@ -496,7 +516,7 @@ In the simple application, only context information variables were embedded in s
 For example:
 
 ```
-私は{get_system_name()}です．よろしければお名前を教えて頂けますか？
+I'm {get_system_name()}. If you don't mind, could you tell me your name?
 ```
 
 In this case, the function `get_system_name(context)`, defined in `scenario_functions.py`, is called, and its return value (a string) replaces `{get_system_name()}`. This function is designed to return the value of `system_name` specified in the configuration file.
@@ -504,33 +524,33 @@ In this case, the function `get_system_name(context)`, defined in `scenario_func
 Another example:
 
 ```
-ありがとうございます．{#NE_Person}さん，今日はラーメンについて教えて下さい．ラーメンはよく食べますか？
+Thank you {#NE_PERSON}! Let me ask you about sandwich. Do you have sandwiches very often?
 ```
 
-Here, `{#NE_Person}` is replaced by the value of the special variable `#NE_Person`. `#NE_Person` corresponds to the value of `NE_Person` in `aux_data`, meaning it holds the value of the "Person" entity extracted by the named entity recognition block.
+Here, `{#NE_PERSON}` is replaced by the value of the special variable `#NE_PERSON`. `#NE_PERSON` corresponds to the value of `NE_PERSON` in `aux_data`, meaning it holds the value of the "Person" entity extracted by the named entity recognition block.
 
 #### Syntax Sugar
 
-Syntax sugar is provided to simplify the notation for calling built-in functions within the scenario. For instance, `confirmation_request="すみません．ラーメンってよく食べますか？"` is equivalent to writing `_set(&confirmation_request, "すみません．ラーメンってよく食べますか？")`.
+Syntax sugar is provided to simplify the notation for calling built-in functions within the scenario. For instance, `confirmation_request="Sorry to ask you again, but do you often eat sadwiches?"` is equivalent to writing `_set(&confirmation_request, "Sorry to ask you again, but do you often eat sadwiches?")`.
 
 Similarly:
 
-- `#好きなラーメン=="豚骨ラーメン"` is equivalent to `_eq(#好きなラーメン, "豚骨ラーメン")`
-- `#NE_Person!=""` is equivalent to `_ne(#NE_Person, "")`
+- `#favorite-sandwich=="egg salad sandwich"` is equivalent to `_eq(#favorite-sandwich, "egg salad sandwich")`
+- `#NE_PERSON!=""` is equivalent to `_ne(#NE_PERSON, "")`
 
 This shorthand makes the scenario scripting more concise and easier to read.
 
 #### Reaction Utterance Generation
 
-In the `actions` section of the scenario, there is a `_reaction="そうなんですね．"` setting. `_reaction` is a special variable in the context information that appends its value to the beginning of the next system utterance. For example, if the scenario transitions to a state called `好き` after this, the system utterance `豚骨ラーメンとか塩ラーメンなどいろんな種類のラーメンがありますが，どんなラーメンが好きですか？` will have `そうなんですね．` added at the start, resulting in `そうなんですね．豚骨ラーメンとか塩ラーメンなどいろんな種類のラーメンがありますが，どんなラーメンが好きですか？`.
+In the `actions` section of the scenario, there is `_reaction="Great!"`. `_reaction` is a special variable in the context information that appends its value to the beginning of the next system utterance. For example, if the scenario transitions to a state called `好き` after this, the system utterance `what kind of sandwich do you like?` will have `Great!` added at the start, resulting in `Great! what kind of sandwich do you like?`.
 
 By including such reactions, the system can acknowledge the user’s previous input, enhancing the user experience by conveying that it is actively listening to what the user is saying.
 
 #### Utterance Generation and Condition Evaluation Using ChatGPT
 
-In a system utterance, the notation `$"それまでの会話につづけて，対話を終わらせる発話を50文字以内で生成してください．"` is syntax sugar for the built-in function call `_check_with_llm("それまでの会話につづけて，対話を終わらせる発話を50文字以内で生成してください．")`, which uses ChatGPT to generate an utterance.
+In a system utterance, the notation `$"Generate a sentence to say it's time to end the talk by continuing the conversation in 50 words"` is syntax sugar for the built-in function call `_check_with_llm("Generate a sentence to say it's time to end the talk by continuing the conversation in 50 words")`, which uses ChatGPT to generate an utterance.
 
-Similarly, in the `conditions` section, the notation `$"ユーザが理由を言ったかどうか判断してください．"` is syntax sugar for the built-in function call `_check_with_llm("ユーザが理由を言ったかどうか判断してください．")`. This uses ChatGPT to evaluate the conversation history and returns a boolean value indicating whether the user provided a reason.
+Similarly, in the `conditions` section, the notation `$"Please determine if the user said the reason"` is syntax sugar for the built-in function call `_check_with_llm("Please determine if the user said the reason")`. This uses ChatGPT to evaluate the conversation history and returns a Boolean value indicating whether the user provided a reason.
 
 The specific ChatGPT model, temperature parameter, context setting, and persona for utterance generation are specified in the block configuration as follows:
 
@@ -557,7 +577,7 @@ chatgpt:
 
 #### Sub-dialogue
 
-The `next state` field contains `#gosub:確認:ラーメン食べるか確認完了`, which indicates that after transitioning to the `確認` (confirmation) state and conducting a dialogue, the conversation will return to the `ラーメン食べるか確認完了` (confirmation completed) state. A conversation starting from the `確認` state is called a sub-dialogue. When the sub-dialogue transitions to the `#exit` state, it exits the sub-dialogue and goes to the `ラーメン食べるか確認完了` state.
+The `next state` field contains `#gosub:confirmation-requested:confirmed-if-have-sandwich`, which indicates that after transitioning to the `confirmation_requested`state and conducting a dialogue, the conversation will return to the `confirmed-if-have-sandwich`state. A conversation starting from the `confirmation_requested` state is called a sub-dialogue. When the sub-dialogue transitions to the `#exit` state, it exits the sub-dialogue and goes to the ``confirmed-if-have-sandwich` state.
 
 By setting up reusable dialogues as sub-dialogues for various situations that require user confirmation, you can reduce the amount of scenario writing required.
 
@@ -567,7 +587,7 @@ When `$skip` is placed in the system utterance field, no system utterance is ret
 
 #### Repeat Function
 
-The `repeat_when_no_available_transitions` option is specified in the block configuration. When this is enabled, if there are no transitions that satisfy the conditions, it returns to the original state and repeats the same utterance. In this case, it’s acceptable to have states without default transitions. In this application, the `好き` (like) state lacks a default transition, so if an unrelated utterance is made in this state, the same system utterance will be repeated.
+The `repeat_when_no_available_transitions` option is specified in the block configuration. When this is enabled, if there are no transitions that satisfy the conditions, it returns to the original state and repeats the same utterance. In this case, it’s acceptable to have states without default transitions. In this application, the `like-sandwich` state lacks a default transition, so if an unrelated utterance is made in this state, the same system utterance will be repeated.
 
 #### Handling Voice Input
 

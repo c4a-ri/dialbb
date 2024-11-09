@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DialBB ver. 0.8 Document &mdash; DialBB ver. 0.8 Document v0.8.0 documentation</title>
+  <title>DialBB ver. 0.9 Document &mdash; DialBB ver. 0.9 Document v0.9.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
@@ -15,7 +15,7 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=b3dab91b"></script>
+        <script src="_static/documentation_options.js?v=c20ff342"></script>
         <script src="_static/doctools.js?v=9a2dae69"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
@@ -33,7 +33,7 @@
           
           
           <a href="#" class="icon icon-home">
-            DialBB ver. 0.8 Document
+            DialBB ver. 0.9 Document
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -47,9 +47,10 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="01_intro.html">1. Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="02_concept.html">2. DialBB Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="04_sample_app.html">3. Sample Applications</a></li>
-<li class="toctree-l1"><a class="reference internal" href="05_framework.html">4. Framework Specifications</a></li>
-<li class="toctree-l1"><a class="reference internal" href="06_builtin_blocks.html">5. Built-in Block Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="03_tutorial.html">3. Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="04_framework.html">4. Framework Specifications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="05_builtin_blocks.html">5. Built-in Block Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="06_appendix.html">6. Appendix</a></li>
 </ul>
 
         </div>
@@ -58,7 +59,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="#">DialBB ver. 0.8 Document</a>
+          <a href="#">DialBB ver. 0.9 Document</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -66,7 +67,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">DialBB ver. 0.8 Document</li>
+      <li class="breadcrumb-item active">DialBB ver. 0.9 Document</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -76,35 +77,41 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="dialbb-ver-0-8-document">
-<h1>DialBB ver. 0.8 Document<a class="headerlink" href="#dialbb-ver-0-8-document" title="Link to this heading"></a></h1>
+  <section id="dialbb-ver-0-9-document">
+<h1>DialBB ver. 0.9 Document<a class="headerlink" href="#dialbb-ver-0-9-document" title="Link to this heading"></a></h1>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="01_intro.html">1. Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="02_concept.html">2. DialBB Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="04_sample_app.html">3. Sample Applications</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="04_sample_app.html#sample-applications-included-in-dialbb">3.1. Sample Applications Included in DialBB</a></li>
-<li class="toctree-l2"><a class="reference internal" href="04_sample_app.html#explanation-of-snips-stn-application">3.2. Explanation of Snips+STN Application</a></li>
+<li class="toctree-l1"><a class="reference internal" href="03_tutorial.html">3. Tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="03_tutorial.html#introduction">3.1. Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="03_tutorial.html#parrot-sample-application">3.2. Parrot Sample Application</a></li>
+<li class="toctree-l2"><a class="reference internal" href="03_tutorial.html#chatgpt-dialogue-application">3.3. ChatGPT Dialogue Application</a></li>
+<li class="toctree-l2"><a class="reference internal" href="03_tutorial.html#simple-application">3.4. Simple Application</a></li>
+<li class="toctree-l2"><a class="reference internal" href="03_tutorial.html#lab-application">3.5. Lab Application</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="05_framework.html">4. Framework Specifications</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="05_framework.html#input-and-output">4.1. Input and Output</a></li>
-<li class="toctree-l2"><a class="reference internal" href="05_framework.html#webapi">4.2. WebAPI</a></li>
-<li class="toctree-l2"><a class="reference internal" href="05_framework.html#configuration">4.3. Configuration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="05_framework.html#how-to-make-your-own-blocks">4.4. How to make your own blocks</a></li>
-<li class="toctree-l2"><a class="reference internal" href="05_framework.html#debug-mode">4.5. Debug Mode</a></li>
-<li class="toctree-l2"><a class="reference internal" href="05_framework.html#test-using-test-scenarios">4.6. Test Using Test Scenarios</a></li>
+<li class="toctree-l1"><a class="reference internal" href="04_framework.html">4. Framework Specifications</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="04_framework.html#input-and-output">4.1. Input and Output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="04_framework.html#webapi">4.2. WebAPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="04_framework.html#configuration">4.3. Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="04_framework.html#how-to-make-your-own-blocks">4.4. How to make your own blocks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="04_framework.html#debug-mode">4.5. Debug Mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="04_framework.html#test-using-test-scenarios">4.6. Test Using Test Scenarios</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="06_builtin_blocks.html">5. Built-in Block Classes</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="06_builtin_blocks.html#simple-canonicalizer-simple-string-canonicalizer-block">5.1. Simple Canonicalizer (Simple String Canonicalizer Block)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="06_builtin_blocks.html#whitespace-tokenizer-whitespace-based-word-segmentation-block">5.2. Whitespace Tokenizer (Whitespace-based Word Segmentation Block)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="06_builtin_blocks.html#snips-understander-language-understanding-block-using-snips">5.3. Snips Understander (Language Understanding Block using Snips)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="06_builtin_blocks.html#chatgpt-understander-language-understanding-block-using-chatgpt">5.4. ChatGPT Understander (Language Understanding Block using ChatGPT)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="06_builtin_blocks.html#stn-manager-state-transition-network-based-dialogue-management-block">5.5. STN Manager (State Transition Network-based Dialogue Management Block)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="06_builtin_blocks.html#chatgpt-dialogue-chatgpt-based-dialogue-block">5.6. ChatGPT Dialogue (ChatGPT-based Dialogue Block)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="06_builtin_blocks.html#spacy-based-ner-named-entity-recognizer-block-using-spacy">5.7. spaCy-Based NER (Named Entity Recognizer Block using spaCy)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="05_builtin_blocks.html">5. Built-in Block Classes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="05_builtin_blocks.html#simple-canonicalizer-simple-string-canonicalizer-block">5.1. Simple Canonicalizer (Simple String Canonicalizer Block)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="05_builtin_blocks.html#lr-crf-understander-language-understanding-block-using-logistic-regression-and-conditional-random-fields">5.2. LR-CRF Understander (Language Understanding Block using Logistic Regression and Conditional Random Fields)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="05_builtin_blocks.html#chatgpt-understander-language-understanding-block-using-chatgpt">5.3. ChatGPT Understander (Language Understanding Block using ChatGPT)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="05_builtin_blocks.html#stn-manager-state-transition-network-based-dialogue-management-block">5.4. STN Manager (State Transition Network-based Dialogue Management Block)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="05_builtin_blocks.html#chatgpt-dialogue-chatgpt-based-dialogue-block">5.5. ChatGPT Dialogue (ChatGPT-based Dialogue Block)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="05_builtin_blocks.html#spacy-based-ner-named-entity-recognizer-block-using-spacy">5.6. spaCy-Based NER (Named Entity Recognizer Block using spaCy)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="06_appendix.html">6. Appendix</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="06_appendix.html#discontinued-features">6.1. Discontinued Features</a></li>
 </ul>
 </li>
 </ul>

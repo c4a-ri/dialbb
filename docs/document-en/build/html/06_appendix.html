@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>2. DialBB Overview &mdash; DialBB ver. 0.9 Document v0.9.0 documentation</title>
+  <title>6. Appendix &mdash; DialBB ver. 0.9 Document v0.9.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
@@ -21,8 +21,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="3. Framework Specifications" href="04_framework.html" />
-    <link rel="prev" title="1. Introduction" href="01_intro.html" /> 
+    <link rel="prev" title="5. Built-in Block Classes" href="05_builtin_blocks.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -47,10 +46,19 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="01_intro.html">1. Introduction</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">2. DialBB Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="04_framework.html">3. Framework Specifications</a></li>
-<li class="toctree-l1"><a class="reference internal" href="05_builtin_blocks.html">4. Built-in Block Classes</a></li>
-<li class="toctree-l1"><a class="reference internal" href="06_appendix.html">5. Appendix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="02_concept.html">2. DialBB Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="03_tutorial.html">3. Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="04_framework.html">4. Framework Specifications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="05_builtin_blocks.html">5. Built-in Block Classes</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">6. Appendix</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#discontinued-features">6.1. Discontinued Features</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#snips-understander-built-in-block">6.1.1. Snips Understander Built-in Block</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#whitespace-tokenizer-and-sudachi-tokenizer-built-in-blocks">6.1.2. Whitespace Tokenizer and Sudachi Tokenizer Built-in Blocks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#snips-stn-sample-application">6.1.3. Snips+STN Sample Application</a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 
         </div>
@@ -67,9 +75,9 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active"><span class="section-number">2. </span>DialBB Overview</li>
+      <li class="breadcrumb-item active"><span class="section-number">6. </span>Appendix</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="_sources/02_concept.md.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/06_appendix.md.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -77,33 +85,30 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="dialbb-overview">
-<h1><span class="section-number">2. </span>DialBB Overview<a class="headerlink" href="#dialbb-overview" title="Link to this heading"></a></h1>
-<p>As mentioned in the introduction, DialBB is a framework for building dialogue systems.</p>
-<p>A framework does not stand alone as an application, but forms an application by providing data and additional programs.</p>
-<p>The basic architecture of a DialBB application is shown below.</p>
-<p><img alt="dialbb-arch" src="_images/dialbb-arch-en.jpg" /></p>
-<p>The main module creates and returns a system utterance by making modules called blocks sequentially
-process the data (including user utterances) inputted at each turn of the dialog. The inputted is data copied to data called blackboard <a class="footnote-reference brackets" href="#fn" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> in the main block. Each block takes some of the elements of the blackboard and returns data in
-dictionary format. The returned data is added to the blackboard. If an element with the same key already exists in the blackboard, it is overwritten.</p>
-<p>The type of block to be used is specified in the configuration file. Blocks can be either blocks provided by DialBB (built-in blocks) or blocks created by the application developer.</p>
-<p>The configuration file also specifies what data the main module sends to and receives from each block.</p>
-<p>Details are explained in the “<a class="reference internal" href="04_framework.html#framework"><span class="std std-ref">Framework Specifications</span></a>” section.</p>
-<hr class="footnotes docutils" />
-<aside class="footnote-list brackets">
-<aside class="footnote brackets" id="fn" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
-<p>Before ver. 0.2, it was called payload.</p>
-</aside>
-</aside>
+  <section id="appendix">
+<h1><span class="section-number">6. </span>Appendix<a class="headerlink" href="#appendix" title="Link to this heading"></a></h1>
+<section id="discontinued-features">
+<h2><span class="section-number">6.1. </span>Discontinued Features<a class="headerlink" href="#discontinued-features" title="Link to this heading"></a></h2>
+<section id="snips-understander-built-in-block">
+<h3><span class="section-number">6.1.1. </span>Snips Understander Built-in Block<a class="headerlink" href="#snips-understander-built-in-block" title="Link to this heading"></a></h3>
+<p>As Snips has become challenging to install with Python 3.9 and above, it was discontinued in version 0.9. Please use the LR-CRF Understander built-in block as an alternative.</p>
+</section>
+<section id="whitespace-tokenizer-and-sudachi-tokenizer-built-in-blocks">
+<h3><span class="section-number">6.1.2. </span>Whitespace Tokenizer and Sudachi Tokenizer Built-in Blocks<a class="headerlink" href="#whitespace-tokenizer-and-sudachi-tokenizer-built-in-blocks" title="Link to this heading"></a></h3>
+<p>These blocks were discontinued in version 0.9. If you use LR-CRF Understander or ChatGPT Understander, there is no need for the Tokenizer blocks.</p>
+</section>
+<section id="snips-stn-sample-application">
+<h3><span class="section-number">6.1.3. </span>Snips+STN Sample Application<a class="headerlink" href="#snips-stn-sample-application" title="Link to this heading"></a></h3>
+<p>This sample application was discontinued in version 0.9.</p>
+</section>
+</section>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="01_intro.html" class="btn btn-neutral float-left" title="1. Introduction" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="04_framework.html" class="btn btn-neutral float-right" title="3. Framework Specifications" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="05_builtin_blocks.html" class="btn btn-neutral float-left" title="5. Built-in Block Classes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>

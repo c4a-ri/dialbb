@@ -1,16 +1,16 @@
 # Appendix
 
-## 廃止された機能
+## Discontinued Features
 
-### Snips Understander組み込みブロック
+### Snips Understander Built-in Block
 
-SnipsがPython3.9以上ではインストールが困難なため，ver. 0.9で廃止されました．代わりにLR-CRF Understander組み込みブロックを用いてください．
+As Snips has become challenging to install with Python 3.9 and above, it was discontinued in version 0.9. Please use the LR-CRF Understander built-in block as an alternative.
 
-### Whitespace Tokenizer組み込みブロックおよびSudachi Tokenizer組み込みブロック
+### Whitespace Tokenizer and Sudachi Tokenizer Built-in Blocks
 
-ver. 0.9で廃止されました．LR-CRF UnderstanderやChatGPT Understanderを使えばTokenizerブロックを使う必要はありません．
+These blocks were discontinued in version 0.9. If you use LR-CRF Understander or ChatGPT Understander, there is no need for the Tokenizer blocks.
 
-### Snips+STNサンプルアプリケーション
+### Snips+STN Sample Application
 
-ver. 0.9で廃止されました．
+This sample application was discontinued in version 0.9.
 
