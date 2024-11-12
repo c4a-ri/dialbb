@@ -3,6 +3,11 @@
   <head>
     <meta charset="UTF-8">
     <title>DialBB Chat Interface</title>
+    <style>
+      input#submit_button {
+        float: right;
+      }
+    </style>
   </head>
   <body>
     <h1>DialBB Application Chat Interface</h1>
@@ -12,11 +17,21 @@
       <input type="submit" value="start dialogue" onClick="post_init()"/>
     </p>
     <ul id="chat"></ul>
-    <p>User utterance</p>
-    <p>
-        <input type="text" id="user_utterance" size=70/>
-        <input type="submit" id="submit_button" value="send" onClick="post_user_utterance()"/>
-    </p>
+    <table>
+      <tr>
+        <td>User utterance</td>
+        <td><input type="text" id="user_utterance" size=70/></td>
+      </tr>
+      <tr>
+        <td>aux_data</td>
+        <td><textarea type="text" id="aux_data" rows="1" cols="72"/></textarea></td>
+      </tr>
+      <tr>
+        <td></td>
+        <td><input type="submit" id="submit_button" value="send" onClick="post_user_utterance()"/></td>
+      </tr>
+    </table>
+
     <script src="assets/functions-for-test.js"></script>
   </body>
 </html>
