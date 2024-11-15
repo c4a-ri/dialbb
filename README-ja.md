@@ -21,7 +21,7 @@ DialBBのメインモジュールは，メソッド呼び出しまたはWeb API�
 
 DialBBを用いた研究に関する論文発表をする際には，以下の論文の引用をお願いします．
 
-- Mikio Nakano and Kazunori Komatani. 2024. [DialBB: A Dialogue System Development Framework as an Educational Material](https://aclanthology.org/2024.sigdial-1.56). In Proceedings of the 25th Annual Meeting of the Special Interest Group on Discourse and Dialogue (SIGDIAL-24), pages 664–668, Kyoto, Japan. Association for Computational Linguistics, 2024.
+- Mikio Nakano and Kazunori Komatani. [DialBB: A Dialogue System Development Framework as an Educational Material](https://aclanthology.org/2024.sigdial-1.56). In Proceedings of the 25th Annual Meeting of the Special Interest Group on Discourse and Dialogue (SIGDIAL-24), pages 664–668, Kyoto, Japan. Association for Computational Linguistics, 2024.
 
 
 
