@@ -39,12 +39,13 @@ function post_user_utterance() {
 	}
     const user_id = document.getElementById('user_id').value;
     const user_utterance = document.getElementById('user_utterance').value;
-	const aux_data = '{' + document.getElementById('aux_data').value + '}'
+	let aux_value = document.getElementById('aux_data').value;
+	const aux_data = aux_value ? aux_value.replace(/\r?\n/g, '') : '{}';
     try {
 		// Check json formatting?
 		JSON.parse(aux_data)
 	} catch (e) {
-		alert("Please set in JSON format.")
+		alert("Invalid JSON format.")
 		return
 	}
 	const listItem = document.createElement('li');
