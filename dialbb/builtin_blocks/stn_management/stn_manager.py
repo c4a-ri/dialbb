@@ -48,6 +48,7 @@ CONFIG_KEY_DESTINATION: str = "destination"
 CONFIG_KEY_FUNCTION_TO_GENERATE_UTTERANCE: str = "function_to_generate_utterance"
 CONFIG_KEY_ACKNOWLEDGEMENT_UTTERANCE_TYPE: str = "acknowledgement_utterance_type"
 CONFIG_KEY_DENIAL_UTTERANCE_TYPE: str = "denial_utterance_type"
+CONFIG_KEY_MULTI_PARTY: str = "multi_party"
 
 CONTEXT_KEY_SAVED_NLU_RESULT: str = "_key_saved_nlu_result"
 CONTEXT_KEY_SAVED_AUX_DATA: str = "_key_saved_aux_data"
@@ -162,6 +163,9 @@ class Manager(AbstractBlock):
                 = confirmation_request_info.get(CONFIG_KEY_DENIAL_UTTERANCE_TYPE)
             if not self._confirmation_request_denial_type:
                 abort_during_building(f"confirmation request denial utterance type is not specified.")
+
+        # Multi party dialogue. Use user_id's in dialogue history
+        self.multi_party = True if self.block_config.get(CONFIG_KEY_MULTI_PARTY) else False
 
         # dialogue context for each dialogue session  session id -> {key -> value}
         # セッション毎の対話文脈
@@ -345,7 +349,8 @@ class Manager(AbstractBlock):
                         self._previous_dialogue_context[session_id] = self._dialogue_context[session_id]
 
                 # update dialogue history
-                self._dialogue_context[session_id][CONTEXT_KEY_DIALOGUE_HISTORY].append({"speaker": "user",
+                user: str = user_id if self.multi_party else "user"
+                self._dialogue_context[session_id][CONTEXT_KEY_DIALOGUE_HISTORY].append({"speaker": user,
                                                                                          "utterance": sentence})
 
                 # find previous state
@@ -359,7 +364,6 @@ class Manager(AbstractBlock):
                 elif self._network.is_final_state_or_error_state(previous_state_name):  # already session finished:
                     self.log_debug("session already finished.")
                     return {"output_text": "This session has already finished.", "final": True, "aux_data": {}}
-
 
                 if type(nlu_result) == list:   # select nlu result from n-best candidates
                     additional_uu_types = []

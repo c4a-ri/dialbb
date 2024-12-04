@@ -1,7 +1,7 @@
 # DialBB: 対話システム構築フレームワーク
 
 
-ver.0.9.0
+ver.0.9.1
 
 [English](README.md)
 
