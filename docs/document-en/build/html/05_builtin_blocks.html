@@ -483,10 +483,13 @@ The following is an example.
 <p>Same as the Snips Understander.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">scenario_graph</span></code>: (boolean. Default value is <code class="docutils literal notranslate"><span class="pre">False</span></code>)</p>
-<p>If this value is <code class="docutils literal notranslate"><span class="pre">True</span></code>, the values in the <code class="docutils literal notranslate"><span class="pre">system</span> <span class="pre">utterance</span></code> and <code class="docutils literal notranslate"><span class="pre">user</span> <span class="pre">utterance</span> <span class="pre">example</span></code> columns of the scenario sheet are used to create the graph. This allows the scenario writer to intuitively see the state transition network.</p>
+<p>If this value is <code class="docutils literal notranslate"><span class="pre">true</span></code>, the values in the <code class="docutils literal notranslate"><span class="pre">system</span> <span class="pre">utterance</span></code> and <code class="docutils literal notranslate"><span class="pre">user</span> <span class="pre">utterance</span> <span class="pre">example</span></code> columns of the scenario sheet are used to create the graph. This allows the scenario writer to intuitively see the state transition network.</p>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">repeat_when_no_available_transitions</span></code> (Boolean. Default value is <code class="docutils literal notranslate"><span class="pre">False</span></code>)</p>
-<p>When this value is <code class="docutils literal notranslate"><span class="pre">True</span></code>, if there is no transition that matches the condition, the same utterance is repeated without transition.</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">repeat_when_no_available_transitions</span></code> (Boolean. Default value is <code class="docutils literal notranslate"><span class="pre">false</span></code>)</p>
+<p>When this value is <code class="docutils literal notranslate"><span class="pre">true</span></code>, if there is no transition that matches the condition, the same utterance is repeated without transition.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">multi_party</span></code> (Boolean. Deafault value is <code class="docutils literal notranslate"><span class="pre">false</span></code>)</p>
+<p>When this value is set to <code class="docutils literal notranslate"><span class="pre">true</span></code>, the value of <code class="docutils literal notranslate"><span class="pre">user_id</span></code> is included in the conversation history for <a class="reference internal" href="#context-information"><span class="std std-numref">Section 5.4.4.1</span></a> and in the prompts for built-in functions using large language models described in <code class="xref std std-numref docutils literal notranslate"><span class="pre">llm_functions</span></code>.</p>
 </li>
 </ul>
 </section>
@@ -707,7 +710,7 @@ In a final state, the system generates a system utterance and terminates the dia
 </ul>
 </section>
 <section id="built-in-functions-using-large-language-models">
-<h4><span class="section-number">5.4.6.2. </span>Built-in functions using large language models<a class="headerlink" href="#built-in-functions-using-large-language-models" title="Link to this heading"></a></h4>
+<span id="llm-functinos"></span><h4><span class="section-number">5.4.6.2. </span>Built-in functions using large language models<a class="headerlink" href="#built-in-functions-using-large-language-models" title="Link to this heading"></a></h4>
 <p>The functions <code class="docutils literal notranslate"><span class="pre">_check_with_llm(task)</span></code> and <code class="docutils literal notranslate"><span class="pre">_generate_with_llm(task)</span></code> use a large language model (currently only OpenAI’s ChatGPT) along with dialogue history to perform condition checks and text generation. Here are some examples:</p>
 <ul>
 <li><p>Example of a condition check:</p>

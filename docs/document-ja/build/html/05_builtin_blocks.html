@@ -90,7 +90,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#realization-in-system-utterance">5.5.5. システム発話中の変数や関数呼び出しの扱い</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#id23">5.5.6. 関数定義</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#id24">5.5.6.1. 組み込み関数</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#id25">5.5.6.2. 大規模言語モデルを用いた組み込み関数</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#llm-functinos">5.5.6.2. 大規模言語モデルを用いた組み込み関数</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#id26">5.5.6.3. 組み込み関数の簡略記法</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#custom-functions">5.5.6.4. 開発者による関数定義</a></li>
 </ul>
@@ -546,10 +546,13 @@
 <p>LR-CRF Understanderと同じです．</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">scenario_graph</span></code>: (ブール値．デフォルト値<code class="docutils literal notranslate"><span class="pre">False</span></code>）</p>
-<p>この値が<code class="docutils literal notranslate"><span class="pre">True</span></code>の場合，シナリオシートの<code class="docutils literal notranslate"><span class="pre">system</span> <span class="pre">utterance</span></code>カラムと<code class="docutils literal notranslate"><span class="pre">user</span> <span class="pre">utterance</span> <span class="pre">example</span></code>カラムの値を使って，グラフを作成します．これにより，シナリオ作成者が直感的に状態遷移ネットワークを確認できます．</p>
+<p>この値が<code class="docutils literal notranslate"><span class="pre">true</span></code>の場合，シナリオシートの<code class="docutils literal notranslate"><span class="pre">system</span> <span class="pre">utterance</span></code>カラムと<code class="docutils literal notranslate"><span class="pre">user</span> <span class="pre">utterance</span> <span class="pre">example</span></code>カラムの値を使って，グラフを作成します．これにより，シナリオ作成者が直感的に状態遷移ネットワークを確認できます．</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">repeat_when_no_available_transitions</span></code> （ブール値．デフォルト値<code class="docutils literal notranslate"><span class="pre">False</span></code>．ver. 0.4.0で追加）</p>
 <p>この値が<code class="docutils literal notranslate"><span class="pre">True</span></code>のとき，条件に合う遷移がないとき，遷移せず同じ発話を繰り返します．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">multi_party</span></code> （ブール値．デフォルト値<code class="docutils literal notranslate"><span class="pre">False</span></code>．ver. 0.9.1で追加）</p>
+<p>この値が<code class="docutils literal notranslate"><span class="pre">true</span></code>のとき，<a class="reference internal" href="#context-information"><span class="std std-numref">5.5.4.1 章</span></a>の対話履歴の内容、および、<a class="reference internal" href="#llm-functinos"><span class="std std-numref">5.5.6.2 章</span></a>の大規模言語モデルを用いる組み込み関数のプロンプトに入る対話履歴で、<code class="docutils literal notranslate"><span class="pre">user_id</span></code>の値が用いられます。</p>
 </li>
 </ul>
 </section>
@@ -670,6 +673,7 @@
 <span class="p">]</span>
 </pre></div>
 </div>
+<p>ブロックコンフィギュレーションの<code class="docutils literal notranslate"><span class="pre">multi_party</span></code>の値が<code class="docutils literal notranslate"><span class="pre">true</span></code>の時、<code class="docutils literal notranslate"><span class="pre">&quot;user&quot;</span></code>の代わりに、<code class="docutils literal notranslate"><span class="pre">user_id</span></code>の値を用います。</p>
 <p>これらに加えて新しいキーと値のペアをアクション関数内で追加することができます．</p>
 </section>
 <section id="arguments">
@@ -779,8 +783,8 @@
 </li>
 </ul>
 </section>
-<section id="id25">
-<h4><span class="section-number">5.5.6.2. </span>大規模言語モデルを用いた組み込み関数<a class="headerlink" href="#id25" title="Link to this heading"></a></h4>
+<section id="llm-functinos">
+<span id="id25"></span><h4><span class="section-number">5.5.6.2. </span>大規模言語モデルを用いた組み込み関数<a class="headerlink" href="#llm-functinos" title="Link to this heading"></a></h4>
 <p><code class="docutils literal notranslate"><span class="pre">_check_with_llm(task)</span></code>および<code class="docutils literal notranslate"><span class="pre">_generate_with_llm(task)</span></code>は，大規模言語モデル（現在はOpenAIのChatGPTのみ）と，対話履歴を用いて，条件の判定および文字列の生成を行います．以下が例です．</p>
 <ul>
 <li><p>条件判定の例</p>
