@@ -60,22 +60,32 @@ class ContextDB:
     def add_context(self, session_id: str, context: Dict[str, Any]) -> None:
 
         serialized_context = self._serialize_context(context)
-        self._context_collection.insert_one({KEY_SESSION_ID: session_id,
-                                             KEY_CONTEXT: serialized_context})
+        if self._context_collection.find_one({KEY_SESSION_ID: session_id}):
+            self._context_collection.find_one_and_update({KEY_SESSION_ID: session_id},
+                                                         {"$set": {KEY_CONTEXT: serialized_context}})
+        else:
+            self._context_collection.insert_one({KEY_SESSION_ID: session_id, KEY_CONTEXT: serialized_context})
 
-    def update_context(self, session_id: str, context: Dict[str, Any]):
-
-        serialized_context = self._serialize_context(context)
-        self._context_collection.find_one_and_update({KEY_SESSION_ID: session_id},
-                                                     {"$set": {KEY_CONTEXT: serialized_context}})
-
-    def get_context_information(self, session_id: str) -> Dict[str, Any]:
+    def get_context(self, session_id: str) -> Dict[str, Any]:
 
         document: Dict[str, Any] = self._context_collection.find_one({KEY_SESSION_ID: session_id})
         serialized_context: bytes = document.get(KEY_CONTEXT)
         context: Dict[str, Any] = self._deserialize_context(serialized_context)
         return context
 
+    def add_previous_context(self, session_id: str, context: Dict[str, Any]) -> None:
 
+        serialized_context = self._serialize_context(context)
+        if self._context_collection.find_one({KEY_SESSION_ID: session_id}):
+            self._context_collection.find_one_and_update({KEY_SESSION_ID: session_id},
+                                                         {"$set": {KEY_PREVIOUS_CONTEXT: serialized_context}})
+        else:
+            self._context_collection.insert_one({KEY_SESSION_ID: session_id, KEY_PREVIOUS_CONTEXT: serialized_context})
 
+    def get_previous_context(self, session_id: str) -> Dict[str, Any]:
+
+        document: Dict[str, Any] = self._context_collection.find_one({KEY_SESSION_ID: session_id})
+        serialized_context: bytes = document.get(KEY_PREVIOUS_CONTEXT)
+        context: Dict[str, Any] = self._deserialize_context(serialized_context)
+        return context
 

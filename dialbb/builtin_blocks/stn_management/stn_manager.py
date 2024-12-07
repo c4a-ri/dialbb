@@ -63,6 +63,7 @@ CONTEXT_KEY_CONFIG: str = "_config"
 CONTEXT_KEY_DIALOGUE_HISTORY: str = '_dialogue_history'
 CONTEXT_KEY_SUB_DIALOGUE_STACK: str = '_sub_dialogue_stack'
 CONTEXT_KEY_REACTION: str = '_reaction'
+CONTEXT_KEY_REQUESTING_CONFIRMATION: str = '_requesting_confirmation'
 
 INPUT_KEY_AUX_DATA: str = "aux_data"
 INPUT_KEY_SENTENCE: str = "sentence"
@@ -320,8 +321,11 @@ class Manager(AbstractBlock):
 
                 if self._use_context_db:
                     self._context_db.add_context(session_id, context)
+                    self._context_db.add_previous_context(session_id, context)  # unlikely to occur
                 else:
                     self._sessions2contexts[session_id] = context
+                    self._sessions2previous_contexts[session_id] = pickle.dumps(context)  # unlikely to occur
+
 
                 if type(nlu_result) == list:  # nbest result
                     nlu_result = nlu_result[0]
@@ -354,13 +358,13 @@ class Manager(AbstractBlock):
                 if aux_data.get(KEY_REWIND):  # revert
                     self.log_debug("Rewinding to the previous dialogue context.")
                     if self._use_context_db:
-                        context = self._context_db.get_previous_context(session_id, context)
+                        context = self._context_db.get_previous_context(session_id)
                     else:
                         context = pickle.loads(self._sessions2previous_contexts[session_id])
                     self._log_dialogue_context_for_debug(session_id, context)
                 else:  # save dialogue context
                     if self._use_context_db:
-                        self._context_db.add_previous_context(session_id, pickle.dumps(context))
+                        self._context_db.add_previous_context(session_id, context)
                     else:
                         self._sessions2previous_contexts[session_id] = pickle.dumps(context)
 
@@ -389,8 +393,8 @@ class Manager(AbstractBlock):
                     self.log_info(f"nlu result selected: {str(nlu_result)}", session_id=session_id)
 
                 # when requesting confirmation 確認要求発話の後のユーザ発話の処理
-                if self._requesting_confirmation.get(session_id):
-                    self._requesting_confirmation[session_id] = False
+                if context.get(CONTEXT_KEY_REQUESTING_CONFIRMATION):
+                    context[CONTEXT_KEY_REQUESTING_CONFIRMATION] = False
                     if aux_data.get(KEY_CONFIDENCE, 1.0) < self._input_confidence_threshold:  # confidence is low
                         new_state_name = previous_state_name  # no transition
                     else:
@@ -416,7 +420,7 @@ class Manager(AbstractBlock):
                     # request confirmation
                     self.log_debug("Requesting confirmation because input confidence is low.")
                     new_state_name: str = previous_state_name
-                    self._requesting_confirmation[session_id] = True
+                    context[CONTEXT_KEY_REQUESTING_CONFIRMATION] = True
 
                     # saving nlu result to use when user acknowledges confirmation request
                     context[CONTEXT_KEY_SAVED_NLU_RESULT] = nlu_result
@@ -471,7 +475,7 @@ class Manager(AbstractBlock):
             context[CONTEXT_KEY_CURRENT_STATE_NAME] = new_state_name
 
             # select utterance システム発話を選択
-            if self._requesting_confirmation.get(session_id):  # when requesting confirmation
+            if context[CONTEXT_KEY_REQUESTING_CONFIRMATION]:  # when requesting confirmation
                 output_text = self._generate_confirmation_request(self._confirmation_request_generation_function,
                                                                   context, nlu_result, session_id)
             elif asking_repetition:  # when asking repetition
@@ -485,8 +489,7 @@ class Manager(AbstractBlock):
                 output_text = f"{context[CONTEXT_KEY_REACTION]} {output_text}"
 
             context[CONTEXT_KEY_PREVIOUS_SYSTEM_UTTERANCE] = output_text
-            context[CONTEXT_KEY_DIALOGUE_HISTORY].append({"speaker": "system",
-                                                                                     "utterance": output_text})
+            context[CONTEXT_KEY_DIALOGUE_HISTORY].append({"speaker": "system", "utterance": output_text})
             context[CONTEXT_KEY_REACTION] = ""
 
             # check if the new state is a final state
