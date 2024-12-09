@@ -268,11 +268,30 @@ class Manager(AbstractBlock):
         result = nlu_results[0]  # return the top one if no transition or additional uu_types matches
         return result
 
+    def _add_context(self, session_id: str, context: Dict[str, Any]) -> None:
+        if self._use_context_db:
+            self._context_db.add_context(session_id, context)
+        else:
+            self._sessions2contexts[session_id] = context
+
     def _get_context(self, session_id: str) -> Dict[str, Any]:
         if self._use_context_db:
-            context: Dict[str, Any] = self._context_db.get_context_information(session_id)
+            context: Dict[str, Any] = self._context_db.get_context(session_id)
         else:
             context: Dict[str, Any] = self._sessions2contexts.get(session_id)
+        return context
+
+    def _add_previous_context(self, session_id: str, context: Dict[str, Any]) -> None:
+        if self._use_context_db:
+            self._context_db.add_previous_context(session_id, context)
+        else:
+            self._sessions2previous_contexts[session_id] = pickle.dumps(context)  # unlikely to be used
+
+    def _get_previous_context(self, session_id: str) -> Dict[str, Any]:
+        if self._use_context_db:
+            context = self._context_db.get_previous_context(session_id)
+        else:
+            context = pickle.loads(self._sessions2previous_contexts[session_id])
         return context
 
     def process(self, input_data: Dict[str, Any], session_id: str) -> Dict[str, Any]:
@@ -308,24 +327,22 @@ class Manager(AbstractBlock):
         self.log_debug("input: " + str(input_data), session_id=session_id)
 
         context: Dict[str, Any] = {}
+
         try:
-            context = self._get_context(session_id)
-            if not context: # first turn in the session
+            context: Dict[str, Any] = self._get_context(session_id)
+
+            if not context:  # first turn in the session
 
                 context = {CONTEXT_KEY_CONFIG: self.config,
                            CONTEXT_KEY_BLOCK_CONFIG: self.block_config,
                            CONTEXT_KEY_AUX_DATA: aux_data,
                            CONTEXT_KEY_DIALOGUE_HISTORY: [],
                            CONTEXT_KEY_SUB_DIALOGUE_STACK: [],
-                           CONTEXT_KEY_REACTION: ""}
+                           CONTEXT_KEY_REACTION: "",
+                           CONTEXT_KEY_REQUESTING_CONFIRMATION: False}
 
-                if self._use_context_db:
-                    self._context_db.add_context(session_id, context)
-                    self._context_db.add_previous_context(session_id, context)  # unlikely to occur
-                else:
-                    self._sessions2contexts[session_id] = context
-                    self._sessions2previous_contexts[session_id] = pickle.dumps(context)  # unlikely to occur
-
+                self._add_context(session_id, context)
+                self._add_previous_context(session_id, context)
 
                 if type(nlu_result) == list:  # nbest result
                     nlu_result = nlu_result[0]
@@ -334,7 +351,7 @@ class Manager(AbstractBlock):
                 prep_state: State = self._network.get_prep_state()
                 if prep_state:
                     prep_actions: List[Action] = prep_state.get_transitions()[0].get_actions()
-                    if prep_actions:
+                    if prep_actions:  # todo おかしい？
                         #self._perform_actions(prep_actions, nlu_result, aux_data, user_id, session_id, sentence)
                         # find destination state  遷移先の状態を見つける
                         new_state_name: str = self._transition(prep_state.get_name(), nlu_result, aux_data, context,
@@ -345,34 +362,33 @@ class Manager(AbstractBlock):
                     # move to initial state
                     new_state_name = INITIAL_STATE_NAME
                     context[CONTEXT_KEY_CURRENT_STATE_NAME] = new_state_name
-                    if self._use_context_db:
-                        self._context_db.add_previous_context(session_id, context)
-                    else:
-                        self._sessions2previous_contexts[session_id] = pickle.dumps(context)
+                    self._add_previous_context(session_id, context)
             else:  # non-first turn 2回目以降のターン
+                # find previous state
+                previous_state_name: str = context.get(CONTEXT_KEY_CURRENT_STATE_NAME, "")
+
+                ### for debug. to delete
+                # previous_context = self._get_previous_context(session_id)
+                # print(f"for debug: state: {context.get(CONTEXT_KEY_CURRENT_STATE_NAME)}, previous state: {previous_context.get(CONTEXT_KEY_CURRENT_STATE_NAME)}")
+
                 if DEBUG:  # logging for debug
                     self._log_dialogue_context_for_debug(session_id, context)
 
-                context[CONTEXT_KEY_AUX_DATA] = aux_data
-
                 if aux_data.get(KEY_REWIND):  # revert
-                    self.log_debug("Rewinding to the previous dialogue context.")
-                    if self._use_context_db:
-                        context = self._context_db.get_previous_context(session_id)
-                    else:
-                        context = pickle.loads(self._sessions2previous_contexts[session_id])
+                    context = self._get_previous_context(session_id)
+                    rewound_state_name: str = context.get(CONTEXT_KEY_CURRENT_STATE_NAME, "")
+                    self.log_debug(f"Rewinding to the previous dialogue context (from {previous_state_name} to {rewound_state_name}).",
+                                   session_id=session_id)
                     self._log_dialogue_context_for_debug(session_id, context)
+                    previous_state_name = rewound_state_name
                 else:  # save dialogue context
-                    if self._use_context_db:
-                        self._context_db.add_previous_context(session_id, context)
-                    else:
-                        self._sessions2previous_contexts[session_id] = pickle.dumps(context)
+                    self._add_previous_context(session_id, context)
+
+                context[CONTEXT_KEY_AUX_DATA] = aux_data
 
                 # update dialogue history
                 context[CONTEXT_KEY_DIALOGUE_HISTORY].append({"speaker": "user", "utterance": sentence})
 
-                # find previous state
-                previous_state_name = context.get(CONTEXT_KEY_CURRENT_STATE_NAME, "")
                 if previous_state_name == "":
                     self.log_error(f"can't find previous state for session.", session_id=session_id)
                     if DEBUG:
@@ -382,7 +398,6 @@ class Manager(AbstractBlock):
                 elif self._network.is_final_state_or_error_state(previous_state_name):  # already session finished:
                     self.log_debug("session already finished.")
                     return {"output_text": "This session has already finished.", "final": True, "aux_data": {}}
-
 
                 if type(nlu_result) == list:   # select nlu result from n-best candidates
                     additional_uu_types = []
@@ -418,7 +433,7 @@ class Manager(AbstractBlock):
                         and aux_data.get(KEY_CONFIDENCE, 1.0) < self._input_confidence_threshold:
 
                     # request confirmation
-                    self.log_debug("Requesting confirmation because input confidence is low.")
+                    self.log_debug("Requesting confirmation because input confidence is low.", session_id=session_id),
                     new_state_name: str = previous_state_name
                     context[CONTEXT_KEY_REQUESTING_CONFIRMATION] = True
 
@@ -508,6 +523,10 @@ class Manager(AbstractBlock):
         self.log_debug("output: " + str(output), session_id=session_id)
         if DEBUG:
             self._log_dialogue_context_for_debug(session_id, context)
+
+        # store context
+        self._add_context(session_id, context)
+
         return output
 
     def _log_dialogue_context_for_debug(self, session_id: str, context: Dict[str, Any]):
@@ -515,7 +534,8 @@ class Manager(AbstractBlock):
         del dialogue_context[CONTEXT_KEY_CONFIG]  # delete lengthy values
         del dialogue_context[CONTEXT_KEY_BLOCK_CONFIG]
         del dialogue_context[CONTEXT_KEY_DIALOGUE_HISTORY]
-        self.log_debug("dialogue_context: " + str(dialogue_context), session_id=session_id)
+        state: str = dialogue_context[CONTEXT_KEY_CURRENT_STATE_NAME]
+        self.log_debug(f"state: {state}, dialogue_context: {str(dialogue_context)}", session_id=session_id)
 
     def _substitute_expressions(self, text: str, session_id: str, context: Dict[str, Any], nlu_result: Dict[str, Any],
                                 aux_data: Dict[str, Any], user_id: str, sentence: str) -> str:
