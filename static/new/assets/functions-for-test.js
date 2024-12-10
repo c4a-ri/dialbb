@@ -1,12 +1,16 @@
 function add_system_utterance_to_chat(response_json) {
 	const listItem = document.createElement('li');
-	listItem.textContent = "System: " + response_json.system_utterance;
+	const aux_data = 'aux_data' in response_json ? JSON.stringify(response_json.aux_data) : ''
+	listItem.textContent = "System: " + response_json.system_utterance + 
+		"  [aux_data: " + aux_data + "]";
 	document.getElementById('chat').appendChild(listItem);
 }
 
 function add_system_utterance_to_chat_and_save_session_id(response_json) {
 	const listItem = document.createElement('li');
-	listItem.textContent = "System: " + response_json.system_utterance;
+	const aux_data = 'aux_data' in response_json ? JSON.stringify(response_json.aux_data) : ''
+	listItem.textContent = "System: " + response_json.system_utterance + 
+		"  [aux_data: " + aux_data + "]";
 	document.getElementById('chat').appendChild(listItem);
 	sessionStorage.setItem('session_id', response_json.session_id);
 }
@@ -35,14 +39,23 @@ function post_user_utterance() {
 	}
     const user_id = document.getElementById('user_id').value;
     const user_utterance = document.getElementById('user_utterance').value;
-    const listItem = document.createElement('li');
-    listItem.textContent = "User: " + user_utterance;
+	let aux_value = document.getElementById('aux_data').value;
+	const aux_data = aux_value ? aux_value.replace(/\r?\n/g, '') : '{}';
+    try {
+		// Check json formatting?
+		JSON.parse(aux_data)
+	} catch (e) {
+		alert("Invalid JSON format.")
+		return
+	}
+	const listItem = document.createElement('li');
+    listItem.textContent = "User: " + user_utterance + "  [aux_data: " + aux_data + "]";
     document.getElementById('chat').appendChild(listItem);
     const obj = {
 		"user_id" : user_id,
 		"session_id" : session_id,
         "user_utterance": user_utterance,
-        "aux_data": {}
+        "aux_data": JSON.parse(aux_data)
     };
 	const method = "POST";
 	const body = JSON.stringify(obj);
@@ -56,6 +69,7 @@ function post_user_utterance() {
 	    .then(response_json => add_system_utterance_to_chat(response_json))
         .catch(console.error);
 	document.getElementById('user_utterance').value = "";
+	document.getElementById('aux_data').value = "";
 
 }
 
