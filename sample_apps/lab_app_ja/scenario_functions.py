@@ -93,7 +93,7 @@ def generate_with_openai_gpt(prompt: str):
     while True:
         try:
             chat_completion = openai_client.with_options(timeout=10).chat.completions.create(
-                model="gpt-3.5-turbo",
+                model="gpt-4o-mini",
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.7,
             )

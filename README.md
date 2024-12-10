@@ -1,8 +1,8 @@
 # DialBB: A Framework for Building Dialogue Systems
 
-ver.0.9.0
+ver.0.9.1
 
-[日本語版](README-ja.md)
+[日本語](README-ja.md)
 
 ## Introduction
 

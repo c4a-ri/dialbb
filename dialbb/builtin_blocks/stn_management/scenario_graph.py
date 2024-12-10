@@ -73,7 +73,7 @@ def create_scenario_graph(scenario_df: DataFrame, config_dir: str, language: str
         su_label = ""
         i = 0
         while i < len(su_list):  # new line at every 10 char
-            su_label += su_list[i:i+10] + "\\n"
+            su_label += su_list[i:i+10].replace('"', '\\"') + "\\n"
             i += 10
         result += f'  "{state_name}" [shape = circle, label="<{state_name}>\\n{su_label}"];\n'
     result += "\n"

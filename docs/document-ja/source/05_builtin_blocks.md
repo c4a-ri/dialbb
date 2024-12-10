@@ -396,11 +396,15 @@ OpenAI社のChatGPTを用いて，ユーザ発話タイプ（インテントと�
 
 - `scenario_graph`: (ブール値．デフォルト値`False`）
 
-  この値が`True`の場合，シナリオシートの`system utterance`カラムと`user utterance example`カラムの値を使って，グラフを作成します．これにより，シナリオ作成者が直感的に状態遷移ネットワークを確認できます．
+  この値が`true`の場合，シナリオシートの`system utterance`カラムと`user utterance example`カラムの値を使って，グラフを作成します．これにより，シナリオ作成者が直感的に状態遷移ネットワークを確認できます．
 
 - `repeat_when_no_available_transitions` （ブール値．デフォルト値`False`．ver. 0.4.0で追加）
 
   この値が`True`のとき，条件に合う遷移がないとき，遷移せず同じ発話を繰り返します．
+
+- `multi_party` （ブール値．デフォルト値`False`．ver. 0.9.1で追加）
+
+  この値が`true`のとき，{numref}`context_information`の対話履歴の内容、および、{numref}`llm_functinos`の大規模言語モデルを用いる組み込み関数のプロンプトに入る対話履歴で、`user_id`の値が用いられます。
 
 (scenario)=
 
@@ -530,6 +534,7 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
 ]
 ```
 
+ブロックコンフィギュレーションの`multi_party`の値が`true`の時、`"user"`の代わりに、`user_id`の値を用います。
 
 これらに加えて新しいキーと値のペアをアクション関数内で追加することができます．
 
@@ -664,6 +669,8 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
   - `_generate_with_llm(task)`
 
     大規模言語モデル（現在はOpenAIのChatGPTのみ）を用いて文字列を生成します．後述します．
+
+(llm_functinos)=
 
 #### 大規模言語モデルを用いた組み込み関数
 

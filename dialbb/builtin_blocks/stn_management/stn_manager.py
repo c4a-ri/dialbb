@@ -50,6 +50,7 @@ CONFIG_KEY_DESTINATION: str = "destination"
 CONFIG_KEY_FUNCTION_TO_GENERATE_UTTERANCE: str = "function_to_generate_utterance"
 CONFIG_KEY_ACKNOWLEDGEMENT_UTTERANCE_TYPE: str = "acknowledgement_utterance_type"
 CONFIG_KEY_DENIAL_UTTERANCE_TYPE: str = "denial_utterance_type"
+CONFIG_KEY_MULTI_PARTY: str = "multi_party"
 CONFIG_KEY_CONTEXT_DB: str = "context_db"
 
 CONTEXT_KEY_SAVED_NLU_RESULT: str = "_key_saved_nlu_result"
@@ -166,6 +167,9 @@ class Manager(AbstractBlock):
                 = confirmation_request_info.get(CONFIG_KEY_DENIAL_UTTERANCE_TYPE)
             if not self._confirmation_request_denial_type:
                 abort_during_building(f"confirmation request denial utterance type is not specified.")
+
+        # Multi party dialogue. Use user_id's in dialogue history
+        self.multi_party = True if self.block_config.get(CONFIG_KEY_MULTI_PARTY) else False
 
         # dialogue context for each dialogue session  session id -> {key -> value}
         # セッション毎の対話文脈
@@ -388,6 +392,9 @@ class Manager(AbstractBlock):
 
                 # update dialogue history
                 context[CONTEXT_KEY_DIALOGUE_HISTORY].append({"speaker": "user", "utterance": sentence})
+                user: str = user_id if self.multi_party else "user"
+                self._dialogue_context[session_id][CONTEXT_KEY_DIALOGUE_HISTORY].append({"speaker": user,
+                                                                                         "utterance": sentence})
 
                 if previous_state_name == "":
                     self.log_error(f"can't find previous state for session.", session_id=session_id)

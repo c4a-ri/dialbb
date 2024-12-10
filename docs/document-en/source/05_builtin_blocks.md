@@ -342,11 +342,16 @@ It perfomrs dialogue management using a state-transition neetwork.
 
 - `scenario_graph`: (boolean. Default value is `False`)
 
-   If this value is `True`, the values in the `system utterance` and `user utterance example` columns of the scenario sheet are used to create the graph. This allows the scenario writer to intuitively see the state transition network.
+   If this value is `true`, the values in the `system utterance` and `user utterance example` columns of the scenario sheet are used to create the graph. This allows the scenario writer to intuitively see the state transition network.
 
-- `repeat_when_no_available_transitions` (Boolean. Default value is `False`)
+- `repeat_when_no_available_transitions` (Boolean. Default value is `false`)
 
-   When this value is `True`, if there is no transition that matches the condition, the same utterance is repeated without transition.
+   When this value is `true`, if there is no transition that matches the condition, the same utterance is repeated without transition.
+
+- `multi_party` (Boolean. Deafault value is `false`)
+
+   When this value is set to `true`, the value of `user_id` is included in the conversation history for {numref}`context_information` and in the prompts for built-in functions using large language models described in {numref}`llm_functions`.
+
 
 (scenario)=
 ### Dialogue Management Knowledge Description
@@ -611,6 +616,7 @@ The built-in functions are as follows:
      Generates a string using a large language model (currently only OpenAI's ChatGPT). More details follow.
 
 
+(llm_functinos)=
 #### Built-in functions using large language models
 
 The functions `_check_with_llm(task)` and `_generate_with_llm(task)` use a large language model (currently only OpenAI's ChatGPT) along with dialogue history to perform condition checks and text generation. Here are some examples:
