@@ -93,10 +93,11 @@
 <li class="toctree-l3"><a class="reference internal" href="#continuous-transition">5.4.8. Continuous Transition</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#dealing-with-multiple-language-understanding-results">5.4.9. Dealing with Multiple Language Understanding Results</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#subdialogue">5.4.10. Subdialogue</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#advanced-mechanisms-for-handling-speech-input">5.4.11. Advanced Mechanisms for Handling Speech Input</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#additional-block-configuration-parameters">5.4.11.1. Additional block configuration parameters</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#adding-built-in-condition-functions">5.4.11.2. Adding built-in condition functions</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#ignoring-the-last-incorrect-input">5.4.11.3. Ignoring the last incorrect input</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#saving-context-information-in-an-external-database">5.4.11. Saving Context Information in an External Database</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#advanced-mechanisms-for-handling-speech-input">5.4.12. Advanced Mechanisms for Handling Speech Input</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#additional-block-configuration-parameters">5.4.12.1. Additional block configuration parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#adding-built-in-condition-functions">5.4.12.2. Adding built-in condition functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ignoring-the-last-incorrect-input">5.4.12.3. Ignoring the last incorrect input</a></li>
 </ul>
 </li>
 </ul>
@@ -841,10 +842,37 @@ In the case of a variable reference, the variable name without the <code class="
 For example, if the destination state name is of the form <code class="docutils literal notranslate"><span class="pre">#gosub:request_confirmation:confirmed</span></code>, a subdialogue starting with <code class="docutils literal notranslate"><span class="pre">request_confirmatin</span></code> is executed, and when the destination state becomes <code class="docutils literal notranslate"><span class="pre">:exit</span></code>, it returns to <code class="docutils literal notranslate"><span class="pre">confirmed</span></code>. When the destination becomes <code class="docutils literal notranslate"><span class="pre">:exit</span></code>, it returns to <code class="docutils literal notranslate"><span class="pre">confirmed</span></code>.
 It is also possible to transition to a subdialogue within a subdialogue.</p>
 </section>
+<section id="saving-context-information-in-an-external-database">
+<h3><span class="section-number">5.4.11. </span>Saving Context Information in an External Database<a class="headerlink" href="#saving-context-information-in-an-external-database" title="Link to this heading"></a></h3>
+<p>When operating the DialBB application as a web server, using a load balancer to distribute processing across multiple instances can handle request surges efficiently. By saving context information in an external database (MongoDB), a single session can be processed by different instances. (Feature added in version 0.10.0)</p>
+<p>To use an external database, specify <code class="docutils literal notranslate"><span class="pre">context_db</span></code> element like the following in the block configuration:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">context_db</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">host</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">localhost</span>
+<span class="w">  </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">27017</span>
+<span class="w">  </span><span class="nt">user</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">admin</span>
+<span class="w">  </span><span class="nt">password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">password</span>
+</pre></div>
+</div>
+<p>Each key is defined as follows:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">host</span></code> (str)</p>
+<p>The hostname where MongoDB is running.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">port</span></code> (int, default value: <code class="docutils literal notranslate"><span class="pre">27017</span></code>)</p>
+<p>The port number used to access MongoDB.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">user</span></code> (str)</p>
+<p>The username for accessing MongoDB.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">password</span></code> (str)</p>
+<p>The password for accessing MongoDB.</p>
+</li>
+</ul>
+</section>
 <section id="advanced-mechanisms-for-handling-speech-input">
-<h3><span class="section-number">5.4.11. </span>Advanced Mechanisms for Handling Speech Input<a class="headerlink" href="#advanced-mechanisms-for-handling-speech-input" title="Link to this heading"></a></h3>
+<h3><span class="section-number">5.4.12. </span>Advanced Mechanisms for Handling Speech Input<a class="headerlink" href="#advanced-mechanisms-for-handling-speech-input" title="Link to this heading"></a></h3>
 <section id="additional-block-configuration-parameters">
-<h4><span class="section-number">5.4.11.1. </span>Additional block configuration parameters<a class="headerlink" href="#additional-block-configuration-parameters" title="Link to this heading"></a></h4>
+<h4><span class="section-number">5.4.12.1. </span>Additional block configuration parameters<a class="headerlink" href="#additional-block-configuration-parameters" title="Link to this heading"></a></h4>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">input_confidence_threshold</span></code> (float; default value <code class="docutils literal notranslate"><span class="pre">1.0</span></code>)
 If the input is a speech recognition result and its confidence is less than this value, the confidence is considered low. The confidence of the input is the value of <code class="docutils literal notranslate"><span class="pre">confidence</span></code> in <code class="docutils literal notranslate"><span class="pre">aux_data</span></code>. If there is no <code class="docutils literal notranslate"><span class="pre">confidence</span></code> key in <code class="docutils literal notranslate"><span class="pre">aux_data</span></code>, the confidence is considered high. In the case of low confidence, the process depends on the value of the parameter described below.</p></li>
@@ -886,7 +914,7 @@ Then, the next process is performed in response to the user’s utterance.</p>
 </ul>
 </section>
 <section id="adding-built-in-condition-functions">
-<h4><span class="section-number">5.4.11.2. </span>Adding built-in condition functions<a class="headerlink" href="#adding-built-in-condition-functions" title="Link to this heading"></a></h4>
+<h4><span class="section-number">5.4.12.2. </span>Adding built-in condition functions<a class="headerlink" href="#adding-built-in-condition-functions" title="Link to this heading"></a></h4>
 <p>The following built-in condition functions have been added</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">_confidence_is_low()</span></code></p>
@@ -898,7 +926,7 @@ Then, the next process is performed in response to the user’s utterance.</p>
 </ul>
 </section>
 <section id="ignoring-the-last-incorrect-input">
-<h4><span class="section-number">5.4.11.3. </span>Ignoring the last incorrect input<a class="headerlink" href="#ignoring-the-last-incorrect-input" title="Link to this heading"></a></h4>
+<h4><span class="section-number">5.4.12.3. </span>Ignoring the last incorrect input<a class="headerlink" href="#ignoring-the-last-incorrect-input" title="Link to this heading"></a></h4>
 <p>If the value of <code class="docutils literal notranslate"><span class="pre">rewind</span></code> in the input <code class="docutils literal notranslate"><span class="pre">aux_data</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code>, a transition is made from the state before the last response.
 Any changes to the dialog context due to actions taken during the previous response will also be undone.
 This function is used when a user utterance is accidentally split in the middle during speech recognition and only the first half of the utterance is responded to.</p>

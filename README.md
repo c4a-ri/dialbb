@@ -1,8 +1,8 @@
 # DialBB: A Framework for Building Dialogue Systems
 
-ver.0.9.1
+ver.0.10.0
 
-[日本語](README-ja.md)
+[<img src="./docs/images/japan_national_flag.jpg" width="5%">日本語](README-ja.md)
 
 ## Introduction
 

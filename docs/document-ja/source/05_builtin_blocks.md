@@ -402,7 +402,7 @@ OpenAI社のChatGPTを用いて，ユーザ発話タイプ（インテントと�
 
   この値が`True`のとき，条件に合う遷移がないとき，遷移せず同じ発話を繰り返します．
 
-- `multi_party` （ブール値．デフォルト値`False`．ver. 0.9.1で追加）
+- `multi_party` （ブール値．デフォルト値`False`．ver. 0.10.0で追加）
 
   この値が`true`のとき，{numref}`context_information`の対話履歴の内容、および、{numref}`llm_functinos`の大規模言語モデルを用いる組み込み関数のプロンプトに入る対話履歴で、`user_id`の値が用いられます。
 
@@ -836,6 +836,38 @@ def get_ramen_location(ramen: str, variable: str, context: Dict[str, Any]) -> No
 subdialogueの中でsubdialogueに遷移することも可能です．
 
 (handling_speech_input)=
+
+### 外部データベースへの文脈情報の保存
+
+DialBBアプリケーションをWebサーバとして動作させる場合、リクエストが集中した際にロードバランサを使って複数インスタンスでに処理を分散させる場合、文脈情報を外部DB（MongoDB)に保存することで、一つのセッションを異なるインスタンスで処理することが可能です。(ver. 0.10.0で追加)
+
+外部DBを使うには、ブロックコンフィギュレーションに以下のように`context_db`要素を指定します。
+
+```yaml
+context_db:
+  host: localhost
+  port: 27017
+  user: admin
+  password: password
+```
+
+各キーは以下です。
+
+- `host` （str)
+
+  MongoDBが動作しているホスト名
+
+- `port` (int. デフォルト値`27017`)
+
+  MongoDBのアクセスのためのポート番号
+
+- `user` （str)
+
+  MongoDBのアクセスのためのユーザ名
+
+- `password` （str)
+
+  MongoDBのアクセスのためのパスワード
 
 ### 音声入力を扱うための仕組み
 

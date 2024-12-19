@@ -777,6 +777,38 @@ If the destination state name is of the form `#gosub:<state name1>:<state name2>
 For example, if the destination state name is of the form `#gosub:request_confirmation:confirmed`, a subdialogue starting with `request_confirmatin` is executed, and when the destination state becomes `:exit`, it returns to `confirmed`. When the destination becomes `:exit`, it returns to `confirmed`.
 It is also possible to transition to a subdialogue within a subdialogue.
 
+### Saving Context Information in an External Database
+
+When operating the DialBB application as a web server, using a load balancer to distribute processing across multiple instances can handle request surges efficiently. By saving context information in an external database (MongoDB), a single session can be processed by different instances. (Feature added in version 0.10.0)
+
+To use an external database, specify `context_db` element like the following in the block configuration:
+
+```yaml
+context_db:
+  host: localhost
+  port: 27017
+  user: admin
+  password: password
+```
+
+Each key is defined as follows:
+
+- `host` (str)
+
+  The hostname where MongoDB is running.
+
+- `port` (int, default value: `27017`)
+
+  The port number used to access MongoDB.
+
+- `user` (str)
+
+  The username for accessing MongoDB.
+
+- `password` (str)
+
+  The password for accessing MongoDB.
+
 ### Advanced Mechanisms for Handling Speech Input
 
 #### Additional block configuration parameters

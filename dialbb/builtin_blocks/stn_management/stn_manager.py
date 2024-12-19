@@ -183,11 +183,6 @@ class Manager(AbstractBlock):
             # session_id -> context
             self._sessions2previous_contexts: Dict[str, bytes] = {}
 
-        # session id -> whether requesting confirmation or not
-        #self._requesting_confirmation: Dict[str, bool] = {}
-        # session id -> whether asking repetition or not
-        #self._asking_repetition: Dict[str, bool] = {}
-
         # create network
         sheet_name = self.block_config.get(CONFIG_KEY_SCENARIO_SHEET, SHEET_NAME_SCENARIO)
         google_sheet_config: Dict[str, str] = self.block_config.get(CONFIG_KEY_KNOWLEDGE_GOOGLE_SHEET)
@@ -211,7 +206,7 @@ class Manager(AbstractBlock):
 
     def get_df_from_gs(self, google_sheet_config: Dict[str, str], scenario_sheet: str) -> DataFrame:
         """
-        gets scenario dataframe from google sheet
+        gets scenario dataframe from Google sheet
         シナリオDataFrameをGoogle Sheetから取得
         :param google_sheet_config: configuration for accessing google sheet
         :param scenario_sheet: the name of scenario tab
@@ -315,7 +310,8 @@ class Manager(AbstractBlock):
         """
 
         user_id: str = input_data['user_id']
-        nlu_result: Union[Dict[str, Any], List[Dict[str, Any]]] = input_data.get('nlu_result', {KEY_TYPE: "", "slots": {}})
+        nlu_result: Union[Dict[str, Any], List[Dict[str, Any]]] = input_data.get('nlu_result',
+                                                                                 {KEY_TYPE: "", "slots": {}})
         if not nlu_result:
             nlu_result = {KEY_TYPE: "", "slots": {}}
         aux_data: Dict[str, Any] = input_data.get(INPUT_KEY_AUX_DATA)
@@ -355,8 +351,8 @@ class Manager(AbstractBlock):
                 prep_state: State = self._network.get_prep_state()
                 if prep_state:
                     prep_actions: List[Action] = prep_state.get_transitions()[0].get_actions()
-                    if prep_actions:  # todo おかしい？
-                        #self._perform_actions(prep_actions, nlu_result, aux_data, user_id, session_id, sentence)
+                    if prep_actions:
+                        # self._perform_actions(prep_actions, nlu_result, aux_data, user_id, session_id, sentence)
                         # find destination state  遷移先の状態を見つける
                         new_state_name: str = self._transition(prep_state.get_name(), nlu_result, aux_data, context,
                                                                user_id, session_id, sentence)
@@ -364,7 +360,7 @@ class Manager(AbstractBlock):
                         context[CONTEXT_KEY_CURRENT_STATE_NAME] = new_state_name
                 else:
                     # move to initial state
-                    new_state_name = INITIAL_STATE_NAME
+                    new_state_name: str = INITIAL_STATE_NAME
                     context[CONTEXT_KEY_CURRENT_STATE_NAME] = new_state_name
                     self._add_previous_context(session_id, context)
             else:  # non-first turn 2回目以降のターン
@@ -391,10 +387,8 @@ class Manager(AbstractBlock):
                 context[CONTEXT_KEY_AUX_DATA] = aux_data
 
                 # update dialogue history
-                context[CONTEXT_KEY_DIALOGUE_HISTORY].append({"speaker": "user", "utterance": sentence})
                 user: str = user_id if self.multi_party else "user"
-                self._dialogue_context[session_id][CONTEXT_KEY_DIALOGUE_HISTORY].append({"speaker": user,
-                                                                                         "utterance": sentence})
+                context[CONTEXT_KEY_DIALOGUE_HISTORY].append({"speaker": user, "utterance": sentence})
 
                 if previous_state_name == "":
                     self.log_error(f"can't find previous state for session.", session_id=session_id)
