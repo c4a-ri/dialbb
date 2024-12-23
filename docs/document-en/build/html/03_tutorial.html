@@ -457,7 +457,7 @@ The language understanding result consists of a type and a set of slots.</p>
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Y</p></td>
-<td><p>like-sandwich好き</p></td>
+<td><p>like-sandwich</p></td>
 <td><p>what kind of  sandwich do you like?</p></td>
 <td><p>I like egg  salad sandwiches.</p></td>
 <td><p>tell-like-specific-sandwich</p></td>
@@ -486,7 +486,7 @@ The language understanding result consists of a type and a set of slots.</p>
 <tr class="row-odd"><td><p>Y</p></td>
 <td><p>like-sandwich</p></td>
 <td><p></p></td>
-<td><p>Any  sandwich is fine with me.近所の街中華のラーメンが好きなんだよね</p></td>
+<td><p>Any  sandwich is fine with me.</p></td>
 <td><p></p></td>
 <td><p></p></td>
 <td><p></p></td>
@@ -546,7 +546,7 @@ The language understanding result consists of a type and a set of slots.</p>
 <section id="scenario-graph">
 <h4><span class="section-number">3.4.4.7. </span>Scenario Graph<a class="headerlink" href="#scenario-graph" title="Link to this heading"></a></h4>
 <p>If Graphviz is installed, the application will output a graph (<code class="docutils literal notranslate"><span class="pre">_scenario_graph.jpg</span></code>) upon startup. This graph, or scenario graph, utilizes the system utterances from the <code class="docutils literal notranslate"><span class="pre">system</span> <span class="pre">utterance</span></code> column and the example user utterances from the <code class="docutils literal notranslate"><span class="pre">user</span> <span class="pre">utterance</span> <span class="pre">example</span></code> column to illustrate the dialogue flow. Below is the scenario graph for this application.</p>
-<p><img alt="scenario_graph_simple_ja" src="../../images/scenario_graph_simple_en.jpg" /></p>
+<p><img alt="scenario_graph_simple_ja" src="_images/scenario_graph_simple_en.jpg" /></p>
 </section>
 </section>
 <section id="utilizing-n-best-language-understanding-results">
@@ -681,7 +681,7 @@ Start the application with the following command:</p>
 </section>
 <section id="reaction-utterance-generation">
 <h4><span class="section-number">3.5.5.3. </span>Reaction Utterance Generation<a class="headerlink" href="#reaction-utterance-generation" title="Link to this heading"></a></h4>
-<p>In the <code class="docutils literal notranslate"><span class="pre">actions</span></code> section of the scenario, there is <code class="docutils literal notranslate"><span class="pre">_reaction=&quot;Great!&quot;</span></code>. <code class="docutils literal notranslate"><span class="pre">_reaction</span></code> is a special variable in the context information that appends its value to the beginning of the next system utterance. For example, if the scenario transitions to a state called <code class="docutils literal notranslate"><span class="pre">好き</span></code> after this, the system utterance <code class="docutils literal notranslate"><span class="pre">what</span> <span class="pre">kind</span> <span class="pre">of</span> <span class="pre">sandwich</span> <span class="pre">do</span> <span class="pre">you</span> <span class="pre">like?</span></code> will have <code class="docutils literal notranslate"><span class="pre">Great!</span></code> added at the start, resulting in <code class="docutils literal notranslate"><span class="pre">Great!</span> <span class="pre">what</span> <span class="pre">kind</span> <span class="pre">of</span> <span class="pre">sandwich</span> <span class="pre">do</span> <span class="pre">you</span> <span class="pre">like?</span></code>.</p>
+<p>In the <code class="docutils literal notranslate"><span class="pre">actions</span></code> section of the scenario, there is <code class="docutils literal notranslate"><span class="pre">_reaction=&quot;Great!&quot;</span></code>. <code class="docutils literal notranslate"><span class="pre">_reaction</span></code> is a special variable in the context information that appends its value to the beginning of the next system utterance. For example, if the scenario transitions to a state called <code class="docutils literal notranslate"><span class="pre">like-sandwich</span></code> after this, the system utterance <code class="docutils literal notranslate"><span class="pre">what</span> <span class="pre">kind</span> <span class="pre">of</span> <span class="pre">sandwich</span> <span class="pre">do</span> <span class="pre">you</span> <span class="pre">like?</span></code> will have <code class="docutils literal notranslate"><span class="pre">Great!</span></code> added at the start, resulting in <code class="docutils literal notranslate"><span class="pre">Great!</span> <span class="pre">what</span> <span class="pre">kind</span> <span class="pre">of</span> <span class="pre">sandwich</span> <span class="pre">do</span> <span class="pre">you</span> <span class="pre">like?</span></code>.</p>
 <p>By including such reactions, the system can acknowledge the user’s previous input, enhancing the user experience by conveying that it is actively listening to what the user is saying.</p>
 </section>
 <section id="utterance-generation-and-condition-evaluation-using-chatgpt">
