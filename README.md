@@ -1,14 +1,14 @@
 # DialBB: A Framework for Building Dialogue Systems
 
-ver.0.9.0
+ver.0.10.0
 
-[日本語版](README-ja.md)
+[<img src="./docs/images/japan_national_flag.jpg" width="5%">日本語](README-ja.md)
 
 ## Introduction
 
 DialBB is a framework for building dialogue systems developed by [C4A Research Institute, Inc.](https://www.c4a.jp/en/) DialBB has been developed as an information technology educational material. DialBB has *extensible* architecture and is written in *readable codes*. DialBB enables the development of dialogue systems by combining modules called *building blocks*. Developers can easily build simple systems using built-in blocks and can build advanced systems using their own developed blocks. 
 
-The main module of DialBB application receives a user utterance input in JSON format via method calls or via the Web API and returns a system utterance in JSON format. The main module works by calling blocks, in sequence. Each block takes JSON format (data in Python dictionary) and returns the data in JSON format. The class and input/output of each block are specified in the configuration file for each application.
+The main module of DialBB application receives a user utterance input in JSON format via method calls or via the Web API returns a system utterance in JSON format. The main module works by calling blocks, in sequence. Each block takes JSON format (data in Python dictionary) and returns the data in JSON format. The class and input/output of each block are specified in the configuration file for each application.
 
 
 ![dialbb-arch-en](docs/images/dialbb-arch-en.jpg)
@@ -16,6 +16,12 @@ The main module of DialBB application receives a user utterance input in JSON fo
 ## Documents
 
 Refer to the [document](https://c4a-ri.github.io/dialbb/document-en/build/html/) for detailed specification and the way of application development. Documentation for other than the latest version can be found in the [Links](https://c4a-ri.github.io/dialbb/) section.
+
+## Citation
+
+Please cite the following paper when publishing a paper on work that uses DialBB.
+
+- Mikio Nakano and Kazunori Komatani. [DialBB: A Dialogue System Development Framework as an Educational Material](https://aclanthology.org/2024.sigdial-1.56). In Proceedings of the 25th Annual Meeting of the Special Interest Group on Discourse and Dialogue (SIGDIAL-24), pages 664–668, Kyoto, Japan. Association for Computational Linguistics, 2024
 
 ## License
 

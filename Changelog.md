@@ -1,6 +1,19 @@
 # Changelog
 
-## 0.9.0 
+## 0.10.0 (2024.12.?)
+
+- License is changed to Apache License 2.0
+	
+- STN Manager Buitlin Block
+
+  - Use `user_id` in dialogue history for multi-party dialogues
+
+  - Storing context information in an external database allowed
+
+- Input of `aux_data` in the test frontend enabled
+
+
+## 0.9.0 (2024.11.9)
 
 - Snips Understander builtin block deleted
 

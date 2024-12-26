@@ -1,6 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
+# Copyright 2024 C4A Research Institute, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
 # send_test_requests.py
 #   automatically sends test requests
 #   自動でリクエストを送る
@@ -44,13 +58,15 @@ if __name__ == '__main__':
         session_id = ""
         for request in requests:
             if session_id == "":
-                request['user_id'] = USER_ID
+                if not request.get('user_id'):
+                    request['user_id'] = USER_ID
                 print("request: " + str(request))
                 session_log.append({"request": request})
                 response: Dict[str, Any] = dialogue_processor.process(request, initial=True)
                 session_id: str = response['session_id']
             else:
-                request['user_id'] = USER_ID
+                if not request.get('user_id'):
+                    request['user_id'] = USER_ID
                 request["session_id"] = session_id
                 print("request: " + str(request))
                 session_log.append({"request": request})
