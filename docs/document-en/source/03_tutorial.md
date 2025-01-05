@@ -310,10 +310,10 @@ A portion of the scenario description is provided below.
 
 | flag | state             | system  utterance                   | user utterance  example                                      | user utterance  type        | conditions                                      | actions                                    | next state         |
 | ---- | ----------------- | ----------------------------------- | ------------------------------------------------------------ | --------------------------- | ----------------------------------------------- | ------------------------------------------ | ------------------ |
-| Y    | like-sandwich好き | what kind of  sandwich do you like? | I like egg  salad sandwiches.                                | tell-like-specific-sandwich | \_eq(#favorite-sandwich,  "egg salad sandwich") | _set(&topic_sandwich,  #favorite-sandwich) | egg-salad-sandwich |
+| Y    | like-sandwich | what kind of  sandwich do you like? | I like egg  salad sandwiches.                                | tell-like-specific-sandwich | \_eq(#favorite-sandwich,  "egg salad sandwich") | _set(&topic_sandwich,  #favorite-sandwich) | egg-salad-sandwich |
 | Y    | like-sandwich     |                                     | I  like roast beef sandwiches.                               | tell-like-specific-sandwich | is_known_sandwich(#favorite-sandwich)           | _set(&topic_sandwich,#favorite-sandwich)   | known-sandwich     |
 | Y    | like-sandwich     |                                     | I  like tomato and egg sandwich.                             | tell-like-specific-sandwich | is_novel_sandwich(#favorite-sandwich)           |                                            | new-sandwich       |
-| Y    | like-sandwich     |                                     | Any  sandwich is fine with me.近所の街中華のラーメンが好きなんだよね |                             |                                                 |                                            | #final             |
+| Y    | like-sandwich     |                                     | Any  sandwich is fine with me. |                             |                                                 |                                            | #final             |
 
 Each row represents a single transition.
 
@@ -542,7 +542,7 @@ This shorthand makes the scenario scripting more concise and easier to read.
 
 #### Reaction Utterance Generation
 
-In the `actions` section of the scenario, there is `_reaction="Great!"`. `_reaction` is a special variable in the context information that appends its value to the beginning of the next system utterance. For example, if the scenario transitions to a state called `好き` after this, the system utterance `what kind of sandwich do you like?` will have `Great!` added at the start, resulting in `Great! what kind of sandwich do you like?`.
+In the `actions` section of the scenario, there is `_reaction="Great!"`. `_reaction` is a special variable in the context information that appends its value to the beginning of the next system utterance. For example, if the scenario transitions to a state called `like-sandwich` after this, the system utterance `what kind of sandwich do you like?` will have `Great!` added at the start, resulting in `Great! what kind of sandwich do you like?`.
 
 By including such reactions, the system can acknowledge the user’s previous input, enhancing the user experience by conveying that it is actively listening to what the user is saying.
 
