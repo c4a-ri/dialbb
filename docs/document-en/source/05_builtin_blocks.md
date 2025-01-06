@@ -342,11 +342,16 @@ It perfomrs dialogue management using a state-transition neetwork.
 
 - `scenario_graph`: (boolean. Default value is `False`)
 
-   If this value is `True`, the values in the `system utterance` and `user utterance example` columns of the scenario sheet are used to create the graph. This allows the scenario writer to intuitively see the state transition network.
+   If this value is `true`, the values in the `system utterance` and `user utterance example` columns of the scenario sheet are used to create the graph. This allows the scenario writer to intuitively see the state transition network.
 
-- `repeat_when_no_available_transitions` (Boolean. Default value is `False`)
+- `repeat_when_no_available_transitions` (Boolean. Default value is `false`)
 
-   When this value is `True`, if there is no transition that matches the condition, the same utterance is repeated without transition.
+   When this value is `true`, if there is no transition that matches the condition, the same utterance is repeated without transition.
+
+- `multi_party` (Boolean. Deafault value is `false`)
+
+   When this value is set to `true`, the value of `user_id` is included in the conversation history for {numref}`context_information` and in the prompts for built-in functions using large language models described in {numref}`llm_functions`.
+
 
 (scenario)=
 ### Dialogue Management Knowledge Description
@@ -611,6 +616,7 @@ The built-in functions are as follows:
      Generates a string using a large language model (currently only OpenAI's ChatGPT). More details follow.
 
 
+(llm_functinos)=
 #### Built-in functions using large language models
 
 The functions `_check_with_llm(task)` and `_generate_with_llm(task)` use a large language model (currently only OpenAI's ChatGPT) along with dialogue history to perform condition checks and text generation. Here are some examples:
@@ -770,6 +776,38 @@ Starting from the top of the list, check whether the `type` value of a candidate
 If the destination state name is of the form `#gosub:<state name1>:<state name2>`, it transitions to the state `<state name1>` and executes a subdialogue starting there. If the destination state is `:exit`, it moves to the state `<state name2>`.
 For example, if the destination state name is of the form `#gosub:request_confirmation:confirmed`, a subdialogue starting with `request_confirmatin` is executed, and when the destination state becomes `:exit`, it returns to `confirmed`. When the destination becomes `:exit`, it returns to `confirmed`.
 It is also possible to transition to a subdialogue within a subdialogue.
+
+### Saving Context Information in an External Database
+
+When operating the DialBB application as a web server, using a load balancer to distribute processing across multiple instances can handle request surges efficiently. By saving context information in an external database (MongoDB), a single session can be processed by different instances. (Feature added in version 0.10.0)
+
+To use an external database, specify `context_db` element like the following in the block configuration:
+
+```yaml
+context_db:
+  host: localhost
+  port: 27017
+  user: admin
+  password: password
+```
+
+Each key is defined as follows:
+
+- `host` (str)
+
+  The hostname where MongoDB is running.
+
+- `port` (int, default value: `27017`)
+
+  The port number used to access MongoDB.
+
+- `user` (str)
+
+  The username for accessing MongoDB.
+
+- `password` (str)
+
+  The password for accessing MongoDB.
 
 ### Advanced Mechanisms for Handling Speech Input
 

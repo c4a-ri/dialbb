@@ -52,10 +52,15 @@
 <li class="toctree-l1"><a class="reference internal" href="04_framework.html">4. フレームワーク仕様</a></li>
 <li class="toctree-l1"><a class="reference internal" href="05_builtin_blocks.html">5. 組み込みブロッククラスの仕様</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">6. Appendix</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#id1">6.1. 廃止された機能</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#snips-understander">6.1.1. Snips Understander組み込みブロック</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#whitespace-tokenizersudachi-tokenizer">6.1.2. Whitespace Tokenizer組み込みブロックおよびSudachi Tokenizer組み込みブロック</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#snips-stn">6.1.3. Snips+STNサンプルアプリケーション</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id1">6.1. フロントエンド</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id2">6.1.1. シンプルなフロントエンド</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id3">6.1.2. デバッグ用フロントエンド</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id4">6.2. 廃止された機能</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#snips-understander">6.2.1. Snips Understander組み込みブロック</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#whitespace-tokenizersudachi-tokenizer">6.2.2. Whitespace Tokenizer組み込みブロックおよびSudachi Tokenizer組み込みブロック</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#snips-stn">6.2.3. Snips+STNサンプルアプリケーション</a></li>
 </ul>
 </li>
 </ul>
@@ -89,17 +94,39 @@
   <section id="appendix">
 <h1><span class="section-number">6. </span>Appendix<a class="headerlink" href="#appendix" title="Link to this heading"></a></h1>
 <section id="id1">
-<h2><span class="section-number">6.1. </span>廃止された機能<a class="headerlink" href="#id1" title="Link to this heading"></a></h2>
+<h2><span class="section-number">6.1. </span>フロントエンド<a class="headerlink" href="#id1" title="Link to this heading"></a></h2>
+<p>DialBBには、Web APIにアクセスするための、2種類のサンプルフロントエンドが付属しています。</p>
+<section id="id2">
+<h3><span class="section-number">6.1.1. </span>シンプルなフロントエンド<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
+<p>以下でアクセスできます。</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">http</span><span class="p">:</span><span class="o">//&lt;</span><span class="n">ホスト</span><span class="o">&gt;</span><span class="p">:</span><span class="o">&lt;</span><span class="n">ポート番号</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>システム発話とユーザ発話を吹き出しで表示します。</p>
+<p><code class="docutils literal notranslate"><span class="pre">aux_data</span></code>の送信はできません。また、レスポンスに含まれるシステム発話以外の情報は表示されません。</p>
+</section>
+<section id="id3">
+<h3><span class="section-number">6.1.2. </span>デバッグ用フロントエンド<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
+<p>以下でアクセスできます。</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">http</span><span class="p">:</span><span class="o">//&lt;</span><span class="n">ホスト</span><span class="o">&gt;</span><span class="p">:</span><span class="o">&lt;</span><span class="n">ポート番号</span><span class="o">&gt;/</span><span class="n">test</span>
+</pre></div>
+</div>
+<p>システム発話とユーザ発話をリスト型式で表示します。</p>
+<p><code class="docutils literal notranslate"><span class="pre">aux_data</span></code>の送信ができます。また、レスポンスに含まれる<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>も表示されます。</p>
+</section>
+</section>
+<section id="id4">
+<h2><span class="section-number">6.2. </span>廃止された機能<a class="headerlink" href="#id4" title="Link to this heading"></a></h2>
 <section id="snips-understander">
-<h3><span class="section-number">6.1.1. </span>Snips Understander組み込みブロック<a class="headerlink" href="#snips-understander" title="Link to this heading"></a></h3>
+<h3><span class="section-number">6.2.1. </span>Snips Understander組み込みブロック<a class="headerlink" href="#snips-understander" title="Link to this heading"></a></h3>
 <p>SnipsがPython3.9以上ではインストールが困難なため，ver. 0.9で廃止されました．代わりにLR-CRF Understander組み込みブロックを用いてください．</p>
 </section>
 <section id="whitespace-tokenizersudachi-tokenizer">
-<h3><span class="section-number">6.1.2. </span>Whitespace Tokenizer組み込みブロックおよびSudachi Tokenizer組み込みブロック<a class="headerlink" href="#whitespace-tokenizersudachi-tokenizer" title="Link to this heading"></a></h3>
+<h3><span class="section-number">6.2.2. </span>Whitespace Tokenizer組み込みブロックおよびSudachi Tokenizer組み込みブロック<a class="headerlink" href="#whitespace-tokenizersudachi-tokenizer" title="Link to this heading"></a></h3>
 <p>ver. 0.9で廃止されました．LR-CRF UnderstanderやChatGPT Understanderを使えばTokenizerブロックを使う必要はありません．</p>
 </section>
 <section id="snips-stn">
-<h3><span class="section-number">6.1.3. </span>Snips+STNサンプルアプリケーション<a class="headerlink" href="#snips-stn" title="Link to this heading"></a></h3>
+<h3><span class="section-number">6.2.3. </span>Snips+STNサンプルアプリケーション<a class="headerlink" href="#snips-stn" title="Link to this heading"></a></h3>
 <p>ver. 0.9で廃止されました．</p>
 </section>
 </section>

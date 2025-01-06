@@ -1,5 +1,37 @@
 # Appendix
 
+## Frontend
+
+DialBB comes with two sample frontends for accessing the Web API.
+
+### Simple Frontend
+
+You can access it at:
+
+```
+http://<host>:<port>
+```
+
+This frontend displays system and user utterances in speech bubbles.
+
+It does not allow sending `aux_data`.
+
+Information other than the system utterance included in the response is not displayed.
+
+### Debug Frontend
+
+You can access it at:
+
+```
+http://<host>:<port>/test
+```
+
+This frontend displays system and user utterances in a list format.
+
+It allows sending `aux_data`.
+
+The `aux_data` included in the response is also displayed.
+
 ## Discontinued Features
 
 ### Snips Understander Built-in Block

@@ -1,6 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
+# Copyright 2024 C4A Research Institute, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
 # scenario_graph.py
 #   create graph for scenario writer (not based on system)
 #   シナリオグラフを作成する（動くシステムとは別）
@@ -73,7 +87,7 @@ def create_scenario_graph(scenario_df: DataFrame, config_dir: str, language: str
         su_label = ""
         i = 0
         while i < len(su_list):  # new line at every 10 char
-            su_label += su_list[i:i+10] + "\\n"
+            su_label += su_list[i:i+10].replace('"', '\\"') + "\\n"
             i += 10
         result += f'  "{state_name}" [shape = circle, label="<{state_name}>\\n{su_label}"];\n'
     result += "\n"

@@ -396,11 +396,15 @@ OpenAI社のChatGPTを用いて，ユーザ発話タイプ（インテントと�
 
 - `scenario_graph`: (ブール値．デフォルト値`False`）
 
-  この値が`True`の場合，シナリオシートの`system utterance`カラムと`user utterance example`カラムの値を使って，グラフを作成します．これにより，シナリオ作成者が直感的に状態遷移ネットワークを確認できます．
+  この値が`true`の場合，シナリオシートの`system utterance`カラムと`user utterance example`カラムの値を使って，グラフを作成します．これにより，シナリオ作成者が直感的に状態遷移ネットワークを確認できます．
 
 - `repeat_when_no_available_transitions` （ブール値．デフォルト値`False`．ver. 0.4.0で追加）
 
   この値が`True`のとき，条件に合う遷移がないとき，遷移せず同じ発話を繰り返します．
+
+- `multi_party` （ブール値．デフォルト値`False`．ver. 0.10.0で追加）
+
+  この値が`true`のとき，{numref}`context_information`の対話履歴の内容、および、{numref}`llm_functinos`の大規模言語モデルを用いる組み込み関数のプロンプトに入る対話履歴で、`user_id`の値が用いられます。
 
 (scenario)=
 
@@ -530,6 +534,7 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
 ]
 ```
 
+ブロックコンフィギュレーションの`multi_party`の値が`true`の時、`"user"`の代わりに、`user_id`の値を用います。
 
 これらに加えて新しいキーと値のペアをアクション関数内で追加することができます．
 
@@ -664,6 +669,8 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
   - `_generate_with_llm(task)`
 
     大規模言語モデル（現在はOpenAIのChatGPTのみ）を用いて文字列を生成します．後述します．
+
+(llm_functinos)=
 
 #### 大規模言語モデルを用いた組み込み関数
 
@@ -829,6 +836,38 @@ def get_ramen_location(ramen: str, variable: str, context: Dict[str, Any]) -> No
 subdialogueの中でsubdialogueに遷移することも可能です．
 
 (handling_speech_input)=
+
+### 外部データベースへの文脈情報の保存
+
+DialBBアプリケーションをWebサーバとして動作させる場合、リクエストが集中した際にロードバランサを使って複数インスタンスでに処理を分散させる場合、文脈情報を外部DB（MongoDB)に保存することで、一つのセッションを異なるインスタンスで処理することが可能です。(ver. 0.10.0で追加)
+
+外部DBを使うには、ブロックコンフィギュレーションに以下のように`context_db`要素を指定します。
+
+```yaml
+context_db:
+  host: localhost
+  port: 27017
+  user: admin
+  password: password
+```
+
+各キーは以下です。
+
+- `host` （str)
+
+  MongoDBが動作しているホスト名
+
+- `port` (int. デフォルト値`27017`)
+
+  MongoDBのアクセスのためのポート番号
+
+- `user` （str)
+
+  MongoDBのアクセスのためのユーザ名
+
+- `password` （str)
+
+  MongoDBのアクセスのためのパスワード
 
 ### 音声入力を扱うための仕組み
 

@@ -1,6 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
+# Copyright 2024 C4A Research Institute, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
 # scenario_functions.py
 #   functions used in sample Japanese app
 #   日本語サンプルアプリで用いるシナリオ関数
@@ -85,51 +99,6 @@ def decide_greeting(greeting_variable: str, context: Dict[str, Any]) -> None:
         context[greeting_variable] = "こんにちは"
     else:
         context[greeting_variable] = "こんばんは"
-
-
-def generate_with_openai_gpt(prompt: str):
-
-    chat_completion = None
-    while True:
-        try:
-            chat_completion = openai_client.with_options(timeout=10).chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[{"role": "user", "content": prompt}],
-                temperature=0.7,
-            )
-        except openai.APITimeoutError:
-            continue
-        except Exception as e:
-            print("OpenAI Error: " + traceback.format_exc())
-            sys.exit(1)
-        finally:
-            if not chat_completion:
-                continue
-            else:
-                break
-    generated_utterance: str = chat_completion.choices[0].message.content
-    return generated_utterance
-
-
-def set_impression_of_dialogue(impression_key: str, context: Dict[str, Any]) -> None:
-
-    if use_openai:
-
-        prompt = ""
-        for turn in context["_dialogue_history"]:
-            if turn["speaker"] == 'user':
-                prompt += f"ユーザ「{turn['utterance']}」\n"
-            else:
-                prompt += f"システム「{turn['utterance']}」\n"
-        prompt += "の後、システムが感想を短く言う発話を生成してください。"
-
-        generated_utterance: str = generate_with_openai_gpt(prompt)
-        impression = generated_utterance.replace("システム「", "").replace("「", "").replace("」", "")
-
-    else:
-        impression = "そうなんですね"
-
-    context[impression_key] = impression
 
 
 def generate_confirmation_request(nlu_result: Dict[str, Any], context: Dict[str, Any]) -> str:

@@ -90,7 +90,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#realization-in-system-utterance">5.5.5. システム発話中の変数や関数呼び出しの扱い</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#id23">5.5.6. 関数定義</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#id24">5.5.6.1. 組み込み関数</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#id25">5.5.6.2. 大規模言語モデルを用いた組み込み関数</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#llm-functinos">5.5.6.2. 大規模言語モデルを用いた組み込み関数</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#id26">5.5.6.3. 組み込み関数の簡略記法</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#custom-functions">5.5.6.4. 開発者による関数定義</a></li>
 </ul>
@@ -99,24 +99,25 @@
 <li class="toctree-l3"><a class="reference internal" href="#id29">5.5.8. 言語理解結果候補が複数ある場合の処理</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#id30">5.5.9. リアクション</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#subdialogue">5.5.10. Subdialogue</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#handling-speech-input">5.5.11. 音声入力を扱うための仕組み</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#id32">5.5.11.1. ブロックコンフィギュレーションパラメータの追加</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#id33">5.5.11.2. 組み込み条件関数の追加</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#id34">5.5.11.3. 直前の誤った入力を無視する</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#handling-speech-input">5.5.11. 外部データベースへの文脈情報の保存</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id32">5.5.12. 音声入力を扱うための仕組み</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id33">5.5.12.1. ブロックコンフィギュレーションパラメータの追加</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id34">5.5.12.2. 組み込み条件関数の追加</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id35">5.5.12.3. 直前の誤った入力を無視する</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#chatgpt-dialogue-chatgpt">5.6. ChatGPT Dialogue （ChatGPTベースの対話ブロック）</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id35">5.6.1. 入出力</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id36">5.6.2. ブロックコンフィギュレーションのパラメータ</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id37">5.6.3. 処理内容</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id36">5.6.1. 入出力</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id37">5.6.2. ブロックコンフィギュレーションのパラメータ</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id38">5.6.3. 処理内容</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#spacy-based-named-entity-recognizer-spacy">5.7. spaCy-Based Named Entity Recognizer （spaCyを用いた固有表現抽出ブロック）</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id38">5.7.1. 入出力</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id39">5.7.2. ブロックコンフィギュレーションのパラメータ</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id40">5.7.3. 処理内容</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id39">5.7.1. 入出力</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id40">5.7.2. ブロックコンフィギュレーションのパラメータ</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id41">5.7.3. 処理内容</a></li>
 </ul>
 </li>
 </ul>
@@ -546,10 +547,13 @@
 <p>LR-CRF Understanderと同じです．</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">scenario_graph</span></code>: (ブール値．デフォルト値<code class="docutils literal notranslate"><span class="pre">False</span></code>）</p>
-<p>この値が<code class="docutils literal notranslate"><span class="pre">True</span></code>の場合，シナリオシートの<code class="docutils literal notranslate"><span class="pre">system</span> <span class="pre">utterance</span></code>カラムと<code class="docutils literal notranslate"><span class="pre">user</span> <span class="pre">utterance</span> <span class="pre">example</span></code>カラムの値を使って，グラフを作成します．これにより，シナリオ作成者が直感的に状態遷移ネットワークを確認できます．</p>
+<p>この値が<code class="docutils literal notranslate"><span class="pre">true</span></code>の場合，シナリオシートの<code class="docutils literal notranslate"><span class="pre">system</span> <span class="pre">utterance</span></code>カラムと<code class="docutils literal notranslate"><span class="pre">user</span> <span class="pre">utterance</span> <span class="pre">example</span></code>カラムの値を使って，グラフを作成します．これにより，シナリオ作成者が直感的に状態遷移ネットワークを確認できます．</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">repeat_when_no_available_transitions</span></code> （ブール値．デフォルト値<code class="docutils literal notranslate"><span class="pre">False</span></code>．ver. 0.4.0で追加）</p>
 <p>この値が<code class="docutils literal notranslate"><span class="pre">True</span></code>のとき，条件に合う遷移がないとき，遷移せず同じ発話を繰り返します．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">multi_party</span></code> （ブール値．デフォルト値<code class="docutils literal notranslate"><span class="pre">False</span></code>．ver. 0.10.0で追加）</p>
+<p>この値が<code class="docutils literal notranslate"><span class="pre">true</span></code>のとき，<a class="reference internal" href="#context-information"><span class="std std-numref">5.5.4.1 章</span></a>の対話履歴の内容、および、<a class="reference internal" href="#llm-functinos"><span class="std std-numref">5.5.6.2 章</span></a>の大規模言語モデルを用いる組み込み関数のプロンプトに入る対話履歴で、<code class="docutils literal notranslate"><span class="pre">user_id</span></code>の値が用いられます。</p>
 </li>
 </ul>
 </section>
@@ -670,6 +674,7 @@
 <span class="p">]</span>
 </pre></div>
 </div>
+<p>ブロックコンフィギュレーションの<code class="docutils literal notranslate"><span class="pre">multi_party</span></code>の値が<code class="docutils literal notranslate"><span class="pre">true</span></code>の時、<code class="docutils literal notranslate"><span class="pre">&quot;user&quot;</span></code>の代わりに、<code class="docutils literal notranslate"><span class="pre">user_id</span></code>の値を用います。</p>
 <p>これらに加えて新しいキーと値のペアをアクション関数内で追加することができます．</p>
 </section>
 <section id="arguments">
@@ -779,8 +784,8 @@
 </li>
 </ul>
 </section>
-<section id="id25">
-<h4><span class="section-number">5.5.6.2. </span>大規模言語モデルを用いた組み込み関数<a class="headerlink" href="#id25" title="Link to this heading"></a></h4>
+<section id="llm-functinos">
+<span id="id25"></span><h4><span class="section-number">5.5.6.2. </span>大規模言語モデルを用いた組み込み関数<a class="headerlink" href="#llm-functinos" title="Link to this heading"></a></h4>
 <p><code class="docutils literal notranslate"><span class="pre">_check_with_llm(task)</span></code>および<code class="docutils literal notranslate"><span class="pre">_generate_with_llm(task)</span></code>は，大規模言語モデル（現在はOpenAIのChatGPTのみ）と，対話履歴を用いて，条件の判定および文字列の生成を行います．以下が例です．</p>
 <ul>
 <li><p>条件判定の例</p>
@@ -914,10 +919,37 @@
 <p>subdialogueの中でsubdialogueに遷移することも可能です．</p>
 </section>
 <section id="handling-speech-input">
-<span id="id31"></span><h3><span class="section-number">5.5.11. </span>音声入力を扱うための仕組み<a class="headerlink" href="#handling-speech-input" title="Link to this heading"></a></h3>
-<p>ver. 0.4.0で，音声認識結果を入力として扱うときに生じる問題に対処するため，以下の変更が行われました．</p>
+<span id="id31"></span><h3><span class="section-number">5.5.11. </span>外部データベースへの文脈情報の保存<a class="headerlink" href="#handling-speech-input" title="Link to this heading"></a></h3>
+<p>DialBBアプリケーションをWebサーバとして動作させる場合、リクエストが集中した際にロードバランサを使って複数インスタンスでに処理を分散させる場合、文脈情報を外部DB（MongoDB)に保存することで、一つのセッションを異なるインスタンスで処理することが可能です。(ver. 0.10.0で追加)</p>
+<p>外部DBを使うには、ブロックコンフィギュレーションに以下のように<code class="docutils literal notranslate"><span class="pre">context_db</span></code>要素を指定します。</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">context_db</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">host</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">localhost</span>
+<span class="w">  </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">27017</span>
+<span class="w">  </span><span class="nt">user</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">admin</span>
+<span class="w">  </span><span class="nt">password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">password</span>
+</pre></div>
+</div>
+<p>各キーは以下です。</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">host</span></code> （str)</p>
+<p>MongoDBが動作しているホスト名</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">port</span></code> (int. デフォルト値<code class="docutils literal notranslate"><span class="pre">27017</span></code>)</p>
+<p>MongoDBのアクセスのためのポート番号</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">user</span></code> （str)</p>
+<p>MongoDBのアクセスのためのユーザ名</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">password</span></code> （str)</p>
+<p>MongoDBのアクセスのためのパスワード</p>
+</li>
+</ul>
+</section>
 <section id="id32">
-<h4><span class="section-number">5.5.11.1. </span>ブロックコンフィギュレーションパラメータの追加<a class="headerlink" href="#id32" title="Link to this heading"></a></h4>
+<h3><span class="section-number">5.5.12. </span>音声入力を扱うための仕組み<a class="headerlink" href="#id32" title="Link to this heading"></a></h3>
+<p>ver. 0.4.0で，音声認識結果を入力として扱うときに生じる問題に対処するため，以下の変更が行われました．</p>
+<section id="id33">
+<h4><span class="section-number">5.5.12.1. </span>ブロックコンフィギュレーションパラメータの追加<a class="headerlink" href="#id33" title="Link to this heading"></a></h4>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">input_confidence_threshold</span></code> （float．デフォルト値<code class="docutils literal notranslate"><span class="pre">0.0</span></code>）</p>
 <p>入力が音声認識結果の時，その確信度がこの値未満の場合に，確信度が低いとみなします．入力の確信度は，<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>の<code class="docutils literal notranslate"><span class="pre">confidence</span></code>の値です．<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>に<code class="docutils literal notranslate"><span class="pre">confidence</span></code>キーがないときは，確信度が高いとみなします．確信度が低い場合は，以下に述べるパラメータの値に応じて処理が変わります．</p>
@@ -959,8 +991,8 @@
 </li>
 </ul>
 </section>
-<section id="id33">
-<h4><span class="section-number">5.5.11.2. </span>組み込み条件関数の追加<a class="headerlink" href="#id33" title="Link to this heading"></a></h4>
+<section id="id34">
+<h4><span class="section-number">5.5.12.2. </span>組み込み条件関数の追加<a class="headerlink" href="#id34" title="Link to this heading"></a></h4>
 <p>以下の組み込み条件関数が追加されています．</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">_confidence_is_low()</span></code></p>
@@ -971,8 +1003,8 @@
 </li>
 </ul>
 </section>
-<section id="id34">
-<h4><span class="section-number">5.5.11.3. </span>直前の誤った入力を無視する<a class="headerlink" href="#id34" title="Link to this heading"></a></h4>
+<section id="id35">
+<h4><span class="section-number">5.5.12.3. </span>直前の誤った入力を無視する<a class="headerlink" href="#id35" title="Link to this heading"></a></h4>
 <p>入力の<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>の<code class="docutils literal notranslate"><span class="pre">rewind</span></code>の値が<code class="docutils literal notranslate"><span class="pre">True</span></code>の場合，直前のレスポンスを行う前の状態から遷移を行います．
 直前のレスポンスを行った際に実行したアクションによる文脈情報の変更も元に戻されます．</p>
 <p>音声認識の際に，ユーザ発話を間違って途中で分割してしまい，前半だけに対する応答を行ってしまった場合に用います．</p>
@@ -985,8 +1017,8 @@
 <p>(ver0.6で追加，ver0.7で大幅に変更）</p>
 <p>(<code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.chatgpt.chatgpt.ChatGPT</span></code>)</p>
 <p>OpenAI社のChatGPTを用いて対話を行います．</p>
-<section id="id35">
-<h3><span class="section-number">5.6.1. </span>入出力<a class="headerlink" href="#id35" title="Link to this heading"></a></h3>
+<section id="id36">
+<h3><span class="section-number">5.6.1. </span>入出力<a class="headerlink" href="#id36" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>入力</p>
 <ul>
@@ -1006,8 +1038,8 @@
 <p>入力の<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>, <code class="docutils literal notranslate"><span class="pre">user_id</span></code>利用せず，出力の<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>は入力の<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>と同じもので，<code class="docutils literal notranslate"><span class="pre">final</span></code>は常に<code class="docutils literal notranslate"><span class="pre">False</span></code>です．</p>
 <p>これらのブロックを使う時には，環境変数<code class="docutils literal notranslate"><span class="pre">OPENAI_API_KEY</span></code>にOpenAIのライセンスキーを設定する必要があります．</p>
 </section>
-<section id="id36">
-<h3><span class="section-number">5.6.2. </span>ブロックコンフィギュレーションのパラメータ<a class="headerlink" href="#id36" title="Link to this heading"></a></h3>
+<section id="id37">
+<h3><span class="section-number">5.6.2. </span>ブロックコンフィギュレーションのパラメータ<a class="headerlink" href="#id37" title="Link to this heading"></a></h3>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">first_system_utterance</span></code> （文字列，デフォルト値は<code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code>）</p>
 <p>対話の最初のシステム発話です．</p>
@@ -1040,8 +1072,8 @@
 </li>
 </ul>
 </section>
-<section id="id37">
-<h3><span class="section-number">5.6.3. </span>処理内容<a class="headerlink" href="#id37" title="Link to this heading"></a></h3>
+<section id="id38">
+<h3><span class="section-number">5.6.3. </span>処理内容<a class="headerlink" href="#id38" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>対話の最初はブロックコンフィギュレーションの<code class="docutils literal notranslate"><span class="pre">first_system_utterance</span></code>の値をシステム発話として返します．</p></li>
 <li><p>2回目以降のターンでは，プロンプトテンプレートの<code class="docutils literal notranslate"><span class="pre">&#64;dialogue_history</span></code>に対話履歴を代入したものを与えてChatGPTに発話を生成させ，返ってきた文字列をシステム発話として返します．</p></li>
@@ -1053,8 +1085,8 @@
 <p>(<code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.ner_with_spacy.ne_recognizer.SpaCyNER</span></code>)</p>
 <p>(ver0.6で追加）</p>
 <p><a class="reference external" href="https://spacy.io">spaCy</a>および<a class="reference external" href="https://megagonlabs.github.io/ginza/">GiNZA</a>を用いて固有表現抽出を行います．</p>
-<section id="id38">
-<h3><span class="section-number">5.7.1. </span>入出力<a class="headerlink" href="#id38" title="Link to this heading"></a></h3>
+<section id="id39">
+<h3><span class="section-number">5.7.1. </span>入出力<a class="headerlink" href="#id39" title="Link to this heading"></a></h3>
 <ul>
 <li><p>入力</p>
 <ul class="simple">
@@ -1085,8 +1117,8 @@
 </li>
 </ul>
 </section>
-<section id="id39">
-<h3><span class="section-number">5.7.2. </span>ブロックコンフィギュレーションのパラメータ<a class="headerlink" href="#id39" title="Link to this heading"></a></h3>
+<section id="id40">
+<h3><span class="section-number">5.7.2. </span>ブロックコンフィギュレーションのパラメータ<a class="headerlink" href="#id40" title="Link to this heading"></a></h3>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">model</span></code> (文字列．必須）</p>
 <p>spaCy/GiNZAのモデルの名前です．<code class="docutils literal notranslate"><span class="pre">ja_ginza_electra</span></code> (日本語），<code class="docutils literal notranslate"><span class="pre">en_core_web_trf</span></code> (英語）などを指定できます．</p>
@@ -1104,8 +1136,8 @@
 </li>
 </ul>
 </section>
-<section id="id40">
-<h3><span class="section-number">5.7.3. </span>処理内容<a class="headerlink" href="#id40" title="Link to this heading"></a></h3>
+<section id="id41">
+<h3><span class="section-number">5.7.3. </span>処理内容<a class="headerlink" href="#id41" title="Link to this heading"></a></h3>
 <p>spaCy/GiNZAを用いて<code class="docutils literal notranslate"><span class="pre">input_text</span></code>中の固有表現を抽出し，<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>にその結果を入力して返します．</p>
 </section>
 </section>
