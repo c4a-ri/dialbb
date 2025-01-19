@@ -18,23 +18,24 @@ Windows11、MacOSで動作します。
 
   - 以下の手順でPythonをインストールします。
 
+    - すでにPythonをインストールしている場合、手順を変更しなくてはならない場合があります。
     - ブラウザのアドレスバーに https://www.python.org/downloads/windows/ を打ち込んでEnterキーを押します。
     - 表示されている中から以下の部分を探します。3.10.11である必要があります。
-
+    
     ![python-install-win-ja](images/python-download-win.png)
-
+    
     - 64bit OSの場合は、[Windows installer (64-bit)](https://www.python.org/ftp/python/3.10.11/python-3.10.11-amd64.exe)を、32bit OSの場合は[Windows installer (32 -bit)](https://www.python.org/ftp/python/3.10.11/python-3.10.11.exe)をクリックします。
-
+    
     - ダウンロードフォルダに `python-3.10.11-amd64.exe`または`python-3.10.11-amd32.exe`というファイルができるので、ダブルクリックします。
-
+    
     - 以下の画面が現れます。
-
+    
       ![python-setup-win](images/python-setup-win.png)
-
+    
       - Add python.exe to PATHに**チェックを入れてから**Install Nowをクリックします。
-
+    
         ![python-setup-win-path](images/python-setup-win-path.png)
-
+    
       - Pythonがインストールされます。
 
 ### DialBBのインストール
@@ -152,7 +153,7 @@ dialbb-nc
 
 ## シナリオファイルの編集
 ### 編集アプリケーションの選択
-  __アプリケーションの編集__ 画面で`Scensrio`を選択した場合に以下の画面が表示されます、  
+  __アプリケーションの編集__ 画面で`Scensrio`を選択した場合に以下の画面が表示されま
   `Excel`で編集するか`GUIシナリオエディタ`で編集するかボタンで選択します、"Excel"の場合はxlsxファイルに関連付けされたアプリケーションが（ExcelやOpenOfficeなど）、"GUIシナリオエディタ"の場合はブラウザベースのアプリケーションが起動します。  
 
   <img src="images/gui-edit-scenario.jpg" width="40%">

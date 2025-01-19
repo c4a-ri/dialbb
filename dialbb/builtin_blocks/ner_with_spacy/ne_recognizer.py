@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# spacey_nlp.py
+# ne_recognizer.py
 #   understand input text using spaCy/GiNZA
 
 __version__ = '0.1'
