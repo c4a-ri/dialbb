@@ -14,6 +14,8 @@ from tkinter import scrolledtext
 import ruamel.yaml
 from typing import Any, Dict, List
 
+from dialbb.no_code.gui_utils import chaild_position
+
 
 # -------- config.yml編集の管理するクラス -------------------------------------
 class config_mng:
@@ -32,9 +34,9 @@ output:
 knowledge_file: nlu-knowledge.xlsx  # 知識記述ファイル
 canonicalizer:
     class: dialbb.builtin_blocks.preprocess.japanese_canonicalizer.JapaneseCanonicalizer
-model: gpt-3.5-turbo
+model: gpt-4-tubo
 """,
-                    'en': """name: understander
+                     'en': """name: understander
 block_class: dialbb.builtin_blocks.understanding_with_chatgpt.chatgpt_understander.Understander
 input:
     input_text: canonicalized_user_utterance
@@ -43,9 +45,9 @@ output:
 knowledge_file: nlu-knowledge.xlsx  # knowledge file
 canonicalizer:
     class: dialbb.builtin_blocks.preprocess.japanese_canonicalizer.JapaneseCanonicalizer
-model: gpt-3.5-turbo
+model: gpt-4-tubo
 """
-    }
+                     }
 
     block_spacy = {'ja': """name: ner
 block_class: dialbb.builtin_blocks.ner_with_spacy.ne_recognizer.SpaCyNER
@@ -56,7 +58,7 @@ output:
     aux_data: aux_data
 model: ja_ginza_electra
 """,
-                    'en': """name: ner
+                   'en': """name: ner
 block_class: dialbb.builtin_blocks.ner_with_spacy.ne_recognizer.SpaCyNER
 input:
     input_text: user_utterance
@@ -65,7 +67,7 @@ output:
     aux_data: aux_data
 model: en_core_web_lg
 """
-    }
+                   }
 
     def __init__(self, file_path: str) -> None:
         self.yaml = ruamel.yaml.YAML()
@@ -107,9 +109,10 @@ model: en_core_web_lg
     # ChatGPTのmodelを取得
     def get_chatgpt_model(self) -> str:
         result = ''
-        understander = self.get_block('understander')
-        if understander:
-            result = understander.get('model', '')
+        # managerのchatgptモデルを参照
+        chatgpt = self.get_block('manager').get('chatgpt')
+        if chatgpt:
+            result = chatgpt.get('model', '')
         return result
 
     # ChatGPTのsituationを取得
@@ -183,6 +186,8 @@ model: en_core_web_lg
             self.change_block_ele('del', 'ner', 'spacy')
 
     def set_chatgpt_model(self, model: str) -> None:
+        if not model:
+            return
         # understanderのchatgptモデル設定
         understander = self.get_block('understander')
         if understander:
@@ -208,7 +213,7 @@ model: en_core_web_lg
 
 
 # Config編集の処理
-def edit_config(parent, file_path):
+def edit_config(parent, file_path, settings):
     config = config_mng(file_path)
 
     # 編集画面を表示
@@ -219,7 +224,7 @@ def edit_config(parent, file_path):
     sub_menu.transient(parent)
     # サイズ＆表示位置の指定
     parent_x = parent.winfo_rootx() + parent.winfo_width() // 4 - sub_menu.winfo_width() // 2
-    parent_y = parent.winfo_rooty() + parent.winfo_height() // 4 - sub_menu.winfo_height() // 2
+    parent_y = parent.winfo_rooty() + parent.winfo_height() // 10 - sub_menu.winfo_height() // 2
     sub_menu.geometry(f"400x500+{parent_x}+{parent_y}")
 
     # Spacy Frameを作成
@@ -254,18 +259,26 @@ def edit_config(parent, file_path):
 
     # ChatGPT Manager Frameを作成
     gpt_mng_fr = ttk.Labelframe(sub_menu, text='ChatGPT manager', padding=(10),
-                               style='My.TLabelframe')
+                                style='My.TLabelframe')
     gpt_mng_fr.pack(expand=True, fill=tk.Y, padx=5, pady=5)
     # ［ChatGPTモデル］プルダウンメニュー
     label1 = tk.Label(gpt_mng_fr, text='model:')
-    datas = ['GPT-4-tubo', 'GPT-4o']
+    models = settings.get_gptmodels()
+    if not models:
+        # default設定
+        models = ['gpt-4-tubo', 'gpt-4o']
     v = tk.StringVar()
-    combobox = ttk.Combobox(gpt_mng_fr, textvariable=v, values=datas,
+    combobox = ttk.Combobox(gpt_mng_fr, textvariable=v, values=models,
                             state='normal', style='office.TCombobox')
     # combobox.bind('<<ComboboxSelected>>', select_combo)
 
     label1.grid(column=0, row=1)
     combobox.grid(column=1, row=1, columnspan=2, padx=5, pady=5)
+
+    # モデル候補の編集ボタンを追加
+    btnEditor = ttk.Button(gpt_mng_fr, text="edit", width=7,
+                           command=lambda: gptmodel_edit(sub_menu, settings))
+    btnEditor.grid(column=2, row=1, padx=5)
 
     # situation入力エリア
     label2 = tk.Label(gpt_mng_fr, text='situation:')
@@ -318,8 +331,53 @@ def edit_config(parent, file_path):
     # ウィンドウが表示された後にコンボボックスの値を設定する
     def on_window_shown():
         model = config.get_chatgpt_model()
-        if model in datas:
-            combobox.current(newindex=datas.index(model))
+        if model in models:
+            combobox.current(newindex=models.index(model))
+
+    # GPTモデル候補の編集処理
+    def gptmodel_edit(parent, settings):
+        sub_menu = tk.Toplevel(parent)
+        sub_menu.title("GPT models")
+        sub_menu.grab_set()        # モーダルにする
+        sub_menu.focus_set()       # フォーカスを新しいウィンドウをへ移す
+        sub_menu.transient(parent)
+        # サイズ＆表示位置の指定
+        chaild_position(parent, sub_menu)
+
+        # GPTモデル候補入力エリア
+        label1 = tk.Label(sub_menu, text='Models:')
+        mdl = scrolledtext.ScrolledText(sub_menu, wrap=tk.NONE, width=24,
+                                        height=6)
+        # configの値を設定
+        mdl.insert(0., ('\n').join(combobox['values']))
+
+        # Button
+        ok_btn = ttk.Button(sub_menu, text='OK', command=lambda: ok_click())
+        can_btn = ttk.Button(sub_menu, text="cancel",
+                             command=lambda: cancel_click(sub_menu))
+
+        # Layout
+        label1.pack(side="left", padx=2, pady=2)
+        mdl.pack(padx=1, pady=5)
+        can_btn.pack(side="right", padx=5, pady=5)
+        ok_btn.pack(side="right", padx=5, pady=5)
+
+        # ボタンクリックされた際のイベント
+        def ok_click():
+            # プルダウンリストを変更
+            in_data = mdl.get(1.0, tk.END)
+            models = [a for a in in_data.split('\n') if a != '']
+            combobox['values'] = models
+
+            # GPTモデル候補の登録
+            settings.set_gptmodels(models)
+            # 画面を閉じる
+            sub_menu.destroy()
+
+        # [cancel]ボタン：自ウィンドウを閉じる
+        def cancel_click(frame):
+            # 画面を閉じる
+            frame.destroy()
 
     # ボタンクリックの処理
     def ok_btn_click():

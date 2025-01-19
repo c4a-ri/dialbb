@@ -170,7 +170,7 @@ def set_file_frame(parent_frame, settings, label_text, file_type_list):
     
     # editボタンの作成:GUIエディタ起動
     btnEditor = ttk.Button(file_frame, text="edit", width=7,
-                           command=lambda: select_edit_file(file_frame))
+                           command=lambda: select_edit_file(file_frame, settings))
     btnEditor.grid(column=2, row=1, padx=5)
 
     return file_frame
@@ -236,7 +236,7 @@ def open_file_command(edit_box, settings, file_type_list):
 
 
 # [edit]ボタン：編集するファイルを選択
-def select_edit_file(parent):
+def select_edit_file(parent, settings):
     global APP_FILES
 
     # 選択画面を表示
@@ -266,7 +266,7 @@ def select_edit_file(parent):
     btn_nlu.pack(side=tk.TOP, pady=5)
     btn_conf = ttk.Button(sub_menu, text="Configuration", width=20,
                           command=lambda: edit_config(sub_menu, os.path.join(
-                             APP_FILE_DIR, APP_FILES["config"])))
+                             APP_FILE_DIR, APP_FILES["config"]), settings))
     btn_conf.pack(side=tk.TOP, pady=5)
 
     # Cancelボタン

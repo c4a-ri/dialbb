@@ -103,6 +103,7 @@ class JsonInfo:
     # データ要素
     label_gpt = 'OPENAI_API_KEY'
     label_app = 'Specify_application'
+    label_model = 'gpt_models'
 
     # 暗号化キー
     key = '6QvOzPwlGXvFpvv4ZrL4RSrpxZmCUK7wSxnmd9qDzp4='
@@ -121,6 +122,7 @@ class JsonInfo:
 
     # ファイル暗号化ファイル書き込み
     def _encryption(self):
+        # print(f'### Write setting json={self.data}')
         # Fernetオブジェクトを作成する
         fernet = Fernet(self.key)
 
@@ -146,6 +148,7 @@ class JsonInfo:
         # ファイルを復号化する
         result = fernet.decrypt(encrypted)
         self.data = json.loads(result.decode())
+        # print(f'### Read setting json={self.data}')
 
     # ゲッター
     def _get(self, key):
@@ -185,6 +188,14 @@ class JsonInfo:
         self._set(self.label_app, app_name)
         # GUI表示の更新
         self._disp_appname(app_name)
+
+    # GPT models取得
+    def get_gptmodels(self):
+        return self._get(self.label_model)
+
+    # GPT models設定
+    def set_gptmodels(self, models: List[str] = []):
+        self._set(self.label_model, models)
 
 
 # -------- Functions -------------------------------------

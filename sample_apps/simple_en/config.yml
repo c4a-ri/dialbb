@@ -22,7 +22,7 @@ blocks:  # bclock list
     flags_to_use:
       - 'Y'
       - 'T'
-    num_candidates: 5
+    num_candidates: 3
   - name: manager
     block_class: dialbb.builtin_blocks.stn_management.stn_manager.Manager
     knowledge_file: simple-scenario-en.xlsx # scenario file
