@@ -64,7 +64,9 @@ class ContextDB:
                                        mongo_port,
                                        username=mongo_user,
                                        password=mongo_password,
-                                       maxIdleTimeMS=TEN_MINUTES)
+                                       maxIdleTimeMS=TEN_MINUTES,
+                                       retryWrites=False,  # Disable retry writes.
+                                       )
             assert mongo_client is not None
             mongo_context_db = mongo_client.context_db
             self._context_collection: Collection = mongo_context_db.context_collection
