@@ -65,7 +65,7 @@ class ContextDB:
                                        username=mongo_user,
                                        password=mongo_password,
                                        maxIdleTimeMS=TEN_MINUTES,
-                                       retryWrites=False,  # for AWS DocumentDB.
+                                       retryWrites=False,  # Disable retry writes.
                                        )
             assert mongo_client is not None
             mongo_context_db = mongo_client.context_db

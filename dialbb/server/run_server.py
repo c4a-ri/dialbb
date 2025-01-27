@@ -102,11 +102,20 @@ def dialogue():
 
 def start_dialbb(config_file, port=8080):
     global app, logger, dialogue_processor
-    
+
     dialogue_processor = DialogueProcessor(config_file)
     logger = get_logger("server")
     logger.propagate = False
     app.run(host="0.0.0.0", port=port)
+
+
+# Invoked via WSGI on AWS
+def start_dialbb_for_wsgi(config_file):
+    global logger, dialogue_processor
+
+    dialogue_processor = DialogueProcessor(config_file)
+    logger = get_logger("server")
+    logger.propagate = False
 
 
 # dialbb-serverコマンド用
