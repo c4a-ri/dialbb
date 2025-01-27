@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright 2024 C4A Research Institute, Inc.
+# Copyright 2024-2025 C4A Research Institute, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 #
 # spacey_nlp.py
 # ne_recognizer.py
-#   understand input text using spaCy/GiNZA
+#   recognizer named entities using spaCy/GiNZA
 
 __version__ = '0.1'
 __author__ = 'Mikio Nakano'
