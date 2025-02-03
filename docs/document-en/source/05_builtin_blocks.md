@@ -260,9 +260,9 @@ At runtime, input utterance is added to the prompt to make ChatGPT perform langu
 
        Specify the key file to access the Google Sheet API as a relative path from the configuration file directory.
 
-- `gpt_model` (string. The default value is `gpt-3.5-turbo`.)
+- `gpt_model` (string. The default value is `gpt-4o-mini`.)
 
-   Specifies the ChatGPT model. `gpt-4-turbo` can be specified. `gpt-4` cannot be used.
+   Specifies the ChatGPT model. `gpt-4o` can be specified. `gpt-4` cannot be used.
 
 - `prompt_template`
 
@@ -644,7 +644,7 @@ To use these functions, the following settings are required:
 
   - `gpt_model` (string)
 
-    This specifies the model name of GPT, such as `gpt-4-turbo`, `gpt-3.5-turbo`, etc. The default value is `gpt-3.5-turbo`. `gpt-4` cannot be used.
+    This specifies the model name of GPT, such as `gpt-4o`, `gpt-4o-mini`, etc. The default value is `gpt-4o-mini`. `gpt-4` cannot be used.
 
   - `temperature` (float)
 
@@ -953,9 +953,9 @@ When using these blocks, you need to set the OpenAI license key in the environme
      ```
 
 
-- `gpt_model` (string, default value is `gpt-3.5-turbo`)
+- `gpt_model` (string, default value is `gpt-4o-mini`)
 
-   Open AI GPT model. You can specify `gpt-4`, `gpt-4-turbo` and so on.
+   Open AI GPT model. You can specify `gpt-4o`, `gpt-4o-mini` and so on.
 
 ### Process Details
 

@@ -16,8 +16,8 @@
 # limitations under the License.
 #
 # spacey_nlp.py
-# ne_recognizer.py
-#   recognizer named entities using ChatGPT
+# chatgpt_ner.py
+#   recognize named entities using ChatGPT
 
 __version__ = '0.1'
 __author__ = 'Mikio Nakano'
@@ -27,7 +27,7 @@ import traceback
 import openai
 import pandas as pd
 from pandas import DataFrame
-from dialbb.builtin_blocks.understanding_with_chatgpt.knowledge_converter import convert_nlu_knowledge
+from dialbb.builtin_blocks.ner_with_chatgpt.knowledge_converter import convert_ner_knowledge
 from dialbb.abstract_block import AbstractBlock
 from dialbb.main import CONFIG_KEY_LANGUAGE
 from typing import Any, Dict, List, Tuple
@@ -40,28 +40,28 @@ from oauth2client.service_account import ServiceAccountCredentials
 
 from dialbb.main import ANY_FLAG, KEY_SESSION_ID
 from dialbb.util.error_handlers import abort_during_building
-from dialbb.builtin_blocks.understanding_with_chatgpt.prompt_templates_ja import PROMPT_TEMPLATE_JA
-from dialbb.builtin_blocks.understanding_with_chatgpt.prompt_templates_en import PROMPT_TEMPLATE_EN
+from dialbb.builtin_blocks.ner_with_chatgpt.prompt_template_ja import PROMPT_TEMPLATE_JA
+from dialbb.builtin_blocks.ner_with_chatgpt.prompt_template_en import PROMPT_TEMPLATE_EN
 
 
 CONFIG_KEY_KNOWLEDGE_GOOGLE_SHEET: str = "knowledge_google_sheet"  # google sheet info
 CONFIG_KEY_SHEET_ID: str = "sheet_id"  # google sheet id
 CONFIG_KEY_KEY_FILE: str = "key_file"  # key file for Google sheets API
-CONFIG_KEY_KNOWLEDGE_FILE: str = "knowledge_file"  # excel file path
-CONFIG_KEY_UTTERANCE_SHEET: str = "utterances_sheet"
-CONFIG_KEY_SLOTS_SHEET: str = "slots_sheet"
+CONFIG_KEY_KNOWLEDGE_FILE: str = "knowledge_file"  # Excel file path
+CONFIG_KEY_UTTERANCES_SHEET: str = "utterances_sheet"
+CONFIG_KEY_CLASSES_SHEET: str = "classes_sheet"
 CONFIG_KEY_PROMPT_TEMPLATE: str = "prompt_template"
 CONFIG_KEY_GPT_MODEL: str = "gpt_model"
 
 KEY_INPUT_TEXT: str = "input_text"
-KEY_NLU_RESULT: str = "nlu_result"
+KEY_AUX_DATA: str = "aux_data"
 
-DEFAULT_GPT_MODEL: str = "gpt-3.5-turbo"
+DEFAULT_GPT_MODEL: str = "gpt-4o-mini"
 
 SCOPES = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
 
 
-class Understander(AbstractBlock):
+class NER(AbstractBlock):
     """
     ChatGPT based understander
     """
@@ -78,8 +78,8 @@ class Understander(AbstractBlock):
         self._gpt_model = self.block_config.get(CONFIG_KEY_GPT_MODEL, DEFAULT_GPT_MODEL)
 
         # sheets in spreadsheet
-        utterances_sheet = self.block_config.get(CONFIG_KEY_UTTERANCE_SHEET, "utterances")
-        slots_sheet = self.block_config.get(CONFIG_KEY_SLOTS_SHEET, "slots")
+        utterances_sheet = self.block_config.get(CONFIG_KEY_UTTERANCES_SHEET, "utterances")
+        classes_sheet = self.block_config.get(CONFIG_KEY_CLASSES_SHEET, "classes")
 
         # language: "en" or "ja"
         self._language = self.config.get(CONFIG_KEY_LANGUAGE, 'en')
@@ -98,19 +98,21 @@ class Understander(AbstractBlock):
 
         google_sheet_config: Dict[str, str] = self.block_config.get(CONFIG_KEY_KNOWLEDGE_GOOGLE_SHEET)
         if google_sheet_config:  # get knowledge from google sheet
-            utterances_df, slots_df = self._get_dfs_from_gs(google_sheet_config, utterances_sheet, slots_sheet)
+            utterances_df, slots_df = self._get_dfs_from_gs(google_sheet_config, utterances_sheet, classes_sheet)
         else:  # get knowledge from excel
             excel_file = self.block_config.get(CONFIG_KEY_KNOWLEDGE_FILE)
             if not excel_file:
                 abort_during_building(
                     f"Neither knowledge file nor google sheet info is not specified for the block {self.name}.")
-            utterances_df, slots_df = self._get_dfs_from_excel(excel_file, utterances_sheet, slots_sheet)
+            utterances_df, slots_df = self._get_dfs_from_excel(excel_file, utterances_sheet, classes_sheet)
 
         # convert nlu knowledge to type and slot definitions
-        types, slot_definitions, examples, self.entities2synonyms \
-            = convert_nlu_knowledge(utterances_df, slots_df, self.block_config, language=self._language)
-        self._prompt_template = prompt_template.replace('@examples', examples).replace('@types', types)\
-            .replace('@slot_definitions', slot_definitions)
+        class_list, class_explanations, ne_examples, ner_examples \
+            = convert_ner_knowledge(utterances_df, slots_df, self.block_config, language=self._language)
+        self._prompt_template = (prompt_template.replace('@classes', class_list)
+                                 .replace('@explanations', class_explanations)
+                                 .replace('@ne_examples', ne_examples)
+                                 .replace('@ner_examples', ner_examples))
 
     def _read_prompt_template(self, file_path: str) -> str:
         """
@@ -171,56 +173,39 @@ class Understander(AbstractBlock):
         understand input sentence using ChatGPT
         :param input: e.g. {"sentence": "I love egg salad sandwiches"}
         :param session_id: session id sent from client
-        :return: {"nlu_result": <nlu result in DialBB format>} or
-                 {"nlu_result": <list of nlu results in DialBB format>}
-                 e.g., {"nlu_result": {"type": "tell_favorite_sandwiches",
-                                       "slots": {"sandwich": "egg salad sandwich"}}}
-                        or
-                        {"nlu_result": [{"type": "tell_favorite_sandwiches",
-                                         "slots": {"sandwich": "egg salad sandwich"}}
-                                         ...
-                                         {"type": ...,
-                                         "slots": {...}}]
+        :return: {"aux_data": {"NE_<class>": <NE>, "NE_<class>": <NE>, ... <inputted aux data>}}
         """
 
         session_id: str = input.get(KEY_SESSION_ID, "undecided")
         self.log_debug("input: " + str(input), session_id=session_id)
         input_text = input.get(KEY_INPUT_TEXT, "")
+        aux_data: Dict[str, Any] = input.get(KEY_AUX_DATA, "")
         if input_text == "":
-            tentative_result: Dict[str, Any] = {"type": "", "slots": {}}
+            tentative_result: List[Tuple[str, str]] = []
         else:
-            tentative_result = self._understand_with_chatgpt(input_text)
+            tentative_result = self._ner_with_chatgpt(input_text)
 
-        nlu_result: Dict[str, Any] = {"type": tentative_result["type"], "slots": {}}
-        for slot_name in tentative_result["slots"].keys():
-            nlu_result["slots"][slot_name] = self._get_entity(tentative_result["slots"][slot_name])
+        for each_ne in tentative_result:
+            class_name = "NE_" + each_ne[0]
+            ne = each_ne[1]
+            if aux_data.get(class_name):
+                aux_data[class_name] = aux_data[class_name] + ":" + ne
+            else:
+                aux_data[class_name] = ne
 
-        output = {KEY_NLU_RESULT: nlu_result}
-        self.log_debug("output: " + str(output), session_id=session_id)
+        output = {KEY_AUX_DATA: aux_data}
 
         return output
 
-    def _get_entity(self, expression: str) -> str:
-        """
-        return entity if expression is its synonym, otherwise expression as is
-        :param expression:
-        :return: entity or expression
-        """
-
-        for entity in self.entities2synonyms.keys():
-            if expression in self.entities2synonyms[entity]:
-                return entity
-        return expression
-
-    def _understand_with_chatgpt(self, input_text: str) -> Dict[str, Any]:
+    def _ner_with_chatgpt(self, input_text: str) -> List[Tuple[str, str]]:
         """
         understand input text using chatgpt
         :param input_text:
-        :return:
+        :return: NER result
         """
 
         prompt: str = self._prompt_template.replace('@input', input_text)
-        self.log_debug("prompt " + prompt)
+        self.log_debug("NER prompt " + prompt)
 
         chat_completion = None
         while True:
@@ -244,19 +229,27 @@ class Understander(AbstractBlock):
         chatgpt_result_string: str = chat_completion.choices[0].message.content
         self.log_debug("chatgpt result: " + chatgpt_result_string)
         try:
-            result: Dict[str, Any] = json.loads(chatgpt_result_string)
-            print(str(result))
-            if not result.get("type"):
-                raise Exception("result doesn't have type")
-            if result.get("slots", None) is None or type(result.get("slots")) != dict:
-                raise Exception("result doesn't have valid slots")
+            result: List[Tuple[str, str]] = json.loads(chatgpt_result_string)
+            for extracted_ne in result:
+                if len(extracted_ne) != 2:
+                    raise Exception("not a tuple having two elements")
+                if type(extracted_ne[0]) != str or type(extracted_ne[1]) != str:
+                    raise Exception("one of the elements is not a string")
         except Exception as e:
-            self.log_warning("ChatGPT's output is not a valid understanding result: " + chatgpt_result_string
+            self.log_warning("ChatGPT's output is not a valid NER result: " + chatgpt_result_string
                              + "Error:" + str(e))
-            result: Dict[str, Any] = {"type": "", "slots": {}}  # default result
+            result: Dict[str, Any] = {}  # default result
         return result
 
 
+        result: {
+            "固有表現": [
+                {
+                    "クラス": "人名",
+                    "値": "中野"
+                }
+            ]
+        }
 
 
 
@@ -265,14 +258,7 @@ class Understander(AbstractBlock):
 
 
 
-
-
-
-
-
-
-
-
+        ner_result: Dict[str, str] = {}  # e.g., {NE_person:" John:David", NE_location: "New York:LA"}
 
 
 

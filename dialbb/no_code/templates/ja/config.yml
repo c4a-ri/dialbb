@@ -17,7 +17,7 @@ blocks:  # ブロックのリスト
     knowledge_file: nlu-knowledge.xlsx  # 知識記述ファイル
     canonicalizer:
       class: dialbb.builtin_blocks.preprocess.japanese_canonicalizer.JapaneseCanonicalizer
-    model: gpt-3.5-turbo
+    model: gpt-4o-mini
   - name: ner
     block_class: dialbb.builtin_blocks.ner_with_spacy.ne_recognizer.SpaCyNER
     input:
@@ -39,7 +39,7 @@ blocks:  # ブロックのリスト
       final: final
       aux_data: aux_data
     chatgpt:
-      model: gpt-3.5-turbo
+      model: gpt-4o-mini
       #model: gpt-4
       temperature: 0.7
       situation:

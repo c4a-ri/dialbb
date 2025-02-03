@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# prompt_templates_ja.py
+# prompt_template_ja.py
 #   defines prompt templates for chatgpt understander
 
 
