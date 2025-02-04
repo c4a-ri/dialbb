@@ -27,7 +27,8 @@ import traceback
 import openai
 import pandas as pd
 from pandas import DataFrame
-from dialbb.builtin_blocks.ner_with_chatgpt.knowledge_converter import convert_ner_knowledge
+from dialbb.builtin_blocks.ner_with_chatgpt.knowledge_converter import convert_ner_knowledge, KEY_CLASS, KEY_ENTITY, \
+    KEY_RESULT
 from dialbb.abstract_block import AbstractBlock
 from dialbb.main import CONFIG_KEY_LANGUAGE
 from typing import Any, Dict, List, Tuple
@@ -179,25 +180,27 @@ class NER(AbstractBlock):
         session_id: str = input.get(KEY_SESSION_ID, "undecided")
         self.log_debug("input: " + str(input), session_id=session_id)
         input_text = input.get(KEY_INPUT_TEXT, "")
-        aux_data: Dict[str, Any] = input.get(KEY_AUX_DATA, "")
+        aux_data: Dict[str, Any] = input.get(KEY_AUX_DATA, {})
+        if aux_data is None:
+            aux_data = {}
         if input_text == "":
-            tentative_result: List[Tuple[str, str]] = []
+            tentative_result: List[Dict[str, str]] = []
         else:
             tentative_result = self._ner_with_chatgpt(input_text)
 
         for each_ne in tentative_result:
-            class_name = "NE_" + each_ne[0]
-            ne = each_ne[1]
+            class_name: str = "NE_" + each_ne[KEY_CLASS]
+            entity: str = each_ne[KEY_ENTITY]
             if aux_data.get(class_name):
-                aux_data[class_name] = aux_data[class_name] + ":" + ne
+                aux_data[class_name] = aux_data[class_name] + ":" + entity
             else:
-                aux_data[class_name] = ne
+                aux_data[class_name] = entity
 
         output = {KEY_AUX_DATA: aux_data}
 
         return output
 
-    def _ner_with_chatgpt(self, input_text: str) -> List[Tuple[str, str]]:
+    def _ner_with_chatgpt(self, input_text: str) -> List[Dict[str, str]]:
         """
         understand input text using chatgpt
         :param input_text:
@@ -229,39 +232,12 @@ class NER(AbstractBlock):
         chatgpt_result_string: str = chat_completion.choices[0].message.content
         self.log_debug("chatgpt result: " + chatgpt_result_string)
         try:
-            result: List[Tuple[str, str]] = json.loads(chatgpt_result_string)
-            for extracted_ne in result:
-                if len(extracted_ne) != 2:
-                    raise Exception("not a tuple having two elements")
-                if type(extracted_ne[0]) != str or type(extracted_ne[1]) != str:
-                    raise Exception("one of the elements is not a string")
+            result: Dict[str, List[Dict[str, str]]] = json.loads(chatgpt_result_string)[KEY_RESULT]
+            for ne in result:
+                if not ne.get(KEY_ENTITY) or not ne.get(KEY_CLASS):
+                    raise Exception("NE JSON does not have necessary keys.")
         except Exception as e:
             self.log_warning("ChatGPT's output is not a valid NER result: " + chatgpt_result_string
                              + "Error:" + str(e))
-            result: Dict[str, Any] = {}  # default result
+            result: List[Dict[str, Any]] = []  # default result
         return result
-
-
-        result: {
-            "固有表現": [
-                {
-                    "クラス": "人名",
-                    "値": "中野"
-                }
-            ]
-        }
-
-
-
-
-
-
-
-
-        ner_result: Dict[str, str] = {}  # e.g., {NE_person:" John:David", NE_location: "New York:LA"}
-
-
-
-
-
-

@@ -29,7 +29,8 @@ COLUMN_EXPLANATION: str = "explanation"
 COLUMN_EXAMPLES: str = "examples"
 
 KEY_CLASS: str = "class"
-KEY_CANONICALIZER: str = "canonicalizer"
+KEY_ENTITY: str = "entity"
+KEY_RESULT: str = "result"
 
 ETC_STR = {"ja": "など", "en": " etc."}
 INPUT_STR = {"ja": "入力", "en": "input"}
@@ -69,7 +70,9 @@ def convert_ner_knowledge(utterances_df: DataFrame, classes_df: DataFrame,
 
     classes2explanations: Dict[str, str] = {}
     classes2examples: Dict[str, List[str]] = {}
-    utterances2ner_results: Dict[str, List[Tuple[str, str]]] = {}  # utterance -> [(class, ne), (class ne) ...]
+
+    # utterance -> {'result': [(class, ne), (class ne) ...]}
+    utterances2ner_results: Dict[str, Dict[str, List[Dict[str, str]]]] = {}
 
     print(f"converting NER knowledge.")
 
@@ -108,7 +111,7 @@ def convert_ner_knowledge(utterances_df: DataFrame, classes_df: DataFrame,
                 continue
             utterance: str = row[COLUMN_UTTERANCE].strip()
 
-            entities: List[Tuple[str, str]] = []
+            entities: List[Dict[str, str]] = []
             entities_cell: str = row[COLUMN_ENTITIES].strip()
             if entities_cell:
                 entities_str: List[str] = [x.strip() for x in re.split('[,，、]', entities_cell)]
@@ -116,8 +119,8 @@ def convert_ner_knowledge(utterances_df: DataFrame, classes_df: DataFrame,
                     pair: List[str] = [x.strip() for x in re.split('[=＝]', entity_str)]
                     if len(pair) != 2:
                         abort_during_building("illegal slot description: " + str(entities_str))
-                    entities.append((pair[0], pair[1]))  # (class. value)
-            utterances2ner_results[utterance] = entities
+                    entities.append({KEY_CLASS: pair[0], KEY_ENTITY: pair[1]})  # (class. value)
+            utterances2ner_results[utterance] = {KEY_RESULT: entities}
 
     class_list_in_prompt: str = ""
     for class_name in classes2explanations.keys():
