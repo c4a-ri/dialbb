@@ -101,51 +101,6 @@ def decide_greeting(greeting_variable: str, context: Dict[str, Any]) -> None:
         context[greeting_variable] = "こんばんは"
 
 
-def generate_with_openai_gpt(prompt: str):
-
-    chat_completion = None
-    while True:
-        try:
-            chat_completion = openai_client.with_options(timeout=10).chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[{"role": "user", "content": prompt}],
-                temperature=0.7,
-            )
-        except openai.APITimeoutError:
-            continue
-        except Exception as e:
-            print("OpenAI Error: " + traceback.format_exc())
-            sys.exit(1)
-        finally:
-            if not chat_completion:
-                continue
-            else:
-                break
-    generated_utterance: str = chat_completion.choices[0].message.content
-    return generated_utterance
-
-
-def set_impression_of_dialogue(impression_key: str, context: Dict[str, Any]) -> None:
-
-    if use_openai:
-
-        prompt = ""
-        for turn in context["_dialogue_history"]:
-            if turn["speaker"] == 'user':
-                prompt += f"ユーザ「{turn['utterance']}」\n"
-            else:
-                prompt += f"システム「{turn['utterance']}」\n"
-        prompt += "の後、システムが感想を短く言う発話を生成してください。"
-
-        generated_utterance: str = generate_with_openai_gpt(prompt)
-        impression = generated_utterance.replace("システム「", "").replace("「", "").replace("」", "")
-
-    else:
-        impression = "そうなんですね"
-
-    context[impression_key] = impression
-
-
 def generate_confirmation_request(nlu_result: Dict[str, Any], context: Dict[str, Any]) -> str:
 
     if nlu_result.get("type") == "特定のラーメンが好き" and nlu_result["slots"].get("好きなラーメン"):
