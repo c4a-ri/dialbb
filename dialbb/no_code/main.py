@@ -32,7 +32,8 @@ EDITOR_DIR: str = os.path.join(NC_PATH, 'gui_editor')
 # define application files  アプリファイルの定義
 APP_FILES: Dict[str, str] = {
     "scenario": "scenario.xlsx",
-    "knowledge": "nlu-knowledge.xlsx",
+    "nlu-knowledge": "nlu-knowledge.xlsx",
+    "ner-knowledge": "ner-knowledge.xlsx",
     "config": "config.yml"
 }
 
@@ -160,18 +161,20 @@ def set_file_frame(parent_frame, settings, label_text, file_type_list):
     file_frame.edit_box.grid(column=0, row=1, sticky=tk.NSEW, padx=5)
     file_frame.grid_columnconfigure(0, weight=1)
     file_frame.grid_rowconfigure(1, weight=1)
-    
+
     # selectボタンの作成
     file_button = ttk.Button(file_frame, text='select', width=7,
-                             command=lambda: open_file_command(file_frame.edit_box,
+                             command=lambda: set_file_path_command(file_frame.edit_box,
+                                                                   settings,
+                                                                   file_type_list))
+    file_button.grid(column=1, row=1, padx=5)
+
+    # loadボタンの作成
+    file_button = ttk.Button(file_frame, text='load', width=7,
+                             command=lambda: load_file_command(file_frame.edit_box,
                                                                settings,
                                                                file_type_list))
-    file_button.grid(column=1, row=1, padx=5)
-    
-    # editボタンの作成:GUIエディタ起動
-    btnEditor = ttk.Button(file_frame, text="edit", width=7,
-                           command=lambda: select_edit_file(file_frame, settings))
-    btnEditor.grid(column=2, row=1, padx=5)
+    file_button.grid(column=2, row=1, padx=5)
 
     return file_frame
 
@@ -218,13 +221,16 @@ def on_cancel(frame):
 
 
 # [select]ボタン：アプリファイルの読み込み
-def open_file_command(edit_box, settings, file_type_list):
+def set_file_path_command(edit_box, settings, file_type_list):
     file_path = filedialog.askopenfilename(filetypes=file_type_list)
     if file_path:
         # パスをテキストボックスに設定する
         edit_box.delete(0, tk.END)
         edit_box.insert(tk.END, file_path)
 
+def load_file_command(edit_box, settings, file_type_list):
+    file_path = edit_box.get()
+    if file_path:
         print(f'{file_path} decompress to {APP_FILE_DIR}')
         # zipアフィルをシステムエリアに展開する
         with zipfile.ZipFile(file_path) as zf:
@@ -233,6 +239,7 @@ def open_file_command(edit_box, settings, file_type_list):
         # アプリケーション名の保存
         file_name, _ = os.path.splitext(os.path.basename(file_path))
         settings.set_appname(file_name)
+
 
 
 # [edit]ボタン：編集するファイルを選択
@@ -249,21 +256,30 @@ def select_edit_file(parent, settings):
     chaild_position(parent, sub_menu, width=300, height=200)
 
     # ボタンの作成
-    btn_gui = ttk.Button(sub_menu, text="Scenario(GUI Editor)", width=20,
+    btn_gui = ttk.Button(sub_menu, text="Scenario", width=20,
                          command=lambda: [exec_editor(os.path.join(
                              APP_FILE_DIR, APP_FILES["scenario"])),
                              on_cancel(sub_menu)])
     btn_gui.pack(side=tk.TOP, pady=5)
-    btn_sce = ttk.Button(sub_menu, text="Scenario(Excel)", width=20,
-                         command=lambda: [edit_excel(os.path.join(
-                             APP_FILE_DIR, APP_FILES["scenario"])),
-                             on_cancel(sub_menu)])
-    btn_sce.pack(side=tk.TOP, pady=5)
+
+    # btn_sce = ttk.Button(sub_menu, text="Scenario(Excel)", width=20,
+    #                      command=lambda: [edit_excel(os.path.join(
+    #                          APP_FILE_DIR, APP_FILES["scenario"])),
+    #                          on_cancel(sub_menu)])
+    # btn_sce.pack(side=tk.TOP, pady=5)
+
     btn_nlu = ttk.Button(sub_menu, text="NLU knowledge", width=20,
                          command=lambda: [edit_excel(os.path.join(
-                             APP_FILE_DIR, APP_FILES["knowledge"])),
+                             APP_FILE_DIR, APP_FILES["nlu-knowledge"])),
                              on_cancel(sub_menu)])
     btn_nlu.pack(side=tk.TOP, pady=5)
+
+    btn_ner = ttk.Button(sub_menu, text="NER knowledge", width=20,
+                         command=lambda: [edit_excel(os.path.join(
+                             APP_FILE_DIR, APP_FILES["ner-knowledge"])),
+                             on_cancel(sub_menu)])
+    btn_ner.pack(side=tk.TOP, pady=5)
+
     btn_conf = ttk.Button(sub_menu, text="Configuration", width=20,
                           command=lambda: edit_config(sub_menu, os.path.join(
                              APP_FILE_DIR, APP_FILES["config"]), settings))
@@ -286,7 +302,7 @@ def create_app_files(parent, settings):
     sub_menu.transient(parent)
 
     # Label Frameを作成
-    label_frame = ttk.Labelframe(sub_menu, text='Languege', padding=(10),
+    label_frame = ttk.Labelframe(sub_menu, text='Language', padding=(10),
                                  style='My.TLabelframe')
     label_frame.pack(side="top", padx=5, pady=5)
 
@@ -333,7 +349,7 @@ def create_app_files(parent, settings):
                 return
 
         messagebox.showinfo("File copy", 'Application files created.',
-                            detail=f'Lang = [{lang}]')
+                            detail=f'Language ={lang}')
 
         # アプリケーション名の保存
         settings.set_appname(f'template_{lang}')
@@ -422,38 +438,46 @@ def setting_json(parent, settings):
         sub_menu.destroy()
 
 
+# create main frame
 # Mainフレームを作成する関数
 def set_main_frame(root_frame):
+
     # GUIセッティング情報の読み込み
     settings = gui_settings(os.path.join(NC_PATH, 'settings.dat'))
+
     # OPENAI_KEY環境変数の設定
     if settings.get_gptkey():
         os.environ["OPENAI_KEY"] = settings.get_gptkey()
 
     # App file Label 作成
-    appfile_label = ttk.Labelframe(root_frame, text='Application file',
-                                   padding=(10), style='My.TLabelframe')
+    application_frame = ttk.Labelframe(root_frame, text='Application',
+                                       padding=(10), style='My.TLabelframe')
 
     # ファイル選択エリア作成（ファイルの拡張子を指定）
-    file_frame = set_file_frame(appfile_label, settings, "Specify application:",
+    file_frame = set_file_frame(application_frame, settings, "Specify application:",
                                 [('zipファイル', '*.zip')])
     file_frame.pack(fill=tk.BOTH)
 
     # createボタン:アプリファイルの新規作成
-    create_btn = ttk.Button(appfile_label, text="create", width=7,
-                            command=lambda: create_app_files(appfile_label,
+    create_btn = ttk.Button(application_frame, text="create new app", width=14,
+                            command=lambda: create_app_files(application_frame,
                                                              settings))
     create_btn.pack(side=tk.LEFT, padx=10, pady=10)
 
+    # editボタンの作成:GUIエディタ起動
+    edit_button = ttk.Button(application_frame, text="edit", width=7,
+                             command=lambda: select_edit_file(file_frame, settings))
+    edit_button.pack(side=tk.LEFT, padx=10, pady=10)
+
     # saveボタン:アプリファイルのzip保存
-    save_btn = ttk.Button(appfile_label, text="save", width=7,
+    save_btn = ttk.Button(application_frame, text="save", width=7,
                           command=lambda: save_appfile(file_frame.edit_box.get(),
                                                        settings))
     save_btn.pack(side=tk.LEFT, padx=10, pady=10)
 
     # settingボタン:ユーザ情報の設定
     setting_btn = ttk.Button(
-        appfile_label, text="setting", width=7,
+        application_frame, text="settings", width=7,
         command=lambda: setting_json(file_frame, settings))
     setting_btn.pack(side=tk.LEFT, padx=10, pady=10)
 
@@ -478,19 +502,22 @@ def set_main_frame(root_frame):
     close_btn.pack(side=tk.BOTTOM, anchor=tk.NE, padx=10, pady=10)
 
     # フレームの配置
-    appfile_label.pack(fill=tk.BOTH, padx=10, pady=20)
+    application_frame.pack(fill=tk.BOTH, padx=10, pady=20)
     dialbb_label.pack(fill=tk.BOTH, padx=10)
 
 
 def main():
+    # create root widget
     # Rootウジェットの生成
     root = tk.Tk()
 
+    # set title and icon
     # タイトルとアイコンを設定
     root.title("DialBB No Code")
     # photo = os.path.join(NC_PATH, 'img', 'dialbb-icon.png')
     # root.iconphoto(True, tk.PhotoImage(file=photo))
 
+    # set window size and location
     # ウィンドウサイズと表示位置を指定
     central_position(root, width=400, height=280)
 

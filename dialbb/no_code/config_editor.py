@@ -18,14 +18,13 @@ from dialbb.no_code.gui_utils import chaild_position
 
 
 # -------- config.yml編集の管理するクラス -------------------------------------
-class config_mng:
+class ConfigManager:
     # Search pattern
-    serch_pat = {'chatgpt': 'dialbb.builtin_blocks.understanding_with_chatgpt',
-                 'spacy': 'dialbb.builtin_blocks.ner_with_spacy'
-                 }
+    search_pattern = {'understander': 'dialbb.builtin_blocks.understanding_with_chatgpt',
+                      'ner': 'dialbb.builtin_blocks.ner_with_chatgpt'}
 
     # block data for writing.
-    block_chatgpt = {'ja': """name: understander
+    block_understander = {'ja': """name: understander
 block_class: dialbb.builtin_blocks.understanding_with_chatgpt.chatgpt_understander.Understander
 input:
     input_text: canonicalized_user_utterance
@@ -36,7 +35,7 @@ canonicalizer:
     class: dialbb.builtin_blocks.preprocess.japanese_canonicalizer.JapaneseCanonicalizer
 model: gpt-4-tubo
 """,
-                     'en': """name: understander
+                          'en': """name: understander
 block_class: dialbb.builtin_blocks.understanding_with_chatgpt.chatgpt_understander.Understander
 input:
     input_text: canonicalized_user_utterance
@@ -47,27 +46,33 @@ canonicalizer:
     class: dialbb.builtin_blocks.preprocess.japanese_canonicalizer.JapaneseCanonicalizer
 model: gpt-4-tubo
 """
-                     }
+                          }
 
-    block_spacy = {'ja': """name: ner
-block_class: dialbb.builtin_blocks.ner_with_spacy.ne_recognizer.SpaCyNER
-input:
-    input_text: user_utterance
-    aux_data: aux_data
-output:
-    aux_data: aux_data
-model: ja_ginza_electra
+    block_ner = {'ja': """name: ner
+    block_class: dialbb.builtin_blocks.ner_with_chatgpt.chatgpt_ner.NER
+    input:
+      input_text: user_utterance
+      aux_data: aux_data
+    output:
+      aux_data: aux_data
+    knowledge_file: ner-knowledge.xlsx  # 知識記述ファイル
+    flags_to_use:
+      - 'Y'
+      - 'T'
 """,
                    'en': """name: ner
-block_class: dialbb.builtin_blocks.ner_with_spacy.ne_recognizer.SpaCyNER
-input:
-    input_text: user_utterance
-    aux_data: aux_data
-output:
-    aux_data: aux_data
-model: en_core_web_lg
+    block_class: dialbb.builtin_blocks.ner_with_chatgpt.chatgpt_ner.NER
+    input:
+      input_text: user_utterance
+      aux_data: aux_data
+    output:
+      aux_data: aux_data
+    knowledge_file: ner-knowledge.xlsx  # ner knowledge description
+    flags_to_use:
+      - 'Y'
+      - 'T'
 """
-                   }
+                 }
 
     def __init__(self, file_path: str) -> None:
         self.yaml = ruamel.yaml.YAML()
@@ -90,19 +95,19 @@ model: en_core_web_lg
                 # print(f'### block data: {block}')
         return result
 
-    # ChatGPTを利用するかの判定
-    def isChatgpt_understander(self) -> bool:
+    # whether to use NLUER block
+    def if_use_understander(self) -> bool:
         result = False
         block = self.get_block('understander')
-        if self.serch_pat['chatgpt'] in block.get('block_class', ''):
+        if self.search_pattern['understander'] in block.get('block_class', ''):
             result = True
         return result
 
-    # spaCyを利用するかの判定
-    def isSpacy_ner(self) -> bool:
+    # whether to use NER block
+    def if_use_ner(self) -> bool:
         result = False
         block = self.get_block('ner')
-        if self.serch_pat['spacy'] in block.get('block_class', ''):
+        if self.search_pattern['ner'] in block.get('block_class', ''):
             result = True
         return result
 
@@ -137,9 +142,9 @@ model: en_core_web_lg
         lang = self.config.get('language', '')
         
         if class_id == 'chatgpt':
-            result = self.block_chatgpt[lang]
+            result = self.block_understander[lang]
         elif class_id == 'spacy':
-            result = self.block_spacy[lang]
+            result = self.block_ner[lang]
         
         return self.yaml.load(result)
     
@@ -154,14 +159,14 @@ model: en_core_web_lg
                 # 追加
                 if op == 'add':
                     # 対象classが違う場合は上書き
-                    if not self.serch_pat[class_id] in block.get('block_class', ''):
+                    if not self.search_pattern[class_id] in block.get('block_class', ''):
                         # 要素を変更
                         self.config.get('blocks')[idx] = \
                             self.get_fixed_element(class_id)
                 # 削除
                 elif op == 'del':
                     # 対象classが有れば削除
-                    if self.serch_pat[class_id] in block.get('block_class', ''):
+                    if self.search_pattern[class_id] in block.get('block_class', ''):
                         del self.config.get('blocks')[idx]
 
         # block要素に対象nameが無く＆追加操作の場合
@@ -214,7 +219,7 @@ model: en_core_web_lg
 
 # Config編集の処理
 def edit_config(parent, file_path, settings):
-    config = config_mng(file_path)
+    config = ConfigManager(file_path)
 
     # 編集画面を表示
     sub_menu = tk.Toplevel(parent)
@@ -234,7 +239,7 @@ def edit_config(parent, file_path, settings):
 
     # ［Spacy利用有無］ラジオボタン
     sp_val = tk.StringVar()
-    sp_val.set('use' if config.isSpacy_ner() else 'unused')
+    sp_val.set('use' if config.if_use_ner() else 'unused')
     sp_rb1 = ttk.Radiobutton(sp_frame, text='use', value='use',
                              variable=sp_val)
     sp_rb2 = ttk.Radiobutton(sp_frame, text="don't use", value='unused',
@@ -249,7 +254,7 @@ def edit_config(parent, file_path, settings):
 
     # ［ChatGPT利用有無］ラジオボタン
     gpt_val = tk.StringVar()
-    gpt_val.set('use' if config.isChatgpt_understander() else 'unused')
+    gpt_val.set('use' if config.if_use_understander() else 'unused')
     gpt_rb1 = ttk.Radiobutton(gpt_nlu_fr, text='use', value='use',
                               variable=gpt_val)
     gpt_rb2 = ttk.Radiobutton(gpt_nlu_fr, text="don't use", value='unused',
@@ -266,7 +271,7 @@ def edit_config(parent, file_path, settings):
     models = settings.get_gptmodels()
     if not models:
         # default設定
-        models = ['gpt-4-tubo', 'gpt-4o']
+        models = ['gpt-4o', 'gpt-4o-mini']
     v = tk.StringVar()
     combobox = ttk.Combobox(gpt_mng_fr, textvariable=v, values=models,
                             state='normal', style='office.TCombobox')
