@@ -137,19 +137,19 @@ model: gpt-4-tubo
         return '\n'.join(result)
 
     # 書き込みblockデータを得る
-    def get_fixed_element(self, class_id: str) -> Any:
+    def get_fixed_element(self, block_name: str) -> Any:
         result = ''
         lang = self.config.get('language', '')
         
-        if class_id == 'chatgpt':
+        if block_name == 'understander':
             result = self.block_understander[lang]
-        elif class_id == 'spacy':
+        elif block_name == 'ner':
             result = self.block_ner[lang]
         
         return self.yaml.load(result)
     
     # block要素の変更
-    def change_block_ele(self, op: str, name: str, class_id: str) -> None:
+    def change_block_ele(self, op: str, name: str) -> None:
         find_f = False  # 検出有無
 
         # 対象nameを検索
@@ -159,36 +159,36 @@ model: gpt-4-tubo
                 # 追加
                 if op == 'add':
                     # 対象classが違う場合は上書き
-                    if not self.search_pattern[class_id] in block.get('block_class', ''):
+                    if not self.search_pattern[name] in block.get('block_class', ''):
                         # 要素を変更
                         self.config.get('blocks')[idx] = \
-                            self.get_fixed_element(class_id)
+                            self.get_fixed_element(name)
                 # 削除
                 elif op == 'del':
                     # 対象classが有れば削除
-                    if self.search_pattern[class_id] in block.get('block_class', ''):
+                    if self.search_pattern[name] in block.get('block_class', ''):
                         del self.config.get('blocks')[idx]
 
         # block要素に対象nameが無く＆追加操作の場合
         if not find_f and op == 'add':
             # 要素をmanagerの前に追加
-            self.config['blocks'].insert(-1, self.get_fixed_element(class_id))
+            self.config['blocks'].insert(-1, self.get_fixed_element(name))
 
         self.yaml.dump(self.config, sys.stdout)
 
     # ChatGPT blockの編集
     def set_chatgpt_understander(self, kind: str) -> None:
         if kind == 'use':
-            self.change_block_ele('add', 'understander', 'chatgpt')
-        elif kind == 'unused':
-            self.change_block_ele('del', 'understander', 'chatgpt')
+            self.change_block_ele('add', 'understander')
+        elif kind == 'not_use':
+            self.change_block_ele('del', 'understander')
 
     # spaCy blockの編集
     def set_spacy_understander(self, kind: str) -> None:
         if kind == 'use':
-            self.change_block_ele('add', 'ner', 'spacy')
-        elif kind == 'unused':
-            self.change_block_ele('del', 'ner', 'spacy')
+            self.change_block_ele('add', 'ner')
+        elif kind == 'not_use':
+            self.change_block_ele('del', 'ner')
 
     def set_chatgpt_model(self, model: str) -> None:
         if not model:
@@ -233,31 +233,31 @@ def edit_config(parent, file_path, settings):
     sub_menu.geometry(f"400x500+{parent_x}+{parent_y}")
 
     # Spacy Frameを作成
-    sp_frame = ttk.Labelframe(sub_menu, text='spaCy', padding=(10),
-                              style='My.TLabelframe')
-    sp_frame.pack(side='top', padx=5, pady=5)
+    ner_frame = ttk.Labelframe(sub_menu, text='Use named entity recognizer?', padding=(10),
+                               style='My.TLabelframe')
+    ner_frame.pack(side='top', padx=5, pady=5)
 
     # ［Spacy利用有無］ラジオボタン
     sp_val = tk.StringVar()
-    sp_val.set('use' if config.if_use_ner() else 'unused')
-    sp_rb1 = ttk.Radiobutton(sp_frame, text='use', value='use',
+    sp_val.set('use' if config.if_use_ner() else 'not_use')
+    sp_rb1 = ttk.Radiobutton(ner_frame, text='yes', value='use',
                              variable=sp_val)
-    sp_rb2 = ttk.Radiobutton(sp_frame, text="don't use", value='unused',
+    sp_rb2 = ttk.Radiobutton(ner_frame, text="no", value='not_use',
                              variable=sp_val)
     sp_rb1.grid(column=0, row=0, padx=5, pady=5)
     sp_rb2.grid(column=1, row=0, padx=5, pady=5)
     
-    # ChatGPT NLU Frameを作成
-    gpt_nlu_fr = ttk.Labelframe(sub_menu, text='ChatGPT nlu', padding=(10),
+    # NLU Frameを作成
+    gpt_nlu_fr = ttk.Labelframe(sub_menu, text='Use natural language understander?', padding=(10),
                                style='My.TLabelframe')
     gpt_nlu_fr.pack(expand=True, fill=tk.Y, padx=5, pady=5)
 
     # ［ChatGPT利用有無］ラジオボタン
     gpt_val = tk.StringVar()
-    gpt_val.set('use' if config.if_use_understander() else 'unused')
-    gpt_rb1 = ttk.Radiobutton(gpt_nlu_fr, text='use', value='use',
+    gpt_val.set('use' if config.if_use_understander() else 'not_use')
+    gpt_rb1 = ttk.Radiobutton(gpt_nlu_fr, text='yes', value='use',
                               variable=gpt_val)
-    gpt_rb2 = ttk.Radiobutton(gpt_nlu_fr, text="don't use", value='unused',
+    gpt_rb2 = ttk.Radiobutton(gpt_nlu_fr, text="no", value='not_use',
                               variable=gpt_val)
     gpt_rb1.grid(column=0, row=0, padx=5, pady=5)
     gpt_rb2.grid(column=1, row=0, padx=5, pady=5)
@@ -281,9 +281,9 @@ def edit_config(parent, file_path, settings):
     combobox.grid(column=1, row=1, columnspan=2, padx=5, pady=5)
 
     # モデル候補の編集ボタンを追加
-    btnEditor = ttk.Button(gpt_mng_fr, text="edit", width=7,
-                           command=lambda: gptmodel_edit(sub_menu, settings))
-    btnEditor.grid(column=2, row=1, padx=5)
+    other_model_button = ttk.Button(gpt_mng_fr, text="other", width=7,
+                                    command=lambda: gptmodel_edit(sub_menu, settings))
+    other_model_button.grid(column=2, row=1, padx=5)
 
     # situation入力エリア
     label2 = tk.Label(gpt_mng_fr, text='situation:')
@@ -326,7 +326,7 @@ def edit_config(parent, file_path, settings):
     sub_menu.bind('<Map>', lambda event: on_window_shown())
 
     # Layout
-    sp_frame.pack(fill=tk.X, padx=5, pady=5)
+    ner_frame.pack(fill=tk.X, padx=5, pady=5)
     gpt_nlu_fr.pack(fill=tk.X, padx=5, pady=5)
     gpt_mng_fr.pack(fill=tk.BOTH, padx=5, pady=5)
     cancel_btn.pack(side='right', padx=5, pady=5)
@@ -393,14 +393,14 @@ def edit_config(parent, file_path, settings):
         situation = stt.get(1.0, tk.END)
         persona = psn.get(1.0, tk.END)
 
-        # cofingデータを変更（差分なくても上書き）
+        # change config data (overwrite even if there's no change)
         config.set_chatgpt_understander(chatgpt)
         config.set_spacy_understander(spacy)
         config.set_chatgpt_model(gpt_model)
         config.set_chatgpt_list('situation', situation)
         config.set_chatgpt_list('persona', persona)
 
-        # cofing.yml書き込み
+        # write config.yml
         config.write()
 
         # 画面を閉じる
