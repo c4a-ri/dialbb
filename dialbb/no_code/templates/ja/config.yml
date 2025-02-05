@@ -19,13 +19,16 @@ blocks:  # ブロックのリスト
       class: dialbb.builtin_blocks.preprocess.japanese_canonicalizer.JapaneseCanonicalizer
     model: gpt-4o-mini
   - name: ner
-    block_class: dialbb.builtin_blocks.ner_with_spacy.ne_recognizer.SpaCyNER
+    block_class: dialbb.builtin_blocks.ner_with_chatgpt.chatgpt_ner.NER
     input:
       input_text: user_utterance
       aux_data: aux_data
     output:
       aux_data: aux_data
-    model: ja_ginza_electra
+    knowledge_file: ner-knowledge.xlsx  # 知識記述ファイル
+    flags_to_use:
+      - 'Y'
+      - 'T'
   - name: manager
     block_class: dialbb.builtin_blocks.stn_management.stn_manager.Manager
     knowledge_file: scenario.xlsx # 知識記述ファイル

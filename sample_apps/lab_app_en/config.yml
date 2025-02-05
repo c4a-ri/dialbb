@@ -32,7 +32,7 @@ blocks:  # list of blocks
       aux_data: aux_data
     output:
       aux_data: aux_data
-    knowledge_file: lab_app_ner_knowledge_en.xlsx  # nlu knowledge description
+    knowledge_file: lab_app_ner_knowledge_en.xlsx  # ner knowledge description
     flags_to_use:
       - 'Y'
       - 'T'
