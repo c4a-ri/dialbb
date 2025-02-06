@@ -319,9 +319,9 @@ OpenAI社のChatGPTを用いて，ユーザ発話タイプ（インテントと�
 
       Goole Sheet APIにアクセスするためのキーファイルをコンフィギュレーションファイルのディレクトリからの相対パスで指定します．
 
-- `gpt_model` (文字列．デフォルト値は`gpt-3.5-turbo`）
+- `gpt_model` (文字列．デフォルト値は`gpt-4o-mini`）
 
-  ChatGPTのモデルを指定します．`gpt-4-turbo`などが指定できます．`gpt-4`は指定できません．
+  ChatGPTのモデルを指定します．`gpt-4o`などが指定できます．`gpt-4`は指定できません．
 
 - `prompt_template`
 
@@ -698,7 +698,7 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
 
   - `gpt_model` （文字列） 
 
-    GPTのモデル名です．`gpt-4-turbo`, `gpt-3.5-turbo`等を指定できます．デフォルト値は`gpt-3.5-turbo`です．`gpt-4`は指定できません．
+    GPTのモデル名です．`gpt-4o-mini`, `gpt-4o`等を指定できます．デフォルト値は`gpt-4o-mini`です．`gpt-4`は指定できません．
 
   - `temperature` (float)
 
@@ -1012,9 +1012,9 @@ OpenAI社のChatGPTを用いて対話を行います．
     <ブロックコンフィギュレーションのuser_nameの値>: <ユーザ発話>
     ```
 
-- `gpt_model` （文字列，デフォルト値は`gpt-3.5-turbo`）
+- `gpt_model` （文字列，デフォルト値は`gpt-4o-mii`）
 
-  Open AI GPTのモデルです．`gpt-4`, `gpt-4-turbo`などが指定できます．
+  Open AI GPTのモデルです．`gpt-4o`, `gpt-4o-mini`などが指定できます．
 
 ### 処理内容
 

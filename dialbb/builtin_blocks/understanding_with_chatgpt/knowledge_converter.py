@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 # knowledge_converter.py
-#   convert nlu knowledge to be used in the prompt
+#   convert NLU knowledge to be used in the prompt
 #   言語理解知識をプロンプトで使う形式に変換する
 
 __version__ = '0.1'
@@ -72,7 +72,7 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame,
                           block_config: Dict[str, Any], language='ja') -> Tuple[str, str, str, Dict[str, List[str]]]:
 
     """
-    converts nlu knowledge to parts of prompt
+    converts NLU knowledge to parts of prompt
     言語理解知識をプロンプトの素材に変換する
     :param utterances_df: utterances sheet dataframe
     :param slots_df: slots sheet dataframe
@@ -87,7 +87,7 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame,
     types2utterances: Dict[str, List[str]] = {}
     utterances2understanding_results: Dict[str, Dict[str, Any]] = {}
 
-    print(f"converting nlu knowledge.")
+    print(f"converting NER knowledge.")
 
     # which rows to use
     flags: List[str] = block_config.get(CONFIG_KEY_FLAGS_TO_USE, [ANY_FLAG])
@@ -95,7 +95,7 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame,
     # canonicalizer
     canonicalizer_config: Dict[str, Any] = block_config.get(KEY_CANONICALIZER)
     if not canonicalizer_config:
-        abort_during_building("Canonicalizer is not specified in the config of SNIPS understander.")
+        abort_during_building("Canonicalizer is not specified in the config of ChatGPT understander.")
     canonicalizer: AbstractCanonicalizer = create_block_object(canonicalizer_config)
 
     # when there is no slot sheet

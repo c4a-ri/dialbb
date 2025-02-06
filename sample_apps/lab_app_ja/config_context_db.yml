@@ -26,18 +26,16 @@ blocks:  # ブロックのリスト
       - 'Y'
       - 'T'
   - name: ner
-    block_class: dialbb.builtin_blocks.ner_with_spacy.ne_recognizer.SpaCyNER
+    block_class: dialbb.builtin_blocks.ner_with_chatgpt.chatgpt_ner.NER
     input:
       input_text: user_utterance
       aux_data: aux_data
     output:
       aux_data: aux_data
-    model: ja_ginza_electra
-    patterns:
-      - label: Person
-        pattern: 大谷
-      - label: Person
-        pattern: ダルビッシュ
+    knowledge_file: lab_app_ner_knowledge_ja.xlsx  # 知識記述ファイル
+    flags_to_use:
+      - 'Y'
+      - 'T'
   - name: manager
     block_class: dialbb.builtin_blocks.stn_management.stn_manager.Manager
     knowledge_file: lab_app_scenario_ja.xlsx # 知識記述ファイル
@@ -51,7 +49,12 @@ blocks:  # ブロックのリスト
     output:
       output_text: system_utterance
       final: final
-      aux_data: aux_data      
+      aux_data: aux_data
+    context_db:
+      host: localhost
+      port: 27017
+      user: admin
+      password: password
     repeat_when_no_available_transitions: yes
     input_confidence_threshold: 0.5
     confirmation_request:
@@ -66,11 +69,6 @@ blocks:  # ブロックのリスト
     flags_to_use:
       - 'Y'
       - 'T'
-    context_db:
-      host: localhost
-      port: 27017
-      user: admin
-      password: password
     chatgpt:
       gpt_model: gpt-4o-mini
       temperature: 0.7
