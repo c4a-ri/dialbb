@@ -17,15 +17,18 @@ blocks:  # list of blocks
     knowledge_file: nlu-knowledge.xlsx  # knowledge file
     canonicalizer:
       class: dialbb.builtin_blocks.preprocess.japanese_canonicalizer.JapaneseCanonicalizer
-    model: gpt-3.5-turbo
+    model: gpt-4o-mini
   - name: ner
-    block_class: dialbb.builtin_blocks.ner_with_spacy.ne_recognizer.SpaCyNER
+    block_class: dialbb.builtin_blocks.ner_with_chatgpt.chatgpt_ner.NER
     input:
       input_text: user_utterance
       aux_data: aux_data
     output:
       aux_data: aux_data
-    model: en_core_web_lg
+    knowledge_file: ner-knowledge.xlsx  # ner knowledge description
+    flags_to_use:
+      - 'Y'
+      - 'T'
   - name: manager
     block_class: dialbb.builtin_blocks.stn_management.stn_manager.Manager
     knowledge_file: scenario.xlsx # scenario file
@@ -39,7 +42,7 @@ blocks:  # list of blocks
       final: final
       aux_data: aux_data
     chatgpt:
-      gpt_model: gpt-3.5-turbo  # gpt-4
+      gpt_model: gpt-4o-mini  # gpt-4o
       temperature: 0.7
       situation:
         - You are a dialogue system and chatting with the user.

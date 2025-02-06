@@ -164,7 +164,7 @@ class JsonInfo:
     def _disp_appname(self, app_name):
         if self.disp:
             # 表示エリアにセット
-            self.disp['text'] = f'Specify application (Current app: {app_name})'
+            self.disp['text'] = f'Current application: {app_name}'
 
     # OPENAI_API_KEY取得
     def get_gptkey(self):
@@ -175,7 +175,7 @@ class JsonInfo:
         self._set(self.label_gpt, key)
 
     # アプリ名表示エリアの登録
-    def reg_disp_aria(self, disp_area):
+    def reg_disp_area(self, disp_area):
         self.disp = disp_area
         self._disp_appname(self._get(self.label_app))
 
@@ -220,5 +220,5 @@ def chaild_position(parent, chaild, width: int = 0, height: int = 0):
 
 
 # GUIで利用するセッティング情報を制御
-def gui_settings(file_path):
+def read_gui_settings(file_path):
     return JsonInfo(file_path)

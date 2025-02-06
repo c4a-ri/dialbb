@@ -1,4 +1,8 @@
+# 日本語実験アプリケーションのコンフィギュレーションファイル
+
 language: ja   # 言語を指定
+
+system_name: ラーメンボット
 
 blocks:  # ブロックのリスト
   - name: canonicalizer  # ブロック名
@@ -12,26 +16,33 @@ blocks:  # ブロックのリスト
     block_class: dialbb.builtin_blocks.understanding_with_chatgpt.chatgpt_understander.Understander
     input:
       input_text: canonicalized_user_utterance
-    output:
+    output: 
       nlu_result: nlu_result
-    knowledge_file: nlu-knowledge.xlsx  # 知識記述ファイル
+    knowledge_file: lab_app_nlu_knowledge_ja.xlsx  # 知識記述ファイル
     canonicalizer:
       class: dialbb.builtin_blocks.preprocess.japanese_canonicalizer.JapaneseCanonicalizer
-    model: gpt-4o-mini
+    gpt_model: gpt-4o-mini
+    flags_to_use: 
+      - 'Y'
+      - 'T'
   - name: ner
-    block_class: dialbb.builtin_blocks.ner_with_chatgpt.chatgpt_ner.NER
+    block_class: dialbb.builtin_blocks.ner_with_spacy.ne_recognizer.SpaCyNER
     input:
       input_text: user_utterance
       aux_data: aux_data
     output:
       aux_data: aux_data
-    knowledge_file: ner-knowledge.xlsx  # 知識記述ファイル
-    flags_to_use:
-      - 'Y'
-      - 'T'
+    model: ja_ginza_electra
+    patterns:
+      - label: Person
+        pattern: 大谷
+      - label: Person
+        pattern: ダルビッシュ
   - name: manager
     block_class: dialbb.builtin_blocks.stn_management.stn_manager.Manager
-    knowledge_file: scenario.xlsx # 知識記述ファイル
+    knowledge_file: lab_app_scenario_ja.xlsx # 知識記述ファイル
+    function_definitions: scenario_functions  # 知識記述の中で用いる関数の定義ファイル
+    scenario_graph: yes
     input:
       sentence: canonicalized_user_utterance
       nlu_result: nlu_result
@@ -40,10 +51,24 @@ blocks:  # ブロックのリスト
     output:
       output_text: system_utterance
       final: final
-      aux_data: aux_data
+      aux_data: aux_data      
+    repeat_when_no_available_transitions: yes
+    input_confidence_threshold: 0.5
+    confirmation_request:
+      function_to_generate_utterance: generate_confirmation_request
+      acknowledgement_utterance_type: 肯定
+      denial_utterance_type: 否定
+    #utterance_to_ask_repetition: もう一度言って頂けますか？
+    ignore_out_of_context_barge_in: yes
+    reaction_to_silence:
+      action: repeat
+      #destination: state1
+    flags_to_use:
+      - 'Y'
+      - 'T'
+    multi_party: yes
     chatgpt:
-      model: gpt-4o-mini
-      #model: gpt-4
+      gpt_model: gpt-4o-mini
       temperature: 0.7
       situation:
         - あなたは対話システムで、ユーザと食べ物に関して雑談をしています。
@@ -61,8 +86,4 @@ blocks:  # ブロックのリスト
         - 非常にフレンドリーに話す
         - 外交的で陽気
 
-        
-        
-
-    
     
