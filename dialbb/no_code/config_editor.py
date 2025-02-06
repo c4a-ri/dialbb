@@ -7,6 +7,7 @@
 __version__ = '0.1'
 __author__ = 'Mikio Nakano'
 
+import os
 import sys
 import tkinter as tk
 from tkinter import ttk
@@ -20,76 +21,44 @@ from dialbb.no_code.gui_utils import chaild_position
 # -------- config.yml編集の管理するクラス -------------------------------------
 class ConfigManager:
     # Search pattern
-    search_pattern = {'understander': 'dialbb.builtin_blocks.understanding_with_chatgpt',
-                      'ner': 'dialbb.builtin_blocks.ner_with_chatgpt'}
 
-    # block data for writing.
-    block_understander = {'ja': """name: understander
-block_class: dialbb.builtin_blocks.understanding_with_chatgpt.chatgpt_understander.Understander
-input:
-    input_text: canonicalized_user_utterance
-output:
-    nlu_result: nlu_result
-knowledge_file: nlu-knowledge.xlsx  # 知識記述ファイル
-canonicalizer:
-    class: dialbb.builtin_blocks.preprocess.japanese_canonicalizer.JapaneseCanonicalizer
-model: gpt-4-tubo
-""",
-                          'en': """name: understander
-block_class: dialbb.builtin_blocks.understanding_with_chatgpt.chatgpt_understander.Understander
-input:
-    input_text: canonicalized_user_utterance
-output:
-    nlu_result: nlu_result
-knowledge_file: nlu-knowledge.xlsx  # knowledge file
-canonicalizer:
-    class: dialbb.builtin_blocks.preprocess.japanese_canonicalizer.JapaneseCanonicalizer
-model: gpt-4-tubo
-"""
-                          }
-
-    block_ner = {'ja': """name: ner
-    block_class: dialbb.builtin_blocks.ner_with_chatgpt.chatgpt_ner.NER
-    input:
-      input_text: user_utterance
-      aux_data: aux_data
-    output:
-      aux_data: aux_data
-    knowledge_file: ner-knowledge.xlsx  # 知識記述ファイル
-    flags_to_use:
-      - 'Y'
-      - 'T'
-""",
-                   'en': """name: ner
-    block_class: dialbb.builtin_blocks.ner_with_chatgpt.chatgpt_ner.NER
-    input:
-      input_text: user_utterance
-      aux_data: aux_data
-    output:
-      aux_data: aux_data
-    knowledge_file: ner-knowledge.xlsx  # ner knowledge description
-    flags_to_use:
-      - 'Y'
-      - 'T'
-"""
-                 }
-
-    def __init__(self, file_path: str) -> None:
+    def __init__(self, file_path: str, template_path: str) -> None:
         self.yaml = ruamel.yaml.YAML()
         self.file_path = file_path
         self.yaml.indent(sequence=4, offset=2)
+
+
         try:
             with open(file_path, encoding='utf-8') as file:
                 self.config = self.yaml.load(file)
         except Exception as e:
             print(f"can't read config file: {file_path}. " + str(e))
 
+        self.search_pattern = {'understander': 'dialbb.builtin_blocks.understanding_with_chatgpt',
+                               'ner': 'dialbb.builtin_blocks.ner_with_chatgpt'}
+
+        # read nlu and ner block descriptions from templates
+        self.block_understander: Dict[str, Dict[str, Any]] = {}
+        self.block_ner: Dict[str, Dict[str, Any]] = {}
+        for language in ('ja', 'en'):
+            template_config_file = os.path.join(template_path, language, 'config.yml')
+            try:
+                with open(template_config_file, encoding='utf-8') as fp:
+                    template_config: Dict[str, Any] = self.yaml.load(fp)
+            except Exception as e:
+                print(f"can't read template config file: {file_path}. " + str(e))
+            for block_desc in template_config['blocks']:
+                if block_desc['name'] == 'understander':
+                    self.block_understander[language] = block_desc
+                elif block_desc['name'] == 'ner':
+                    self.block_ner[language] = block_desc
+
         # self.yaml.dump(self.config, sys.stdout)
 
     # blocksのblock要素を取得
-    def get_block(self, name: str) -> Dict[str, str]:
+    def get_block(self, name: str) -> Dict[str, Any]:
         result = {}
-        for block in self.config.get('blocks', ''):
+        for block in self.config.get('blocks', []):
             if block.get('name') == name:
                 result = block
                 # print(f'### block data: {block}')
@@ -121,32 +90,34 @@ model: gpt-4-tubo
         return result
 
     # ChatGPTのsituationを取得
-    def get_situation(self) -> List[str]:
+    def get_situation(self) -> str:
         result = ''
-        chatgpt = self.get_block('manager').get('chatgpt')
+        chatgpt: Dict[str, Any] = self.get_block('manager').get('chatgpt')
         if chatgpt:
             result = chatgpt.get('situation')
         return '\n'.join(result)
 
     # ChatGPTのpersonaを取得
-    def get_persona(self) -> List[str]:
+    def get_persona(self) -> str:
         result = ''
-        chatgpt = self.get_block('manager').get('chatgpt')
+        chatgpt: Dict[str, Any] = self.get_block('manager').get('chatgpt')
         if chatgpt:
             result = chatgpt.get('persona')
         return '\n'.join(result)
 
-    # 書き込みblockデータを得る
-    def get_fixed_element(self, block_name: str) -> Any:
-        result = ''
+    # get block descriptions to add
+    def get_fixed_element(self, block_name: str) -> Dict[str, Any]:
+
         lang = self.config.get('language', '')
         
         if block_name == 'understander':
-            result = self.block_understander[lang]
+            result: Dict[str, Any] = self.block_understander[lang]
         elif block_name == 'ner':
-            result = self.block_ner[lang]
-        
-        return self.yaml.load(result)
+            result: Dict[str, Any] = self.block_ner[lang]
+        else:
+            raise Exception("no such block: " + block_name)
+
+        return result
     
     # block要素の変更
     def change_block_ele(self, op: str, name: str) -> None:
@@ -218,8 +189,8 @@ model: gpt-4-tubo
 
 
 # Config編集の処理
-def edit_config(parent, file_path, settings):
-    config = ConfigManager(file_path)
+def edit_config(parent, file_path, template_path, settings):
+    config = ConfigManager(file_path, template_path)
 
     # 編集画面を表示
     sub_menu = tk.Toplevel(parent)

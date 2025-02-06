@@ -18,7 +18,7 @@ import zipfile
 from dialbb.no_code.tools.knowledgeConverter2json import convert2json
 from dialbb.no_code.tools.knowledgeConverter2excel import convert2excel
 from dialbb.no_code.config_editor import edit_config
-from dialbb.no_code.gui_utils import gui_settings, ProcessManager, \
+from dialbb.no_code.gui_utils import read_gui_settings, ProcessManager, \
     FileTimestamp, central_position, chaild_position
 from typing import Dict
 
@@ -27,6 +27,7 @@ SCRIPT_ROOT: str = os.path.dirname(os.path.abspath(__file__))
 LIB_DIR: str = os.path.abspath(os.path.join(SCRIPT_ROOT, '..'))
 NC_PATH: str = SCRIPT_ROOT
 APP_FILE_DIR: str = os.path.join(NC_PATH, 'app')
+TEMPLATE_DIR: str = os.path.join(NC_PATH, 'templates')
 EDITOR_DIR: str = os.path.join(NC_PATH, 'gui_editor')
 
 # define application files  アプリファイルの定義
@@ -152,29 +153,28 @@ def set_file_frame(parent_frame, settings, label_text, file_type_list):
     # ラベルの作成
     file_frame = ttk.Frame(parent_frame, style='My.TLabelframe')
     file_frame.spec_app = tk.Label(file_frame, text=label_text)
-    file_frame.spec_app.grid(column=0, row=0, sticky=tk.NSEW, padx=5)
+    file_frame.spec_app.grid(column=0, columnspan=2, row=0, sticky=tk.W, padx=5)
     # アプリ名の表示エリアを登録して保存アプリ名を表示する
-    settings.reg_disp_aria(file_frame.spec_app)
-    
+    settings.reg_disp_area(file_frame.spec_app)
+
+    label = tk.Label(file_frame, text="Application file to import: ")
+    label.grid(column=0, row=1, padx=0, sticky=tk.E)
+
     # テキストボックスの作成
     file_frame.edit_box = tk.Entry(file_frame)
-    file_frame.edit_box.grid(column=0, row=1, sticky=tk.NSEW, padx=5)
+    file_frame.edit_box.grid(column=1, row=1, sticky=tk.NSEW, padx=20)
     file_frame.grid_columnconfigure(0, weight=1)
     file_frame.grid_rowconfigure(1, weight=1)
 
-    # selectボタンの作成
-    file_button = ttk.Button(file_frame, text='select', width=7,
-                             command=lambda: set_file_path_command(file_frame.edit_box,
-                                                                   settings,
-                                                                   file_type_list))
-    file_button.grid(column=1, row=1, padx=5)
+    # select button
+    select_button = ttk.Button(file_frame, text='select', width=7,
+                               command=lambda: set_file_path_command(file_frame.edit_box, settings, file_type_list))
+    select_button.grid(column=2, row=1, padx=5)
 
-    # loadボタンの作成
-    file_button = ttk.Button(file_frame, text='load', width=7,
-                             command=lambda: load_file_command(file_frame.edit_box,
-                                                               settings,
-                                                               file_type_list))
-    file_button.grid(column=2, row=1, padx=5)
+    # import button
+    import_button = ttk.Button(file_frame, text='import', width=7,
+                               command=lambda: load_file_command(file_frame.edit_box, settings, file_type_list))
+    import_button.grid(column=3, row=1, padx=5)
 
     return file_frame
 
@@ -281,8 +281,10 @@ def select_edit_file(parent, settings):
     btn_ner.pack(side=tk.TOP, pady=5)
 
     btn_conf = ttk.Button(sub_menu, text="Configuration", width=20,
-                          command=lambda: edit_config(sub_menu, os.path.join(
-                             APP_FILE_DIR, APP_FILES["config"]), settings))
+                          command=lambda: edit_config(sub_menu,
+                                                      os.path.join(APP_FILE_DIR, APP_FILES["config"]),
+                                                      TEMPLATE_DIR,
+                                                      settings))
     btn_conf.pack(side=tk.TOP, pady=5)
 
     # Cancelボタン
@@ -359,7 +361,7 @@ def create_app_files(parent, settings):
 
 
 # [save]ボタンの処理。アプリファイルをzip圧縮して保存する
-def save_appfile(file_path, settings):
+def export_app_file(file_path, settings):
     global APP_FILES
     global app_file_timestamp
 
@@ -370,7 +372,7 @@ def save_appfile(file_path, settings):
     else:
         dir = os.path.dirname(file_path)
 
-    zip_file = filedialog.asksaveasfilename(title='Save App files',
+    zip_file = filedialog.asksaveasfilename(title='Export application file',
                                             initialdir=dir,
                                             filetypes=[('zip file', '*.zip')],
                                             defaultextension='zip')
@@ -443,7 +445,7 @@ def setting_json(parent, settings):
 def set_main_frame(root_frame):
 
     # GUIセッティング情報の読み込み
-    settings = gui_settings(os.path.join(NC_PATH, 'settings.dat'))
+    settings = read_gui_settings(os.path.join(NC_PATH, 'settings.dat'))
 
     # OPENAI_KEY環境変数の設定
     if settings.get_gptkey():
@@ -454,7 +456,7 @@ def set_main_frame(root_frame):
                                        padding=(10), style='My.TLabelframe')
 
     # ファイル選択エリア作成（ファイルの拡張子を指定）
-    file_frame = set_file_frame(application_frame, settings, "Specify application:",
+    file_frame = set_file_frame(application_frame, settings, "Specify application file (Zip file)",
                                 [('zipファイル', '*.zip')])
     file_frame.pack(fill=tk.BOTH)
 
@@ -469,20 +471,21 @@ def set_main_frame(root_frame):
                              command=lambda: select_edit_file(file_frame, settings))
     edit_button.pack(side=tk.LEFT, padx=10, pady=10)
 
-    # saveボタン:アプリファイルのzip保存
-    save_btn = ttk.Button(application_frame, text="save", width=7,
-                          command=lambda: save_appfile(file_frame.edit_box.get(),
-                                                       settings))
-    save_btn.pack(side=tk.LEFT, padx=10, pady=10)
-
     # settingボタン:ユーザ情報の設定
     setting_btn = ttk.Button(
         application_frame, text="settings", width=7,
         command=lambda: setting_json(file_frame, settings))
     setting_btn.pack(side=tk.LEFT, padx=10, pady=10)
 
+    # export ボタン:アプリファイルのzip保存
+    export_btn = ttk.Button(application_frame, text="export", width=7,
+                            command=lambda: export_app_file(file_frame.edit_box.get(),
+                                                            settings))
+    export_btn.pack(side=tk.LEFT, padx=10, pady=10)
+
+
     # DialBB Label 作成
-    dialbb_label = ttk.Labelframe(root_frame, text='DialBB sever',
+    dialbb_label = ttk.Labelframe(root_frame, text='Run server',
                                   padding=(10), style='My.TLabelframe')
 
     # startボタン:DialBBサーバ起動
@@ -519,7 +522,7 @@ def main():
 
     # set window size and location
     # ウィンドウサイズと表示位置を指定
-    central_position(root, width=400, height=280)
+    central_position(root, width=500, height=280)
 
     # GUIの画面構築
     set_main_frame(root)
