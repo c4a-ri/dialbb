@@ -20,7 +20,7 @@ from dialbb.no_code.gui_utils import chaild_position
 
 # -------- config.yml編集の管理するクラス -------------------------------------
 class ConfigManager:
-    # Search pattern
+
 
     def __init__(self, file_path: str, template_path: str) -> None:
         self.yaml = ruamel.yaml.YAML()

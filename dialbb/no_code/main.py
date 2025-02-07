@@ -204,7 +204,7 @@ def App_Close(root):
 
     # アプリファイルの変更チェック
     if not app_file_timestamp.check():
-        ret = messagebox.askquestion("File changed", "Appliation file has not been saved!",
+        ret = messagebox.askquestion("File changed", "Application file has not been exported.",
                                      detail="Exit without saving?",
                                      icon='warning')
         if ret == 'no':
@@ -434,7 +434,7 @@ def setting_json(parent, settings):
         key = api_key.get()
         settings.set_gptkey(key)
         # OPENAI_KEY環境変数をセット
-        os.environ["OPENAI_KEY"] = key
+        os.environ["OPENAI_API_KEY"] = key
         messagebox.showinfo("Settings", 'Saved.')
         # 画面を閉じる
         sub_menu.destroy()

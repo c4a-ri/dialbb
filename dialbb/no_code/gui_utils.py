@@ -14,28 +14,42 @@ import subprocess
 from typing import List, Dict, Any
 import json
 from cryptography.fernet import Fernet
+from datetime import datetime
 
 
 # -------- Process manager class プロセス管理クラス -------------------------------------
 class ProcessManager:
-    def __init__(self, cmd: str, param: List[str] = None) -> None:
-        if param is None:
-            param = []
+    def __init__(self, cmd: str, params: List[str] = None) -> None:
+        if params is None:
+            params = []
         self.cmd = cmd
-        self.param = param
+        self.params = params
 
     # プロセス起動
     def start(self) -> bool:
         # プロセス起動コマンド
-        if os.name == 'nt':
-            # windows
+
+        # debug mode
+        os.environ['DIALBB_DEBUG'] = 'yes'
+
+        # current time
+        current_date: str = datetime.now().strftime("%Y%m%d")
+        current_time: str = datetime.now().strftime("%H%M%S")
+
+        if os.name == 'nt':  # windows
+            log_dir = os.path.join(os.environ['HOME'], '.dialbb_nc_logs', current_date)
+            if not os.path.exists(log_dir):
+                os.makedirs(log_dir)
+            log_file = os.path.join(log_dir, f"{current_date}.{current_time}.txt")
             # Pythonの実行可能ファイルのパスを取得
-            cmd = [sys.executable, self.cmd] + self.param
-            print(f'CLI:{cmd}')
-            self.process = subprocess.Popen(cmd)
+            with open(log_file, 'w') as fp:
+                cmd = [sys.executable, self.cmd] + self.params
+                print(f'CLI:{cmd}')
+                self.process = subprocess.Popen(cmd, stdout=fp, stderr=subprocess.STDOUT, shell=True)
         else:
             # Linux
-            cmd = f'exec python {self.cmd} {" ".join(self.param)}'
+            # TODO logging
+            cmd = f'exec python {self.cmd} {" ".join(self.params)}'
             self.process = subprocess.Popen(cmd, shell=True)
 
         ret_code = self.process.poll()
@@ -194,7 +208,9 @@ class JsonInfo:
         return self._get(self.label_model)
 
     # GPT models設定
-    def set_gptmodels(self, models: List[str] = []):
+    def set_gptmodels(self, models: List[str]):
+        if not models:
+            models = []
         self._set(self.label_model, models)
 
 
