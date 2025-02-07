@@ -225,14 +225,14 @@ def central_position(frame, width: int, height: int):
 
 
 # 親ウジェットに重ねて子ウジェットを表示
-def chaild_position(parent, chaild, width: int = 0, height: int = 0):
+def child_position(parent, child, width: int = 0, height: int = 0):
     # 親ウィンドウの位置に子ウィンドウを配置
-    x = parent.winfo_rootx() + parent.winfo_width() // 4 - chaild.winfo_width() // 4
-    y = parent.winfo_rooty() + parent.winfo_height() // 4 - chaild.winfo_height() // 4
+    x = parent.winfo_rootx() + parent.winfo_width() // 4 - child.winfo_width() // 4
+    y = parent.winfo_rooty() + parent.winfo_height() // 4 - child.winfo_height() // 4
     if width == 0 and height == 0:
-        chaild.geometry(f"+{x}+{y}")
+        child.geometry(f"+{x}+{y}")
     else:
-        chaild.geometry(f"{width}x{height}+{x}+{y}")
+        child.geometry(f"{width}x{height}+{x}+{y}")
 
 
 # GUIで利用するセッティング情報を制御
