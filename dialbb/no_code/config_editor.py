@@ -15,12 +15,11 @@ from tkinter import scrolledtext
 import ruamel.yaml
 from typing import Any, Dict, List
 
-from dialbb.no_code.gui_utils import chaild_position
+from dialbb.no_code.gui_utils import child_position
 
 
 # -------- config.yml編集の管理するクラス -------------------------------------
 class ConfigManager:
-
 
     def __init__(self, file_path: str, template_path: str) -> None:
         self.yaml = ruamel.yaml.YAML()
@@ -194,7 +193,7 @@ def edit_config(parent, file_path, template_path, settings):
 
     # 編集画面を表示
     sub_menu = tk.Toplevel(parent)
-    sub_menu.title('Edit config')
+    sub_menu.title('Configuration')
     sub_menu.grab_set()        # モーダルにする
     sub_menu.focus_set()       # フォーカスを新しいウィンドウをへ移す
     sub_menu.transient(parent)
@@ -318,7 +317,7 @@ def edit_config(parent, file_path, template_path, settings):
         sub_menu.focus_set()       # フォーカスを新しいウィンドウをへ移す
         sub_menu.transient(parent)
         # サイズ＆表示位置の指定
-        chaild_position(parent, sub_menu)
+        child_position(parent, sub_menu)
 
         # GPTモデル候補入力エリア
         label1 = tk.Label(sub_menu, text='Models:')

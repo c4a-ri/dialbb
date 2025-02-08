@@ -18,8 +18,9 @@ import zipfile
 from dialbb.no_code.tools.knowledgeConverter2json import convert2json
 from dialbb.no_code.tools.knowledgeConverter2excel import convert2excel
 from dialbb.no_code.config_editor import edit_config
+from dialbb.no_code.function_editor import edit_scenario_functions
 from dialbb.no_code.gui_utils import read_gui_settings, ProcessManager, \
-    FileTimestamp, central_position, chaild_position
+    FileTimestamp, central_position, child_position
 from typing import Dict
 
 # paths  実行環境パス
@@ -35,6 +36,7 @@ APP_FILES: Dict[str, str] = {
     "scenario": "scenario.xlsx",
     "nlu-knowledge": "nlu-knowledge.xlsx",
     "ner-knowledge": "ner-knowledge.xlsx",
+    "scenario-functions": "scenario_functions.py",
     "config": "config.yml"
 }
 
@@ -205,7 +207,7 @@ def App_Close(root):
     # アプリファイルの変更チェック
     if not app_file_timestamp.check():
         ret = messagebox.askquestion("File changed", "Application file has not been exported.",
-                                     detail="Exit without saving?",
+                                     detail="Exit without exporting?",
                                      icon='warning')
         if ret == 'no':
             return
@@ -248,12 +250,12 @@ def select_edit_file(parent, settings):
 
     # 選択画面を表示
     sub_menu = tk.Toplevel(parent)
-    sub_menu.title("Select the edit file")
+    sub_menu.title("Edit Application")
     sub_menu.grab_set()        # モーダルにする
     sub_menu.focus_set()       # フォーカスを新しいウィンドウをへ移す
     sub_menu.transient(parent)
     # サイズ＆表示位置の指定
-    chaild_position(parent, sub_menu, width=300, height=200)
+    child_position(parent, sub_menu, width=300, height=250)
 
     # ボタンの作成
     btn_gui = ttk.Button(sub_menu, text="Scenario", width=20,
@@ -279,6 +281,12 @@ def select_edit_file(parent, settings):
                              APP_FILE_DIR, APP_FILES["ner-knowledge"])),
                              on_cancel(sub_menu)])
     btn_ner.pack(side=tk.TOP, pady=5)
+
+    btn_conf = ttk.Button(sub_menu, text="Scenario Functions", width=20,
+                          command=lambda: edit_scenario_functions(sub_menu,
+                                                                  os.path.join(APP_FILE_DIR,
+                                                                               APP_FILES["scenario-functions"])))
+    btn_conf.pack(side=tk.TOP, pady=5)
 
     btn_conf = ttk.Button(sub_menu, text="Configuration", width=20,
                           command=lambda: edit_config(sub_menu,
@@ -327,7 +335,7 @@ def create_app_files(parent, settings):
     can_btn.pack(side="right", padx=5, pady=5)
     ok_btn.pack(side="right", padx=5, pady=5)
     # サイズ＆表示位置の指定
-    chaild_position(parent, sub_menu, width=250, height=130)
+    child_position(parent, sub_menu, width=250, height=130)
 
     # ボタンクリックされた際のイベント
     def btn_click():
@@ -399,7 +407,7 @@ def setting_json(parent, settings):
     sub_menu.focus_set()       # フォーカスを新しいウィンドウをへ移す
     sub_menu.transient(parent)
     # サイズ＆表示位置の指定
-    chaild_position(parent, sub_menu)
+    child_position(parent, sub_menu)
 
     f1 = tk.Frame(sub_menu)    # Subフレーム生成
 
