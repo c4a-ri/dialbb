@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.10.0 (2024.12.?)
+## 0.10.0 (2025.1.6)
 
 - License is changed to Apache License 2.0
 	
