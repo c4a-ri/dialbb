@@ -232,7 +232,7 @@ class NER(AbstractBlock):
         chatgpt_result_string: str = chat_completion.choices[0].message.content
         self.log_debug("chatgpt result: " + chatgpt_result_string)
         try:
-            result: Dict[str, List[Dict[str, str]]] = json.loads(chatgpt_result_string)[KEY_RESULT]
+            result: List[Dict[str, str]] = json.loads(chatgpt_result_string)[KEY_RESULT]
             for ne in result:
                 if not ne.get(KEY_ENTITY) or not ne.get(KEY_CLASS):
                     raise Exception("NE JSON does not have necessary keys.")

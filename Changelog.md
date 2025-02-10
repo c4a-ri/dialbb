@@ -1,9 +1,11 @@
 # Changelog
 
-## 0.10.0 (2024.12.?)
+## 0.1.0 (2024.12.?)
+
+## 0.10.0 (2024.1.6)
 
 - License is changed to Apache License 2.0
-	
+
 - STN Manager Buitlin Block
 
   - Use `user_id` in dialogue history for multi-party dialogues
