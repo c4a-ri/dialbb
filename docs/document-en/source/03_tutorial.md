@@ -452,10 +452,10 @@ It is based on language understanding by ChatGPT and network-based dialogue mana
 
 - {ref}`simple_canonicalizer`
 - {ref}`chatgpt_understander`
-- {ref}`spacy_ner`
+- {ref}`chatgpt_ner`
 - {ref}`stn_manager`
 
-The main differences from simple applications are the use of the ChatGPT language understanding block and the spaCy named entity recognition block, as well as the advanced functionalities of the STN Manager block.
+The main differences from simple applications are the use of the ChatGPT language understanding block and the ChatGPT named entity recognition block, as well as the advanced functionalities of the STN Manager block.
 
 
 ### Files Comprising the Application

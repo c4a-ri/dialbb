@@ -964,6 +964,152 @@ When using these blocks, you need to set the OpenAI license key in the environme
 - In the second and subsequent turns, the prompt template in which `@dialogue_history` is replace by the dialogue histor is given to ChatGPT and the returned string is returned as the system utterance.
 
 
+(chatgpt_ner)=
+## ChatGPT NER （ChatGPTを用いた固有表現抽出ブロック）
+
+(`dialbb.builtin_blocks.ner_with_chatgpt.chatgpt_ner.NER`）
+
+OpenAI社のChatGPTを用いて，固有表現の抽出を行います．
+
+コンフィギュレーションの`language`要素が`ja`の場合は日本語，`en`の場合は英語の固有表現抽出を行います．
+
+本ブロックは，起動時にExcelで記述した固有表現用知識を読み込み，固有表現のクラスのリスト，各固有表現クラスの説明，各クラスの固有表現の例，抽出例（Few shot example）に変換し，プロンプトに埋め込みます．
+
+実行時は，プロンプトに入力発話を付加してChatGPTに固有表現抽出を行わせます．
+
+### 入出力
+
+- 入力
+
+  - `input_text`: 入力文字列
+
+     例："好きなのは醤油"
+
+- 出力
+
+  - `aux_data`: 補助データ（辞書型）
+
+    入力された`aux_data`に固有表現抽出結果を加えたものです．
+
+    固有表現抽出結果は，以下の形です．
+
+    ```json
+    {"NE_<ラベル>": "<固有表現>", "NE_<ラベル>": "<固有表現>", ...}
+    ```
+
+    <ラベル>は固有表現のクラスです．固有表現は見つかった固有表現で，`input_text`の部分文字列です．同じクラスの固有表現が複数見つかった場合，`:`で連結します．
+
+    例
+
+    ```json
+    {"NE_人名": "田中:鈴木", "NE_料理": "味噌ラーメン"}
+    ```
+
+(chatgpt_understander_params)=
+
+### ブロックコンフィギュレーションのパラメータ
+
+- `knowledge_file`（文字列）
+
+  固有表現知識を記述したExcelファイルを指定します．コンフィギュレーションファイルのあるディレクトリからの相対パスで記述します．
+
+- `flags_to_use`（文字列のリスト）
+
+  各シートの`flag`カラムにこの値のうちのどれかが書かれていた場合に読み込みます．このパラメータがセットされていない場合はすべての行が読み込まれます．
+
+- `knowledge_google_sheet` (ハッシュ)
+
+  - Excelの代わりにGoogle Sheetを用いる場合の情報を記述します．（Google Sheetを利用する際の設定は[こはたさんの記事](https://note.com/kohaku935/n/nc13bcd11632d)が参考になりますが，Google Cloud Platformの設定画面のUIがこの記事とは多少変わっています．）
+
+    - `sheet_id` （文字列）
+
+      Google SheetのIDです．
+
+    - `key_file`（文字列）
+
+      Goole Sheet APIにアクセスするためのキーファイルをコンフィギュレーションファイルのディレクトリからの相対パスで指定します．
+
+- `gpt_model` (文字列．デフォルト値は`gpt-4o-mini`）
+
+  ChatGPTのモデルを指定します．`gpt-4o`などが指定できます．
+
+- `prompt_template`
+
+  プロンプトテンプレートを書いたファイルをコンフィギュレーションファイルのディレクトリからの相対パスで指定します．
+
+  これが指定されていない場合は，`dialbb.builtin_blocks.ner_with_chatgpt.chatgpt_ner.prompt_template_ja .PROMPT_TEMPLATE_JA` （日本語）または，`dialbb.builtin_blocks.ner_with_chatgpt.chatgpt_ner.prompt_template_en .PROMPT_TEMPLATE_EN` （英語）が使われます．
+
+  プロンプトテンプレートは，言語理解をChatGPTに行わせるプロンプトのテンプレートで，`@`で始まる以下の変数を含みます．
+
+  - `@classes` 固有表現のクラスを列挙したものです．
+  - `@class_explanations` 各固有表現クラスの説明を列挙したものです．
+  - `@ne_examples` 各固有表現クラスの固有表現の例を列挙したものです．
+  - `@ner_examples` 発話例と，固有表現抽出結果の正解を書いた，いわゆるfew shot exampleです．
+  - `@input` 入力発話です．
+
+  これらの変数には，実行時に値が代入されます．
+
+
+### 固有表現抽出知識
+
+固有表現抽出知識は，以下の2つのシートからなります．
+
+| シート名   | 内容                                             |
+| ---------- | ------------------------------------------------ |
+| utterances | 発話と固有表現抽出結果の例                       |
+| classes    | スロットとエンティティの関係および同義語のリスト |
+
+シート名はブロックコンフィギュレーションで変更可能ですが，変更することはほとんどないと思いますので，詳細な説明は割愛します．
+
+#### utterancesシート
+
+各行は次のカラムからなります．
+
+- `flag`      
+
+  利用するかどうかを決めるフラグ．`Y` (yes), `T` (test)などを書くことが多いです．どのフラグの行を利用するかはコンフィギュレーションに記述します．
+
+- `utterance` 
+
+  発話例．
+
+- `entities` 
+
+  発話に含まれる固有表現．固有表現を以下の形で記述します．
+
+  ```
+  <固有表現クラス>=<固有表現>, <固有表現クラス>=<固有表現>, ... <固有表現クラス>=<固有表現> 
+  ```
+
+  以下が例です．
+
+  ```
+  人名=太郎, 地名=東京
+  ```
+
+  utterancesシートのみならずこのブロックで使うシートにこれ以外のカラムがあっても構いません．
+
+#### classesシート
+
+各行は次のカラムからなります．
+
+- `flag`
+
+  utterancesシートと同じ
+
+- `class` 
+
+  固有表現クラス名．
+
+- `explanation`
+
+  固有表現クラスの説明
+
+- `examples`
+
+  固有表現の例を`','`で連結したものです．
+
+
 (spacy_ner)=
 ## spaCy-Based NER (Named Entity Recognizer Block using spaCy)
 (`dialbb.builtin_blocks.ner_with_spacy.ne_recognizer.SpaCyNER`)
