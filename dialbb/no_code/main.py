@@ -521,8 +521,9 @@ def main():
     # create root widget
     # Rootウジェットの生成
     root = tk.Tk()
-    root.tk.call('tk', 'scaling', 1.0)  # スケーリングを1.0に設定
-    root.minsize(600, 400)  # 最小サイズを設定
+    if os.name != 'nt':
+        root.tk.call('tk', 'scaling', 1.0)  # スケーリングを1.0に設定
+        root.minsize(600, 400)  # 最小サイズを設定
     #root.resizable(True, True)  # サイズ変更を許可
 
     # set title and icon

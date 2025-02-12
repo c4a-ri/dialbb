@@ -2,7 +2,7 @@
 
 ## 1.0.0 (2025.3.6)
 
-- Instration via pip enabled
+- Installation via pip enabled
 
 - No-code tool added
 

@@ -233,7 +233,7 @@ def edit_config(parent, file_path, template_path, settings):
     gpt_rb2.grid(column=1, row=0, padx=5, pady=5)
 
     # ChatGPT Manager Frameを作成
-    gpt_mng_fr = ttk.Labelframe(sub_menu, text='ChatGPT manager', padding=(10),
+    gpt_mng_fr = ttk.Labelframe(sub_menu, text='ChatGPT Settings', padding=(10),
                                 style='My.TLabelframe')
     gpt_mng_fr.pack(expand=True, fill=tk.Y, padx=5, pady=5)
     # ［ChatGPTモデル］プルダウンメニュー
