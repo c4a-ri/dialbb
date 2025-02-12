@@ -36,21 +36,19 @@ class ProcessManager:
         current_date: str = datetime.now().strftime("%Y%m%d")
         current_time: str = datetime.now().strftime("%H%M%S")
 
-        if os.name == 'nt':  # windows
-            log_dir = os.path.join(os.environ['HOME'], '.dialbb_nc_logs', current_date)
-            if not os.path.exists(log_dir):
-                os.makedirs(log_dir)
-            log_file = os.path.join(log_dir, f"{current_date}.{current_time}.txt")
-            # Pythonの実行可能ファイルのパスを取得
-            with open(log_file, 'w') as fp:
+        log_root_dir: str = os.environ.get('HOME', os.getcwd())
+        log_dir: str = os.path.join(log_root_dir, '.dialbb_nc_logs', current_date)
+        if not os.path.exists(log_dir):
+            os.makedirs(log_dir)
+        log_file: str = os.path.join(log_dir, f"{current_date}.{current_time}.txt")
+
+        with open(log_file, 'w') as fp:
+            if os.name == 'nt':  # windows
                 cmd = [sys.executable, self.cmd] + self.params
-                print(f'CLI:{cmd}')
-                self.process = subprocess.Popen(cmd, stdout=fp, stderr=subprocess.STDOUT, shell=True)
-        else:
-            # Linux
-            # TODO logging
-            cmd = f'exec python {self.cmd} {" ".join(self.params)}'
-            self.process = subprocess.Popen(cmd, shell=True)
+            else:
+                cmd = f'exec python {self.cmd} {" ".join(self.params)}'  # todo python3?
+            print(f'CLI:{cmd}')
+            self.process = subprocess.Popen(cmd, stdout=fp, stderr=subprocess.STDOUT, shell=True)
 
         ret_code = self.process.poll()
         if ret_code is not None:
