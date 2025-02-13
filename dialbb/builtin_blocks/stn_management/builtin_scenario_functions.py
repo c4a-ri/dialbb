@@ -307,7 +307,7 @@ def builtin_check_with_llm(task: str, context: Dict[str, Any]) -> bool:
         chatgpt_settings: Dict[str, Any] = context['_block_config'].get("chatgpt")
         if chatgpt_settings:
             gpt_model: str = chatgpt_settings.get("gpt_model", "gpt-4o-mini")
-            gpt_temperature: float = chatgpt_settings.get("temperature", 0.7)
+            gpt_temperature: float = chatgpt_settings.get("temperature_for_checking", 0.7)
             system_persona: List[str] = chatgpt_settings.get("persona")
             situation: List[str] = chatgpt_settings.get("situation")
         else:
