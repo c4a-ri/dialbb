@@ -175,7 +175,7 @@ def set_file_frame(parent_frame, settings, label_text, file_type_list):
 
     # import button
     import_button = ttk.Button(file_frame, text='import', width=7,
-                               command=lambda: load_file_command(file_frame.edit_box, settings, file_type_list))
+                               command=lambda: import_application_file(file_frame.edit_box, settings, file_type_list))
     import_button.grid(column=3, row=1, padx=5)
 
     return file_frame
@@ -230,7 +230,7 @@ def set_file_path_command(edit_box, settings, file_type_list):
         edit_box.delete(0, tk.END)
         edit_box.insert(tk.END, file_path)
 
-def load_file_command(edit_box, settings, file_type_list):
+def import_application_file(edit_box, settings, file_type_list):
     file_path = edit_box.get()
     if file_path:
         print(f'{file_path} decompress to {APP_FILE_DIR}')
@@ -241,8 +241,6 @@ def load_file_command(edit_box, settings, file_type_list):
         # アプリケーション名の保存
         file_name, _ = os.path.splitext(os.path.basename(file_path))
         settings.set_appname(file_name)
-
-
 
 # [edit]ボタン：編集するファイルを選択
 def select_edit_file(parent, settings):
