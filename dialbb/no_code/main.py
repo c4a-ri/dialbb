@@ -185,7 +185,10 @@ def set_file_frame(parent_frame, settings, label_text, file_type_list):
 def edit_excel(file_path):
     print(file_path)
     # ファイルを関連付けされたアプリで開く
-    os.startfile(filepath=file_path)
+    if os.name=='nt':
+        os.startfile(filepath=file_path)
+    else:
+        subprocess.run(["open", file_path])
 
 
 # 開発Debug用
