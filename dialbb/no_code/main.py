@@ -480,12 +480,6 @@ def set_main_frame(root_frame):
                              command=lambda: select_edit_file(file_frame, settings))
     edit_button.pack(side=tk.LEFT, padx=10, pady=10)
 
-    # settingボタン:ユーザ情報の設定
-    setting_btn = ttk.Button(
-        application_frame, text="settings", width=7,
-        command=lambda: setting_json(file_frame, settings))
-    setting_btn.pack(side=tk.LEFT, padx=10, pady=10)
-
     # export ボタン:アプリファイルのzip保存
     export_btn = ttk.Button(application_frame, text="export", width=7,
                             command=lambda: export_app_file(file_frame.edit_box.get(),
@@ -496,6 +490,13 @@ def set_main_frame(root_frame):
     # DialBB Label 作成
     dialbb_label = ttk.Labelframe(root_frame, text='Run server',
                                   padding=(10), style='My.TLabelframe')
+
+    # settingボタン:ユーザ情報の設定
+    setting_btn = ttk.Button(
+        dialbb_label, text="settings", width=7,
+        command=lambda: setting_json(file_frame, settings))
+    setting_btn.pack(side=tk.LEFT, padx=10)
+
 
     # startボタン:DialBBサーバ起動
     start_btn = ttk.Button(dialbb_label, text="start", width=7,
