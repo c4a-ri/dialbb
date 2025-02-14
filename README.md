@@ -25,7 +25,7 @@ Please cite the following paper when publishing a paper on work that uses DialBB
 
 ## License
 
-This software is released for non-commercial use. For details of the license, please see [License](LICENSE-en).
+DialBB is released under Apache License 2.0.
 
 ## Getting Started
 
