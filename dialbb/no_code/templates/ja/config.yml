@@ -26,9 +26,6 @@ blocks:  # ブロックのリスト
     output:
       aux_data: aux_data
     knowledge_file: ner-knowledge.xlsx  # 知識記述ファイル
-    flags_to_use:
-      - 'Y'
-      - 'T'
   - name: manager
     block_class: dialbb.builtin_blocks.stn_management.stn_manager.Manager
     knowledge_file: scenario.xlsx # 知識記述ファイル

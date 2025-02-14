@@ -13,20 +13,20 @@ Windows11、MacOSで動作します。
 
 ### Pythonのインストール
 
+- もし、すでにPythonがインストールされていれば、バージョンを確かめてください。インストールされているかどうかの確かめ方やバージョンの確かめ方はそのうち記述します。インストールされていても、バージョンが3.10-3.12であれば、新しくインストールする必要はありません。3.9以前のPythonがインストールされている場合、使っていないならアンインストールしてください。使っている場合、DialBBの開発者に相談してください。
+
 - Windows 11
 
-  - もし、すでにPythonがインストールされていれば、バージョンを確かめてください。3.10-3.12であれば、新しくインストールする必要はありません。3.9以前のPythonがインストールされている場合、使っていないならアンインストールしてください。使っている場合、DialBBの開発者に相談してください。
-
   - Pythonがインストールされていない場合、以下の手順でPythonをインストールします。
-  
+
     - ブラウザのアドレスバーに https://www.python.org/downloads/windows/ を打ち込んでEnterキーを押します。
-    - 表示されている中から以下の部分を探します。以下は3.10.11ですが、
+    - 表示されている中から以下の部分を探します。以下は3.10.11ですが、3.10.x-3.12.xであれば、別のバージョンでも構いません。
 
     ![python-install-win-ja](images/python-download-win.png)
 
     - 64bit OSの場合は、[Windows installer (64-bit)](https://www.python.org/ftp/python/3.10.11/python-3.10.11-amd64.exe)を、32bit OSの場合は[Windows installer (32 -bit)](https://www.python.org/ftp/python/3.10.11/python-3.10.11.exe)をクリックします。
 
-    - ダウンロードフォルダに `python-3.10.11-amd64.exe`または`python-3.10.11-amd32.exe`というファイルができるので、ダブルクリックします。
+    - 「ダウンロード」フォルダに `python-3.10.11-amd64.exe`または`python-3.10.11-amd32.exe`というファイルができるので、ダブルクリックします。
 
     - 以下の画面が現れます。
 
@@ -35,9 +35,13 @@ Windows11、MacOSで動作します。
       - Add python.exe to PATHに**チェックを入れてから**Install Nowをクリックします。
 
         ![python-setup-win-path](images/python-setup-win-path.png)
-  
+
       - Pythonがインストールされます。
-  
+
+- Mac
+
+  - [この記事](https://qiita.com/omo_taku/items/bc97f69391b2f4627f36)の方法２がおすすめです。方法1だと、pythonではなくpython3と打たないとPythonが起動できない可能性があります。
+
 
 ### DialBBのインストール
 
@@ -45,7 +49,7 @@ Windows11、MacOSで動作します。
 
   - ブラウザでのアドレスバーに https://github.com/c4a-ri/dialbb/tree/dev-v1.0/dist を打ち込んでEnterキーを押します。
 
-  - dialbb_nc-0.1.22-py3-none-any.whl をクリックします。0.1.5のところは数字が違う可能性があります。
+  - dialbb_nc-x.x.x-py3-none-any.whl をクリックします。x.x.xのところは数字が違う可能性があります。
 
   - 遷移したページの右側の下向き矢印をクリックします。
 
@@ -83,25 +87,27 @@ dialbb-nc
 ```
 正常に起動するとメイン画面が表示されます。  
 
-<img src="images/gui-main-ja.jpg" width="70%">
+<img src="images/gui-main.jpg" width="70%">
 
 ## アプリケーションの読み込み・作成・書き出し
 
 ### アプリケーションの読み込み/新規作成
 
-  - すでにあるアプリケーションを読み込む場合は、`select`ボタンをクリックし、読み込むアプリケーションのzipファイルを選択し、importを押します。
-  
-    <img src="images/gui-file-read.jpg" width="60%">
-  
-  - アプリケーションを新たに作成する場合は、`create`ボタンをクリックし、英語/日本語を選択します。テンプレートファイルが読み込まれます。  
+- すでにあるアプリケーションを読み込む場合は、`select`ボタンをクリックし、読み込むアプリケーションのzipファイルを選択し、importを押します。
+
+    <img src="images/gui-select-file-ja.jpg" width="60%">
+
+- アプリケーションを新たに作成する場合は、`create`ボタンをクリックし、言語を選択します。テンプレートアプリケーションファイルが読み込まれます。  
 
     <img src="images/gui-create.jpg" width="40%">
 
+- その時点で読み込まれているアプリケーションの名前（zipファイルの名前）がメイン画面の`Current application`のところに表示されます。
+
 ###  アプリケーションの書き出し
 
-- `save`ボタンをクリックし、保存する場所/ファイル名を指定します、zipファイルにまとめて保存されます。  
+- `export`ボタンをクリックし、保存する場所/ファイル名を指定します、zipファイルにまとめて保存されます。  
 
-  <img src="images/gui-file-save.jpg" width="60%">
+  <img src="images/gui-export-ja.jpg" width="60%">
 
 ## アプリケーションの起動・停止
 
@@ -115,7 +121,7 @@ dialbb-nc
 
 ### 起動
 
-- `start`ボタンをクリックします。
+- `start`ボタンをクリックします。アプリケーションサーバが起動します。
 
 - ChromeやEdgeなどのブラウザを開き、アドレスバーに`http://localhost:8080/`を打ち込んでEnterを押します。以下のような画面が表示されます。
 
@@ -125,60 +131,67 @@ dialbb-nc
 
 - 再度最初から会話を始めたい場合はブラウザのリロードボタンを押してください。
 
-### 起動
-
-- ログは。。。。に書きだされる。
-
 ### 停止
 
-。。。。。
+- メインGUIで`stop`ボタンを押すとアプリケーションサーバが停止します。
+
+### ログ
+
+- ログはホームフォルダ（ホームディレクトリ）の中の`.dialbb_nc_logs`の中に書きだされます。
+  - ホームフォルダは、Windowsの場合、`C:\Users\<ユーザ名>`です。
+  - ログは日付毎にフォルダにまとまっています。
+  - ログファイルは`<アプリケーションが起動した時間>.txt`です。
+
+
+
 
 ## アプリケーションの編集
 
 - アプリケーションを読み込んだ状態で`edit`ボタンをクリックし、編集するアプリケーションファイルを選択します。  
-   <img src="images/gui-edit-select.jpg" width="40%">
+   <img src="images/edit.jpg" width="40%">
 
 ### コンフィギュレーションの変更
 
-  __アプリケーションの編集__ 画面で`Config`を選択した場合に以下の画面が表示されます。
+  Edit Application画面で`Configuration`ボタンを押すと、以下の画面が表示されます。
 
-  <img src="images/gui-edit-config.jpg" width="40%">
+  <img src="images/edit-config-ja.jpg" width="40%">
 
-| 内容 | 説明 |
+以下が各編集項目の説明です。
+
+| 編集項目 | 説明 |
 |-----|------|
-| spaCy | spaCy（後述）を利用するかどうかを選択します． |
-| ChatGPT nlu | ChatGPTを用いた言語理解（後述）をするかどうかを選択します． |
-| models | 利用するChatGPTのモデルを選択します． |
+| Use named entity recognizer? | 固有表現抽出（後述）を行うかどうかを選択します． |
+| User natural language understander？ | 言語理解を行うかどうかを選択します． |
+| model | 利用するChatGPTのモデルを選択します．otherを押すと、プルダウンにないモデルを追加できます。 |
 | situation | GPTのプロンプトに書く状況を入力します、1行ごとに状況を記述します． |
 | persona | GPTのプロンプトに書くシステムのペルソナを入力します、1行ごとにペルソナを記述します． |
 
--  __GPT モデルの編集__ `edit`ボタンをクリックし、選択するGPT モデルの追加変更が可能です。  
-  <img src="images/gui-edit-gptmodels.jpg" width="40%">
-
 ### シナリオファイルの編集
 
-scenarioボタンを押す
+Edit Application画面でscenarioボタンを押すと、シナリオエディタが表示されます。もし表示されなければ、Webブラウザを立ち上げて、現れたWindowに書いてあるURLをブラウザのアドレスバーに貼り付けてエンターキーを押してください。
 
-### シナリオエディタの操作方法
+#### シナリオエディタの概要
 
-#### 概要
+シナリオは、システムノードとユーザノードがリンクで接続されたものです。システムノードではシステム発話を記述し、ユーザノードでは、遷移の条件を記述します。priorityの値が高い順に遷移の条件を調べていき、条件が満たされれば、その次のシステムノードに遷移します。
 
-シナリオを[systemノード]と[userノード]として扱います、それぞれのノードを[コネクタ]で接続することでsystem：userを関連付けます。
+システムノードは複数のユーザにリンクが出て行き、ユーザノードからは一つだけのノードにリンクが出て行きます。（toが出口、fromが入口です）
+
+システム発話や遷移の条件の記述については、後で説明します。
 
 <img src="images/scenario-editor-ja.jpg" width="90%">
 
 #### ノードの追加
-背景で右クリック > [systeｍNode]か[userNode]を選択すると新規追加されます 
+背景で右クリック し、`AddSystemNode`か`AddUserNode`を選択するとシステムノードかユーザノードが新規追加されます。 
 
-<img src="images/add-node.jpg" width="30%">
+<img src="images/add-node-ja.jpg" width="30%">
 
 #### ノードの削除
-ノードの上で右クリック > [Delete] を選択すると削除されます  
+ノードの上で右クリック し、`Delete`を選択するとそのノードが削除されます。
 
-<img src="images/del-set.jpg" width="30%">
+<img src="images/del-node-ja.jpg" width="30%">
 
 #### ノードの編集
-ノードの上で右クリック > [Edit] を選択すると入力ダイアログが表示されます  
+ノードの上で右クリック し、`Edit`を選択すると、ノードの編集画面が表示されます。
 
 <img src="images/sys-setting.jpg" width="30%">　<img src="images/user-setting.jpg" width="30%">
 
@@ -187,9 +200,9 @@ scenarioボタンを押す
 #### コネクタの接続・削除
 
 ノードのoutputソケットを左クリック > 他ノードのinputソケットへドラッグして接続します  
-削除はinputソケットを摘まんで離すか、コネクター上で右クリック > [Delete] を選択します。
 
-<img src="images/editor-connection.jpg" width="30%">　<img src="images/editor-conn-del.jpg" width="30%">
+<img src="images/editor-connection-ja.jpg" width="30%">　
+削除はinputソケットをつまんで離すか、コネクター上で右クリック して`Delete`を選択します。<img src="images/editor-conn-del-ja.jpg" width="30%">
 
 #### 保存
 上部の[Save]ボタンをクリックすると保存します。保存しないでエディタサーバを停止した場合はデータが失われます。

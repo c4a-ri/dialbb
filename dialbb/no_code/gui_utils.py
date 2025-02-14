@@ -36,7 +36,7 @@ class ProcessManager:
         current_date: str = datetime.now().strftime("%Y%m%d")
         current_time: str = datetime.now().strftime("%H%M%S")
 
-        log_root_dir: str = os.environ.get('HOME', os.getcwd())
+        log_root_dir: str = os.environ.get('HOMEPATH', os.environ.get('HOME', os.getcwd()))
         log_dir: str = os.path.join(log_root_dir, '.dialbb_nc_logs', current_date)
         if not os.path.exists(log_dir):
             os.makedirs(log_dir)
