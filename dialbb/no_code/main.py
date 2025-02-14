@@ -307,7 +307,7 @@ def create_app_files(parent, settings):
     global APP_FILES
 
     sub_menu = tk.Toplevel(parent)
-    sub_menu.title("Select language")
+    sub_menu.title("Create new application")
     sub_menu.grab_set()        # モーダルにする
     sub_menu.focus_set()       # フォーカスを新しいウィンドウをへ移す
     sub_menu.transient(parent)
