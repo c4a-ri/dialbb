@@ -466,9 +466,14 @@ The files that make up this application are located in the `sample_apps/simple_j
 
   This is a configuration file that defines the application.
 
-- `sample-knowledge-ja.xlsx`
 
-  This file contains the knowledge used by the ChatGPT Language Understanding Block and the STN Manager Block.
+- `lab_app_nlu_knowledge_en.xlsx`
+
+  This file contains the knowledge used by the ChatGPT Language Understanding Block.
+
+- `lab_app_scenario_en.xlsx`
+
+  This file contains the knowledge used by the STN Manager Block.
 
 - `scenario_functions.py`
 
