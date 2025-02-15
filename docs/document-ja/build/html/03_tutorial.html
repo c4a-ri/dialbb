@@ -610,14 +610,14 @@
 <h2><span class="section-number">3.5. </span>実験アプリケーション<a class="headerlink" href="#id24" title="Link to this heading"></a></h2>
 <section id="id25">
 <h3><span class="section-number">3.5.1. </span>概要<a class="headerlink" href="#id25" title="Link to this heading"></a></h3>
-<p>ChatGPTによる言語理解とネットワークベース対話管理を軸に，組み込みブロックの様々な機能を含んでいるものです．以下の組み込みブロックを用いています．</p>
+<p>ChatGPTによる言語理解・固有表現抽出とネットワークベース対話管理を軸に，組み込みブロックの様々な機能を含んでいるものです．以下の組み込みブロックを用いています．</p>
 <ul class="simple">
 <li><p><a class="reference internal" href="05_builtin_blocks.html#japanese-canonicalizer"><span class="std std-ref">Japanese Canonicalizer （日本語文字列正規化ブロック）</span></a></p></li>
 <li><p><a class="reference internal" href="05_builtin_blocks.html#chatgpt-understander"><span class="std std-ref">ChatGPT Understander （ChatGPTを用いた言語理解ブロック）</span></a></p></li>
-<li><p><a class="reference internal" href="05_builtin_blocks.html#spacy-ner"><span class="std std-ref">spaCy-Based Named Entity Recognizer （spaCyを用いた固有表現抽出ブロック）</span></a></p></li>
+<li><p><a class="reference internal" href="05_builtin_blocks.html#chatgpt-ner"><span class="std std-ref">ChatGPT NER （ChatGPTを用いた固有表現抽出ブロック）</span></a></p></li>
 <li><p><a class="reference internal" href="05_builtin_blocks.html#stn-manager"><span class="std std-ref">STN manager （状態遷移ネットワークベースの対話管理ブロック）</span></a></p></li>
 </ul>
-<p>シンプルアプリケーションとの大きな違いは，ChatGPT言語理解ブロックとspaCy固有表現抽出ブロックを用いているところと，STN Managerブロックの先進的な機能を用いているところです．</p>
+<p>シンプルアプリケーションとの大きな違いは，ChatGPT言語理解ブロックとChatGPT固有表現抽出ブロックを用いているところと，STN Managerブロックの先進的な機能を用いているところです．</p>
 </section>
 <section id="id26">
 <h3><span class="section-number">3.5.2. </span>アプリケーションを構成するファイル<a class="headerlink" href="#id26" title="Link to this heading"></a></h3>
@@ -641,7 +641,7 @@
 <h3><span class="section-number">3.5.3. </span>ChatGPT言語理解ブロック<a class="headerlink" href="#id27" title="Link to this heading"></a></h3>
 <p>ChatGPTのJSONモードを用いて言語理解を行います．言語理解用の知識はLR-CRF言語理解ブロックと同じ形式のものを用います．これをFew-shot learningに用いて，入力テキストに対して言語理解を行います．入出力LR-CRF言語理解ブロックも同じです．</p>
 <p>GPTのモデルは，ブロックコンフィギュレーションの<code class="docutils literal notranslate"><span class="pre">gpt_model</span></code>で指定しています．</p>
-<p>ChatGPTに言語理解を行わせる場合のプロンプトのテンプレートはデフォルトのものを用いていいます．詳細は<a class="reference internal" href="05_builtin_blocks.html#chatgpt-understander-params"><span class="std std-numref">5.4.2 章</span></a>を参照してください．</p>
+<p>ChatGPTに言語理解を行わせる場合のプロンプトのテンプレートはデフォルトのものを用いていいます．詳細は<code class="xref std std-numref docutils literal notranslate"><span class="pre">chatgpt_understander_params</span></code>を参照してください．</p>
 </section>
 <section id="spacy">
 <h3><span class="section-number">3.5.4. </span>spaCy固有表現抽出ブロック<a class="headerlink" href="#spacy" title="Link to this heading"></a></h3>

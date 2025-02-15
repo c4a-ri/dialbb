@@ -26,9 +26,6 @@ blocks:  # list of blocks
     output:
       aux_data: aux_data
     knowledge_file: ner-knowledge.xlsx  # ner knowledge description
-    flags_to_use:
-      - 'Y'
-      - 'T'
   - name: manager
     block_class: dialbb.builtin_blocks.stn_management.stn_manager.Manager
     knowledge_file: scenario.xlsx # scenario file
