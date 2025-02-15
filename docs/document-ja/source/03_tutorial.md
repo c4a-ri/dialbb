@@ -472,9 +472,13 @@ ChatGPTによる言語理解・固有表現抽出とネットワークベース�
 
   アプリケーションを規定するコンフィギュレーションファイルです．
 
-- `sample-knowledge-ja.xlsx`
+- `lab_app_nlu_knowledge_ja.xlsx`
 
-  ChatGPT言語理解ブロックとSTN Managerブロックで用いる知識を記述したものです．
+  ChatGPT言語理解ブロックで用いる知識を記述したものです．
+
+- `lab_app_scenario_ja.xlsx`
+
+  STN Managerブロックで用いる知識を記述したものです．
 
 - `scenario_functions.py`
 
