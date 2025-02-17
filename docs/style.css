@@ -1,9 +1,93 @@
-h1 {
-    color: brown;
+/* リセット */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-h2 {
-    color: green;
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f5f5f5;
+  color: #333;
 }
 
+/* ヘッダーナビゲーション */
+header {
+  background-color: #4CAF50;  /* 爽やかなグリーン */
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
 
+.nav-links {
+  /* list-style: none; */
+  display: flex;
+  align-items: center;
+}
+
+.nav-links li {
+  list-style: none;
+  margin-right: 20px;
+}
+
+.nav-links li a {
+  text-decoration: none;
+  color: #fff;
+  font-weight: bold;
+}
+
+.nav-links li a:hover {
+  text-decoration: underline;
+}
+
+/* GitHubボタン */
+.github-btn {
+  background-color: #24292e;
+  color: #fff;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.github-btn i {
+  margin-right: 8px;
+}
+
+/* コンテンツ領域 */
+.container {
+  max-width: 760px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.container-ul, .container-ul li {
+  list-style: disc;
+  padding-left: 20px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+/* フッター */
+footer {
+  text-align: center;
+  padding: 10px;
+  background-color: #ddd;
+  color: #555;
+}
+
+.brand {
+  font-weight: bold;
+  font-size: 30px;
+}
+
+.explanation {
+  font-size: 20px;
+}
