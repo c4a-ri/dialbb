@@ -608,10 +608,10 @@ Start the application with the following command:</p>
 <ul class="simple">
 <li><p><a class="reference internal" href="05_builtin_blocks.html#simple-canonicalizer"><span class="std std-ref">Simple Canonicalizer (Simple String Canonicalizer Block)</span></a></p></li>
 <li><p><a class="reference internal" href="05_builtin_blocks.html#chatgpt-understander"><span class="std std-ref">ChatGPT Understander (Language Understanding Block using ChatGPT)</span></a></p></li>
-<li><p><a class="reference internal" href="05_builtin_blocks.html#spacy-ner"><span class="std std-ref">spaCy-Based NER (Named Entity Recognizer Block using spaCy)</span></a></p></li>
+<li><p><a class="reference internal" href="05_builtin_blocks.html#chatgpt-ner"><span class="std std-ref">ChatGPT NER （ChatGPTを用いた固有表現抽出ブロック）</span></a></p></li>
 <li><p><a class="reference internal" href="05_builtin_blocks.html#stn-manager"><span class="std std-ref">STN Manager (State Transition Network-based Dialogue Management Block)</span></a></p></li>
 </ul>
-<p>The main differences from simple applications are the use of the ChatGPT language understanding block and the spaCy named entity recognition block, as well as the advanced functionalities of the STN Manager block.</p>
+<p>The main differences from simple applications are the use of the ChatGPT language understanding block and the ChatGPT named entity recognition block, as well as the advanced functionalities of the STN Manager block.</p>
 </section>
 <section id="id4">
 <h3><span class="section-number">3.5.2. </span>Files Comprising the Application<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
@@ -638,7 +638,7 @@ Start the application with the following command:</p>
 <h3><span class="section-number">3.5.3. </span>ChatGPT Language Understanding Block<a class="headerlink" href="#chatgpt-language-understanding-block" title="Link to this heading"></a></h3>
 <p>Language understanding is conducted using ChatGPT in JSON mode. For this purpose, knowledge formatted in the same way as that used by the LR-CRF language understanding block is utilized. This knowledge is applied through few-shot learning to perform language understanding on the input text. The input and output of the LR-CRF language understanding block are also the same.</p>
 <p>The specific GPT model for this process is defined in the block configuration under <code class="docutils literal notranslate"><span class="pre">gpt_model</span></code>.</p>
-<p>The default prompt template is used for prompting ChatGPT to conduct language understanding. For further details, please refer to <code class="xref std std-numref docutils literal notranslate"><span class="pre">chatgpt_understander_params</span></code>.</p>
+<p>The default prompt template is used for prompting ChatGPT to conduct language understanding. For further details, please refer to <a class="reference internal" href="05_builtin_blocks.html#chatgpt-understander-params"><span class="std std-numref">Section 5.6.2</span></a>.</p>
 </section>
 <section id="spacy-named-entity-recognition-ner-block">
 <h3><span class="section-number">3.5.4. </span>spaCy Named Entity Recognition (NER) Block<a class="headerlink" href="#spacy-named-entity-recognition-ner-block" title="Link to this heading"></a></h3>

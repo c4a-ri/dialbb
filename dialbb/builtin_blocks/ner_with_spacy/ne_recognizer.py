@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright 2024 C4A Research Institute, Inc.
+# Copyright 2024-2025 C4A Research Institute, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 # limitations under the License.
 #
 # spacey_nlp.py
-#   understand input text using spaCy/GiNZA
+# ne_recognizer.py
+#   recognizer named entities using spaCy/GiNZA
 
 __version__ = '0.1'
 __author__ = 'Mikio Nakano'
@@ -73,5 +74,5 @@ class SpaCyNER(AbstractBlock):
             self.log_debug(f"NEs {entities} in the class {key} is found.", session_id=session_id)
 
         output: Dict[str, Any] = {"aux_data": aux_data}
-        self.log_debug("output: " + str(output), session_id=session_id)
+        self.log_debug("output: " + str(output))
         return output

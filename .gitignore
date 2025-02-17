@@ -9,7 +9,6 @@ __pycache__/
 # Distribution / packaging
 .Python
 develop-eggs/
-dist/
 downloads/
 eggs/
 .eggs/
@@ -68,7 +67,8 @@ instance/
 .scrapy
 
 # Sphinx documentation
-docs/_build/
+#docs/_build/
+#docs/**/build/
 
 # PyBuilder
 target/
@@ -126,10 +126,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-
-#sphinx
-/docs/document-ja/build/doctrees
-/docs/document-ja/build/latex
 
 # pycharm
 .idea/
