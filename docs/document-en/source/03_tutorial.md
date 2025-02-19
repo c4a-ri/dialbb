@@ -491,25 +491,51 @@ The specific GPT model for this process is defined in the block configuration un
 
 The default prompt template is used for prompting ChatGPT to conduct language understanding. For further details, please refer to {numref}`chatgpt_understander_params`.
 
-### spaCy Named Entity Recognition (NER) Block
+### ChatGPT Named Entity Recognition (NER) Block
 
-Named entity recognition (NER) is conducted using spaCy. The extracted entities are included in the `aux_data` section of the block's output. An example of the output format is as follows:
+The ChatGPT Named Entity Recognition (NER) block performs named entity extraction using ChatGPT. The extracted results are returned in the `aux_data` field of the block's output. Below is an example:
 
 ```json
-{"NE_PERSON": "John", "NE_DATE": "Friday"}
+{"NE_person": "John", "NE_Location": "Los Angels"}
 ```
 
-Here, `Person` and `Date` are entity classes defined within the spaCy model. These extracted entities can be accessed within the STN Manager block using special variables such as `#PERSON` and `#DATE`.
+`Person` and `Location` are named entity classes defined in the named entity recognition knowledge, which will be explained below. These results can be accessed within the STN Manager block using special variables such as `#NE_person` and `#NE_Location`.
 
-The specific model for spaCy is designated in the block configuration under `model`, with the current setting being `en_core_web_trf`.
+#### Named Entity Recognition Knowledge
 
-Additionally, entity examples can be added to the `patterns` element within the block configuration to enhance extraction accuracy. The current configuration specifies examples as follows:
+The knowledge used by the ChatGPT NER block is written in the `simple-ner-knowledge-ja.xlsx` file. For details on the description method of NER knowledge, refer to {numref}`chatgpt_ner_knowledge`. A brief explanation is provided below.
 
-```yaml
-patterns:
-  - label: Date
-    pattern: yesterday
-```
+Named entity extraction knowledge consists of the following two sheets:
+
+| Sheet Name | Description                                                  |
+| ---------- | ------------------------------------------------------------ |
+| utterances | Example utterances and the named entities that should be extracted from them |
+| classes    | Descriptions of named entity classes and examples of named entities for each class |
+
+Below is a partial example of the `utterances` sheet:
+
+| flag | utterance                    | entities                   |
+|------|------------------------------|----------------------------|
+| Y   | New York                    | location=New York             |
+| Y    | Candy likes tuna sandwiches | person=Candy                  |
+| Y    | Tom White lives in LA       | person=Tom White, location=LA |
+
+- The `flag` column is used to configure whether the row should be used.
+- The `utterance` column contains example utterances.
+- The `entities` column lists the slots contained in the utterance in the format `<Entity Class>=<Entity>, ..., <Entity Class>=<Entity>`. Commas can be full-width or punctuation marks.
+
+Below is an example of the `classes` sheet. Each named entity class is described in one row.
+
+| flag | class   | explanation   | examples                               |
+|------|--------|--------------|----------------------------------------|
+| Y   | person   | person name   | Daniel, Mr. Green, Dr. Morgan,  Becky, Karen Chu  |
+| Y    | location | location name | Dallas, New Jersey, Washington  DC, Japan, Europe |
+
+- The `flag` column is the same as in the `utterances` sheet.
+- The `class` column specifies the named entity class.
+- The `explanation` column describes the named entity.
+- The `examples` column provides examples of named entities in the class, separated by commas or punctuation marks.
+
 ### Functions of the STN Manager
 
 In the experimental application, the following STN Manager functions, which are not used in the simple application, are utilized.
@@ -529,10 +555,10 @@ In this case, the function `get_system_name(context)`, defined in `scenario_func
 Another example:
 
 ```
-Thank you {#NE_PERSON}! Let me ask you about sandwich. Do you have sandwiches very often?
+Thank you {#NE_person}! Let me ask you about sandwich. Do you have sandwiches very often?
 ```
 
-Here, `{#NE_PERSON}` is replaced by the value of the special variable `#NE_PERSON`. `#NE_PERSON` corresponds to the value of `NE_PERSON` in `aux_data`, meaning it holds the value of the "Person" entity extracted by the named entity recognition block.
+Here, `{#NE_person}` is replaced by the value of the special variable `#NE_person`. `#NE_person` corresponds to the value of `NE_person` in `aux_data`, meaning it holds the value of the "Person" entity extracted by the named entity recognition block.
 
 #### Syntax Sugar
 
@@ -541,7 +567,7 @@ Syntax sugar is provided to simplify the notation for calling built-in functions
 Similarly:
 
 - `#favorite-sandwich=="egg salad sandwich"` is equivalent to `_eq(#favorite-sandwich, "egg salad sandwich")`
-- `#NE_PERSON!=""` is equivalent to `_ne(#NE_PERSON, "")`
+- `#NE_person!=""` is equivalent to `_ne(#NE_Preson, "")`
 
 This shorthand makes the scenario scripting more concise and easier to read.
 

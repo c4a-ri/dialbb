@@ -3,6 +3,8 @@
 
 ver. 1.0.0
 
+[メインページ](README.md)
+
 [English](README.md)
 
 ## 概要
@@ -43,39 +45,23 @@ Ubuntu 20.04/Windows 10上のpython 3.10.13で，以下の手順で動作する�
 
 ### DialBBのインストール
 
-githubのソースコードをcloneします．
-
-```sh
-$ git clone https://github.com/c4a-ri/dialbb.git
-```
-
-この場合,`dialbb`という名前のディレクトリができます．
-
-特定の名前のディレクトリにインストールしたい場合は以下のようにしてください．
-
-```sh
-$ git clone https://github.com/c4a-ri/dialbb.git <ディレクトリ名>
-```
-
-できたディレクトリを以下で「DialBBディレクトリ」と呼びます．
-
-
-### Pythonライブラリのインストール
-
-- <DialBBディレクトリ>に移動します．
-
-- 次に必要なら仮想環境を構築します．以下はvenvの例です．
+- 必要なら仮想環境を構築します．以下はvenvの例です．
 
   ```sh
   $ python -m venv venv  # 仮想環境をvenvという名前で構築
   $ venv/bin/activate   # 仮想環境に入る
   ```
 
-- 次に以下を実行して，最低限のライブラリをインストールします．(ver. 0.6からトップディレクトリの`requirements.txt`には最低限のライブラリのみを書くようにしました．）
+- [配布用ファイル置き場](dist)からwhlファイルをダウンロードします。
+
+- 以下を実行します。
 
   ```sh
-  $ pip install -r requirements.txt 
+  pip install <ダウンロードしたwhlファイル>
   ```
+
+### サンプルアプリケーションのダウンロード
+
 
 ### オウム返しサンプルアプリケーション
 
@@ -84,9 +70,8 @@ $ git clone https://github.com/c4a-ri/dialbb.git <ディレクトリ名>
 ただオウム返しを行うアプリケーションです．組み込みブロッククラスは使っていません．
 
 ```sh
-$ python run_server.py sample_apps/parrot/config.yml
+$ dialbb-server sample_apps/parrot/config.yml
 ```
-
 
 #### ターミナルからの動作確認
 
@@ -195,32 +180,13 @@ http://<hostname>:8080/test
 - 英語アプリケーション
 
   ```sh
-  $ python run_server.py sample_apps/simple_en/config.yml 
+  $ dialbb-server sample_apps/simple_en/config.yml 
   ```
   
-  アプリケーションディレクトリで起動する場合は以下のようにします．
-
-  ```sh
-  $ export DIALBB_HOME=<DialBBのホームディレクトリ>
-  $ export PYTHONPATH=$DIALBB_HOME:$PYTHONPATH
-  $ cd sample_apps/simple_en  # アプリケーションディレクトリに移動
-  $ python $DIALBB_HOME/run_server.py config.yml 
-  ```
-
-
 - 日本語アプリケーション
 
   ```sh
-  $ python run_server.py sample_apps/simple_ja/config.yml 
-  ```
-
-  アプリケーションディレクトリで起動する場合は以下のようにします．
-
-  ```sh
-  $ export DIALBB_HOME=<DialBBのホームディレクトリ>
-  $ export PYTHONPATH=$DIALBB_HOME:$PYTHONPATH
-  $ cd sample_apps/simple_ja  # アプリケーションディレクトリに移動
-  $ python $DIALBB_HOME/run_server.py config.yml 
+  $ dialbb-server sample_apps/simple_ja/config.yml 
   ```
 
 #### テストセットを用いた動作確認
@@ -287,18 +253,8 @@ http://<hostname>:8080/test
 #### 起動方法
 
   ```sh
-  $ python run_server.py sample_apps/lab_app_ja/config_ja.yml  # 日本語
-  $ python run_server.py sample_apps/lab_app_ja/config_en.yml  # 英語
-  ```
-
-  アプリケーションディレクトリで起動する場合は以下のようにします．
-
-  ```sh
-  $ export DIALBB_HOME=<DialBBのホームディレクトリ>
-  $ export PYTHONPATH=$DIALBB_HOME:$PYTHONPATH
-  $ cd sample_apps/lab_app_ja  # アプリケーションディレクトリに移動（日本語の場合）
-  $ cd sample_apps/lab_app_en  # アプリケーションディレクトリに移動（英語の場合）
-  $ python $DIALBB_HOME/run_server.py config.yml 
+  $ dialbb-server sample_apps/lab_app_ja/config_ja.yml  # 日本語
+  $ dialbb-server sample_apps/lab_app_ja/config_en.yml  # 英語
   ```
 
 #### テスト方法
@@ -341,23 +297,13 @@ http://<hostname>:8080/test
   日本語版
 
   ```sh
-  $ python run_server.py sample_apps/chatgpt/config_ja.yml 
+  $ dialbb-server sample_apps/chatgpt/config_ja.yml 
   ```
 
   英語版
 
   ```sh
-  $ python run_server.py sample_apps/chatgpt/config_en.yml 
-  ```
-
-  アプリケーションディレクトリで起動する場合は以下のようにします．
-
-  ```sh
-  $ export DIALBB_HOME=<DialBBのホームディレクトリ>
-  $ export PYTHONPATH=$DIALBB_HOME:$PYTHONPATH
-  $ cd sample_apps/chatgpt  # アプリケーションディレクトリに移動
-  $ python $DIALBB_HOME/run_server.py config_ja.yml  # 日本語
-  $ python $DIALBB_HOME/run_server.py config_en.yml  # 英語
+  $ dialbb-server sample_apps/chatgpt/config_en.yml 
   ```
 
 ## 要望・質問・バグ報告

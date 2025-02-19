@@ -37,40 +37,22 @@ The following instructions assume that you are working with bash on Ubuntu. If y
 
 ### Installing DialBB
 
-Clone the source code from github.
-
-```sh
-$ git clone https://github.com/c4a-ri/dialbb.git
-```
-
-In this case, a directory named `dialbb` is created.
-
-If you want to install in a directory with a specific name, do the following.
-
-```sh
-$ git clone https://github.com/c4a-ri/dialbb.git <directry name>
-```
-
-The resulting directory is referred to below as the <DialBB directory>.
-
-
-### Installing Python libraries
-
-- Go to <DialBB directory>.
-
-- Next, build a virtual environment if necessary. The following is an example of venv.
+- Build a virtual environment if necessary. The following is an example of venv.
 
   ```sh
   $ python -m venv venv  # Create a virtual environment named venv
   $ venv/bin/activate   # Enter the virtual environment
   ```
 
-- Next, do the following to install the minimum set of libraries.
+- [配布用ファイル](dist)からwhlファイルをダウンロードします。
+
+- 以下を実行します。
 
   ```sh
-  $ pip install -r requirements.txt 
+  pip install <ダウンロードしたwhlファイル>
   ```
 
+### サンプルアプリケーションのダウンロード
 
 
 ### Running the Parroting Application
@@ -80,7 +62,7 @@ It is an application that just parrots back and forth. No built-in block classes
 #### Startup
 
 ```sh
-$ python run_server.py sample_apps/parrot/config.yml
+$ dialbb-server sample_apps/parrot/config.yml
 ```
 
 
@@ -192,31 +174,14 @@ The following command starts the application.
   - English application
 
     ```sh
-    $ python run_server.py sample_apps/simple_en/config.yml 
+    $ dialbb-server sample_apps/simple_en/config.yml 
     ```
 
-    When invoking in the application directory, do the following
-
-    ```sh
-    $ export DIALBB_HOME=<DialBB home diretory>
-    $ export PYTHONPATH=$DIALBB_HOME:$PYTHONPATH
-    $ cd sample_apps/simple_en  # moving to the application diretory
-    $ python $DIALBB_HOME/run_server.py config.yml 
-    ```
 
   - Japanese application
 
     ```sh
-    $ python run_server.py sample_apps/simple_ja/config.yml 
-    ```
-
-    When invoking in the application directory, do the following
-
-    ```sh
-    $ export DIALBB_HOME=<DialBB home diretory>
-    $ export PYTHONPATH=$DIALBB_HOME:$PYTHONPATH
-    $ cd sample_apps/simple_ja  # moving to the application diretory
-    $ python $DIALBB_HOME/run_server.py config.yml 
+    $ dialbb-server sample_apps/simple_ja/config.yml 
     ```
 
 #### Operation Check
@@ -287,8 +252,8 @@ $ export OPENAI_API_KEY=<OpenAI's API key>.
 #### Startup
 
   ```sh
-  $ python run_server.py sample_apps/lab_app_en/config_en.yml # English app
-  $ python run_server.py sample_apps/lab_app_en/config_ja.yml # Japanese app
+  $ dialbb-server sample_apps/lab_app_en/config_en.yml # English app
+  $ dialbb-server sample_apps/lab_app_en/config_ja.yml # Japanese app
   ```
 
 #### Test Method
@@ -333,13 +298,13 @@ $ export OPENAI_API_KEY=<OpenAI's API key>.
   English version:
 
   ```sh
-  $ python run_server.py sample_apps/chatgpt/config_en.yml
+  $ dialbb-server sample_apps/chatgpt/config_en.yml
   ```
 
   Japanese version:
 
   ```sh
-  $ python run_server.py sample_apps/chatgpt/config_en.yml
+  $ dialbb-server sample_apps/chatgpt/config_en.yml
   ```
 
 ## Requests, Questions, and Bug Reports

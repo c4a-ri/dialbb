@@ -356,7 +356,7 @@ Edit Application画面で`scenario`ボタンを押すと，シナリオエディ
 
 固有表現抽出知識を編集するには，Edit Application画面で`NER knowledge`を選択します．Excelが起動するので，編集して保存してください． 
 
-言語理解用知識のExcelファイルは，`utterances`シートと，`classes`シートからなります．
+固有表現抽出知識のExcelファイルは，`utterances`シートと，`classes`シートからなります．
 
 以下がutterancesシートの例です．
 
@@ -370,7 +370,7 @@ Edit Application画面で`scenario`ボタンを押すと，シナリオエディ
 - `utterance`列は発話例です．
 - `entities`には，`<固有表現クラス名>=<固有表現>, ... ,<固有表現クラス名>=<固有表現>`の形で発話に含まれるスロットを書きます．カンマは全角でも読点でも構いません．
 
-以下は`classes`シートの例です．固有表現のクラス毎に１行記述します．
+以下は`classes`シートの例です．固有表現のクラス毎に1行記述します．
 
 | flag | class | explanation | examples                                 |
 | ---- | ----- | ----------- | ---------------------------------------- |

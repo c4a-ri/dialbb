@@ -965,150 +965,150 @@ When using these blocks, you need to set the OpenAI license key in the environme
 
 
 (chatgpt_ner)=
-## ChatGPT NER （ChatGPTを用いた固有表現抽出ブロック）
+## ChatGPT NER (Named Entity Recognition Block Using ChatGPT)
 
-(`dialbb.builtin_blocks.ner_with_chatgpt.chatgpt_ner.NER`）
+(`dialbb.builtin_blocks.ner_with_chatgpt.chatgpt_ner.NER`)
 
-OpenAI社のChatGPTを用いて，固有表現の抽出を行います．
+This block utilizes OpenAI's ChatGPT to perform named entity recognition (NER).
 
-コンフィギュレーションの`language`要素が`ja`の場合は日本語，`en`の場合は英語の固有表現抽出を行います．
+If the `language` element in the configuration is set to `ja`, it extracts named entities in Japanese. If set to `en`, it extracts named entities in English.
 
-本ブロックは，起動時にExcelで記述した固有表現用知識を読み込み，固有表現のクラスのリスト，各固有表現クラスの説明，各クラスの固有表現の例，抽出例（Few shot example）に変換し，プロンプトに埋め込みます．
+At startup, this block reads named entity knowledge from an Excel file, converts it into a list of named entity classes, descriptions for each class, examples of named entities in each class, and extraction examples (few-shot examples), and embeds them into the prompt.
 
-実行時は，プロンプトに入力発話を付加してChatGPTに固有表現抽出を行わせます．
+During execution, the input utterance is added to the prompt, and ChatGPT is used for named entity extraction.
 
-### 入出力
+### Input and Output
 
-- 入力
+- Input
 
-  - `input_text`: 入力文字列
+  - `input_text`: Input string
 
-     例："好きなのは醤油"
+  - `aux_data`: auxiliary data (dictionary)
 
-- 出力
+- Output
 
-  - `aux_data`: 補助データ（辞書型）
+  - `aux_data`: Auxiliary data (dictionary format)
 
-    入力された`aux_data`に固有表現抽出結果を加えたものです．
+    The named entity extraction results are added to the provided `aux_data`.
 
-    固有表現抽出結果は，以下の形です．
-
-    ```json
-    {"NE_<ラベル>": "<固有表現>", "NE_<ラベル>": "<固有表現>", ...}
-    ```
-
-    <ラベル>は固有表現のクラスです．固有表現は見つかった固有表現で，`input_text`の部分文字列です．同じクラスの固有表現が複数見つかった場合，`:`で連結します．
-
-    例
+    The extracted named entities follow this format:
 
     ```json
-    {"NE_人名": "田中:鈴木", "NE_料理": "味噌ラーメン"}
+    {"NE_<Label>": "<Named Entity>", "NE_<Label>": "<Named Entity>", ...}
     ```
 
-(chatgpt_understander_params)=
+    `<Label>` represents the named entity class. The named entity is the recognized phrase found in `input_text`. If multiple entities of the same class are found, they are concatenated with `:`.
 
-### ブロックコンフィギュレーションのパラメータ
+    Example:
 
-- `knowledge_file`（文字列）
+    ```json
+    {"NE_Person": "John:Mary", "NE_Dish": "Chicken Marsala"}
+    ```
 
-  固有表現知識を記述したExcelファイルを指定します．コンフィギュレーションファイルのあるディレクトリからの相対パスで記述します．
+### Block Configuration Parameters
 
-- `flags_to_use`（文字列のリスト）
+- `knowledge_file` (String)  
 
-  各シートの`flag`カラムにこの値のうちのどれかが書かれていた場合に読み込みます．このパラメータがセットされていない場合はすべての行が読み込まれます．
+  Specifies the Excel file containing named entity knowledge. The file path should be relative to the directory where the configuration file is located.
 
-- `knowledge_google_sheet` (ハッシュ)
+- `flags_to_use` (List of strings)  
 
-  - Excelの代わりにGoogle Sheetを用いる場合の情報を記述します．（Google Sheetを利用する際の設定は[こはたさんの記事](https://note.com/kohaku935/n/nc13bcd11632d)が参考になりますが，Google Cloud Platformの設定画面のUIがこの記事とは多少変わっています．）
+  If any of these values are present in the `flag` column of each sheet, the corresponding row will be loaded. If this parameter is not set, all rows will be loaded.
 
-    - `sheet_id` （文字列）
+- `knowledge_google_sheet` (Hash)  
 
-      Google SheetのIDです．
+  Information for using Google Sheets instead of Excel. 
 
-    - `key_file`（文字列）
+  - `sheet_id` (String)  
 
-      Goole Sheet APIにアクセスするためのキーファイルをコンフィギュレーションファイルのディレクトリからの相対パスで指定します．
+    The ID of the Google Sheet.
 
-- `gpt_model` (文字列．デフォルト値は`gpt-4o-mini`）
+  - `key_file` (String)  
 
-  ChatGPTのモデルを指定します．`gpt-4o`などが指定できます．
+    Specifies the key file for accessing the Google Sheet API. The file path should be relative to the configuration file directory.
+
+- `gpt_model` (String, default: `gpt-4o-mini`)  
+
+  Specifies the ChatGPT model. Options include `gpt-4o`, etc.
 
 - `prompt_template`
 
-  プロンプトテンプレートを書いたファイルをコンフィギュレーションファイルのディレクトリからの相対パスで指定します．
+  Specifies the file containing the prompt template, relative to the configuration file directory.
 
-  これが指定されていない場合は，`dialbb.builtin_blocks.ner_with_chatgpt.chatgpt_ner.prompt_template_ja .PROMPT_TEMPLATE_JA` （日本語）または，`dialbb.builtin_blocks.ner_with_chatgpt.chatgpt_ner.prompt_template_en .PROMPT_TEMPLATE_EN` （英語）が使われます．
+  If not specified, the default templates `dialbb.builtin_blocks.ner_with_chatgpt.chatgpt_ner.prompt_template_ja.PROMPT_TEMPLATE_JA` (for Japanese) or `dialbb.builtin_blocks.ner_with_chatgpt.chatgpt_ner.prompt_template_en.PROMPT_TEMPLATE_EN` (for English) will be used.
 
-  プロンプトテンプレートは，言語理解をChatGPTに行わせるプロンプトのテンプレートで，`@`で始まる以下の変数を含みます．
+  The prompt template defines how ChatGPT is instructed for language understanding and includes the following variables (prefixed with `@`):
 
-  - `@classes` 固有表現のクラスを列挙したものです．
-  - `@class_explanations` 各固有表現クラスの説明を列挙したものです．
-  - `@ne_examples` 各固有表現クラスの固有表現の例を列挙したものです．
-  - `@ner_examples` 発話例と，固有表現抽出結果の正解を書いた，いわゆるfew shot exampleです．
-  - `@input` 入力発話です．
+  - `@classes` List of named entity classes.
 
-  これらの変数には，実行時に値が代入されます．
+  - `@class_explanations` Descriptions of each named entity class.
 
+  - `@ne_examples` Examples of named entities for each class.
 
-### 固有表現抽出知識
+  - `@ner_examples` Examples of utterances and their correct named entity extraction results (few-shot examples).
 
-固有表現抽出知識は，以下の2つのシートからなります．
+  - `@input` The input utterance.
 
-| シート名   | 内容                                             |
-| ---------- | ------------------------------------------------ |
-| utterances | 発話と固有表現抽出結果の例                       |
-| classes    | スロットとエンティティの関係および同義語のリスト |
+  Values are assigned to these variables at runtime.
 
-シート名はブロックコンフィギュレーションで変更可能ですが，変更することはほとんどないと思いますので，詳細な説明は割愛します．
+### Named Entity Knowledge
 
-#### utterancesシート
+Named entity knowledge consists of the following two sheets:
 
-各行は次のカラムからなります．
+| Sheet Name  | Description |
+| ----------- | ----------- |
+| utterances  | Examples of utterances and named entity extraction results. |
+| classes     | Relationship between slots and entities, along with a list of synonyms. |
 
-- `flag`      
+Although the sheet names can be changed in the block configuration, this is rarely needed, so detailed explanations are omitted.
 
-  利用するかどうかを決めるフラグ．`Y` (yes), `T` (test)などを書くことが多いです．どのフラグの行を利用するかはコンフィギュレーションに記述します．
+#### utterances Sheet
 
-- `utterance` 
-
-  発話例．
-
-- `entities` 
-
-  発話に含まれる固有表現．固有表現を以下の形で記述します．
-
-  ```
-  <固有表現クラス>=<固有表現>, <固有表現クラス>=<固有表現>, ... <固有表現クラス>=<固有表現> 
-  ```
-
-  以下が例です．
-
-  ```
-  人名=太郎, 地名=東京
-  ```
-
-  utterancesシートのみならずこのブロックで使うシートにこれ以外のカラムがあっても構いません．
-
-#### classesシート
-
-各行は次のカラムからなります．
+Each row consists of the following columns:
 
 - `flag`
 
-  utterancesシートと同じ
+  A flag to determine whether to use the row. Common values include `Y` (yes) and `T` (test). The configuration specifies which flags to use.
 
-- `class` 
+- `utterance`
 
-  固有表現クラス名．
+  Example utterance.
+
+- `entities`
+
+  Named entities contained in the utterance. They are formatted as follows:
+
+  ```
+  <Named Entity Class>=<Named Entity>, <Named Entity Class>=<Named Entity>, ... <Named Entity Class>=<Named Entity>
+  ```
+
+  Example:
+
+  ```
+  Person=John, Location=Chicago
+  ```
+
+  Additional columns besides these are allowed in the sheets used by this block.
+
+#### classes Sheet
+
+Each row consists of the following columns:
+
+- `flag`
+
+  Same as in the `utterances` sheet.
+
+- `class`
+
+  Named entity class name.
 
 - `explanation`
 
-  固有表現クラスの説明
+  Description of the named entity class.
 
 - `examples`
 
-  固有表現の例を`','`で連結したものです．
-
+  Examples of named entities, concatenated with `','`.
 
 (spacy_ner)=
 ## spaCy-Based NER (Named Entity Recognizer Block using spaCy)
@@ -1140,7 +1140,7 @@ The result of named entity recognition is as follows.
 }
 ```
 
-`<label>` is a class of named entities. `<named entity>` is a found named entity, a substring of ``input_text`. If multiple named entities of the same class are found, they are concatenated with `':'`.
+`<label>` is the class of named entities. `<named entity>` is a found named entity, a substring of ``input_text`. If multiple named entities of the same class are found, they are concatenated with `':'`.
 
 Example:
 	 

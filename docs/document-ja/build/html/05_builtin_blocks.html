@@ -117,7 +117,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#chatgpt-ner-chatgpt">5.7. ChatGPT NER （ChatGPTを用いた固有表現抽出ブロック）</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#id39">5.7.1. 入出力</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#id40">5.7.2. ブロックコンフィギュレーションのパラメータ</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id42">5.7.3. 固有表現抽出知識</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#chatgpt-ner-knowledge">5.7.3. 固有表現抽出知識</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#id43">5.7.3.1. utterancesシート</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#classes">5.7.3.2. classesシート</a></li>
 </ul>
@@ -1101,10 +1101,9 @@
 <h3><span class="section-number">5.7.1. </span>入出力<a class="headerlink" href="#id39" title="Link to this heading"></a></h3>
 <ul>
 <li><p>入力</p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">input_text</span></code>: 入力文字列</p>
-<p>例：&quot;好きなのは醤油&quot;</p>
-</li>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">input_text</span></code>: 入力文字列</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aux_data</span></code>: 補助データ（辞書型)</p></li>
 </ul>
 </li>
 <li><p>出力</p>
@@ -1166,8 +1165,8 @@
 </li>
 </ul>
 </section>
-<section id="id42">
-<h3><span class="section-number">5.7.3. </span>固有表現抽出知識<a class="headerlink" href="#id42" title="Link to this heading"></a></h3>
+<section id="chatgpt-ner-knowledge">
+<span id="id42"></span><h3><span class="section-number">5.7.3. </span>固有表現抽出知識<a class="headerlink" href="#chatgpt-ner-knowledge" title="Link to this heading"></a></h3>
 <p>固有表現抽出知識は，以下の2つのシートからなります．</p>
 <table class="docutils align-default">
 <thead>
