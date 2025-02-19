@@ -31,7 +31,7 @@ DialBBを簡単に説明した[チュートリアルスライド](docs/tutorial-
 
 ## ライセンス
 
-DialBBはApache License 2.0.の下で公開されています。
+DialBBはApache License 2.0の下で公開されています。
 
 ## サンプルアプリケーションの起動の仕方
 
