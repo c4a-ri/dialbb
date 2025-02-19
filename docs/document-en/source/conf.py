@@ -18,12 +18,12 @@ import sphinx_rtd_theme
 
 # -- Project information -----------------------------------------------------
 
-project = 'DialBB ver. 0.10 Document'
+project = 'DialBB ver. 1.0 Document'
 copyright = 'C4A Research Institute, Inc'
 author = 'Mikio Nakano'
 
 # The full version, including alpha/beta/rc tags
-release = 'v0.10.0'
+release = 'v1.0.0'
 
 
 # -- General configuration ---------------------------------------------------
@@ -96,7 +96,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'dialbb-document-en.tex', 'DialBB ver. 0.10 Document',
+    (master_doc, 'dialbb-document-en.tex', 'DialBB ver. 1.0 Document',
      '', 'manual'),
 ]
 
