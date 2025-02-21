@@ -53,14 +53,13 @@ header {
   align-items: center;
   text-decoration: none;
 }
-
 .github-btn i {
   margin-right: 8px;
 }
 
 /* コンテンツ領域 */
 .container {
-  max-width: 760px;
+  max-width: 900px;
   margin: 20px auto;
   padding: 20px;
   background-color: #fff;

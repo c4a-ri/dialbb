@@ -120,11 +120,7 @@
 <p>アプリケーションの作成は，<code class="docutils literal notranslate"><span class="pre">dialbb.main.DialogueProcessor</span></code>クラスのオブジェクトを作成することで行います．</p>
 <p>これは以下の手順で行います．</p>
 <ul>
-<li><p>環境変数PYTHONPATHにDialBBのディレクトリを追加します．</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span>&lt;DialBBのディレクトリ&gt;:<span class="nv">$PYTHONPATH</span>
-</pre></div>
-</div>
-</li>
+<li><p>DialBBがGitHubのREADMEに従いpipでインストールされているか，<code class="docutils literal notranslate"><span class="pre">dialbb</span></code>がモジュール検索パスにあるとします．</p></li>
 <li><p>DialBBを利用するアプリケーションの中で，以下のように<code class="docutils literal notranslate"><span class="pre">DialogueProcessor</span></code>のインスタンスを作成し，<code class="docutils literal notranslate"><span class="pre">process</span></code>メソッド<a class="footnote-reference brackets" href="#fn-process" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>を呼び出します．</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">dialbb.main</span> <span class="kn">import</span> <span class="n">DialogueProcessor</span>
 <span class="n">dialogue_processor</span> <span class="o">=</span> <span class="n">DialogueProcessor</span><span class="p">(</span><span class="o">&lt;</span><span class="n">コンフィギュレーションファイル</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">追加のコンフィギュレーション</span><span class="o">&gt;</span><span class="p">)</span>
@@ -206,12 +202,9 @@
 <p>アプリケーションにWebAPI経由でアクセスすることもできます．</p>
 <section id="id8">
 <h3><span class="section-number">4.2.1. </span>サーバの起動<a class="headerlink" href="#id8" title="Link to this heading"></a></h3>
-<p>環境変数<code class="docutils literal notranslate"><span class="pre">PYTHONPATH</span></code>を設定します．</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span>&lt;DialBBのディレクトリ&gt;:<span class="nv">$PYTHONPATH</span>
-</pre></div>
-</div>
-<p>コンフィギュレーションファイルを指定してサーバを起動します．</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python<span class="w"> </span>&lt;DialBBのディレクトリ&gt;/run_server.py<span class="w"> </span><span class="o">[</span>--port<span class="w"> </span>&lt;port&gt;<span class="o">]</span><span class="w"> </span>&lt;config<span class="w"> </span>file&gt;
+<p>DialBBがGitHubのREADMEに従いpipでインストールされていることを前提とします．</p>
+<p>以下のコマンドで起動します．</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>dialbb-server<span class="w"> </span><span class="o">[</span>--port<span class="w"> </span>&lt;port&gt;<span class="o">]</span><span class="w"> </span>&lt;config<span class="w"> </span>file&gt;
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">port</span></code>（ポート番号）のデフォルトは8080です．</p>

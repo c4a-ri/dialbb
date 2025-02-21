@@ -44,15 +44,17 @@ The following instructions assume that you are working with bash on Ubuntu. If y
   $ venv/bin/activate   # Enter the virtual environment
   ```
 
-- [配布用ファイル](dist)からwhlファイルをダウンロードします。
+- Download whl file from [distribution directory](dist).
 
-- 以下を実行します。
+- Execute the following.
 
   ```sh
-  pip install <ダウンロードしたwhlファイル>
+  $ pip install <ダウンロードしたwhlファイル>
   ```
 
-### サンプルアプリケーションのダウンロード
+### Download the Sample Applications
+
+Download the `sample_apps.zip` file from the [distribution directory](dist) and extract it to a suitable location.
 
 
 ### Running the Parroting Application
@@ -134,32 +136,6 @@ This is a sample application using the following built-in blocks. The English ve
   - LR-CRF Understander  Block
   - STN Manager  Block
 
-#### Installing Required Python Libraries
-
-  If you do not use this application, you may skip the following steps.
-
-  Do the following:
-
-  ```sh
-  # Run one of the following
-  $ pip install -r sample_apps/simple_en/requirements.txt
-  $ pip install -r sample_apps/simple_ja/requirements.txt
-  ```
-
-Note:
-
-  - When running with Anaconda on Windows, Anaconda Prompt may need to be started in administrator mode.
-
-  - If you are using pyenv, you may get the following error.
-
-    ```
-    ModuleNotFoundError: No module named '_bz2' 
-    ```
-
-    See [this page](https://stackoverflow.com/questions/60775172/pyenvs-python-is-missing-bzip2-module) and others for how to deal with this problem.
-
-If the installation does not work, please contact us.
-
 
 #### Installing Graphviz
 
@@ -195,7 +171,7 @@ The following commands can be used to test the sequential processing and interac
 - English
 
   ```sh
-  $ python dialbb/util/test.py sample_apps/simple_en/config.yml \
+  $ dialbb-test sample_apps/simple_en/config.yml \
     sample_apps/simple_en/test_inputs.txt --output \
     sample_apps/simple_en/_test_outputs.txt
   ```
@@ -205,7 +181,7 @@ The following commands can be used to test the sequential processing and interac
   - Japanese
 
     ```sh
-    $ python dialbb/util/test.py sample_apps/simple_ja/config.yml \
+    $ diabb-test sample_apps/simple_ja/config.yml \
       sample_apps/simple_ja/test_inputs.txt --output \
       sample_apps/simple_ja/_test_outputs.txt
     ```
@@ -222,24 +198,15 @@ Experimental applications are available at `sample_apps/lab_app_ja/` (Japanese) 
 
   - Simple Canonicalizer Block
   - ChatGPT Understander Block
-  - Spacy NER Block (NER using [spaCy](https://spacy.io/))
+  - ChatGPT NER Block
   - STN Manager Block
 
 - Japanese Application
 
   - Japanese Canonicalizer Block
   - ChatGPT Understander Block
-  - Spacy NER Block (NER using [spaCy](https://spacy.io/)/[GiNZA](https://megagonlabs.github.io/ginza/))
+  - ChatGPT NER Block
   - STN Manager Block
-
-#### Installing Python libraries
-
-  Do the following:
-
-  ```sh
-  $ pip install -r sample_apps/lab_app_en/requirements.txt # for English app
-  $ pip install -r sample_apps/lab_app_ja/requirements.txt # for Japanese app
-  ```
 
 #### Setting environment variables
 
@@ -263,9 +230,7 @@ The following commands allow you to test features not used in the Simple Applica
   ```sh
   $ cd sample_apps/lab_app_en # in the case of English app
   $ cd sample_apps/lab_app_ja # in the case of Japanese app
-  $ export DIALBB_HOME=<DialBB home directory>.
-  $ export PYTHONPATH=$DIALBB_HOME:$PYTHONPATH
-  $ python $DIALBB_HOME/dialbb/util/send_test_requests.py config.yml test_requests.json
+  $ dialbb-send-test-requests config.yml test_requests.json
   ```
 
 ### ChatGPT Dialogue Application
