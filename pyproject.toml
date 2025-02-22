@@ -12,6 +12,7 @@ include = [
 ]
 exclude = [
     "dialbb/builtin_blocks/stn_management/gui_editor/",
+    "dialbb/builtin_blocks/stn_management/context_db/",
     "**/__pycache__/"
 ]
 
@@ -100,3 +101,5 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry.scripts]
 dialbb-nc = 'dialbb.no_code.main:main'
 dialbb-server = 'dialbb.server.run_server:start_dialbb_cmd'
+dialbb-test = 'dialbb.util.test:main'
+dialbb-send-test-requests = 'dialbb.util.send_test_requests:main'

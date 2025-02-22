@@ -20,11 +20,7 @@ The application is built by creating an object of class `dialbb.main.DialoguePro
 This is done by the following procedure.
 
 
-- Add the DialBB directory to the `PYTHONPATH` environment variable.
-
-  ```sh
-  export PYTHONPATH=<DialBB directory>:$PYTHONPATH
-  ```
+- It is assumed that DialBB is installed via pip according to the GitHub README, or that `dialbb` is in the module search path.
 
 - In the application that uses DialBB, use the following DialogueProcessor
   and calls process method.
@@ -120,20 +116,15 @@ Applications can also be accessed via WebAPI.
 ### Server Startup
 
 
-Set the PYTHONPATH environment variable.
-
-
-```sh
-export PYTHONPATH=<DialBB directory>:$PYTHONPATH
-```
+It is assumed that DialBB is installed via pip according to the GitHub README.
 
 Start the server by specifying a configuration file.
 
 ```sh
-python <DialBB directory>/run_server.py [--port <port>] <config file>
+$ dialbb-server [--port <port>] <config file>
 ```
 
-The default port number is 8080.
+The default port number is `8080`.
 
 
 ### Connection from Client (At the Start of a Session)

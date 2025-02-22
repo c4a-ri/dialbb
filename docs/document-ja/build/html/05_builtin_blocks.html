@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>5. 組み込みブロッククラスの仕様 &mdash; DialBBドキュメント ver. 0.9 v0.9.0 ドキュメント</title>
+  <title>5. 組み込みブロッククラスの仕様 &mdash; DialBB ver. 1.0 ドキュメント v1.0.0 ドキュメント</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
@@ -15,7 +15,7 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=5b1548ec"></script>
+        <script src="_static/documentation_options.js?v=eff863b9"></script>
         <script src="_static/doctools.js?v=9a2dae69"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script src="_static/translations.js?v=4dbe4bdc"></script>
@@ -35,7 +35,7 @@
           
           
           <a href="index.html" class="icon icon-home">
-            DialBBドキュメント ver. 0.9
+            DialBB ver. 1.0 ドキュメント
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -117,7 +117,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#chatgpt-ner-chatgpt">5.7. ChatGPT NER （ChatGPTを用いた固有表現抽出ブロック）</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#id39">5.7.1. 入出力</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#id40">5.7.2. ブロックコンフィギュレーションのパラメータ</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id42">5.7.3. 固有表現抽出知識</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#chatgpt-ner-knowledge">5.7.3. 固有表現抽出知識</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#id43">5.7.3.1. utterancesシート</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#classes">5.7.3.2. classesシート</a></li>
 </ul>
@@ -141,7 +141,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">DialBBドキュメント ver. 0.9</a>
+          <a href="index.html">DialBB ver. 1.0 ドキュメント</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -1101,10 +1101,9 @@
 <h3><span class="section-number">5.7.1. </span>入出力<a class="headerlink" href="#id39" title="Link to this heading"></a></h3>
 <ul>
 <li><p>入力</p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">input_text</span></code>: 入力文字列</p>
-<p>例：&quot;好きなのは醤油&quot;</p>
-</li>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">input_text</span></code>: 入力文字列</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aux_data</span></code>: 補助データ（辞書型)</p></li>
 </ul>
 </li>
 <li><p>出力</p>
@@ -1166,8 +1165,8 @@
 </li>
 </ul>
 </section>
-<section id="id42">
-<h3><span class="section-number">5.7.3. </span>固有表現抽出知識<a class="headerlink" href="#id42" title="Link to this heading"></a></h3>
+<section id="chatgpt-ner-knowledge">
+<span id="id42"></span><h3><span class="section-number">5.7.3. </span>固有表現抽出知識<a class="headerlink" href="#chatgpt-ner-knowledge" title="Link to this heading"></a></h3>
 <p>固有表現抽出知識は，以下の2つのシートからなります．</p>
 <table class="docutils align-default">
 <thead>

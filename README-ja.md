@@ -5,9 +5,15 @@ ver. 1.0.0
 
 [English](README.md)
 
-## 概要
+## プロジェクトWebsite
 
-DialBBは株式会社C4A研究所が開発した対話システムを構築するためのフレームワークです．情報技術の教材として作られました．拡張可能性の高いアーキテクチャを持ち，読みやすいコードで書かれています．ブロックと呼ぶモジュールを組み合わせてシステムを開発できます．開発者は簡単なシステムを組み込みブロックを用いて作ることができ，高度なシステムを自作のブロックを使って作ることもできます．
+[https://c4a-ri.github.io/dialbb/](https://c4a-ri.github.io/dialbb/)
+
+詳細な仕様を記述したドキュメント、チュートリアルスライド、ノーコードツールのドキュメントなどがあります。
+
+## DialBBの概要
+
+DialBBは，[株式会社C4A研究所](https://www.c4a.jp/)が開発した対話システムを構築するためのフレームワークです．情報技術の教材として作られました．拡張可能性の高いアーキテクチャを持ち，読みやすいコードで書かれています．ブロックと呼ぶモジュールを組み合わせてシステムを開発できます．開発者は簡単なシステムを組み込みブロックを用いて作ることができ，高度なシステムを自作のブロックを使って作ることもできます．
 
 DialBBのメインモジュールは，メソッド呼び出しまたはWeb API経由で，ユーザ発話の入力をJSON形式で受けとり，システム発話をJSON形式で返します．メインモジュールは，ブロックを順に呼び出すことによって動作します．各ブロックはJSON形式(pythonのdictのデータ)を受け取り，JSON形式のデータを返します．各ブロックのクラスや入出力仕様はアプリケーション毎のコンフィギュレーションファイルで規定します．
 
@@ -23,59 +29,39 @@ DialBBを用いた研究に関する論文発表をする際には，以下の�
 
 - Mikio Nakano and Kazunori Komatani. [DialBB: A Dialogue System Development Framework as an Educational Material](https://aclanthology.org/2024.sigdial-1.56). In Proceedings of the 25th Annual Meeting of the Special Interest Group on Discourse and Dialogue (SIGDIAL-24), pages 664–668, Kyoto, Japan. Association for Computational Linguistics, 2024.
 
-
-
-## チュートリアル
-
-DialBBを簡単に説明した[チュートリアルスライド](docs/tutorial-slides/DialBB-tutorial-ja-v0.9.pdf)があります．
-
 ## ライセンス
 
-DialBBはApache License 2.0.の下で公開されています。
+DialBBはApache License 2.0の下で公開されています。
 
 ## サンプルアプリケーションの起動の仕方
 
 ### 実行環境
 
-Ubuntu 20.04/Windows 10上のpython 3.10.13で，以下の手順で動作することを確認しています．すべての組み合わせを完全に確かめたわけではありませんが，Windows 10/11やMacOS（アップルシリコンを含む）の上で，または，Python 3.9+を使って動かせなかったという報告は得ていません．
+Ubuntu 20.04/Windows 10上のpython 3.10.13で，以下の手順で動作することを確認しています．すべての組み合わせを完全に確かめたわけではありませんが，Windows 10/11やMacOS（アップルシリコンを含む）の上で，Python 3.10+を使って動かせなかったという報告は得ていません．
 
 以下の説明はUbuntu上のbashで作業することを仮定しています．他のシェルやWindowsコマンドプロンプトを用いる場合は，適宜読み替えてください．
 
 ### DialBBのインストール
 
-githubのソースコードをcloneします．
-
-```sh
-$ git clone https://github.com/c4a-ri/dialbb.git
-```
-
-この場合,`dialbb`という名前のディレクトリができます．
-
-特定の名前のディレクトリにインストールしたい場合は以下のようにしてください．
-
-```sh
-$ git clone https://github.com/c4a-ri/dialbb.git <ディレクトリ名>
-```
-
-できたディレクトリを以下で「DialBBディレクトリ」と呼びます．
-
-
-### Pythonライブラリのインストール
-
-- <DialBBディレクトリ>に移動します．
-
-- 次に必要なら仮想環境を構築します．以下はvenvの例です．
+- 必要なら仮想環境を構築します．以下はvenvの例です．
 
   ```sh
   $ python -m venv venv  # 仮想環境をvenvという名前で構築
   $ venv/bin/activate   # 仮想環境に入る
   ```
 
-- 次に以下を実行して，最低限のライブラリをインストールします．(ver. 0.6からトップディレクトリの`requirements.txt`には最低限のライブラリのみを書くようにしました．）
+- [配布用ディレクトリ](dist)からwhlファイルをダウンロードします。
+
+- 以下を実行します。
 
   ```sh
-  $ pip install -r requirements.txt 
+  $ pip install <ダウンロードしたwhlファイル>
   ```
+
+### サンプルアプリケーションのダウンロード
+
+[配布用ディレクトリ](dist)から`sample_apps.zip`ファイルをダウンロードし、適当なところに展開します。
+
 
 ### オウム返しサンプルアプリケーション
 
@@ -84,9 +70,8 @@ $ git clone https://github.com/c4a-ri/dialbb.git <ディレクトリ名>
 ただオウム返しを行うアプリケーションです．組み込みブロッククラスは使っていません．
 
 ```sh
-$ python run_server.py sample_apps/parrot/config.yml
+$ dialbb-server sample_apps/parrot/config.yml
 ```
-
 
 #### ターミナルからの動作確認
 
@@ -153,34 +138,6 @@ http://<hostname>:8080/test
   - STN Manager Block
 
 
-### 必要なPythonライブラリのインストール
-
-  本アプリケーションを使用しない場合は，以下の手順はスキップして構いません．
-
-  以下を実行します．
-
-  ```sh
-  # 以下のどちらかを実行
-  $ pip install -r sample_apps/simple_ja/requirements.txt 
-  $ pip install -r sample_apps/simple_en/requirements.txt 
-  ```
-
-注意：
-
-  - Windows上のAnacondaを用いて実行する場合，Anaconda Promptを管理者モードで起動しないといけない可能性があります．
-
-
-  - pyenvを使っている場合，以下のエラーが出る可能性があります．
-
-    ```
-    ModuleNotFoundError: No module named '_bz2' 
-    ```
-    
-    それに対する対処法は[この記事](https://qiita.com/kasajei/items/5e22161b62f4b84787bc)などを参照ください．
-
-インストールがうまくいかない場合は連絡してください．
-
-
 #### Graphvizのインストール
 
 [Graphvizのサイト](https://graphviz.org/download/)などを参考にGraphvizをインストールします．ただ，Graphvizがなくてもアプリケーションを動作させることは**可能**です．
@@ -195,32 +152,13 @@ http://<hostname>:8080/test
 - 英語アプリケーション
 
   ```sh
-  $ python run_server.py sample_apps/simple_en/config.yml 
+  $ dialbb-server sample_apps/simple_en/config.yml 
   ```
   
-  アプリケーションディレクトリで起動する場合は以下のようにします．
-
-  ```sh
-  $ export DIALBB_HOME=<DialBBのホームディレクトリ>
-  $ export PYTHONPATH=$DIALBB_HOME:$PYTHONPATH
-  $ cd sample_apps/simple_en  # アプリケーションディレクトリに移動
-  $ python $DIALBB_HOME/run_server.py config.yml 
-  ```
-
-
 - 日本語アプリケーション
 
   ```sh
-  $ python run_server.py sample_apps/simple_ja/config.yml 
-  ```
-
-  アプリケーションディレクトリで起動する場合は以下のようにします．
-
-  ```sh
-  $ export DIALBB_HOME=<DialBBのホームディレクトリ>
-  $ export PYTHONPATH=$DIALBB_HOME:$PYTHONPATH
-  $ cd sample_apps/simple_ja  # アプリケーションディレクトリに移動
-  $ python $DIALBB_HOME/run_server.py config.yml 
+  $ dialbb-server sample_apps/simple_ja/config.yml 
   ```
 
 #### テストセットを用いた動作確認
@@ -230,7 +168,7 @@ http://<hostname>:8080/test
   - 英語
 
    ```sh
-   $ python dialbb/util/test.py sample_apps/simple_en/config.yml \
+   $ dialbb-test sample_apps/simple_en/config.yml \
      sample_apps/simple_en/test_inputs.txt --output \
      sample_apps/simple_en/_test_outputs.txt
    ```
@@ -240,7 +178,7 @@ http://<hostname>:8080/test
   - 日本語
 
    ```sh
-   $ python dialbb/util/test.py sample_apps/simple_ja/config.yml \
+   $ dialbb-test dialbb/util/test.py sample_apps/simple_ja/config.yml \
      sample_apps/simple_ja/test_inputs.txt --output \
      sample_apps/simple_ja/_test_outputs.txt
    ```
@@ -255,26 +193,25 @@ http://<hostname>:8080/test
 - 日本語アプリケーション
 
 
-  - Japanese Canonicalizer Block 
-  - ChatGPT Understander Block
-  - Spacy NER Block (NER using [spaCy](https://spacy.io/)/[GiNZA](https://megagonlabs.github.io/ginza/))
-  - STN Manager Block
+    - Japanese Canonicalizer Block 
+
+
+    - ChatGPT Understander Block
+
+
+    - ChatGPT NER Block
+
+
+    - STN Manager Block
+
+
 
 - 英語アプリケーション
 
   - Simple Canonicalizer Block 
   - ChatGPT Understander Block
-  - Spacy NER Block (NER using [spaCy](https://spacy.io/)/[GiNZA](https://megagonlabs.github.io/ginza/))
+  - ChatGPT NER Block
   - STN Manager Block
-
-#### Pythonライブラリのインストール
-
-  以下を実行します．
-
-  ```sh
-  $ pip install -r sample_apps/lab_app_ja/requirements.txt # 日本語アプリケーション
-  $ pip install -r sample_apps/lab_app_en/requirements.txt # 英語アプリケーション
-  ```
 
 #### 環境変数の設定
 
@@ -287,18 +224,8 @@ http://<hostname>:8080/test
 #### 起動方法
 
   ```sh
-  $ python run_server.py sample_apps/lab_app_ja/config_ja.yml  # 日本語
-  $ python run_server.py sample_apps/lab_app_ja/config_en.yml  # 英語
-  ```
-
-  アプリケーションディレクトリで起動する場合は以下のようにします．
-
-  ```sh
-  $ export DIALBB_HOME=<DialBBのホームディレクトリ>
-  $ export PYTHONPATH=$DIALBB_HOME:$PYTHONPATH
-  $ cd sample_apps/lab_app_ja  # アプリケーションディレクトリに移動（日本語の場合）
-  $ cd sample_apps/lab_app_en  # アプリケーションディレクトリに移動（英語の場合）
-  $ python $DIALBB_HOME/run_server.py config.yml 
+  $ dialbb-server sample_apps/lab_app_ja/config_ja.yml  # 日本語
+  $ dialbb-server sample_apps/lab_app_ja/config_en.yml  # 英語
   ```
 
 #### テスト方法
@@ -308,9 +235,7 @@ http://<hostname>:8080/test
   ```sh
   $ cd sample_apps/lab_app_ja # 日本語の場合
   $ cd sample_apps/lab_app_en # 英語の場合
-  $ export DIALBB_HOME=<DialBBのホームディレクトリ>
-  $ export PYTHONPATH=$DIALBB_HOME:$PYTHONPATH
-  $ python $DIALBB_HOME/dialbb/util/send_test_requests.py config.yml test_requests.json
+  $ dialbb-send-test-requests config.yml test_requests.json
   ```
 
 ### ChatGPT対話アプリケーション
@@ -341,23 +266,13 @@ http://<hostname>:8080/test
   日本語版
 
   ```sh
-  $ python run_server.py sample_apps/chatgpt/config_ja.yml 
+  $ dialbb-server sample_apps/chatgpt/config_ja.yml 
   ```
 
   英語版
 
   ```sh
-  $ python run_server.py sample_apps/chatgpt/config_en.yml 
-  ```
-
-  アプリケーションディレクトリで起動する場合は以下のようにします．
-
-  ```sh
-  $ export DIALBB_HOME=<DialBBのホームディレクトリ>
-  $ export PYTHONPATH=$DIALBB_HOME:$PYTHONPATH
-  $ cd sample_apps/chatgpt  # アプリケーションディレクトリに移動
-  $ python $DIALBB_HOME/run_server.py config_ja.yml  # 日本語
-  $ python $DIALBB_HOME/run_server.py config_en.yml  # 英語
+  $ dialbb-server sample_apps/chatgpt/config_en.yml 
   ```
 
 ## 要望・質問・バグ報告

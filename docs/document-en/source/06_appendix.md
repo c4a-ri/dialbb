@@ -32,6 +32,38 @@ It allows sending `aux_data`.
 
 The `aux_data` included in the response is also displayed.
 
+## How to Use DialBB without Installing via pip
+
+First, clone the GitHub repository. The cloned directory will be referred to as `<DialBB Directory>`.
+
+```sh
+git clone git@github.com:c4a-ri/dialbb.git <DialBB Directory>
+```
+
+Set the environment variable `PYTHONPATH`:
+
+```sh
+export PYTHONPATH=<DialBB Directory>:$PYTHONPATH
+```
+
+### Using the Class API
+
+If you want to use DialBB via the class API, start Python and import the necessary modules or classes from `dialbb`:
+
+```python
+from dialbb.main import DialogueProcessor
+```
+
+### Using the Web API
+
+To use DialBB as a Web API, specify the configuration file and start the server:
+
+```sh
+$ python <DialBB Directory>/run_server.py [--port <port>] <config file>
+```
+
+The default `port` (port number) is 8080.
+
 ## Discontinued Features
 
 ### Snips Understander Built-in Block

@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>3. Tutorial &mdash; DialBB ver. 0.9 Document v0.9.0 documentation</title>
+  <title>3. Tutorial &mdash; DialBB ver. 1.0 Document v1.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
@@ -15,7 +15,7 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=c20ff342"></script>
+        <script src="_static/documentation_options.js?v=76e2d817"></script>
         <script src="_static/doctools.js?v=9a2dae69"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
@@ -34,7 +34,7 @@
           
           
           <a href="index.html" class="icon icon-home">
-            DialBB ver. 0.9 Document
+            DialBB ver. 1.0 Document
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -91,7 +91,10 @@
 <li class="toctree-l3"><a class="reference internal" href="#id3">3.5.1. Overview</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#id4">3.5.2. Files Comprising the Application</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#chatgpt-language-understanding-block">3.5.3. ChatGPT Language Understanding Block</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#spacy-named-entity-recognition-ner-block">3.5.4. spaCy Named Entity Recognition (NER) Block</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chatgpt-named-entity-recognition-ner-block">3.5.4. ChatGPT Named Entity Recognition (NER) Block</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#named-entity-recognition-knowledge">3.5.4.1. Named Entity Recognition Knowledge</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#functions-of-the-stn-manager">3.5.5. Functions of the STN Manager</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#function-calls-and-special-variable-references-in-system-utterances">3.5.5.1. Function Calls and Special Variable References in System Utterances</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#syntax-sugar">3.5.5.2. Syntax Sugar</a></li>
@@ -118,7 +121,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">DialBB ver. 0.9 Document</a>
+          <a href="index.html">DialBB ver. 1.0 Document</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -608,7 +611,7 @@ Start the application with the following command:</p>
 <ul class="simple">
 <li><p><a class="reference internal" href="05_builtin_blocks.html#simple-canonicalizer"><span class="std std-ref">Simple Canonicalizer (Simple String Canonicalizer Block)</span></a></p></li>
 <li><p><a class="reference internal" href="05_builtin_blocks.html#chatgpt-understander"><span class="std std-ref">ChatGPT Understander (Language Understanding Block using ChatGPT)</span></a></p></li>
-<li><p><a class="reference internal" href="05_builtin_blocks.html#chatgpt-ner"><span class="std std-ref">ChatGPT NER （ChatGPTを用いた固有表現抽出ブロック）</span></a></p></li>
+<li><p><a class="reference internal" href="05_builtin_blocks.html#chatgpt-ner"><span class="std std-ref">ChatGPT NER (Named Entity Recognition Block Using ChatGPT)</span></a></p></li>
 <li><p><a class="reference internal" href="05_builtin_blocks.html#stn-manager"><span class="std std-ref">STN Manager (State Transition Network-based Dialogue Management Block)</span></a></p></li>
 </ul>
 <p>The main differences from simple applications are the use of the ChatGPT language understanding block and the ChatGPT named entity recognition block, as well as the advanced functionalities of the STN Manager block.</p>
@@ -638,22 +641,91 @@ Start the application with the following command:</p>
 <h3><span class="section-number">3.5.3. </span>ChatGPT Language Understanding Block<a class="headerlink" href="#chatgpt-language-understanding-block" title="Link to this heading"></a></h3>
 <p>Language understanding is conducted using ChatGPT in JSON mode. For this purpose, knowledge formatted in the same way as that used by the LR-CRF language understanding block is utilized. This knowledge is applied through few-shot learning to perform language understanding on the input text. The input and output of the LR-CRF language understanding block are also the same.</p>
 <p>The specific GPT model for this process is defined in the block configuration under <code class="docutils literal notranslate"><span class="pre">gpt_model</span></code>.</p>
-<p>The default prompt template is used for prompting ChatGPT to conduct language understanding. For further details, please refer to <a class="reference internal" href="05_builtin_blocks.html#chatgpt-understander-params"><span class="std std-numref">Section 5.6.2</span></a>.</p>
+<p>The default prompt template is used for prompting ChatGPT to conduct language understanding. For further details, please refer to <code class="xref std std-numref docutils literal notranslate"><span class="pre">chatgpt_understander_params</span></code>.</p>
 </section>
-<section id="spacy-named-entity-recognition-ner-block">
-<h3><span class="section-number">3.5.4. </span>spaCy Named Entity Recognition (NER) Block<a class="headerlink" href="#spacy-named-entity-recognition-ner-block" title="Link to this heading"></a></h3>
-<p>Named entity recognition (NER) is conducted using spaCy. The extracted entities are included in the <code class="docutils literal notranslate"><span class="pre">aux_data</span></code> section of the block’s output. An example of the output format is as follows:</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nt">&quot;NE_PERSON&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;John&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;NE_DATE&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Friday&quot;</span><span class="p">}</span>
+<section id="chatgpt-named-entity-recognition-ner-block">
+<h3><span class="section-number">3.5.4. </span>ChatGPT Named Entity Recognition (NER) Block<a class="headerlink" href="#chatgpt-named-entity-recognition-ner-block" title="Link to this heading"></a></h3>
+<p>The ChatGPT Named Entity Recognition (NER) block performs named entity extraction using ChatGPT. The extracted results are returned in the <code class="docutils literal notranslate"><span class="pre">aux_data</span></code> field of the block’s output. Below is an example:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nt">&quot;NE_person&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;John&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;NE_Location&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Los Angels&quot;</span><span class="p">}</span>
 </pre></div>
 </div>
-<p>Here, <code class="docutils literal notranslate"><span class="pre">Person</span></code> and <code class="docutils literal notranslate"><span class="pre">Date</span></code> are entity classes defined within the spaCy model. These extracted entities can be accessed within the STN Manager block using special variables such as <code class="docutils literal notranslate"><span class="pre">#PERSON</span></code> and <code class="docutils literal notranslate"><span class="pre">#DATE</span></code>.</p>
-<p>The specific model for spaCy is designated in the block configuration under <code class="docutils literal notranslate"><span class="pre">model</span></code>, with the current setting being <code class="docutils literal notranslate"><span class="pre">en_core_web_trf</span></code>.</p>
-<p>Additionally, entity examples can be added to the <code class="docutils literal notranslate"><span class="pre">patterns</span></code> element within the block configuration to enhance extraction accuracy. The current configuration specifies examples as follows:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">patterns</span><span class="p">:</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Date</span>
-<span class="w">    </span><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">yesterday</span>
-</pre></div>
-</div>
+<p><code class="docutils literal notranslate"><span class="pre">Person</span></code> and <code class="docutils literal notranslate"><span class="pre">Location</span></code> are named entity classes defined in the named entity recognition knowledge, which will be explained below. These results can be accessed within the STN Manager block using special variables such as <code class="docutils literal notranslate"><span class="pre">#NE_person</span></code> and <code class="docutils literal notranslate"><span class="pre">#NE_Location</span></code>.</p>
+<section id="named-entity-recognition-knowledge">
+<h4><span class="section-number">3.5.4.1. </span>Named Entity Recognition Knowledge<a class="headerlink" href="#named-entity-recognition-knowledge" title="Link to this heading"></a></h4>
+<p>The knowledge used by the ChatGPT NER block is written in the <code class="docutils literal notranslate"><span class="pre">simple-ner-knowledge-ja.xlsx</span></code> file. For details on the description method of NER knowledge, refer to <code class="xref std std-numref docutils literal notranslate"><span class="pre">chatgpt_ner_knowledge</span></code>. A brief explanation is provided below.</p>
+<p>Named entity extraction knowledge consists of the following two sheets:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Sheet Name</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>utterances</p></td>
+<td><p>Example utterances and the named entities that should be extracted from them</p></td>
+</tr>
+<tr class="row-odd"><td><p>classes</p></td>
+<td><p>Descriptions of named entity classes and examples of named entities for each class</p></td>
+</tr>
+</tbody>
+</table>
+<p>Below is a partial example of the <code class="docutils literal notranslate"><span class="pre">utterances</span></code> sheet:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>flag</p></th>
+<th class="head"><p>utterance</p></th>
+<th class="head"><p>entities</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Y</p></td>
+<td><p>New York</p></td>
+<td><p>location=New York</p></td>
+</tr>
+<tr class="row-odd"><td><p>Y</p></td>
+<td><p>Candy likes tuna sandwiches</p></td>
+<td><p>person=Candy</p></td>
+</tr>
+<tr class="row-even"><td><p>Y</p></td>
+<td><p>Tom White lives in LA</p></td>
+<td><p>person=Tom White, location=LA</p></td>
+</tr>
+</tbody>
+</table>
+<ul class="simple">
+<li><p>The <code class="docutils literal notranslate"><span class="pre">flag</span></code> column is used to configure whether the row should be used.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">utterance</span></code> column contains example utterances.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">entities</span></code> column lists the slots contained in the utterance in the format <code class="docutils literal notranslate"><span class="pre">&lt;Entity</span> <span class="pre">Class&gt;=&lt;Entity&gt;,</span> <span class="pre">...,</span> <span class="pre">&lt;Entity</span> <span class="pre">Class&gt;=&lt;Entity&gt;</span></code>. Commas can be full-width or punctuation marks.</p></li>
+</ul>
+<p>Below is an example of the <code class="docutils literal notranslate"><span class="pre">classes</span></code> sheet. Each named entity class is described in one row.</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>flag</p></th>
+<th class="head"><p>class</p></th>
+<th class="head"><p>explanation</p></th>
+<th class="head"><p>examples</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Y</p></td>
+<td><p>person</p></td>
+<td><p>person name</p></td>
+<td><p>Daniel, Mr. Green, Dr. Morgan,  Becky, Karen Chu</p></td>
+</tr>
+<tr class="row-odd"><td><p>Y</p></td>
+<td><p>location</p></td>
+<td><p>location name</p></td>
+<td><p>Dallas, New Jersey, Washington  DC, Japan, Europe</p></td>
+</tr>
+</tbody>
+</table>
+<ul class="simple">
+<li><p>The <code class="docutils literal notranslate"><span class="pre">flag</span></code> column is the same as in the <code class="docutils literal notranslate"><span class="pre">utterances</span></code> sheet.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">class</span></code> column specifies the named entity class.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">explanation</span></code> column describes the named entity.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">examples</span></code> column provides examples of named entities in the class, separated by commas or punctuation marks.</p></li>
+</ul>
+</section>
 </section>
 <section id="functions-of-the-stn-manager">
 <h3><span class="section-number">3.5.5. </span>Functions of the STN Manager<a class="headerlink" href="#functions-of-the-stn-manager" title="Link to this heading"></a></h3>
@@ -667,10 +739,10 @@ Start the application with the following command:</p>
 </div>
 <p>In this case, the function <code class="docutils literal notranslate"><span class="pre">get_system_name(context)</span></code>, defined in <code class="docutils literal notranslate"><span class="pre">scenario_functions.py</span></code>, is called, and its return value (a string) replaces <code class="docutils literal notranslate"><span class="pre">{get_system_name()}</span></code>. This function is designed to return the value of <code class="docutils literal notranslate"><span class="pre">system_name</span></code> specified in the configuration file.</p>
 <p>Another example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Thank</span> <span class="n">you</span> <span class="p">{</span><span class="c1">#NE_PERSON}! Let me ask you about sandwich. Do you have sandwiches very often?</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Thank</span> <span class="n">you</span> <span class="p">{</span><span class="c1">#NE_person}! Let me ask you about sandwich. Do you have sandwiches very often?</span>
 </pre></div>
 </div>
-<p>Here, <code class="docutils literal notranslate"><span class="pre">{#NE_PERSON}</span></code> is replaced by the value of the special variable <code class="docutils literal notranslate"><span class="pre">#NE_PERSON</span></code>. <code class="docutils literal notranslate"><span class="pre">#NE_PERSON</span></code> corresponds to the value of <code class="docutils literal notranslate"><span class="pre">NE_PERSON</span></code> in <code class="docutils literal notranslate"><span class="pre">aux_data</span></code>, meaning it holds the value of the “Person” entity extracted by the named entity recognition block.</p>
+<p>Here, <code class="docutils literal notranslate"><span class="pre">{#NE_person}</span></code> is replaced by the value of the special variable <code class="docutils literal notranslate"><span class="pre">#NE_person</span></code>. <code class="docutils literal notranslate"><span class="pre">#NE_person</span></code> corresponds to the value of <code class="docutils literal notranslate"><span class="pre">NE_person</span></code> in <code class="docutils literal notranslate"><span class="pre">aux_data</span></code>, meaning it holds the value of the “Person” entity extracted by the named entity recognition block.</p>
 </section>
 <section id="syntax-sugar">
 <h4><span class="section-number">3.5.5.2. </span>Syntax Sugar<a class="headerlink" href="#syntax-sugar" title="Link to this heading"></a></h4>
@@ -678,7 +750,7 @@ Start the application with the following command:</p>
 <p>Similarly:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">#favorite-sandwich==&quot;egg</span> <span class="pre">salad</span> <span class="pre">sandwich&quot;</span></code> is equivalent to <code class="docutils literal notranslate"><span class="pre">_eq(#favorite-sandwich,</span> <span class="pre">&quot;egg</span> <span class="pre">salad</span> <span class="pre">sandwich&quot;)</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">#NE_PERSON!=&quot;&quot;</span></code> is equivalent to <code class="docutils literal notranslate"><span class="pre">_ne(#NE_PERSON,</span> <span class="pre">&quot;&quot;)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">#NE_person!=&quot;&quot;</span></code> is equivalent to <code class="docutils literal notranslate"><span class="pre">_ne(#NE_Preson,</span> <span class="pre">&quot;&quot;)</span></code></p></li>
 </ul>
 <p>This shorthand makes the scenario scripting more concise and easier to read.</p>
 </section>
