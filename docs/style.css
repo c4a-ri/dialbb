@@ -6,7 +6,8 @@
 }
 
 body {
-  font-family: Arial, sans-serif;
+  font-family: Paratino Linotype;
+  /* font-family: Arial, sans-serif;*/
   background-color: #f5f5f5;
   color: #333;
 }
@@ -74,6 +75,13 @@ header {
   margin-bottom: 10px;
 }
 
+.container-p {
+  list-style: disc;
+  padding-left: 20px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
 /* フッター */
 footer {
   text-align: center;
@@ -89,4 +97,11 @@ footer {
 
 .explanation {
   font-size: 20px;
+}
+
+
+.section {
+    color: blue;
+    font-weight: bold;
+    font-size: 20pt;
 }

@@ -24,6 +24,7 @@ class ProcessManager:
             params = []
         self.cmd = cmd
         self.params = params
+        self.log_file = ""
 
     # プロセス起動
     def start(self) -> bool:
@@ -40,9 +41,9 @@ class ProcessManager:
         log_dir: str = os.path.join(log_root_dir, '.dialbb_nc_logs', current_date)
         if not os.path.exists(log_dir):
             os.makedirs(log_dir)
-        log_file: str = os.path.join(log_dir, f"{current_date}.{current_time}.txt")
+        self.log_file: str = os.path.join(log_dir, f"{current_date}.{current_time}.txt")
 
-        with open(log_file, 'w') as fp:
+        with open(self.log_file, 'w') as fp:
             if os.name == 'nt':  # windows
                 cmd = [sys.executable, self.cmd] + self.params
             else:
@@ -69,6 +70,10 @@ class ProcessManager:
             self.process.terminate()
         self.process.wait()
         print(f'# Terminated process of {self.cmd}.')
+
+    # show log file
+    def get_log_file(self) -> str:
+        return self.log_file
 
 
 # -------- ファイルタイムスタンプ管理クラス -------------------------------------

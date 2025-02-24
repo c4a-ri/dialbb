@@ -21,7 +21,7 @@ from dialbb.no_code.config_editor import edit_config
 from dialbb.no_code.function_editor import edit_scenario_functions
 from dialbb.no_code.gui_utils import read_gui_settings, ProcessManager, \
     FileTimestamp, central_position, child_position
-from typing import Dict
+from typing import Dict, Optional
 
 # paths  実行環境パス
 SCRIPT_ROOT: str = os.path.dirname(os.path.abspath(__file__))
@@ -41,7 +41,8 @@ APP_FILES: Dict[str, str] = {
 }
 
 # dialbb process information  DialBBサーバのプロセス情報
-dialbb_proc: bool = None
+dialbb_proc: Optional[ProcessManager] = None
+dialbb_log_file: str = ""
 
 # application file timestamp アプリファイルのタイムスタンプ
 app_file_timestamp: float = FileTimestamp(APP_FILE_DIR, APP_FILES.values())
@@ -124,6 +125,7 @@ def convert_json_to_excel(json: str, xlsx: str) -> None:
 # DialBBサーバ起動
 def exec_dialbb(app_file):
     global dialbb_proc
+    global dialbb_log_file
 
     if dialbb_proc:
         messagebox.showwarning('Warning', 'The DialBB server is already running.')
@@ -133,8 +135,10 @@ def exec_dialbb(app_file):
         cmd = os.path.join(LIB_DIR, r'server/run_server.py')
         dialbb_proc = ProcessManager(cmd, [app_file])
         ret = dialbb_proc.start()
+        dialbb_log_file = dialbb_proc.get_log_file()
         if not ret:
             dialbb_proc = None
+
     
 
 # DialBBサーバ停止
@@ -147,6 +151,20 @@ def stop_dialbb():
         dialbb_proc = None
     else:
         messagebox.showwarning('Warning', 'The DialBB server is not running.')
+
+# Show log
+def show_log():
+
+    global dialbb_log_file
+
+    if dialbb_log_file:
+        print(f'Opening log file: {dialbb_log_file}')
+        if os.name == 'nt':
+            os.startfile(filepath=dialbb_log_file)
+        else:
+            subprocess.run(["open", dialbb_log_file])
+    else:
+        messagebox.showwarning('Warning', "Can't find a log file.")
 
 
 # -------- GUI画面制御サブルーチン -------------------------------------
@@ -183,9 +201,9 @@ def set_file_frame(parent_frame, settings, label_text, file_type_list):
 
 # Excel編集処理
 def edit_excel(file_path):
-    print(file_path)
+    print("Opening Exel file: " + file_path)
     # ファイルを関連付けされたアプリで開く
-    if os.name=='nt':
+    if os.name == 'nt':
         os.startfile(filepath=file_path)
     else:
         subprocess.run(["open", file_path])
@@ -199,7 +217,7 @@ def sample_func():
 
 # -------- ボタンクリック対応処理 -------------------------------------
 # [close]ボタン：メインウィンドウを閉じる
-def App_Close(root):
+def close_dialbb_nc(root):
     global dialbb_proc
     global app_file_timestamp
     
@@ -244,6 +262,10 @@ def import_application_file(edit_box, settings, file_type_list):
         # アプリケーション名の保存
         file_name, _ = os.path.splitext(os.path.basename(file_path))
         settings.set_appname(file_name)
+
+        messagebox.showinfo("Import", f'Application {file_name} has been imported.')
+
+
 
 # [edit]ボタン：編集するファイルを選択
 def select_edit_file(parent, settings):
@@ -505,13 +527,15 @@ def set_main_frame(root_frame):
     start_btn.pack(side=tk.LEFT, padx=10)
 
     # stopボタン:DialBBサーバ停止
-    stop_btn = ttk.Button(dialbb_label, text="stop", width=7,
-                          command=stop_dialbb)
+    stop_btn = ttk.Button(dialbb_label, text="stop", width=7, command=stop_dialbb)
     stop_btn.pack(side=tk.LEFT, padx=10)
 
+    # show log button
+    show_log_btn = ttk.Button(dialbb_label, text="show log", width=10, command=show_log)
+    show_log_btn.pack(side=tk.LEFT, padx=10)
+
     # closeボタン
-    close_btn = ttk.Button(root_frame, text="close", width=7,
-                           command=lambda: App_Close(root_frame))
+    close_btn = ttk.Button(root_frame, text="close", width=7, command=lambda: close_dialbb_nc(root_frame))
     close_btn.pack(side=tk.BOTTOM, anchor=tk.NE, padx=10, pady=10)
 
     # フレームの配置

@@ -29,8 +29,10 @@ print(f'SCRIPT_ROOT={SCRIPT_ROOT}\nEDITOR_DIR={EDITOR_DIR}')
 
 
 # -------- プロセス管理クラス -------------------------------------
-class Proc_mng:
-    def __init__(self, cmd: str, param: List[str] = []) -> None:
+class ProcessManager:
+    def __init__(self, cmd: str, param: List[str] = None) -> None:
+        if param is None:
+            param = []
         self.cmd = cmd
         self.param = param
         self.pf = platform.system()
@@ -96,7 +98,7 @@ class CustomDialog(simpledialog.Dialog):
 
 # -------- GUIエディタ関連 -------------------------------------
 # GUIエディタ起動
-def exec_Editor(parent):
+def exec_editor(parent):
     # 知識記述Excel-json変換
     init_json = os.path.join(EDITOR_DIR, 'static', 'data', 'init.json')
     ret = Conv_exl2json(parent.edit_box.get(), init_json)
@@ -106,7 +108,7 @@ def exec_Editor(parent):
     print(f"exec_Editor os:{os.name} editor dir:{EDITOR_DIR}")
     # サーバ起動
     cmd = os.path.join(SCRIPT_ROOT, 'start_editor.py')
-    editor_proc = Proc_mng(cmd, ['sole'])
+    editor_proc = ProcessManager(cmd, ['sole'])
     ret = editor_proc.start()
     if ret:
         # ブラウザ起動
@@ -187,14 +189,14 @@ def central_position(frame, width: int, height: int):
 
 
 # 親ウジェットに重ねて子ウジェットを表示
-def chaild_position(parent, chaild, width: int = 0, height: int = 0):
+def child_position(parent, child, width: int = 0, height: int = 0):
     # 親ウィンドウの位置に子ウィンドウを配置
-    x = parent.winfo_rootx() + parent.winfo_width() // 4 - chaild.winfo_width() // 4
-    y = parent.winfo_rooty() + parent.winfo_height() // 4 - chaild.winfo_height() // 4
+    x = parent.winfo_rootx() + parent.winfo_width() // 4 - child.winfo_width() // 4
+    y = parent.winfo_rooty() + parent.winfo_height() // 4 - child.winfo_height() // 4
     if width == 0 and height == 0:
-        chaild.geometry(f"+{x}+{y}")
+        child.geometry(f"+{x}+{y}")
     else:
-        chaild.geometry(f"{width}x{height}+{x}+{y}")
+        child.geometry(f"{width}x{height}+{x}+{y}")
 
 
 # ファイル設定エリアのフレームを作成して返却する
@@ -218,7 +220,7 @@ def set_file_frame(parent_frame, label_text, file_type_list):
     
     # editボタンの作成:GUIエディタ起動
     btnEditor = tk.Button(file_frame, text="edit", width=5,
-                          command=lambda: exec_Editor(file_frame))
+                          command=lambda: exec_editor(file_frame))
     btnEditor.grid(column=2, row=1, padx=5)
 
     return file_frame
@@ -226,7 +228,7 @@ def set_file_frame(parent_frame, label_text, file_type_list):
 
 # -------- ボタンクリック対応処理 -------------------------------------
 # [close]ボタン：メインウィンドウを閉じる
-def App_Close(root):
+def close_app(root):
     global dialbb_proc
     global appfile_TS
 
@@ -258,7 +260,7 @@ def set_main_frame(root_frame):
 
     # closeボタン
     close_btn = tk.Button(root_frame, text="close", width=5,
-                          command=lambda: App_Close(root_frame))
+                          command=lambda: close_app(root_frame))
     close_btn.pack(side=tk.BOTTOM, anchor=tk.NE, padx=10, pady=10)
 
 
