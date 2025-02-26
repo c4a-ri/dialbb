@@ -134,7 +134,7 @@ class Manager(AbstractBlock):
 
         # whether to repeat when there are no available transitions (instead of default transition)
         self._repeat_when_no_available_transitions: bool \
-            = self.block_config.get(CONFIG_KEY_REPEAT_WHEN_NO_AVAILABLE_TRANSITIONS)
+            = self.block_config.get(CONFIG_KEY_REPEAT_WHEN_NO_AVAILABLE_TRANSITIONS, False)
 
         # set input confidence threshold
         self._input_confidence_threshold = self.block_config.get(CONFIG_KEY_INPUT_CONFIDENCE_THRESHOLD, 0.0)

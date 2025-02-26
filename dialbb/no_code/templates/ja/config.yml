@@ -39,6 +39,7 @@ blocks:  # ブロックのリスト
       output_text: system_utterance
       final: final
       aux_data: aux_data
+    repeat_when_no_available_transitions: yes
     chatgpt:
       model: gpt-4o-mini
       #model: gpt-4
