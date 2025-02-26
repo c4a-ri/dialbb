@@ -11,8 +11,8 @@ packages = [
 include = [
 ]
 exclude = [
-    "dialbb/builtin_blocks/stn_management/gui_editor/",
     "dialbb/builtin_blocks/stn_management/context_db/",
+    "dialbb/no_code/gui_editor",
     "**/__pycache__/"
 ]
 
