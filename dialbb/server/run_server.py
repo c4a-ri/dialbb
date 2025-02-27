@@ -2,30 +2,21 @@
 # -*- coding: utf-8 -*-
 #
 # run_server.py
-#   invoke the dialogue application server
+#   invoke dialogue application server
 #
 __version__ = '0.1'
 __author__ = 'Mikio Nakano'
 
-import sys
+
 import os
 import json
 from jsonschema import validate, ValidationError
-import mimetypes
 import argparse
 from flask import Flask, request, jsonify, render_template, make_response
-
-# DIALBB_HOME = os.path.dirname(__file__)
-# sys.path.append(DIALBB_HOME)  # TODO avoid this not to violate PEP8 E402
-
-# import mimetypes
-# mimetypes.add_type('application/javascript', '.js')
-# mimetypes.add_type('text/css', '.css')
 
 from dialbb.main import DialogueProcessor
 from dialbb.util.logger import get_logger
 
-#DIALBB_HOME = os.path.dirname(os.path.abspath(__file__))
 DIALBB_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 
 # read json schema files
@@ -42,7 +33,6 @@ with open(dialogue_request_schema_file) as fp:
 print(os.path.join(DIALBB_DIR, 'server/static/new'))
 app = Flask(__name__, template_folder=os.path.join(DIALBB_DIR, 'server/static/new'),
             static_folder=os.path.join(DIALBB_DIR, 'server/static/new/assets'))
-# app = Flask(__name__, template_folder=os.path.join(DIALBB_HOME, 'static/new'))
 
 app.config['JSON_AS_ASCII'] = False
 app.logger.propagate = False
@@ -118,8 +108,7 @@ def start_dialbb_for_wsgi(config_file):
     logger.propagate = False
 
 
-# dialbb-serverコマンド用
-def start_dialbb_cmd():
+def main():
     # read arguments
     parser = argparse.ArgumentParser()
     parser.add_argument("config", help="config yaml file")
@@ -131,11 +120,4 @@ def start_dialbb_cmd():
 
 if __name__ == '__main__':
 
-    # read arguments
-    parser = argparse.ArgumentParser()
-    parser.add_argument("config", help="config yaml file")
-    parser.add_argument("--port", help="port number", default=8080)
-    args = parser.parse_args()
-
-    config_file: str = args.config
-    start_dialbb(config_file, args.port)
+    main()

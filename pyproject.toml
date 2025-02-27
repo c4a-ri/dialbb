@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dialbb"
-version = "0.1.23"
+version = "0.1.24"
 description = "A dialogue system development framework"
 authors = ["Mikio Nakano <mikio.nakano@c4a.jp>"]
 readme = "README.md"
@@ -99,7 +99,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
 dialbb-nc = 'dialbb.no_code.main:main'
-dialbb-server = 'dialbb.server.run_server:start_dialbb_cmd'
+dialbb-server = 'dialbb.server.run_server:main'
 dialbb-test = 'dialbb.util.test:main'
 dialbb-send-test-requests = 'dialbb.util.send_test_requests:main'
 dialbb-install-scenario-editor = 'dialbb.no_code.install_editor_gui:main'
