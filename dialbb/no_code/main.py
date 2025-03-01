@@ -50,7 +50,7 @@ app_file_timestamp: float = FileTimestamp(APP_FILE_DIR, APP_FILES.values())
 
 # -------- GUI Editor -------------------------------------
 # Start GUI Editor GUIエディタ起動
-def exec_editor(file_path):
+def exec_editor(file_path, parent):
     # convert knowledge excel to JSON 知識記述Excel-json変換
     ret = convert_excel_to_json(file_path,
                                 f'{EDITOR_DIR}/static/data/init.json')
@@ -73,13 +73,15 @@ def exec_editor(file_path):
         # waiting for an order to quit   終了の指示待ち
         msg = 'Running GUI Editor...'
         messagebox.showinfo("GUI Editor", msg,
-                            detail='Access http://localhost:5000/\n Press OK to quit.')
+                            detail='Access http://localhost:5000/\n Press OK to quit.',
+                            parent=parent)
 
         # finish editing   終了処理
         json_file = f'{EDITOR_DIR}/static/data/save.json'
         if not os.path.isfile(json_file):
             messagebox.showwarning('Warning', 'Scenario is not saved.',
-                                   detail='Press [Save] button on the browser and then press [OK].')
+                                   detail='Press [Save] button on the browser and then press [OK].',
+                                   parent=parent)
         # recheck   WarningでSaveした場合を考慮して再チェック
         if os.path.isfile(json_file):
             # convert JSON to Excel   json-知識記述Excel変換
@@ -283,7 +285,7 @@ def select_edit_file(parent, settings):
     # ボタンの作成
     btn_gui = ttk.Button(sub_menu, text="Scenario", width=20,
                          command=lambda: [exec_editor(os.path.join(
-                             APP_FILE_DIR, APP_FILES["scenario"])),
+                             APP_FILE_DIR, APP_FILES["scenario"]), sub_menu),
                              on_cancel(sub_menu)])
     btn_gui.pack(side=tk.TOP, pady=5)
 
