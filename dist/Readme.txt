@@ -1,10 +1,3 @@
 DialBB: A Framework for Building Dialogue Systems
 
----------------------------------------
-インストール方法 [Windows]
-
-・zipファイルを解凍し、フォルダ内の『setup.bat』をダブルクリックしてください。
-・ターミナルに「パッケージのインストールが完了しました」が表示されればOKです。
-
----------------------------------------
-以上
+See the Document of DialBB No-Code Tool.
