@@ -135,7 +135,7 @@ def exec_dialbb(app_file):
         print(f"app_file:{app_file}")
         # サーバ起動
         cmd = os.path.join(LIB_DIR, r'server/run_server.py')
-        dialbb_proc = ProcessManager(cmd, [app_file])
+        dialbb_proc = ProcessManager(cmd, [app_file], dialbb=True)
         ret = dialbb_proc.start()
         dialbb_log_file = dialbb_proc.get_log_file()
         if not ret:

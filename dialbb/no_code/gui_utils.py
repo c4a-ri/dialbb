@@ -19,37 +19,52 @@ from datetime import datetime
 
 # -------- Process manager class プロセス管理クラス -------------------------------------
 class ProcessManager:
-    def __init__(self, cmd: str, params: List[str] = None) -> None:
+    def __init__(self, cmd: str, params: List[str] = None, dialbb=False) -> None:
         if params is None:
             params = []
         self.cmd = cmd
         self.params = params
-        self.log_file = ""
+        self.is_dialbb = dialbb
+
+        if self.is_dialbb:  # in case of dialbb app server process
+            self.log_file = ""
 
     # プロセス起動
     def start(self) -> bool:
         # プロセス起動コマンド
 
-        # debug mode
-        os.environ['DIALBB_DEBUG'] = 'yes'
+        if self.is_dialbb:
+            # debug mode
+            os.environ['DIALBB_DEBUG'] = 'yes'
 
-        # current time
-        current_date: str = datetime.now().strftime("%Y%m%d")
-        current_time: str = datetime.now().strftime("%H%M%S")
+            # current time
+            current_date: str = datetime.now().strftime("%Y%m%d")
+            current_time: str = datetime.now().strftime("%H%M%S")
 
-        log_root_dir: str = os.environ.get('HOMEPATH', os.environ.get('HOME', os.getcwd()))
-        log_dir: str = os.path.join(log_root_dir, '.dialbb_nc_logs', current_date)
-        if not os.path.exists(log_dir):
-            os.makedirs(log_dir)
-        self.log_file: str = os.path.join(log_dir, f"{current_date}.{current_time}.txt")
+            log_root_dir: str = os.environ.get('HOMEPATH', os.environ.get('HOME', os.getcwd()))
+            log_dir: str = os.path.join(log_root_dir, '.dialbb_nc_logs', current_date)
+            if not os.path.exists(log_dir):
+                os.makedirs(log_dir)
+            self.log_file: str = os.path.join(log_dir, f"{current_date}.{current_time}.txt")
 
-        with open(self.log_file, 'w') as fp:
-            if os.name == 'nt':  # windows
+            with open(self.log_file, 'w') as fp:
+                if os.name == 'nt':  # windows
+                    cmd = [sys.executable, self.cmd] + self.params
+                else:
+                    cmd = f'exec python {self.cmd} {" ".join(self.params)}'  # todo python3?
+                print(f'CLI:{cmd}')
+                self.process = subprocess.Popen(cmd, stdout=fp, stderr=subprocess.STDOUT, shell=True)
+        else:
+            if os.name == 'nt':
+                # windows
+                # Pythonの実行可能ファイルのパスを取得
                 cmd = [sys.executable, self.cmd] + self.params
+                print(f'CLI:{cmd}')
+                self.process = subprocess.Popen(cmd)
             else:
-                cmd = f'exec python {self.cmd} {" ".join(self.params)}'  # todo python3?
-            print(f'CLI:{cmd}')
-            self.process = subprocess.Popen(cmd, stdout=fp, stderr=subprocess.STDOUT, shell=True)
+                # Linux
+                cmd = f'exec python {self.cmd} {" ".join(self.params)}'
+                self.process = subprocess.Popen(cmd, shell=True)
 
         ret_code = self.process.poll()
         if ret_code is not None:

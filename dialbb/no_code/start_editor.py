@@ -1,8 +1,11 @@
+import sys
+
 from flask import Flask, render_template, request, jsonify
+import json
 from werkzeug.utils import secure_filename
 import os
 import tkinter as tk
-from tkinter import filedialog
+from tkinter import filedialog, messagebox
 from tools.knowledgeConverter2excel import convert2excel
 import argparse
 
@@ -12,6 +15,28 @@ startup_mode = ''
 
 app = Flask(__name__,  template_folder=DOC_ROOT,
             static_folder=os.path.join(DOC_ROOT, 'static'))
+
+
+def check_and_warn(scenario_json_file: str) -> None:
+    """
+    Check if saved json file is valid as a scenario, and warn otherwise
+    :param json_file:
+    """
+
+    with open(scenario_json_file, encoding='utf-8') as fp:
+        scenario_json = json.load(fp)
+
+    for node in scenario_json.get('nodes', []):
+        if node.get('label') == 'userNode':
+            actions = node['controls']['actions']['value'].strip()
+            if actions != "":
+                print(actions)
+                root = tk.Tk()
+                root.withdraw()
+                messagebox.showwarning('Warning',
+                                       f'A user node has "{actions}" as actions. Please note that actions are for advanced users.',
+                                       detail='Press [OK] to continue.')
+                root.mainloop()
 
 
 @app.route('/')
@@ -46,6 +71,7 @@ def save_excel():
         json_file = os.path.join(DOC_ROOT, 'static/data/',
                                  secure_filename(file.filename))
         file.save(json_file)
+        check_and_warn(json_file)
         if startup_mode != 'nc':
             # soleの場合はここでExcelへセーブする
             root = tk.Tk()
