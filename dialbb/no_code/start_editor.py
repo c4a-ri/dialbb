@@ -8,7 +8,7 @@ import tkinter as tk
 from tkinter import filedialog
 from tools.knowledgeConverter2excel import convert2excel
 import argparse
-from flask import flash
+import re
 
 DOC_ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'gui_editor')
 print(f'template_folder={DOC_ROOT}')
@@ -18,10 +18,31 @@ app = Flask(__name__,  template_folder=DOC_ROOT,
             static_folder=os.path.join(DOC_ROOT, 'static'))
 
 
+llm_pattern = re.compile(r'\$\".*?\"')
+str_eq_pattern = re.compile(r'(.+?)\s*==\s*(.+)')
+str_ne_pattern = re.compile(r'(.+?)\s*!=\s*(.+)')
+num_turns_exceeds_pattern = re.compile(r'_num_turns_exceeds\(\s*\"\d+\"\s*\)')
+
+
+def illegal_condition(condition: str) -> bool:
+    """
+    check if condition string is illegal or not
+    :param condition: condition string
+    :return: True if it's illegal
+    """
+    if llm_pattern.fullmatch(condition) \
+            or str_eq_pattern.fullmatch(condition) \
+            or str_ne_pattern.fullmatch(condition) \
+            or num_turns_exceeds_pattern.fullmatch(condition):
+        return False
+    else:
+        return True
+
+
 def check_and_warn(scenario_json_file: str) -> str:
     """
     Check if saved json file is valid as a scenario, and warn otherwise
-    :param json_file:
+    :param scenario_json_file: scenario JSON file
     :return warning
     """
 
@@ -32,11 +53,18 @@ def check_and_warn(scenario_json_file: str) -> str:
 
     for node in scenario_json.get('nodes', []):
         if node.get('label') == 'userNode':
+            conditions: str = node['controls']['conditions']['value'].strip()
+            if conditions != "":
+                for condition in [x.strip() for x in re.split('[;；]', conditions)]:
+                    if illegal_condition(condition):
+                        warning += f'Warning: ユーザノードの遷移の条件"{condition}"は正しい条件ではありません。\n'
             actions = node['controls']['actions']['value'].strip()
             if actions != "":
-                if warning:
-                    warning += "\n"
-                warning += f'Warning: user node has "{actions}" as actions. Please note that actions are for advanced users.'
+                warning += f'Warning: ユーザノードの遷移時のアクションに"{actions}"が書かれています。遷移時のアクションは上級者向けのものであることに注意して下さい。\n'
+        elif node.get('label') == 'systemNode':
+            utterance: str = node['controls']['utterance']['value'].strip()
+            if utterance == "":
+                warning += f'Warning: utteranceが空のシステムノードがあります。\n'
     return warning
 
 @app.route('/')

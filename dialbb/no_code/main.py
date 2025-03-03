@@ -71,9 +71,9 @@ def exec_editor(file_path, parent):
                          shell=True)
 
         # waiting for an order to quit   終了の指示待ち
-        msg = 'Running GUI Editor...'
+        msg = 'シナリオエディタが起動されました。'
         messagebox.showinfo("GUI Editor", msg,
-                            detail='Access http://localhost:5000/\n Press OK to quit.',
+                            detail='画面が表示されない場合は、ブラウザから http://localhost:5000/ にアクセスして下さい。\n OKを押すと終了します。',
                             parent=parent)
 
         # finish editing   終了処理
@@ -120,7 +120,7 @@ def convert_json_to_excel(json: str, xlsx: str) -> None:
         messagebox.showerror("Warning", "Excel file or Json file is not specified.")
     else:
         convert2excel(json, xlsx)
-        messagebox.showinfo("File Convertor", f"Excel file {xlsx} created.")
+        messagebox.showinfo("File Convertor", f"Excelファイル{xlsx}が保存されました。")
 
 
 # -------- DialBBサーバ関連 -------------------------------------
@@ -179,7 +179,7 @@ def set_file_frame(parent_frame, settings, label_text, file_type_list):
     # アプリ名の表示エリアを登録して保存アプリ名を表示する
     settings.reg_disp_area(file_frame.spec_app)
 
-    label = tk.Label(file_frame, text="インポートするアプリケーションファイル: ")
+    label = tk.Label(file_frame, text="読み込むファイル: ")
     label.grid(column=0, row=1, padx=0, sticky=tk.E)
 
     # テキストボックスの作成
@@ -194,7 +194,7 @@ def set_file_frame(parent_frame, settings, label_text, file_type_list):
     select_button.grid(column=2, row=1, padx=5)
 
     # import button
-    import_button = ttk.Button(file_frame, text='インポート', width=12,
+    import_button = ttk.Button(file_frame, text='読み込み', width=12,
                                command=lambda: import_application_file(file_frame.edit_box, settings, file_type_list))
     import_button.grid(column=3, row=1, padx=5)
 
@@ -265,7 +265,7 @@ def import_application_file(edit_box, settings, file_type_list):
         file_name, _ = os.path.splitext(os.path.basename(file_path))
         settings.set_appname(file_name)
 
-        messagebox.showinfo("Import", f'アプリケーション{file_name}がインポートされました。')
+        messagebox.showinfo("Import", f'アプリケーション{file_name}が読み込まれました。')
 
 
 
@@ -468,7 +468,7 @@ def setting_json(parent, settings):
         settings.set_gptkey(key)
         # OPENAI_KEY環境変数をセット
         os.environ["OPENAI_API_KEY"] = key
-        messagebox.showinfo("Settings", 'Saved.')
+        messagebox.showinfo("Settings", '保存しました。')
         # 画面を閉じる
         sub_menu.destroy()
 
@@ -505,7 +505,7 @@ def set_main_frame(root_frame):
     edit_button.pack(side=tk.LEFT, padx=10, pady=10)
 
     # export ボタン:アプリファイルのzip保存
-    export_btn = ttk.Button(application_frame, text="エキスポート", width=12,
+    export_btn = ttk.Button(application_frame, text="書き出し", width=10,
                             command=lambda: export_app_file(file_frame.edit_box.get(),
                                                             settings))
     export_btn.pack(side=tk.LEFT, padx=10, pady=10)
