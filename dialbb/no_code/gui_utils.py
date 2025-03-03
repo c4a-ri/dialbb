@@ -196,7 +196,7 @@ class JsonInfo:
     def _disp_appname(self, app_name):
         if self.disp:
             # 表示エリアにセット
-            self.disp['text'] = f'Current application: {app_name}'
+            self.disp['text'] = f'現在のアプリケーション: {app_name}'
 
     # OPENAI_API_KEY取得
     def get_gptkey(self):

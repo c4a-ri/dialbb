@@ -1,13 +1,14 @@
-import sys
+
 
 from flask import Flask, render_template, request, jsonify
 import json
 from werkzeug.utils import secure_filename
 import os
 import tkinter as tk
-from tkinter import filedialog, messagebox
+from tkinter import filedialog
 from tools.knowledgeConverter2excel import convert2excel
 import argparse
+from flask import flash
 
 DOC_ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'gui_editor')
 print(f'template_folder={DOC_ROOT}')
@@ -17,11 +18,14 @@ app = Flask(__name__,  template_folder=DOC_ROOT,
             static_folder=os.path.join(DOC_ROOT, 'static'))
 
 
-def check_and_warn(scenario_json_file: str) -> None:
+def check_and_warn(scenario_json_file: str) -> str:
     """
     Check if saved json file is valid as a scenario, and warn otherwise
     :param json_file:
+    :return warning
     """
+
+    warning = ""
 
     with open(scenario_json_file, encoding='utf-8') as fp:
         scenario_json = json.load(fp)
@@ -30,14 +34,10 @@ def check_and_warn(scenario_json_file: str) -> None:
         if node.get('label') == 'userNode':
             actions = node['controls']['actions']['value'].strip()
             if actions != "":
-                print(actions)
-                root = tk.Tk()
-                root.withdraw()
-                messagebox.showwarning('Warning',
-                                       f'A user node has "{actions}" as actions. Please note that actions are for advanced users.',
-                                       detail='Press [OK] to continue.')
-                root.mainloop()
-
+                if warning:
+                    warning += "\n"
+                warning += f'Warning: user node has "{actions}" as actions. Please note that actions are for advanced users.'
+    return warning
 
 @app.route('/')
 def home():
@@ -71,7 +71,7 @@ def save_excel():
         json_file = os.path.join(DOC_ROOT, 'static/data/',
                                  secure_filename(file.filename))
         file.save(json_file)
-        check_and_warn(json_file)
+        warning: str = check_and_warn(json_file)
         if startup_mode != 'nc':
             # soleの場合はここでExcelへセーブする
             root = tk.Tk()
@@ -88,7 +88,7 @@ def save_excel():
                 convert2excel(json_file, xlsx_file)
             root.destroy()
 
-        return jsonify({'message': ''})
+        return jsonify({'message': warning})
 
 
 if __name__ == '__main__':

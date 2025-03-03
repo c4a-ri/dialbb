@@ -203,7 +203,7 @@ def edit_config(parent, file_path, template_path, settings):
     sub_menu.geometry(f"400x500+{parent_x}+{parent_y}")
 
     # Spacy Frameを作成
-    ner_frame = ttk.Labelframe(sub_menu, text='Use named entity recognizer?', padding=(10),
+    ner_frame = ttk.Labelframe(sub_menu, text='固有表現抽出を行いますか？', padding=(10),
                                style='My.TLabelframe')
     ner_frame.pack(side='top', padx=5, pady=5)
 
@@ -218,7 +218,7 @@ def edit_config(parent, file_path, template_path, settings):
     sp_rb2.grid(column=1, row=0, padx=5, pady=5)
     
     # NLU Frameを作成
-    gpt_nlu_fr = ttk.Labelframe(sub_menu, text='Use natural language understander?', padding=(10),
+    gpt_nlu_fr = ttk.Labelframe(sub_menu, text='言語理解を行いますか？', padding=(10),
                                style='My.TLabelframe')
     gpt_nlu_fr.pack(expand=True, fill=tk.Y, padx=5, pady=5)
 
@@ -233,11 +233,11 @@ def edit_config(parent, file_path, template_path, settings):
     gpt_rb2.grid(column=1, row=0, padx=5, pady=5)
 
     # ChatGPT Manager Frameを作成
-    gpt_mng_fr = ttk.Labelframe(sub_menu, text='ChatGPT Settings', padding=(10),
+    gpt_mng_fr = ttk.Labelframe(sub_menu, text='ChatGPTの設定', padding=(10),
                                 style='My.TLabelframe')
     gpt_mng_fr.pack(expand=True, fill=tk.Y, padx=5, pady=5)
     # ［ChatGPTモデル］プルダウンメニュー
-    label1 = tk.Label(gpt_mng_fr, text='model:')
+    label1 = tk.Label(gpt_mng_fr, text='モデル:')
     models = settings.get_gptmodels()
     if not models:
         # default設定
@@ -251,12 +251,12 @@ def edit_config(parent, file_path, template_path, settings):
     combobox.grid(column=1, row=1, columnspan=2, padx=5, pady=5)
 
     # モデル候補の編集ボタンを追加
-    other_model_button = ttk.Button(gpt_mng_fr, text="other", width=7,
+    other_model_button = ttk.Button(gpt_mng_fr, text="その他", width=10,
                                     command=lambda: gptmodel_edit(sub_menu, settings))
     other_model_button.grid(column=2, row=1, padx=5)
 
     # situation入力エリア
-    label2 = tk.Label(gpt_mng_fr, text='situation:')
+    label2 = tk.Label(gpt_mng_fr, text='状況:')
     stt = scrolledtext.ScrolledText(gpt_mng_fr, wrap=tk.NONE, width=24, height=6)
     # 横方向のスクロールバーを作成
     horiz_scrollbar1 = tk.Scrollbar(gpt_mng_fr, orient=tk.HORIZONTAL,
@@ -269,7 +269,7 @@ def edit_config(parent, file_path, template_path, settings):
     horiz_scrollbar1.grid(column=1, row=3, columnspan=2, sticky=tk.NSEW)
 
     # persona入力エリア
-    label2 = tk.Label(gpt_mng_fr, text='persona:')
+    label2 = tk.Label(gpt_mng_fr, text='ペルソナ:')
     psn = scrolledtext.ScrolledText(gpt_mng_fr, wrap=tk.NONE, width=24, height=6)
     # 横方向のスクロールバーを作成
     horiz_scrollbar2 = tk.Scrollbar(gpt_mng_fr, orient=tk.HORIZONTAL,
@@ -289,7 +289,7 @@ def edit_config(parent, file_path, template_path, settings):
     # OKボタン
     ok_btn = ttk.Button(sub_menu, text='OK', command=lambda: ok_btn_click())
     # Cancelボタン
-    cancel_btn = ttk.Button(sub_menu, text='Cancel',
+    cancel_btn = ttk.Button(sub_menu, text='キャンセル',
                             command=lambda: cancel_btn_click())
 
     # ウィンドウが表示された後に実行される処理を設定
