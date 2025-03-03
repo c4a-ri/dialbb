@@ -9,11 +9,11 @@
 
 Windows11，MacOSで動作します．
 
-## インストール
+## インストール・起動（Windows）
 
 ### Pythonのインストール
 
-- もし，すでにPythonがインストールされていれば，バージョンを確かめてください．インストールされているかどうかの確かめ方やバージョンの確かめ方はそのうち記述します．インストールされていても，バージョンが3.10-3.12であれば，新しくインストールする必要はありません．3.9以前のPythonがインストールされている場合，使っていないならアンインストールしてください．使っている場合，DialBBの開発者に相談してください．
+- もし，すでにPythonがインストールされていれば，バージョンを確かめてください．インストールされているかどうかの確かめ方やバージョンの確かめ方はそのうち記述します．インストールされていても，バージョンが3.10-3.12であれば，新しくインストールする必要はありません．3.9以前のPythonがインストールされている場合，使っていないならアンインストールしてください．使っている場合，[DialBBの開発者](mailto:dialbb@c4a.jp)に相談してください．
 
 - Windows 11
 
@@ -47,67 +47,50 @@ Windows11，MacOSで動作します．
 
 - 必要なファイルを以下の要領でダウンロードします．
 
-  - ブラウザでのアドレスバーに https://github.com/c4a-ri/dialbb/tree/dev-v1.0/dist を打ち込んでEnterキーを押します．
-
-  - dialbb_nc-x.x.x-py3-none-any.whl をクリックします．x.x.xのところは数字が違う可能性があります．
+  - ブラウザでのアドレスバーにhttps://github.com/c4a-ri/dialbb/blob/dev-v1.0/docs/files/dialbb.zip を打ち込んでEnterキーを押します．
 
   - 遷移したページの右側の下向き矢印をクリックします．
 
     ![github-download](images/github-download.png)
 
-  - `ダウンロード`フォルダに`dialbb_nc-x.x.x-py3-none-any.whl`ファイルがダウンロードされます．エクスプローラで`ダウンロード`フォルダを開いて確認してください。
+  - `ダウンロード`フォルダに`dialbb`ファイルがダウンロードされます。エクスプローラで`ダウンロード`フォルダを開いて確認してください。以下のようなファイルができているはずです。
 
-- 以下の要領でDialBBをインストールします．
+    ![dialbb-zip-icon](images/dialbb-zip-icon.jpg)
 
-  - 検索窓に"cmd"と入力して，Enterキーを押します．
+    - このようにチャックの模様があるものをzipファイルと呼びます。環境によっては、`dialbb.zip`という名前で表示されます。
+    - 複数回ダウンロードすると、新しくダウンロードしたものは`dialbb(1)`のような名前になるので、その場合、`ダウンロード`フォルダの`dialbb.zip`を削除してからもう一度ダウンロードしてください。
 
-    ![find-cmd](images/find-cmd.png)
+- エクスプローラでdialbbアイコンの上にカーソルを持っていき右クリックし、「すべて展開」を選びます。出てきた画面で、「展開」を押してください。dialbbフォルダができるので、それを開いてください。
 
-  - コマンドプロンプトが現れます．
+- install（環境によってはinstall.bat）をダブルクリックします。DialBBがインストールされます。
 
-    ![cmd-started-ja](images/cmd-started-ja.png)
+  - 「WindowsによってPCが保護されました」と出るかもしれません。その場合、「詳細情報」をクリックすると、「実行」ボタンが出てくるので、それを押してください。
+  - `Press any key to continue . . .`と表示されたらインストールは完了なので、何かキーを押して終了してください。
 
-  - 以下のコマンドを打ち込んでEnterキーを押します．
 
-    ```
-    pip install Downloads\dialbb_nc-0.1.5-py3-none-any.whl
-    ```
-
-    ![pip-install-win-ja](images/pip-install-win-ja.png)
-
-    \は円マーク(￥の半角)の場合があります．
-    
-    \の右側はダウンロードしたファイルの名前です．
-  
-  
-
-## シナリオエディタのインストール
+### シナリオエディタのインストール
 
 - 必要なファイルを以下の要領でダウンロードします．
 
-  - ブラウザでのアドレスバーに https://github.com/c4a-ri/dialbb-scenario-editor/blob/main/dist/editor_gui.zip を打ち込んでEnterキーを押します．
+  - ブラウザでのアドレスバーに https://github.com/c4a-ri/dialbb-scenario-editor/blob/main/docs/files/editor-gui.zip を打ち込んでEnterキーを押します．
 
   - 遷移したページの右側の下向き矢印をクリックします．
 
     ![github-download](images/github-download.png)
 
-  - `ダウンロード`フォルダに`editor_gui.zip`ファイルがダウンロードされます．
+  - `ダウンロード`フォルダに`editor_gui`という名前のzipファイル（または`editor_gui.zip`）がダウンロードされます．
 
-  - コマンドプロンプトで以下のコマンドを入力してEnterキーを押します。
+  - このファイルを先ほどのdialbbフォルダ（展開してできたフォルダ）に移動します。
 
-    ```sh
-    dialbb-install-scenario-editor %HOMEPATH%\editor_gui.zip
-    ```
+  - dialbbフォルダにある、install-scenario-editorをダブルクリックします。
+  
+    - 「WindowsによってPCが保護されました」と出るかもしれません。その場合、「詳細情報」をクリックすると、「実行」ボタンが出てくるので、それを押してください。
+  - `Press any key to continue . . .`と表示されたらインストールは完了なので、何かキーを押して終了してください。
 
-    シナリオエディタがインストールされます。
+### 起動
 
-## 起動
+dialbbフォルダで`start-dialbb-nc`（または`start-dialbb-nc.bat`）をダブルクリックします。
 
-コマンドプロンプトで以下のコマンドを入力してEnterキーを押します．
-
-```sh
-dialbb-nc
-```
 正常に起動するとメイン画面が表示されます．  
 
 <img src="images/gui-main.jpg" width="70%">
@@ -116,7 +99,7 @@ dialbb-nc
 
 ### アプリケーションの読み込み/新規作成
 
-- すでにあるアプリケーションを読み込む場合は，`select`ボタンをクリックし，読み込むアプリケーションのzipファイルを選択し，`import`を押します．
+- すでにあるアプリケーションを読み込む場合は，`選択`ボタンをクリックし，読み込むアプリケーションのzipファイルを選択し，`import`を押します．
 
     <img src="images/gui-select-file-ja.jpg" width="60%">
 
