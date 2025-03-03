@@ -62,6 +62,9 @@ def check_and_warn(scenario_json_file: str) -> str:
             if actions != "":
                 warning += f'Warning: ユーザノードの遷移時のアクションに"{actions}"が書かれています。遷移時のアクションは上級者向けのものであることに注意して下さい。\n'
         elif node.get('label') == 'systemNode':
+            system_node_type: str = node['controls']['type']['value'].strip()
+            if system_node_type == "":
+                warning += f'Warning: typeが未定のシステムノードがあります。\n'
             utterance: str = node['controls']['utterance']['value'].strip()
             if utterance == "":
                 warning += f'Warning: utteranceが空のシステムノードがあります。\n'
