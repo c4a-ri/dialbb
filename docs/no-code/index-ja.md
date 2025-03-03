@@ -55,7 +55,7 @@ Windows11，MacOSで動作します．
 
     ![github-download](images/github-download.png)
 
-  - ダウンロードフォルダにwhlファイルがダウンロードされます．
+  - `ダウンロード`フォルダに`dialbb_nc-x.x.x-py3-none-any.whl`ファイルがダウンロードされます．エクスプローラで`ダウンロード`フォルダを開いて確認してください。
 
 - 以下の要領でDialBBをインストールします．
 
@@ -81,7 +81,28 @@ Windows11，MacOSで動作します．
   
   
 
+## シナリオエディタのインストール
+
+- 必要なファイルを以下の要領でダウンロードします．
+
+  - ブラウザでのアドレスバーに https://github.com/c4a-ri/dialbb-scenario-editor/blob/main/dist/editor_gui.zip を打ち込んでEnterキーを押します．
+
+  - 遷移したページの右側の下向き矢印をクリックします．
+
+    ![github-download](images/github-download.png)
+
+  - `ダウンロード`フォルダに`editor_gui.zip`ファイルがダウンロードされます．
+
+  - コマンドプロンプトで以下のコマンドを入力してEnterキーを押します。
+
+    ```sh
+    dialbb-install-scenario-editor %HOMEPATH%\editor_gui.zip
+    ```
+
+    シナリオエディタがインストールされます。
+
 ## 起動
+
 コマンドプロンプトで以下のコマンドを入力してEnterキーを押します．
 
 ```sh
@@ -95,7 +116,7 @@ dialbb-nc
 
 ### アプリケーションの読み込み/新規作成
 
-- すでにあるアプリケーションを読み込む場合は，`select`ボタンをクリックし，読み込むアプリケーションのzipファイルを選択し，importを押します．
+- すでにあるアプリケーションを読み込む場合は，`select`ボタンをクリックし，読み込むアプリケーションのzipファイルを選択し，`import`を押します．
 
     <img src="images/gui-select-file-ja.jpg" width="60%">
 
@@ -119,7 +140,7 @@ dialbb-nc
 
 - `settings`ボタンを押します．  
   ![settings](images/settings.png)
-- `OPENAI_API_KEY`の右側に別途入手したOpenAIのAPIキーを入力し，`OK`ボタンを押します．`Saved`という表示が出るので再度`OK`ボタンを押します．
+- `OPENAI_API_KEY`の右側に別途入手したOpenAIのAPIキーを入力し，`OK`ボタンを押します．`Saved`という表示が出るので再度`OK`ボタンを押します．OpenAIのAPIキーの入手方法は別途検索してください。
 
 ### 起動
 

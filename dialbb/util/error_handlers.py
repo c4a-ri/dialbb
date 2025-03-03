@@ -50,13 +50,10 @@ def abort_during_building(message: str) -> None:
 
 def warn_during_building(message: str) -> None:
     """
-    prints warning. aborts if in the debug mode
-    エラーメッセージを表示する．デバッグモードの場合はアプリを終了する．
+    prints warning.
+    エラーメッセージを表示する．
     :param message: warning
     """
-    if DEBUG:
-        raise BuildError("Warning found during building app: " + message)
-    else:
-        print("Warning: " + message, file=sys.stdout)
+    print("Warning during building app: " + message, file=sys.stdout)
 
 
