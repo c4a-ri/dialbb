@@ -46,10 +46,16 @@ def check_and_warn(scenario_json_file: str) -> str:
     :return warning
     """
 
-    warning = ""
+    warning: str = ""
+    initial_node_exists: bool = False
+    error_node_exists: bool = False
 
     with open(scenario_json_file, encoding='utf-8') as fp:
         scenario_json = json.load(fp)
+
+    connect_sources = []
+    for connect in scenario_json.get('connects', []):
+        connect_sources.append(connect['source'])
 
     for node in scenario_json.get('nodes', []):
         if node.get('label') == 'userNode':
@@ -61,13 +67,31 @@ def check_and_warn(scenario_json_file: str) -> str:
             actions = node['controls']['actions']['value'].strip()
             if actions != "":
                 warning += f'Warning: ユーザノードの遷移時のアクションに"{actions}"が書かれています。遷移時のアクションは上級者向けのものであることに注意して下さい。\n'
+            if node['id'] not in connect_sources:
+                warning += f'Warning: 遷移先のないユーザノードがあります。\n'
         elif node.get('label') == 'systemNode':
             system_node_type: str = node['controls']['type']['value'].strip()
             if system_node_type == "":
                 warning += f'Warning: typeが未定のシステムノードがあります。\n'
+            else:
+                if system_node_type == "initial":
+                    initial_node_exists = True
+                elif system_node_type == "error":
+                    error_node_exists = True
+
+                if system_node_type not in ('final', 'error'):
+                    if node['id'] not in connect_sources:
+                        warning += f'Warning: 遷移先のないシステムノードがあります。\n'
+
             utterance: str = node['controls']['utterance']['value'].strip()
             if utterance == "":
                 warning += f'Warning: utteranceが空のシステムノードがあります。\n'
+
+    if not initial_node_exists:
+        warning += f'Warning: typeがinitialのシステムノードがありません。\n'
+    if not error_node_exists:
+        warning += f'Warning: typeがerrorのシステムノードがありません。\n'
+
     return warning
 
 @app.route('/')
