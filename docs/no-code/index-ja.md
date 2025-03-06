@@ -1,9 +1,9 @@
-# DialBBノーコードツール ドキュメント
+# DialBBノーコードツール（DialBB-NC）ドキュメント
 
 
 ## はじめに
 
-本ドキュメントはDialBBのノーコードツールのドキュメントです．
+本ドキュメントはDialBBのノーコードツール（DialBB-NC）のドキュメントです．
 
 ## 動作環境
 
@@ -37,10 +37,6 @@ Windows11，MacOSで動作します．
         ![python-setup-win-path](images/python-setup-win-path.png)
 
       - Pythonがインストールされます．
-
-- Mac
-
-  - [この記事](https://qiita.com/omo_taku/items/bc97f69391b2f4627f36)の方法２がおすすめです．方法1だと，pythonではなくpython3と打たないとPythonが起動できない可能性があります．
 
 
 ### DialBBのインストール
@@ -91,7 +87,50 @@ dialbbフォルダ内で`start-dialbb-nc`（または`start-dialbb-nc.bat`）を
 
 ## インストールと起動（Mac）
 
-記述予定
+### Pythonのインストール
+
+Windowsの場合と同様、Python3.10-3.12がインストールされていれば、新たにインストールする必要はありません。
+
+Pythonがインストールされていない場合、以下の手順でインストールしてください。
+
+- [Pythonの公式ダウンロードサイト](https://www.python.org/downloads/mac-osx/)にアクセスしてください。
+- 適当なバージョン（例:3.10.11）の下の、`macOS 64-bit universal2 installer`をクリックし、ファイルをダウンロードします。
+- ダウンロードした `.pkg` ファイルを開いて、画面に表示される指示に従いインストールを進めてください。
+
+### DialBBのインストール
+
+https://github.com/c4a-ri/dialbb/blob/dev-v1.0/docs/files/dialbb.zip から`dialbb.zip`ファイルをダウンロードします。Downloadフォルダにダウンロードされます。ダウンロードフォルダにすでに`dialbb.zip`がある場合、`dialbb(1).zip`のような名前になっている場合があるのでその場合、古いdialbb.zipを消してからもう一度ダウンロードしてください。
+
+ターミナルを開きます。適当なディレクトリ（DialBBディレクトリと呼びます）を作って移動してください。
+
+そこで、
+
+```sh
+unzip ~/Downloads/dialbb.zip
+pip install --force-reinstall *.whl
+```
+
+としてください。DialBBがインストールされます。
+
+### シナリオエディタのインストール
+
+https://github.com/c4a-ri/dialbb-scenario-editor/blob/main/docs/files/editor-gui.zipから`editor-gui.zip`ををダウンロードします。Downloadファイルにダウンロードされます。
+
+ターミナルで以下を実行します。（ディレクトリはどこでも構いません）
+
+```sh
+dialbb-install-scenario-editor ~/Downloads/editor-gui.zip
+```
+
+### 起動
+
+ターミナルで以下を実行します。（ディレクトリはどこでも構いません）
+
+```sh
+dialbb-nc
+```
+
+
 
 ## アプリケーションの読み込み・作成・書き出し
 
