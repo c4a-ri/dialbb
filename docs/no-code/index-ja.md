@@ -230,17 +230,17 @@ Edit Application画面で`シナリオ`ボタンを押すと，シナリオエ�
 #### ノードの追加
 背景で右クリック し，`システムノード追加`か`ユーザノード追加`を選択するとシステムノードかユーザノードが新規追加されます． 
 
-<img src="images/add-node-ja.jpg" width="30%">
+<img src="images/add-node-ja.jpg" width="80%">
 
 #### ノードの削除
 ノードの上で右クリック し，`削除`を選択するとそのノードが削除されます．
 
-<img src="images/del-node-ja.jpg" width="30%">
+<img src="images/del-node-ja.jpg" width="80%">
 
 #### ノードの編集
-ノードの上で右クリック し，`Edit`を選択すると，ノードの編集画面が表示されます．
+ノードの上で右クリック し，`編集`を選択すると，ノードの編集画面が表示されます．
 
-<img src="images/sys-setting.jpg" width="30%">　<img src="images/user-setting.jpg" width="30%">
+<img src="images/sys-setting-ja.jpg" width="50%">　<img src="images/user-setting-ja.jpg" width="50%">
 
 ノードの編集の仕方は後述します．
 
@@ -248,11 +248,11 @@ Edit Application画面で`シナリオ`ボタンを押すと，シナリオエ�
 
 ノードの`to`を左クリック し，他ノードの`from`へドラッグして接続します．
 
-<img src="images/editor-connection-ja.jpg" width="30%">　
+<img src="images/editor-connection-ja.jpg" width="50%">　
 
-削除は`from`をつまんで離すか，リンク上で右クリック して`Delete`を選択します．
+削除は`from`をつまんで離すか，リンク上で右クリック して`削除`を選択します．
 
-<img src="images/editor-conn-del-ja.jpg" width="30%">
+<img src="images/editor-conn-del-ja.jpg" width="50%">
 
 
 #### 保存
@@ -262,7 +262,7 @@ Edit Application画面で`シナリオ`ボタンを押すと，シナリオエ�
 
 システムノードを右クリックすると以下のような入力ダイアログが表示されますので，中身を書き換えて`Save`ボタンを押します．`Close`ボタンを押すと保存せずに閉じます．
 
-<img src="images/system-node-ja.jpg" width="30%">　
+<img src="images/sys-setting-ja.jpg" width="50%">　
 
 `type`は以下のどれかです．
 
@@ -303,7 +303,7 @@ Edit Application画面で`シナリオ`ボタンを押すと，シナリオエ�
 
 ユーザノードを右クリックすると以下のような入力ダイアログが表示されますので，中身を書き換えて`Save`ボタンを押します．`Close`ボタンを押すと保存せずに閉じます．
 
-<img src="images/user-node-ja.jpg" width="30%">　
+<img src="images/user-setting-ja.jpg" width="50%">　
 
 `優先度`はこのユーザノードの優先度を表す整数です．一つのシステムノードからつながっているユーザノードのうち，priority numberの高い順に条件がチェックされます．この数字は，シナリオを保存する度にリセットされ，大きいものから順に100, 90, 80, ...に変更されます．
 

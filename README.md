@@ -4,18 +4,13 @@ ver. 1.0.0
 
 [<img src="./docs/images/japan_national_flag.jpg" width="5%">日本語](README-ja.md)
 
-## Introduction
+## Project Main Page
 
-DialBB is a framework for building dialogue systems developed by [C4A Research Institute, Inc.](https://www.c4a.jp/en/) DialBB has been developed as an information technology educational material. DialBB has *extensible* architecture and is written in *readable codes*. DialBB enables the development of dialogue systems by combining modules called *building blocks*. Developers can easily build simple systems using built-in blocks and can build advanced systems using their own developed blocks. 
-
-The main module of DialBB application receives a user utterance input in JSON format via method calls or via the Web API returns a system utterance in JSON format. The main module works by calling blocks, in sequence. Each block takes JSON format (data in Python dictionary) and returns the data in JSON format. The class and input/output of each block are specified in the configuration file for each application.
-
-
-![dialbb-arch-en](docs/images/dialbb-arch-en.jpg)
+Please refer the [the project main page](https://c4a-ri.github.io/dialbb/), which includes the overview of DialBB and the links to the documents.
 
 ## Documents
 
-Refer to the [document](https://c4a-ri.github.io/dialbb/document-en/build/html/) for detailed specification and the way of application development. Documentation for other than the latest version can be found in the [Links](https://c4a-ri.github.io/dialbb/) section.
+Please refer to the [document](https://c4a-ri.github.io/dialbb/document-en/build/html/) for detailed specification and the way of application development. 
 
 ## Citation
 
@@ -274,7 +269,7 @@ $ export OPENAI_API_KEY=<OpenAI's API key>.
 
 ## Requests, Questions, and Bug Reports
 
-Please feel free to send your requests, questions, and bug reports about DialBB to the following email address. Even if it is a trivial or vague question, feel free to send it.
+Please feel free to send your requests, questions, and bug reports about DialBB to the following. Even if it is a trivial or vague question, feel free to send it.
 
 - Report bugs, point out missing documentation, etc.: [GitHub Issues](https://github.com/c4a-ri/dialbb/issues)
 
