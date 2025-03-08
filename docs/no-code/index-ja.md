@@ -43,7 +43,7 @@ Windows11，MacOSで動作します．
 
 - 必要なファイルを以下の要領でダウンロードします．
 
-  - ブラウザでのアドレスバーにhttps://github.com/c4a-ri/dialbb/blob/dev-v1.0/docs/files/dialbb.zip を打ち込んでEnterキーを押します．
+  - ブラウザでのアドレスバーにhttps://github.com/c4a-ri/dialbb/blob/dev-v1.0/docs/files/dialbb-setup.zip を打ち込んでEnterキーを押します．
 
   - 遷移したページの右側の下向き矢印をクリックします．
 
@@ -51,12 +51,12 @@ Windows11，MacOSで動作します．
 
   - `ダウンロード`フォルダに`dialbb`ファイルがダウンロードされます。エクスプローラで`ダウンロード`フォルダを開いて確認してください。以下のようなファイルができているはずです。
 
-    ![dialbb-zip-icon](images/dialbb-zip-icon.jpg)
+    ![dialbb-setup-zip-icon](images/dialbb-setup-zip-icon.jpg)
 
-    - このようにチャックの模様があるものをzipファイルと呼びます。環境によっては、`dialbb.zip`という名前で表示されます。
-    - 複数回ダウンロードすると、新しくダウンロードしたものは`dialbb(1)`のような名前になるので、その場合、`ダウンロード`フォルダの`dialbb.zip`を削除してからもう一度ダウンロードしてください。
+    - このようにチャックの模様があるものをzipファイルと呼びます。環境によっては、`dialbb-setup.zip`という名前で表示されます。
+    - 複数回ダウンロードすると、新しくダウンロードしたものは`dialbb-setup(1)`のような名前になるので、その場合、`ダウンロード`フォルダの`dialbb-setup`を削除してからもう一度ダウンロードしてください。
 
-- エクスプローラでdialbbアイコンの上にカーソルを持っていき右クリックし、「すべて展開」を選びます。出てきた画面で、「展開」を押してください。dialbbフォルダができるので、それを開いてください。
+- エクスプローラで`dialbb-setup`アイコンの上にカーソルを持っていき右クリックし、「すべて展開」を選びます。出てきた画面で、「展開」を押してください。`dialbb-setup`フォルダができるので、それを開いてください。
 
 - install（環境によってはinstall.bat）をダブルクリックします。DialBBがインストールされます。
 
@@ -72,14 +72,14 @@ Windows11，MacOSで動作します．
 - 遷移したページの右側の下向き矢印をクリックします．
   
 - `ダウンロード`フォルダに`editor_gui`という名前のzipファイル（または`editor_gui.zip`）がダウンロードされます．
-  - このファイルを先ほどのdialbbフォルダ（展開してできたフォルダ）に移動します。
-- dialbbフォルダにある、install-scenario-editorをダブルクリックします。
+  - このファイルを先ほどの`dialbb-setup`フォルダ（展開してできたフォルダ）に移動します。
+- `dialbb-setup`フォルダにある、`install-scenario-editor`アイコンをダブルクリックします。
     - 「WindowsによってPCが保護されました」と出るかもしれません。その場合、「詳細情報」をクリックすると、「実行」ボタンが出てくるので、それを押してください。
   - `Press any key to continue . . .`と表示されたらインストールは完了なので、何かキーを押して終了してください。
 
 ### 起動
 
-dialbbフォルダ内で`start-dialbb-nc`（または`start-dialbb-nc.bat`）をダブルクリックします。
+`dialbb-setup`フォルダ内で`start-dialbb-nc`（または`start-dialbb-nc.bat`）をダブルクリックします。
 
 正常に起動するとメイン画面が表示されます．  
 
@@ -106,7 +106,7 @@ https://github.com/c4a-ri/dialbb/blob/dev-v1.0/docs/files/dialbb.zip から`dial
 そこで、
 
 ```sh
-unzip ~/Downloads/dialbb.zip
+unzip ~/Downloads/dialbb-setup.zip
 pip install --force-reinstall *.whl
 ```
 
