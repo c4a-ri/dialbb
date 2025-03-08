@@ -594,6 +594,9 @@ In a final state, the system generates a system utterance and terminates the dia
 <tr class="row-odd"><td><p>_dialogue_history</p></td>
 <td><p>Dialogue history (list)</p></td>
 </tr>
+<tr class="row-even"><td><p>_turns_in_state</p></td>
+<td><p>The number of user turns in the current state (integer)</p></td>
+</tr>
 </tbody>
 </table>
 <p>The dialog history is in the following form.</p>
@@ -691,6 +694,10 @@ In a final state, the system generates a system utterance and terminates the dia
 <li><p><code class="docutils literal notranslate"><span class="pre">_num_turns_exceeds(n)</span></code></p>
 <p>Returns <code class="docutils literal notranslate"><span class="pre">True</span></code> when the number of user turns exceeds the integer represented by the string <code class="docutils literal notranslate"><span class="pre">n</span></code>.</p>
 <p>e.g.: <code class="docutils literal notranslate"><span class="pre">_num_turns_exceeds(&quot;10&quot;)</span></code></p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">_num_turns_in_state_exceeds(n)</span></code></p>
+<p>Returns <code class="docutils literal notranslate"><span class="pre">True</span></code> when the number of user turns in the current state exceeds the integer represented by the string <code class="docutils literal notranslate"><span class="pre">n</span></code>.</p>
+<p>e.g.: <code class="docutils literal notranslate"><span class="pre">_num_turns_in_state_exceeds(&quot;5&quot;)</span></code></p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">_check_with_llm(task)</span></code></p>
 <p>Makes the judgment using a large language model. More details follow.</p>

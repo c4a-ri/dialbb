@@ -457,6 +457,7 @@ The context information is pre-set with the following key-value pairs.
 | _aux_data | aux_data (dictionary) received from main process|
 | _previous_system_utterance | previous system utterance (string)|
 | _dialogue_history | Dialogue history (list)|
+| _turns_in_state | The number of user turns in the current state (integer)|
 
 
 
@@ -584,6 +585,12 @@ The built-in functions are as follows:
 	Returns `True` when the number of user turns exceeds the integer represented by the string `n`. 
 	
     e.g.: `_num_turns_exceeds("10")`
+
+  - `_num_turns_in_state_exceeds(n)`
+  
+	Returns `True` when the number of user turns in the current state exceeds the integer represented by the string `n`. 
+	
+    e.g.: `_num_turns_in_state_exceeds("5")`
 
   - `_check_with_llm(task)`
   
