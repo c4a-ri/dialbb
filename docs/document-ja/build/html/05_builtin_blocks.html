@@ -660,6 +660,9 @@
 <tr class="row-odd"><td><p>_dialogue_history</p></td>
 <td><p>対話履歴（リスト）</p></td>
 </tr>
+<tr class="row-even"><td><p>_turns_in_state</p></td>
+<td><p>今の状態でのターン数（ユーザの発話回数）（整数）</p></td>
+</tr>
 </tbody>
 </table>
 <p>対話履歴は，以下の形です．</p>
@@ -761,7 +764,6 @@
 <p>文字列<code class="docutils literal notranslate"><span class="pre">y</span></code>を<code class="docutils literal notranslate"><span class="pre">':'</span></code>で分割してできたリストに文字列<code class="docutils literal notranslate"><span class="pre">x</span></code>が含まれていなければ<code class="docutils literal notranslate"><span class="pre">True</span></code>を返します．</p>
 <p>例：<code class="docutils literal notranslate"><span class="pre">_not_member_of(*favorite_food,</span> <span class="pre">&quot;ラーメン:チャーハン:餃子&quot;)</span></code></p>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">_not_member_of(x,</span> <span class="pre">y)</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">_num_turns_exceeds(n)</span></code></p>
 <p>文字列<code class="docutils literal notranslate"><span class="pre">n</span></code>が表す整数よりも対話の最初からのターン数（ユーザの発話回数）が多いとき，<code class="docutils literal notranslate"><span class="pre">True</span></code>を返します．</p>
 <p>例：<code class="docutils literal notranslate"><span class="pre">_num_turns_exceeds(&quot;10&quot;)</span></code></p>

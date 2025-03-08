@@ -508,6 +508,7 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
 | _aux_data                  | メインプロセスから受け取ったaux_data（辞書型のデータ）       |
 | _previous_system_utterance | 直前のシステム発話（文字列）                                 |
 | _dialogue_history          | 対話履歴（リスト）                                           |
+| _turns_in_state            | 今の状態でのターン数（ユーザの発話回数）（整数）             |
 
 
 対話履歴は，以下の形です．
@@ -633,8 +634,6 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
     文字列`y`を`':'`で分割してできたリストに文字列`x`が含まれていなければ`True`を返します．
 
     例：`_not_member_of(*favorite_food, "ラーメン:チャーハン:餃子")`
-
-  - `_not_member_of(x, y)`
 
   - `_num_turns_exceeds(n)`
 
