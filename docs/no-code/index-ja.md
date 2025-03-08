@@ -66,15 +66,11 @@ Windows11，MacOSで動作します．
 
 ### シナリオエディタのインストール
 
-- 必要なファイルを以下の要領でダウンロードします．
-
-  - ブラウザでのアドレスバーに https://github.com/c4a-ri/dialbb-scenario-editor/blob/main/docs/files/editor-gui.zip を打ち込んでEnterキーを押します．
-- 遷移したページの右側の下向き矢印をクリックします．
-  
+- ブラウザでのアドレスバーに https://c4a-ri.github.io/dialbb-scenario-editor/files/editor-gui.zip を打ち込んでEnterキーを押します．
 - `ダウンロード`フォルダに`editor_gui`という名前のzipファイル（または`editor_gui.zip`）がダウンロードされます．
-  - このファイルを先ほどの`dialbb-setup`フォルダ（展開してできたフォルダ）に移動します。
+- このファイルを先ほどの`dialbb-setup`フォルダ（展開してできたフォルダ）に移動します。
 - `dialbb-setup`フォルダにある、`install-scenario-editor`アイコンをダブルクリックします。
-    - 「WindowsによってPCが保護されました」と出るかもしれません。その場合、「詳細情報」をクリックすると、「実行」ボタンが出てくるので、それを押してください。
+  - 「WindowsによってPCが保護されました」と出るかもしれません。その場合、「詳細情報」をクリックすると、「実行」ボタンが出てくるので、それを押してください。
   - `Press any key to continue . . .`と表示されたらインストールは完了なので、何かキーを押して終了してください。
 
 ### 起動
