@@ -22,6 +22,7 @@ llm_pattern = re.compile(r'\$\".*?\"')
 str_eq_pattern = re.compile(r'(.+?)\s*==\s*(.+)')
 str_ne_pattern = re.compile(r'(.+?)\s*!=\s*(.+)')
 num_turns_exceeds_pattern = re.compile(r'_num_turns_exceeds\(\s*\"\d+\"\s*\)')
+num_turns_in_state_exceeds_pattern = re.compile(r'_num_turns_in_state_exceeds\(\s*\"\d+\"\s*\)')
 
 
 def illegal_condition(condition: str) -> bool:
@@ -33,7 +34,8 @@ def illegal_condition(condition: str) -> bool:
     if llm_pattern.fullmatch(condition) \
             or str_eq_pattern.fullmatch(condition) \
             or str_ne_pattern.fullmatch(condition) \
-            or num_turns_exceeds_pattern.fullmatch(condition):
+            or num_turns_exceeds_pattern.fullmatch(condition) \
+            or num_turns_in_state_exceeds_pattern.fullmatch(condition):
         return False
     else:
         return True

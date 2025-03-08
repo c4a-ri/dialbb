@@ -638,9 +638,15 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
 
   - `_num_turns_exceeds(n)`
 
-    文字列`n`が表す整数よりもターン数（ユーザの発話回数）が多いとき，`True`を返します．
+    文字列`n`が表す整数よりも対話の最初からのターン数（ユーザの発話回数）が多いとき，`True`を返します．
 
     例：`_num_turns_exceeds("10")`
+
+  - `_num_turns_in_state_exceeds(n)`
+
+    文字列`n`が表す整数よりもその状態でのターン数（ユーザの発話回数）が多いとき，`True`を返します．
+
+    例：`_num_turns_in_state_exceeds("5")`
 
   - `_check_with_llm(task)`
 

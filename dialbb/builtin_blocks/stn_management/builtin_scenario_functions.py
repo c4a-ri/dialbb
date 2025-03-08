@@ -155,6 +155,12 @@ def builtin_confidence_is_low(context: Dict[str, Any]) -> bool:
 
 
 def builtin_num_turns_exceeds(threshold_str: str, context: Dict[str, Any]) -> bool:
+    """
+    Checks number of turns from the beginning of the session exceeds the threshold
+    :param threshold_str:
+    :param context:
+    :return: True if exceeds
+    """
 
     try:
         threshold: int = int(threshold_str)
@@ -171,6 +177,22 @@ def builtin_num_turns_exceeds(threshold_str: str, context: Dict[str, Any]) -> bo
     else:
         return False
 
+
+def builtin_num_turns_in_state_exceeds(threshold_str: str, context: Dict[str, Any]) -> bool:
+    """
+    Checks number of turns in the state exceeds the threshold
+    :param threshold_str:
+    :param context:
+    :return: True if exceeds
+    """
+
+    try:
+        threshold: int = int(threshold_str)
+    except ValueError:
+        print("Warning: threshold for turns is not an integer: " + threshold_str)
+        return False
+
+    return True if context.get("_turns_in_state", 0) > threshold else False
 
 def create_prompt_for_chatgpt(task: str, language: str, system_persona: str, situation: str,
                               dialogue_history: List[Dict[str, str]]) -> str:

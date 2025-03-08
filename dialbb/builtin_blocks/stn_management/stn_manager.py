@@ -79,6 +79,7 @@ CONTEXT_KEY_DIALOGUE_HISTORY: str = '_dialogue_history'
 CONTEXT_KEY_SUB_DIALOGUE_STACK: str = '_sub_dialogue_stack'
 CONTEXT_KEY_REACTION: str = '_reaction'
 CONTEXT_KEY_REQUESTING_CONFIRMATION: str = '_requesting_confirmation'
+CONTEXT_KEY_TURNS_IN_STATE: str = '_turns_in_state'
 
 INPUT_KEY_AUX_DATA: str = "aux_data"
 INPUT_KEY_SENTENCE: str = "sentence"
@@ -353,6 +354,7 @@ class Manager(AbstractBlock):
                            CONTEXT_KEY_DIALOGUE_HISTORY: [],
                            CONTEXT_KEY_SUB_DIALOGUE_STACK: [],
                            CONTEXT_KEY_REACTION: "",
+                           CONTEXT_KEY_TURNS_IN_STATE: 1,
                            CONTEXT_KEY_REQUESTING_CONFIRMATION: False}
 
                 self._add_context(session_id, context)
@@ -500,6 +502,12 @@ class Manager(AbstractBlock):
                     = f"State moving to is not defined: {new_state_name}"
                 new_state_name = ERROR_STATE_NAME  # move to error state
                 new_state = self._network.get_state_from_state_name(new_state_name)
+
+            # increment or reset turns in the state
+            if context[CONTEXT_KEY_CURRENT_STATE_NAME] == new_state_name:  # state didn't change
+                context[CONTEXT_KEY_TURNS_IN_STATE] += 1   # increment
+            else:
+                context[CONTEXT_KEY_TURNS_IN_STATE] = 1  # reset
 
             # store the new state for this session
             context[CONTEXT_KEY_CURRENT_STATE_NAME] = new_state_name

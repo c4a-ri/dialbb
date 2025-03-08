@@ -763,8 +763,12 @@
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">_not_member_of(x,</span> <span class="pre">y)</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">_num_turns_exceeds(n)</span></code></p>
-<p>文字列<code class="docutils literal notranslate"><span class="pre">n</span></code>が表す整数よりもターン数（ユーザの発話回数）が多いとき，<code class="docutils literal notranslate"><span class="pre">True</span></code>を返します．</p>
+<p>文字列<code class="docutils literal notranslate"><span class="pre">n</span></code>が表す整数よりも対話の最初からのターン数（ユーザの発話回数）が多いとき，<code class="docutils literal notranslate"><span class="pre">True</span></code>を返します．</p>
 <p>例：<code class="docutils literal notranslate"><span class="pre">_num_turns_exceeds(&quot;10&quot;)</span></code></p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">_num_turns_in_state_exceeds(n)</span></code></p>
+<p>文字列<code class="docutils literal notranslate"><span class="pre">n</span></code>が表す整数よりもその状態でのターン数（ユーザの発話回数）が多いとき，<code class="docutils literal notranslate"><span class="pre">True</span></code>を返します．</p>
+<p>例：<code class="docutils literal notranslate"><span class="pre">_num_turns_in_state_exceeds(&quot;5&quot;)</span></code></p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">_check_with_llm(task)</span></code></p>
 <p>大規模言語モデル（現在はOpenAIのChatGPTのみ）を用いて判定をします．後述します．</p>

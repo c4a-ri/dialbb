@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.0 (2025.3.6)
+## 1.0.0 (2025.3.17)
 
 - Installation via pip enabled
 
@@ -9,6 +9,8 @@
 - ChatGPT NER builtin block added
 
 - Default GPT model changed to gpt-4o-mini
+
+- Built-in condition function `_max_turns_in_state_exceeds` added to STN Manager block
 
 ## 0.10.0 (2024.1.6)
 
