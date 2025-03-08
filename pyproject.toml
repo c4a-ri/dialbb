@@ -1,0 +1,105 @@
+[tool.poetry]
+name = "dialbb"
+version = "1.0.0"
+description = "A dialogue system development framework"
+authors = ["Mikio Nakano <mikio.nakano@c4a.jp>"]
+readme = "README.md"
+
+packages = [
+    { include = "dialbb" }
+]
+include = [
+]
+exclude = [
+    "dialbb/builtin_blocks/stn_management/context_db/",
+    "dialbb/no_code/gui_editor",
+    "**/__pycache__/"
+]
+
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.13"
+openpyxl = "3.1.5"
+flask = "3.1.0"
+annotated-types = "0.7.0"
+anyio = "4.8.0"
+attrs = "25.1.0"
+blinker = "1.9.0"
+cachetools = "5.5.1"
+catalogue = "2.0.10"
+certifi = "2025.1.31"
+charset-normalizer = "3.4.1"
+click = "8.1.8"
+colorama = "0.4.6"
+distro = "1.9.0"
+et-xmlfile = "2.0.0"
+exceptiongroup = "1.2.2"
+google-auth = "2.38.0"
+google-auth-oauthlib = "1.2.1"
+gspread = "6.1.4"
+h11 = "0.14.0"
+httpcore = "1.0.7"
+httplib2 = "0.22.0"
+httpx = "0.28.1"
+idna = "3.10"
+itsdangerous = "2.2.0"
+jaconv = "0.4.0"
+jinja2 = "3.1.5"
+jsonschema = "4.23.0"
+jsonschema-specifications = "2024.10.1"
+markupsafe = "3.0.2"
+numpy = [
+  {version = "==1.26.4", python = ">=3.11"},
+  {version = "==1.24.4", python = "=3.10"}
+]
+oauth2client = "4.1.3"
+oauthlib = "3.2.2"
+openai = "1.61.1"
+pandas = "2.2.3"
+pyasn1 = "0.6.1"
+pyasn1-modules = "0.4.1"
+pydantic = "2.10.6"
+pydantic-core = "2.27.2"
+pyparsing = "3.2.1"
+python-dateutil = "2.9.0.post0"
+pytz = "2025.1"
+pyyaml = "6.0.2"
+referencing = "0.36.2"
+regex = "2024.11.6"
+requests = "2.32.3"
+requests-oauthlib = "2.0.0"
+rpds-py = "0.22.3"
+rsa = "4.9"
+six = "1.17.0"
+sniffio = "1.3.1"
+sudachidict-core = "20250129"
+sudachipy = "0.6.10"
+tqdm = "4.67.1"
+typing-extensions = "4.12.2"
+tzdata = "2025.1"
+urllib3 = "2.3.0"
+werkzeug = "3.1.3"
+zipp = "3.17.0"
+ruamel-yaml = "^0.18.10"
+cryptography = "44.0.0"
+joblib = "1.4.2"
+nltk = "3.8.1"
+python-crfsuite = "0.9.11"
+scikit-learn = "1.6.1"
+scipy = "1.15.1"
+sklearn-crfsuite = "0.5.0"
+tabulate = "0.9.0"
+threadpoolctl = "3.5.0"
+pymongo = "4.11"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+
+[tool.poetry.scripts]
+dialbb-nc = 'dialbb.no_code.main:main'
+dialbb-server = 'dialbb.server.run_server:main'
+dialbb-test = 'dialbb.util.test:main'
+dialbb-send-test-requests = 'dialbb.util.send_test_requests:main'
+dialbb-install-scenario-editor = 'dialbb.no_code.install_editor_gui:main'

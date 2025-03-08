@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>5. Built-in Block Classes &mdash; DialBB ver. 0.10 Document v0.10.0 documentation</title>
+  <title>5. Built-in Block Classes &mdash; DialBB ver. 1.0 Document v1.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
@@ -15,7 +15,7 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=294cacf5"></script>
+        <script src="_static/documentation_options.js?v=76e2d817"></script>
         <script src="_static/doctools.js?v=9a2dae69"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
@@ -34,7 +34,7 @@
           
           
           <a href="index.html" class="icon icon-home">
-            DialBB ver. 0.10 Document
+            DialBB ver. 1.0 Document
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -108,10 +108,20 @@
 <li class="toctree-l3"><a class="reference internal" href="#id9">5.5.3. Process Details</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#spacy-based-ner-named-entity-recognizer-block-using-spacy">5.6. spaCy-Based NER (Named Entity Recognizer Block using spaCy)</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id10">5.6.1. Input/Output</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id11">5.6.2. Block Configuration Parameters</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id12">5.6.3. Process Details</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#chatgpt-ner-named-entity-recognition-block-using-chatgpt">5.6. ChatGPT NER (Named Entity Recognition Block Using ChatGPT)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#input-and-output">5.6.1. Input and Output</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id10">5.6.2. Block Configuration Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#named-entity-knowledge">5.6.3. Named Entity Knowledge</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id11">5.6.3.1. utterances Sheet</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#classes-sheet">5.6.3.2. classes Sheet</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#spacy-based-ner-named-entity-recognizer-block-using-spacy">5.7. spaCy-Based NER (Named Entity Recognizer Block using spaCy)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id12">5.7.1. Input/Output</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id13">5.7.2. Block Configuration Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id14">5.7.3. Process Details</a></li>
 </ul>
 </li>
 </ul>
@@ -125,7 +135,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">DialBB ver. 0.10 Document</a>
+          <a href="index.html">DialBB ver. 1.0 Document</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -415,8 +425,8 @@ The following is an example.
 </li>
 </ul>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">gpt_model</span></code> (string. The default value is <code class="docutils literal notranslate"><span class="pre">gpt-3.5-turbo</span></code>.)</p>
-<p>Specifies the ChatGPT model. <code class="docutils literal notranslate"><span class="pre">gpt-4-turbo</span></code> can be specified. <code class="docutils literal notranslate"><span class="pre">gpt-4</span></code> cannot be used.</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">gpt_model</span></code> (string. The default value is <code class="docutils literal notranslate"><span class="pre">gpt-4o-mini</span></code>.)</p>
+<p>Specifies the ChatGPT model. <code class="docutils literal notranslate"><span class="pre">gpt-4o</span></code> can be specified. <code class="docutils literal notranslate"><span class="pre">gpt-4</span></code> cannot be used.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">prompt_template</span></code></p>
 <p>This specifies the prompt template file as a relative path from the configuration file directory.</p>
@@ -584,6 +594,9 @@ In a final state, the system generates a system utterance and terminates the dia
 <tr class="row-odd"><td><p>_dialogue_history</p></td>
 <td><p>Dialogue history (list)</p></td>
 </tr>
+<tr class="row-even"><td><p>_turns_in_state</p></td>
+<td><p>The number of user turns in the current state (integer)</p></td>
+</tr>
 </tbody>
 </table>
 <p>The dialog history is in the following form.</p>
@@ -682,6 +695,10 @@ In a final state, the system generates a system utterance and terminates the dia
 <p>Returns <code class="docutils literal notranslate"><span class="pre">True</span></code> when the number of user turns exceeds the integer represented by the string <code class="docutils literal notranslate"><span class="pre">n</span></code>.</p>
 <p>e.g.: <code class="docutils literal notranslate"><span class="pre">_num_turns_exceeds(&quot;10&quot;)</span></code></p>
 </li>
+<li><p><code class="docutils literal notranslate"><span class="pre">_num_turns_in_state_exceeds(n)</span></code></p>
+<p>Returns <code class="docutils literal notranslate"><span class="pre">True</span></code> when the number of user turns in the current state exceeds the integer represented by the string <code class="docutils literal notranslate"><span class="pre">n</span></code>.</p>
+<p>e.g.: <code class="docutils literal notranslate"><span class="pre">_num_turns_in_state_exceeds(&quot;5&quot;)</span></code></p>
+</li>
 <li><p><code class="docutils literal notranslate"><span class="pre">_check_with_llm(task)</span></code></p>
 <p>Makes the judgment using a large language model. More details follow.</p>
 </li>
@@ -733,7 +750,7 @@ In a final state, the system generates a system utterance and terminates the dia
 <li><p>Add the following elements to the chatgpt block configuration:</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">gpt_model</span></code> (string)</p>
-<p>This specifies the model name of GPT, such as <code class="docutils literal notranslate"><span class="pre">gpt-4-turbo</span></code>, <code class="docutils literal notranslate"><span class="pre">gpt-3.5-turbo</span></code>, etc. The default value is <code class="docutils literal notranslate"><span class="pre">gpt-3.5-turbo</span></code>. <code class="docutils literal notranslate"><span class="pre">gpt-4</span></code> cannot be used.</p>
+<p>This specifies the model name of GPT, such as <code class="docutils literal notranslate"><span class="pre">gpt-4o</span></code>, <code class="docutils literal notranslate"><span class="pre">gpt-4o-mini</span></code>, etc. The default value is <code class="docutils literal notranslate"><span class="pre">gpt-4o-mini</span></code>. <code class="docutils literal notranslate"><span class="pre">gpt-4</span></code> cannot be used.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">temperature</span></code> (float)</p>
 <p>This specifies the temperature parameter for GPT. The default value is <code class="docutils literal notranslate"><span class="pre">0.7</span></code>.</p>
@@ -990,8 +1007,8 @@ The output <code class="docutils literal notranslate"><span class="pre">aux_data
 </li>
 </ul>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">gpt_model</span></code> (string, default value is <code class="docutils literal notranslate"><span class="pre">gpt-3.5-turbo</span></code>)</p>
-<p>Open AI GPT model. You can specify <code class="docutils literal notranslate"><span class="pre">gpt-4</span></code>, <code class="docutils literal notranslate"><span class="pre">gpt-4-turbo</span></code> and so on.</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">gpt_model</span></code> (string, default value is <code class="docutils literal notranslate"><span class="pre">gpt-4o-mini</span></code>)</p>
+<p>Open AI GPT model. You can specify <code class="docutils literal notranslate"><span class="pre">gpt-4o</span></code>, <code class="docutils literal notranslate"><span class="pre">gpt-4o-mini</span></code> and so on.</p>
 </li>
 </ul>
 </section>
@@ -1003,12 +1020,146 @@ The output <code class="docutils literal notranslate"><span class="pre">aux_data
 </ul>
 </section>
 </section>
+<section id="chatgpt-ner-named-entity-recognition-block-using-chatgpt">
+<span id="chatgpt-ner"></span><h2><span class="section-number">5.6. </span>ChatGPT NER (Named Entity Recognition Block Using ChatGPT)<a class="headerlink" href="#chatgpt-ner-named-entity-recognition-block-using-chatgpt" title="Link to this heading"></a></h2>
+<p>(<code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.ner_with_chatgpt.chatgpt_ner.NER</span></code>)</p>
+<p>This block utilizes OpenAI’s ChatGPT to perform named entity recognition (NER).</p>
+<p>If the <code class="docutils literal notranslate"><span class="pre">language</span></code> element in the configuration is set to <code class="docutils literal notranslate"><span class="pre">ja</span></code>, it extracts named entities in Japanese. If set to <code class="docutils literal notranslate"><span class="pre">en</span></code>, it extracts named entities in English.</p>
+<p>At startup, this block reads named entity knowledge from an Excel file, converts it into a list of named entity classes, descriptions for each class, examples of named entities in each class, and extraction examples (few-shot examples), and embeds them into the prompt.</p>
+<p>During execution, the input utterance is added to the prompt, and ChatGPT is used for named entity extraction.</p>
+<section id="input-and-output">
+<h3><span class="section-number">5.6.1. </span>Input and Output<a class="headerlink" href="#input-and-output" title="Link to this heading"></a></h3>
+<ul>
+<li><p>Input</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">input_text</span></code>: Input string</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aux_data</span></code>: auxiliary data (dictionary)</p></li>
+</ul>
+</li>
+<li><p>Output</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">aux_data</span></code>: Auxiliary data (dictionary format)</p>
+<p>The named entity extraction results are added to the provided <code class="docutils literal notranslate"><span class="pre">aux_data</span></code>.</p>
+<p>The extracted named entities follow this format:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nt">&quot;NE_&lt;Label&gt;&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;Named Entity&gt;&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;NE_&lt;Label&gt;&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;Named Entity&gt;&quot;</span><span class="p">,</span><span class="w"> </span><span class="err">...</span><span class="p">}</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">&lt;Label&gt;</span></code> represents the named entity class. The named entity is the recognized phrase found in <code class="docutils literal notranslate"><span class="pre">input_text</span></code>. If multiple entities of the same class are found, they are concatenated with <code class="docutils literal notranslate"><span class="pre">:</span></code>.</p>
+<p>Example:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nt">&quot;NE_Person&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;John:Mary&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;NE_Dish&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Chicken Marsala&quot;</span><span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="id10">
+<h3><span class="section-number">5.6.2. </span>Block Configuration Parameters<a class="headerlink" href="#id10" title="Link to this heading"></a></h3>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">knowledge_file</span></code> (String)</p>
+<p>Specifies the Excel file containing named entity knowledge. The file path should be relative to the directory where the configuration file is located.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flags_to_use</span></code> (List of strings)</p>
+<p>If any of these values are present in the <code class="docutils literal notranslate"><span class="pre">flag</span></code> column of each sheet, the corresponding row will be loaded. If this parameter is not set, all rows will be loaded.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">knowledge_google_sheet</span></code> (Hash)</p>
+<p>Information for using Google Sheets instead of Excel.</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">sheet_id</span></code> (String)</p>
+<p>The ID of the Google Sheet.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">key_file</span></code> (String)</p>
+<p>Specifies the key file for accessing the Google Sheet API. The file path should be relative to the configuration file directory.</p>
+</li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gpt_model</span></code> (String, default: <code class="docutils literal notranslate"><span class="pre">gpt-4o-mini</span></code>)</p>
+<p>Specifies the ChatGPT model. Options include <code class="docutils literal notranslate"><span class="pre">gpt-4o</span></code>, etc.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">prompt_template</span></code></p>
+<p>Specifies the file containing the prompt template, relative to the configuration file directory.</p>
+<p>If not specified, the default templates <code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.ner_with_chatgpt.chatgpt_ner.prompt_template_ja.PROMPT_TEMPLATE_JA</span></code> (for Japanese) or <code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.ner_with_chatgpt.chatgpt_ner.prompt_template_en.PROMPT_TEMPLATE_EN</span></code> (for English) will be used.</p>
+<p>The prompt template defines how ChatGPT is instructed for language understanding and includes the following variables (prefixed with <code class="docutils literal notranslate"><span class="pre">&#64;</span></code>):</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&#64;classes</span></code> List of named entity classes.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&#64;class_explanations</span></code> Descriptions of each named entity class.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&#64;ne_examples</span></code> Examples of named entities for each class.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&#64;ner_examples</span></code> Examples of utterances and their correct named entity extraction results (few-shot examples).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&#64;input</span></code> The input utterance.</p></li>
+</ul>
+<p>Values are assigned to these variables at runtime.</p>
+</li>
+</ul>
+</section>
+<section id="named-entity-knowledge">
+<h3><span class="section-number">5.6.3. </span>Named Entity Knowledge<a class="headerlink" href="#named-entity-knowledge" title="Link to this heading"></a></h3>
+<p>Named entity knowledge consists of the following two sheets:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Sheet Name</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>utterances</p></td>
+<td><p>Examples of utterances and named entity extraction results.</p></td>
+</tr>
+<tr class="row-odd"><td><p>classes</p></td>
+<td><p>Relationship between slots and entities, along with a list of synonyms.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Although the sheet names can be changed in the block configuration, this is rarely needed, so detailed explanations are omitted.</p>
+<section id="id11">
+<h4><span class="section-number">5.6.3.1. </span>utterances Sheet<a class="headerlink" href="#id11" title="Link to this heading"></a></h4>
+<p>Each row consists of the following columns:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">flag</span></code></p>
+<p>A flag to determine whether to use the row. Common values include <code class="docutils literal notranslate"><span class="pre">Y</span></code> (yes) and <code class="docutils literal notranslate"><span class="pre">T</span></code> (test). The configuration specifies which flags to use.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">utterance</span></code></p>
+<p>Example utterance.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">entities</span></code></p>
+<p>Named entities contained in the utterance. They are formatted as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">Named</span> <span class="n">Entity</span> <span class="n">Class</span><span class="o">&gt;=&lt;</span><span class="n">Named</span> <span class="n">Entity</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">Named</span> <span class="n">Entity</span> <span class="n">Class</span><span class="o">&gt;=&lt;</span><span class="n">Named</span> <span class="n">Entity</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">...</span> <span class="o">&lt;</span><span class="n">Named</span> <span class="n">Entity</span> <span class="n">Class</span><span class="o">&gt;=&lt;</span><span class="n">Named</span> <span class="n">Entity</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Person</span><span class="o">=</span><span class="n">John</span><span class="p">,</span> <span class="n">Location</span><span class="o">=</span><span class="n">Chicago</span>
+</pre></div>
+</div>
+<p>Additional columns besides these are allowed in the sheets used by this block.</p>
+</li>
+</ul>
+</section>
+<section id="classes-sheet">
+<h4><span class="section-number">5.6.3.2. </span>classes Sheet<a class="headerlink" href="#classes-sheet" title="Link to this heading"></a></h4>
+<p>Each row consists of the following columns:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">flag</span></code></p>
+<p>Same as in the <code class="docutils literal notranslate"><span class="pre">utterances</span></code> sheet.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">class</span></code></p>
+<p>Named entity class name.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">explanation</span></code></p>
+<p>Description of the named entity class.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">examples</span></code></p>
+<p>Examples of named entities, concatenated with <code class="docutils literal notranslate"><span class="pre">','</span></code>.</p>
+</li>
+</ul>
+</section>
+</section>
+</section>
 <section id="spacy-based-ner-named-entity-recognizer-block-using-spacy">
-<span id="spacy-ner"></span><h2><span class="section-number">5.6. </span>spaCy-Based NER (Named Entity Recognizer Block using spaCy)<a class="headerlink" href="#spacy-based-ner-named-entity-recognizer-block-using-spacy" title="Link to this heading"></a></h2>
+<span id="spacy-ner"></span><h2><span class="section-number">5.7. </span>spaCy-Based NER (Named Entity Recognizer Block using spaCy)<a class="headerlink" href="#spacy-based-ner-named-entity-recognizer-block-using-spacy" title="Link to this heading"></a></h2>
 <p>(<code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.ner_with_spacy.ne_recognizer.SpaCyNER</span></code>)</p>
 <p>Performs named entity recognition using <a class="reference external" href="https://spacy.io">spaCy</a> and <a class="reference external" href="https://megagonlabs.github.io/ginza/">GiNZA</a>.</p>
-<section id="id10">
-<h3><span class="section-number">5.6.1. </span>Input/Output<a class="headerlink" href="#id10" title="Link to this heading"></a></h3>
+<section id="id12">
+<h3><span class="section-number">5.7.1. </span>Input/Output<a class="headerlink" href="#id12" title="Link to this heading"></a></h3>
 <ul>
 <li><p>Input</p>
 <ul class="simple">
@@ -1032,7 +1183,7 @@ The output <code class="docutils literal notranslate"><span class="pre">aux_data
 <span class="p">}</span>
 </pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">&lt;label&gt;</span></code> is a class of named entities. <code class="docutils literal notranslate"><span class="pre">&lt;named</span> <span class="pre">entity&gt;</span></code> is a found named entity, a substring of ``input_text<code class="docutils literal notranslate"><span class="pre">.</span> <span class="pre">If</span> <span class="pre">multiple</span> <span class="pre">named</span> <span class="pre">entities</span> <span class="pre">of</span> <span class="pre">the</span> <span class="pre">same</span> <span class="pre">class</span> <span class="pre">are</span> <span class="pre">found,</span> <span class="pre">they</span> <span class="pre">are</span> <span class="pre">concatenated</span> <span class="pre">with</span> </code>‘:’`.</p>
+<p><code class="docutils literal notranslate"><span class="pre">&lt;label&gt;</span></code> is the class of named entities. <code class="docutils literal notranslate"><span class="pre">&lt;named</span> <span class="pre">entity&gt;</span></code> is a found named entity, a substring of ``input_text<code class="docutils literal notranslate"><span class="pre">.</span> <span class="pre">If</span> <span class="pre">multiple</span> <span class="pre">named</span> <span class="pre">entities</span> <span class="pre">of</span> <span class="pre">the</span> <span class="pre">same</span> <span class="pre">class</span> <span class="pre">are</span> <span class="pre">found,</span> <span class="pre">they</span> <span class="pre">are</span> <span class="pre">concatenated</span> <span class="pre">with</span> </code>‘:’`.</p>
 <p>Example:</p>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="w"> </span>
 <span class="w">  </span><span class="nt">&quot;NE_Person&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;John:Mary&quot;</span><span class="p">,</span><span class="w"> </span>
@@ -1046,8 +1197,8 @@ The output <code class="docutils literal notranslate"><span class="pre">aux_data
 <li><p><code class="docutils literal notranslate"><span class="pre">en_core_web_trf</span></code> (3.5.0): <a class="reference external" href="https://huggingface.co/spacy/en_core_web_trfhttps://pypi.org/project/ja-ginza-electra/">https://spacy.io/models/en#en_core_web_trf-labels</a></p></li>
 </ul>
 </section>
-<section id="id11">
-<h3><span class="section-number">5.6.2. </span>Block Configuration Parameters<a class="headerlink" href="#id11" title="Link to this heading"></a></h3>
+<section id="id13">
+<h3><span class="section-number">5.7.2. </span>Block Configuration Parameters<a class="headerlink" href="#id13" title="Link to this heading"></a></h3>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">model</span></code> (String: Required)</p>
 <p>The name of the spaCy/GiNZA model. It can be <code class="docutils literal notranslate"><span class="pre">ja_ginza_electra</span></code> (Japanese), <code class="docutils literal notranslate"><span class="pre">en_core_web_trf</span></code> (English), etc.</p>
@@ -1065,8 +1216,8 @@ The output <code class="docutils literal notranslate"><span class="pre">aux_data
 </li>
 </ul>
 </section>
-<section id="id12">
-<h3><span class="section-number">5.6.3. </span>Process Details<a class="headerlink" href="#id12" title="Link to this heading"></a></h3>
+<section id="id14">
+<h3><span class="section-number">5.7.3. </span>Process Details<a class="headerlink" href="#id14" title="Link to this heading"></a></h3>
 <p>Extracts the named entities in <code class="docutils literal notranslate"><span class="pre">input_text</span></code> using spaCy/GiNZA and returns the result in <code class="docutils literal notranslate"><span class="pre">aux_data</span></code>.</p>
 </section>
 </section>

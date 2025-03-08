@@ -33,7 +33,7 @@ from dialbb.main import DialogueProcessor
 
 USER_ID = "user1"
 
-if __name__ == '__main__':
+def main():
 
     # read arguments
     parser = argparse.ArgumentParser()
@@ -120,3 +120,5 @@ if __name__ == '__main__':
         print("Dialogues have been written in the file: " + args.output)
 
 
+if __name__ == '__main__':
+    main()

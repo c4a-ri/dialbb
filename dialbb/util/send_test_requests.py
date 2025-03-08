@@ -31,7 +31,8 @@ import json
 
 USER_ID: str = 'user1'
 
-if __name__ == '__main__':
+
+def main():
 
     # read arguments
     parser = argparse.ArgumentParser()
@@ -77,3 +78,7 @@ if __name__ == '__main__':
                 break
 
     pprint(all_logs)
+
+
+if __name__ == '__main__':
+    main()

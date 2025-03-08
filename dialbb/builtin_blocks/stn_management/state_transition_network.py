@@ -194,7 +194,7 @@ class Transition:
         self._user_utterance_type: str = user_utterance_type.strip()
         self._conditions: List[Condition] = []
         conditions_str = self.replace_special_characters_in_constant(conditions_str)
-        for condition_str in conditions_str.split(';'):
+        for condition_str in re.split('[;；]', conditions_str):
             condition_str = condition_str.strip()
             if condition_str == '':
                 continue
@@ -217,7 +217,7 @@ class Transition:
                 abort_during_building(f"{condition_str} is not a valid condition.")
         self._actions: List[Action] = []
         actions_str = self.replace_special_characters_in_constant(actions_str)
-        for action_str in actions_str.split(';'):
+        for action_str in re.split('[;；]', actions_str):
             action_str = action_str.strip()
             if action_str == "":
                 continue

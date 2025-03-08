@@ -1,21 +1,16 @@
 # DialBB: A Framework for Building Dialogue Systems
 
-ver.0.10.0
+ver. 1.0.0
 
 [<img src="./docs/images/japan_national_flag.jpg" width="5%">日本語](README-ja.md)
 
-## Introduction
+## Project Main Page
 
-DialBB is a framework for building dialogue systems developed by [C4A Research Institute, Inc.](https://www.c4a.jp/en/) DialBB has been developed as an information technology educational material. DialBB has *extensible* architecture and is written in *readable codes*. DialBB enables the development of dialogue systems by combining modules called *building blocks*. Developers can easily build simple systems using built-in blocks and can build advanced systems using their own developed blocks. 
-
-The main module of DialBB application receives a user utterance input in JSON format via method calls or via the Web API returns a system utterance in JSON format. The main module works by calling blocks, in sequence. Each block takes JSON format (data in Python dictionary) and returns the data in JSON format. The class and input/output of each block are specified in the configuration file for each application.
-
-
-![dialbb-arch-en](docs/images/dialbb-arch-en.jpg)
+Please refer the [the project main page](https://c4a-ri.github.io/dialbb/), which includes the overview of DialBB and the links to the documents.
 
 ## Documents
 
-Refer to the [document](https://c4a-ri.github.io/dialbb/document-en/build/html/) for detailed specification and the way of application development. Documentation for other than the latest version can be found in the [Links](https://c4a-ri.github.io/dialbb/) section.
+Please refer to the [document](https://c4a-ri.github.io/dialbb/document-en/build/html/) for detailed specification and the way of application development. 
 
 ## Citation
 
@@ -37,40 +32,24 @@ The following instructions assume that you are working with bash on Ubuntu. If y
 
 ### Installing DialBB
 
-Clone the source code from github.
-
-```sh
-$ git clone https://github.com/c4a-ri/dialbb.git
-```
-
-In this case, a directory named `dialbb` is created.
-
-If you want to install in a directory with a specific name, do the following.
-
-```sh
-$ git clone https://github.com/c4a-ri/dialbb.git <directry name>
-```
-
-The resulting directory is referred to below as the <DialBB directory>.
-
-
-### Installing Python libraries
-
-- Go to <DialBB directory>.
-
-- Next, build a virtual environment if necessary. The following is an example of venv.
+- Build a virtual environment if necessary. The following is an example of venv.
 
   ```sh
   $ python -m venv venv  # Create a virtual environment named venv
   $ venv/bin/activate   # Enter the virtual environment
   ```
 
-- Next, do the following to install the minimum set of libraries.
+- Download whl file from [distribution directory](dist).
+
+- Execute the following.
 
   ```sh
-  $ pip install -r requirements.txt 
+  $ pip install <ダウンロードしたwhlファイル>
   ```
 
+### Download the Sample Applications
+
+Download the `sample_apps.zip` file from the [distribution directory](dist) and extract it to a suitable location.
 
 
 ### Running the Parroting Application
@@ -80,7 +59,7 @@ It is an application that just parrots back and forth. No built-in block classes
 #### Startup
 
 ```sh
-$ python run_server.py sample_apps/parrot/config.yml
+$ dialbb-server sample_apps/parrot/config.yml
 ```
 
 
@@ -152,32 +131,6 @@ This is a sample application using the following built-in blocks. The English ve
   - LR-CRF Understander  Block
   - STN Manager  Block
 
-#### Installing Required Python Libraries
-
-  If you do not use this application, you may skip the following steps.
-
-  Do the following:
-
-  ```sh
-  # Run one of the following
-  $ pip install -r sample_apps/simple_en/requirements.txt
-  $ pip install -r sample_apps/simple_ja/requirements.txt
-  ```
-
-Note:
-
-  - When running with Anaconda on Windows, Anaconda Prompt may need to be started in administrator mode.
-
-  - If you are using pyenv, you may get the following error.
-
-    ```
-    ModuleNotFoundError: No module named '_bz2' 
-    ```
-
-    See [this page](https://stackoverflow.com/questions/60775172/pyenvs-python-is-missing-bzip2-module) and others for how to deal with this problem.
-
-If the installation does not work, please contact us.
-
 
 #### Installing Graphviz
 
@@ -192,31 +145,14 @@ The following command starts the application.
   - English application
 
     ```sh
-    $ python run_server.py sample_apps/simple_en/config.yml 
+    $ dialbb-server sample_apps/simple_en/config.yml 
     ```
 
-    When invoking in the application directory, do the following
-
-    ```sh
-    $ export DIALBB_HOME=<DialBB home diretory>
-    $ export PYTHONPATH=$DIALBB_HOME:$PYTHONPATH
-    $ cd sample_apps/simple_en  # moving to the application diretory
-    $ python $DIALBB_HOME/run_server.py config.yml 
-    ```
 
   - Japanese application
 
     ```sh
-    $ python run_server.py sample_apps/simple_ja/config.yml 
-    ```
-
-    When invoking in the application directory, do the following
-
-    ```sh
-    $ export DIALBB_HOME=<DialBB home diretory>
-    $ export PYTHONPATH=$DIALBB_HOME:$PYTHONPATH
-    $ cd sample_apps/simple_ja  # moving to the application diretory
-    $ python $DIALBB_HOME/run_server.py config.yml 
+    $ dialbb-server sample_apps/simple_ja/config.yml 
     ```
 
 #### Operation Check
@@ -230,7 +166,7 @@ The following commands can be used to test the sequential processing and interac
 - English
 
   ```sh
-  $ python dialbb/util/test.py sample_apps/simple_en/config.yml \
+  $ dialbb-test sample_apps/simple_en/config.yml \
     sample_apps/simple_en/test_inputs.txt --output \
     sample_apps/simple_en/_test_outputs.txt
   ```
@@ -240,7 +176,7 @@ The following commands can be used to test the sequential processing and interac
   - Japanese
 
     ```sh
-    $ python dialbb/util/test.py sample_apps/simple_ja/config.yml \
+    $ diabb-test sample_apps/simple_ja/config.yml \
       sample_apps/simple_ja/test_inputs.txt --output \
       sample_apps/simple_ja/_test_outputs.txt
     ```
@@ -257,24 +193,15 @@ Experimental applications are available at `sample_apps/lab_app_ja/` (Japanese) 
 
   - Simple Canonicalizer Block
   - ChatGPT Understander Block
-  - Spacy NER Block (NER using [spaCy](https://spacy.io/))
+  - ChatGPT NER Block
   - STN Manager Block
 
 - Japanese Application
 
   - Japanese Canonicalizer Block
   - ChatGPT Understander Block
-  - Spacy NER Block (NER using [spaCy](https://spacy.io/)/[GiNZA](https://megagonlabs.github.io/ginza/))
+  - ChatGPT NER Block
   - STN Manager Block
-
-#### Installing Python libraries
-
-  Do the following:
-
-  ```sh
-  $ pip install -r sample_apps/lab_app_en/requirements.txt # for English app
-  $ pip install -r sample_apps/lab_app_ja/requirements.txt # for Japanese app
-  ```
 
 #### Setting environment variables
 
@@ -287,8 +214,8 @@ $ export OPENAI_API_KEY=<OpenAI's API key>.
 #### Startup
 
   ```sh
-  $ python run_server.py sample_apps/lab_app_en/config_en.yml # English app
-  $ python run_server.py sample_apps/lab_app_en/config_ja.yml # Japanese app
+  $ dialbb-server sample_apps/lab_app_en/config_en.yml # English app
+  $ dialbb-server sample_apps/lab_app_en/config_ja.yml # Japanese app
   ```
 
 #### Test Method
@@ -298,9 +225,7 @@ The following commands allow you to test features not used in the Simple Applica
   ```sh
   $ cd sample_apps/lab_app_en # in the case of English app
   $ cd sample_apps/lab_app_ja # in the case of Japanese app
-  $ export DIALBB_HOME=<DialBB home directory>.
-  $ export PYTHONPATH=$DIALBB_HOME:$PYTHONPATH
-  $ python $DIALBB_HOME/dialbb/util/send_test_requests.py config.yml test_requests.json
+  $ dialbb-send-test-requests config.yml test_requests.json
   ```
 
 ### ChatGPT Dialogue Application
@@ -333,18 +258,18 @@ $ export OPENAI_API_KEY=<OpenAI's API key>.
   English version:
 
   ```sh
-  $ python run_server.py sample_apps/chatgpt/config_en.yml
+  $ dialbb-server sample_apps/chatgpt/config_en.yml
   ```
 
   Japanese version:
 
   ```sh
-  $ python run_server.py sample_apps/chatgpt/config_en.yml
+  $ dialbb-server sample_apps/chatgpt/config_en.yml
   ```
 
 ## Requests, Questions, and Bug Reports
 
-Please feel free to send your requests, questions, and bug reports about DialBB to the following email address. Even if it is a trivial or vague question, feel free to send it.
+Please feel free to send your requests, questions, and bug reports about DialBB to the following. Even if it is a trivial or vague question, feel free to send it.
 
 - Report bugs, point out missing documentation, etc.: [GitHub Issues](https://github.com/c4a-ri/dialbb/issues)
 

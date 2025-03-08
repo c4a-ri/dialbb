@@ -17,11 +17,7 @@ DialBBのメインモジュールは，クラスAPI（メソッド呼び出し�
 
 これは以下の手順で行います．
 
-- 環境変数PYTHONPATHにDialBBのディレクトリを追加します．
-
-  ```sh
-  export PYTHONPATH=<DialBBのディレクトリ>:$PYTHONPATH
-  ```
+- DialBBがGitHubのREADMEに従いpipでインストールされているか，`dialbb`がモジュール検索パスにあるとします．
 
 - DialBBを利用するアプリケーションの中で，以下のように`DialogueProcessor`のインスタンスを作成し，`process`メソッド[^fn-process]を呼び出します．
   
@@ -112,16 +108,12 @@ DialBBのメインモジュールは，クラスAPI（メソッド呼び出し�
 
 ### サーバの起動
 
-環境変数`PYTHONPATH`を設定します．
+DialBBがGitHubのREADMEに従いpipでインストールされていることを前提とします．
+
+以下のコマンドで起動します．
 
 ```sh
-export PYTHONPATH=<DialBBのディレクトリ>:$PYTHONPATH
-```
-
-コンフィギュレーションファイルを指定してサーバを起動します．
-
-```sh
-$ python <DialBBのディレクトリ>/run_server.py [--port <port>] <config file>
+$ dialbb-server [--port <port>] <config file>
 ```
 
 `port`（ポート番号）のデフォルトは8080です．

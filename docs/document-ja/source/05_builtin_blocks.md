@@ -319,21 +319,21 @@ OpenAI社のChatGPTを用いて，ユーザ発話タイプ（インテントと�
 
       Goole Sheet APIにアクセスするためのキーファイルをコンフィギュレーションファイルのディレクトリからの相対パスで指定します．
 
-- `gpt_model` (文字列．デフォルト値は`gpt-3.5-turbo`）
+- `gpt_model` (文字列．デフォルト値は`gpt-4o-mini`）
 
-  ChatGPTのモデルを指定します．`gpt-4-turbo`などが指定できます．`gpt-4`は指定できません．
+  ChatGPTのモデルを指定します．`gpt-4o`などが指定できます．
 
 - `prompt_template`
 
   プロンプトテンプレートを書いたファイルをコンフィギュレーションファイルのディレクトリからの相対パスで指定します．
 
-  これが指定されていない場合は，`dialbb.builtin_blocks.understanding_with_chatgpt.prompt_templates_ja .PROMPT_TEMPLATE_JA` （日本語）または，`dialbb.builtin_blocks.understanding_with_chatgpt.prompt_templates_en .PROMPT_TEMPLATE_EN` （英語）が使われます．
+  これが指定されていない場合は，`dialbb.builtin_blocks.understanding_with_chatgpt.prompt_template_ja.PROMPT_TEMPLATE_JA` （日本語）または，`dialbb.builtin_blocks.understanding_with_chatgpt.prompt_template_en.PROMPT_TEMPLATE_EN` （英語）が使われます．
 
   プロンプトテンプレートは，言語理解をChatGPTに行わせるプロンプトのテンプレートで，`@`で始まる以下の変数を含みます．
 
   - `@types` 発話タイプの種類を列挙したものです．
   - `@slot_definitions` スロットの種類を列挙したものです．
-  - `@examples` 発話例と，タイプ，スロットの正解を書いたいわゆるfew shot exampleです．
+  - `@examples` 発話例と，タイプ，スロットの正解を書いた，いわゆるfew shot exampleです．
   - `@input` 入力発話です．
 
   これらの変数には，実行時に値が代入されます．
@@ -404,7 +404,7 @@ OpenAI社のChatGPTを用いて，ユーザ発話タイプ（インテントと�
 
 - `multi_party` （ブール値．デフォルト値`False`．ver. 0.10.0で追加）
 
-  この値が`true`のとき，{numref}`context_information`の対話履歴の内容、および、{numref}`llm_functinos`の大規模言語モデルを用いる組み込み関数のプロンプトに入る対話履歴で、`user_id`の値が用いられます。
+  この値が`true`のとき，{numref}`context_information`の対話履歴の内容，および，{numref}`llm_functinos`の大規模言語モデルを用いる組み込み関数のプロンプトに入る対話履歴で，`user_id`の値が用いられます．
 
 (scenario)=
 
@@ -508,6 +508,7 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
 | _aux_data                  | メインプロセスから受け取ったaux_data（辞書型のデータ）       |
 | _previous_system_utterance | 直前のシステム発話（文字列）                                 |
 | _dialogue_history          | 対話履歴（リスト）                                           |
+| _turns_in_state            | 今の状態でのターン数（ユーザの発話回数）（整数）             |
 
 
 対話履歴は，以下の形です．
@@ -534,7 +535,7 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
 ]
 ```
 
-ブロックコンフィギュレーションの`multi_party`の値が`true`の時、`"user"`の代わりに、`user_id`の値を用います。
+ブロックコンフィギュレーションの`multi_party`の値が`true`の時，`"user"`の代わりに，`user_id`の値を用います．
 
 これらに加えて新しいキーと値のペアをアクション関数内で追加することができます．
 
@@ -634,13 +635,17 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
 
     例：`_not_member_of(*favorite_food, "ラーメン:チャーハン:餃子")`
 
-  - `_not_member_of(x, y)`
-
   - `_num_turns_exceeds(n)`
 
-    文字列`n`が表す整数よりもターン数（ユーザの発話回数）が多いとき，`True`を返します．
+    文字列`n`が表す整数よりも対話の最初からのターン数（ユーザの発話回数）が多いとき，`True`を返します．
 
     例：`_num_turns_exceeds("10")`
+
+  - `_num_turns_in_state_exceeds(n)`
+
+    文字列`n`が表す整数よりもその状態でのターン数（ユーザの発話回数）が多いとき，`True`を返します．
+
+    例：`_num_turns_in_state_exceeds("5")`
 
   - `_check_with_llm(task)`
 
@@ -698,7 +703,7 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
 
   - `gpt_model` （文字列） 
 
-    GPTのモデル名です．`gpt-4-turbo`, `gpt-3.5-turbo`等を指定できます．デフォルト値は`gpt-3.5-turbo`です．`gpt-4`は指定できません．
+    GPTのモデル名です．`gpt-4o-mini`, `gpt-4o`等を指定できます．デフォルト値は`gpt-4o-mini`です．
 
   - `temperature` (float)
 
@@ -720,7 +725,7 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
 
   ```yaml
   chatgpt:
-    gpt_model: gpt-4-turbo
+    gpt_model: gpt-4o-mini
     temperature: 0.7
     situation:
       - あなたは対話システムで，ユーザと食べ物に関して雑談をしています．
@@ -839,9 +844,9 @@ subdialogueの中でsubdialogueに遷移することも可能です．
 
 ### 外部データベースへの文脈情報の保存
 
-DialBBアプリケーションをWebサーバとして動作させる場合、リクエストが集中した際にロードバランサを使って複数インスタンスでに処理を分散させる場合、文脈情報を外部DB（MongoDB)に保存することで、一つのセッションを異なるインスタンスで処理することが可能です。(ver. 0.10.0で追加)
+DialBBアプリケーションをWebサーバとして動作させる場合，リクエストが集中した際にロードバランサを使って複数インスタンスでに処理を分散させる場合，文脈情報を外部DB（MongoDB)に保存することで，一つのセッションを異なるインスタンスで処理することが可能です．(ver. 0.10.0で追加)
 
-外部DBを使うには、ブロックコンフィギュレーションに以下のように`context_db`要素を指定します。
+外部DBを使うには，ブロックコンフィギュレーションに以下のように`context_db`要素を指定します．
 
 ```yaml
 context_db:
@@ -851,7 +856,7 @@ context_db:
   password: password
 ```
 
-各キーは以下です。
+各キーは以下です．
 
 - `host` （str)
 
@@ -1012,15 +1017,165 @@ OpenAI社のChatGPTを用いて対話を行います．
     <ブロックコンフィギュレーションのuser_nameの値>: <ユーザ発話>
     ```
 
-- `gpt_model` （文字列，デフォルト値は`gpt-3.5-turbo`）
+- `gpt_model` （文字列，デフォルト値は`gpt-4o-mii`）
 
-  Open AI GPTのモデルです．`gpt-4`, `gpt-4-turbo`などが指定できます．
+  Open AI GPTのモデルです．`gpt-4o`, `gpt-4o-mini`などが指定できます．
 
 ### 処理内容
 
 - 対話の最初はブロックコンフィギュレーションの`first_system_utterance`の値をシステム発話として返します．
 
 - 2回目以降のターンでは，プロンプトテンプレートの`@dialogue_history`に対話履歴を代入したものを与えてChatGPTに発話を生成させ，返ってきた文字列をシステム発話として返します．
+
+
+(chatgpt_ner)=
+## ChatGPT NER （ChatGPTを用いた固有表現抽出ブロック）
+
+(`dialbb.builtin_blocks.ner_with_chatgpt.chatgpt_ner.NER`）
+
+OpenAI社のChatGPTを用いて，固有表現の抽出を行います．
+
+コンフィギュレーションの`language`要素が`ja`の場合は日本語，`en`の場合は英語の固有表現抽出を行います．
+
+本ブロックは，起動時にExcelで記述した固有表現用知識を読み込み，固有表現のクラスのリスト，各固有表現クラスの説明，各クラスの固有表現の例，抽出例（Few shot example）に変換し，プロンプトに埋め込みます．
+
+実行時は，プロンプトに入力発話を付加してChatGPTに固有表現抽出を行わせます．
+
+### 入出力
+
+- 入力
+
+  - `input_text`: 入力文字列
+
+
+  - `aux_data`: 補助データ（辞書型)
+
+
+- 出力
+
+  - `aux_data`: 補助データ（辞書型）
+
+    入力された`aux_data`に固有表現抽出結果を加えたものです．
+
+    固有表現抽出結果は，以下の形です．
+
+    ```json
+    {"NE_<ラベル>": "<固有表現>", "NE_<ラベル>": "<固有表現>", ...}
+    ```
+
+    <ラベル>は固有表現のクラスです．固有表現は見つかった固有表現で，`input_text`の部分文字列です．同じクラスの固有表現が複数見つかった場合，`:`で連結します．
+
+    例
+
+    ```json
+    {"NE_人名": "田中:鈴木", "NE_料理": "味噌ラーメン"}
+    ```
+
+(chatgpt_understander_params)=
+
+### ブロックコンフィギュレーションのパラメータ
+
+- `knowledge_file`（文字列）
+
+  固有表現知識を記述したExcelファイルを指定します．コンフィギュレーションファイルのあるディレクトリからの相対パスで記述します．
+
+- `flags_to_use`（文字列のリスト）
+
+  各シートの`flag`カラムにこの値のうちのどれかが書かれていた場合に読み込みます．このパラメータがセットされていない場合はすべての行が読み込まれます．
+
+- `knowledge_google_sheet` (ハッシュ)
+
+  - Excelの代わりにGoogle Sheetを用いる場合の情報を記述します．（Google Sheetを利用する際の設定は[こはたさんの記事](https://note.com/kohaku935/n/nc13bcd11632d)が参考になりますが，Google Cloud Platformの設定画面のUIがこの記事とは多少変わっています．）
+
+    - `sheet_id` （文字列）
+
+      Google SheetのIDです．
+
+    - `key_file`（文字列）
+
+      Goole Sheet APIにアクセスするためのキーファイルをコンフィギュレーションファイルのディレクトリからの相対パスで指定します．
+
+- `gpt_model` (文字列．デフォルト値は`gpt-4o-mini`）
+
+  ChatGPTのモデルを指定します．`gpt-4o`などが指定できます．
+
+- `prompt_template`
+
+  プロンプトテンプレートを書いたファイルをコンフィギュレーションファイルのディレクトリからの相対パスで指定します．
+
+  これが指定されていない場合は，`dialbb.builtin_blocks.ner_with_chatgpt.chatgpt_ner.prompt_template_ja .PROMPT_TEMPLATE_JA` （日本語）または，`dialbb.builtin_blocks.ner_with_chatgpt.chatgpt_ner.prompt_template_en .PROMPT_TEMPLATE_EN` （英語）が使われます．
+
+  プロンプトテンプレートは，言語理解をChatGPTに行わせるプロンプトのテンプレートで，`@`で始まる以下の変数を含みます．
+
+  - `@classes` 固有表現のクラスを列挙したものです．
+  - `@class_explanations` 各固有表現クラスの説明を列挙したものです．
+  - `@ne_examples` 各固有表現クラスの固有表現の例を列挙したものです．
+  - `@ner_examples` 発話例と，固有表現抽出結果の正解を書いた，いわゆるfew shot exampleです．
+  - `@input` 入力発話です．
+
+  これらの変数には，実行時に値が代入されます．
+
+(chatgpt_ner_knowledge)=
+
+### 固有表現抽出知識
+
+固有表現抽出知識は，以下の2つのシートからなります．
+
+| シート名   | 内容                                             |
+| ---------- | ------------------------------------------------ |
+| utterances | 発話と固有表現抽出結果の例                       |
+| classes    | スロットとエンティティの関係および同義語のリスト |
+
+シート名はブロックコンフィギュレーションで変更可能ですが，変更することはほとんどないと思いますので，詳細な説明は割愛します．
+
+#### utterancesシート
+
+各行は次のカラムからなります．
+
+- `flag`      
+
+  利用するかどうかを決めるフラグ．`Y` (yes), `T` (test)などを書くことが多いです．どのフラグの行を利用するかはコンフィギュレーションに記述します．
+
+- `utterance` 
+
+  発話例．
+
+- `entities` 
+
+  発話に含まれる固有表現．固有表現を以下の形で記述します．
+
+  ```
+  <固有表現クラス>=<固有表現>, <固有表現クラス>=<固有表現>, ... <固有表現クラス>=<固有表現> 
+  ```
+
+  以下が例です．
+
+  ```
+  人名=太郎, 地名=東京
+  ```
+
+  utterancesシートのみならずこのブロックで使うシートにこれ以外のカラムがあっても構いません．
+
+#### classesシート
+
+各行は次のカラムからなります．
+
+- `flag`
+
+  utterancesシートと同じ
+
+- `class` 
+
+  固有表現クラス名．
+
+- `explanation`
+
+  固有表現クラスの説明
+
+- `examples`
+
+  固有表現の例を`','`で連結したものです．
+
 
 (spacy_ner)=
 
