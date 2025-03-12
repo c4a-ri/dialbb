@@ -19,8 +19,8 @@ app = Flask(__name__,  template_folder=DOC_ROOT,
 
 
 llm_pattern = re.compile(r'\$\".*?\"')
-str_eq_pattern = re.compile(r'(.+?)\s*==\s*(.+)')
-str_ne_pattern = re.compile(r'(.+?)\s*!=\s*(.+)')
+str_eq_pattern = re.compile(r'(.+?)\s*==\s*\"(.+)\"')
+str_ne_pattern = re.compile(r'(.+?)\s*!=\s*\"(.+)\"')
 num_turns_exceeds_pattern = re.compile(r'_num_turns_exceeds\(\s*\"\d+\"\s*\)')
 num_turns_in_state_exceeds_pattern = re.compile(r'_num_turns_in_state_exceeds\(\s*\"\d+\"\s*\)')
 
@@ -66,16 +66,16 @@ def check_and_warn(scenario_json_file: str) -> str:
             if conditions != "":
                 for condition in [x.strip() for x in re.split('[;；]', conditions)]:
                     if illegal_condition(condition):
-                        warning += f'Warning: ユーザノード{node_id}の遷移の条件"{condition}"は正しい条件ではありません。\n'
+                        warning += f'Warning: ユーザノード id:{node_id} の遷移の条件 {condition} は正しい条件ではありません。\n'
             actions = node['controls']['actions']['value'].strip()
             if actions != "":
-                warning += f'Warning: ユーザノード{node_id}の遷移時のアクションに"{actions}"が書かれています。遷移時のアクションは上級者向けのものであることに注意して下さい。\n'
+                warning += f'Warning: ユーザノード id:{node_id} の遷移時のアクションに {actions} が書かれています。遷移時のアクションは上級者向けのものであることに注意して下さい。\n'
             if node['id'] not in connect_sources:
-                warning += f'Warning: ユーザノード{node_id}の遷移先がありません。\n'
+                warning += f'Warning: ユーザノード id:{node_id} の遷移先がありません。\n'
         elif node.get('label') == 'systemNode':
             system_node_type: str = node['controls']['type']['value'].strip()
             if system_node_type == "":
-                warning += f'Warning: システムノード{node_id}のタイプeが未定です。\n'
+                warning += f'Warning: システムノード id:{node_id} のタイプが未定です。\n'
             else:
                 if system_node_type == "initial":
                     initial_node_exists = True
@@ -84,11 +84,11 @@ def check_and_warn(scenario_json_file: str) -> str:
 
                 if system_node_type not in ('final', 'error'):
                     if node['id'] not in connect_sources:
-                        warning += f'Warning: システムノード{node_id}の遷移先がありません。\n'
+                        warning += f'Warning: システムノード id:{node_id} の遷移先がありません。\n'
 
             utterance: str = node['controls']['utterance']['value'].strip()
             if utterance == "":
-                warning += f'Warning: システムノード{node_id}の発話が空です。\n'
+                warning += f'Warning: システムノード id:{node_id} の発話が空です。\n'
 
     if not initial_node_exists:
         warning += f'Warning: typeがinitialのシステムノードがありません。\n'
