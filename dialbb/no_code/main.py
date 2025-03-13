@@ -93,8 +93,9 @@ def exec_editor(file_path, parent):
         # finish editing   終了処理
         json_file = f'{EDITOR_DIR}/static/data/save.json'
         if not os.path.isfile(json_file):
-            messagebox.showwarning('Warning', 'シナリオが保存されませんでした。',
-                                   detail='保存するにはシナリオ編集画面の[Save]ボタンを押して下さい。',
+            messagebox.showwarning('Warning', 'シナリオが保存されていません。',
+                                   detail='保存せずに終了しますか？終了する場合はOKを押して下さい。\n' +
+                                   '保存するにはシナリオ編集画面の[Save]ボタンを押して下さい。',
                                    parent=parent)
         # recheck   WarningでSaveした場合を考慮して再チェック
         if os.path.isfile(json_file):
