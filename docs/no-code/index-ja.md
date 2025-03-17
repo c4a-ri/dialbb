@@ -43,11 +43,7 @@ Windows11，MacOSで動作します．
 
 - 必要なファイルを以下の要領でダウンロードします．
 
-  - ブラウザでのアドレスバーにhttps://github.com/c4a-ri/dialbb/blob/dev-v1.0/docs/files/dialbb-setup.zip を打ち込んでEnterキーを押します．
-
-  - 遷移したページの右側の下向き矢印をクリックします．
-
-    ![github-download](images/github-download.png)
+  - ブラウザから https://c4a-ri.github.io/dialbb/files/dialbb-setup.zip にアクセスします．
 
   - `ダウンロード`フォルダに`dialbb`ファイルがダウンロードされます．エクスプローラで`ダウンロード`フォルダを開いて確認してください．以下のようなファイルができているはずです．
 
@@ -55,7 +51,7 @@ Windows11，MacOSで動作します．
 
     - このようにチャックの模様があるものをzipファイルと呼びます．環境によっては，`dialbb-setup.zip`という名前で表示されます．
     - 複数回ダウンロードすると，新しくダウンロードしたものは`dialbb-setup(1)`のような名前になるので，その場合，`ダウンロード`フォルダの`dialbb-setup`を削除してからもう一度ダウンロードしてください．
-
+  
 - エクスプローラで`dialbb-setup`アイコンの上にカーソルを持っていき右クリックし，「すべて展開」を選びます．出てきた画面で，「展開」を押してください．`dialbb-setup`フォルダができるので，それを開いてください．
 
 - install（環境によってはinstall.bat）をダブルクリックします．DialBBがインストールされます．
@@ -67,7 +63,7 @@ Windows11，MacOSで動作します．
 
 - 以下の手順でシナリオエディタ（のGUIプログラム）をインストールします．このプログラムのライセンスなどの情報は，https://c4a-ri.github.io/dialbb-scenario-editor/ に書いてあります．
 
-- ブラウザでのアドレスバーに https://c4a-ri.github.io/dialbb-scenario-editor/files/editor-gui.zip を打ち込んでEnterキーを押します．
+- ブラウザから https://c4a-ri.github.io/dialbb-scenario-editor/files/editor-gui.zip にアクセスします．
 - `ダウンロード`フォルダに`editor_gui`という名前のzipファイル（または`editor_gui.zip`）がダウンロードされます．
 - このファイルを先ほどの`dialbb-setup`フォルダ（展開してできたフォルダ）に移動します．
 - `dialbb-setup`フォルダにある，`install-scenario-editor`アイコンをダブルクリックします．
