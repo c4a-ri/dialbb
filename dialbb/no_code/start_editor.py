@@ -19,8 +19,8 @@ app = Flask(__name__,  template_folder=DOC_ROOT,
 
 
 llm_pattern = re.compile(r'\$\".*?\"')
-str_eq_pattern = re.compile(r'(.+?)\s*==\s*\"(.+)\"')
-str_ne_pattern = re.compile(r'(.+?)\s*!=\s*\"(.+)\"')
+str_eq_pattern = re.compile(r'(.+?)\s*==\s*\"(.*)\"')
+str_ne_pattern = re.compile(r'(.+?)\s*!=\s*\"(.*)\"')
 num_turns_exceeds_pattern = re.compile(r'_num_turns_exceeds\(\s*\"\d+\"\s*\)')
 num_turns_in_state_exceeds_pattern = re.compile(r'_num_turns_in_state_exceeds\(\s*\"\d+\"\s*\)')
 
