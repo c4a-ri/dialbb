@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.0.0 (2025.3.17)
+
+- pipでのインストールを可能に
+
+- ノーコードツールを追加
+
+- ChatGPT NER組み込みブロックを追加
+
+- デフォルトのGPTモデルをgpt-4o-miniに変更
+
+- 組み込み条件関数 `_max_turns_in_state_exceeds` をSTN Managerブロックに追加
+
 ## 0.10.0 (2025.1.6)
 
 - ライセンスをApache License 2.0に変更

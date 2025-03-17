@@ -1,0 +1,5 @@
+app/*
+!app/.gitkeep
+gui_editor/static/data/*
+!gui_editor/static/data/.gitkeep
+settings.dat

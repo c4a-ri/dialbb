@@ -39,8 +39,8 @@ from oauth2client.service_account import ServiceAccountCredentials
 
 from dialbb.main import ANY_FLAG, KEY_SESSION_ID
 from dialbb.util.error_handlers import abort_during_building
-from dialbb.builtin_blocks.understanding_with_chatgpt.prompt_templates_ja import PROMPT_TEMPLATE_JA
-from dialbb.builtin_blocks.understanding_with_chatgpt.prompt_templates_en import PROMPT_TEMPLATE_EN
+from dialbb.builtin_blocks.understanding_with_chatgpt.prompt_template_ja import PROMPT_TEMPLATE_JA
+from dialbb.builtin_blocks.understanding_with_chatgpt.prompt_template_en import PROMPT_TEMPLATE_EN
 
 
 CONFIG_KEY_KNOWLEDGE_GOOGLE_SHEET: str = "knowledge_google_sheet"  # google sheet info
@@ -55,7 +55,7 @@ CONFIG_KEY_GPT_MODEL: str = "gpt_model"
 KEY_INPUT_TEXT: str = "input_text"
 KEY_NLU_RESULT: str = "nlu_result"
 
-DEFAULT_GPT_MODEL: str = "gpt-3.5-turbo"
+DEFAULT_GPT_MODEL: str = "gpt-4o-mini"
 
 SCOPES = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
 
@@ -157,7 +157,7 @@ class Understander(AbstractBlock):
         """
 
         excel_file_path = os.path.join(self.config_dir, excel_file)
-        print(f"reading excel file: {excel_file_path}", file=sys.stderr)
+        self.log_debug(f"reading excel file: {excel_file_path}")
         try:
             df_all: Dict[str, DataFrame] = pd.read_excel(excel_file_path, sheet_name=None)  # read all sheets
             # reading slots sheet
@@ -219,7 +219,7 @@ class Understander(AbstractBlock):
         """
 
         prompt: str = self._prompt_template.replace('@input', input_text)
-        self.log_debug("prompt " + prompt)
+        self.log_debug("NLU prompt " + prompt)
 
         chat_completion = None
         while True:
@@ -244,7 +244,6 @@ class Understander(AbstractBlock):
         self.log_debug("chatgpt result: " + chatgpt_result_string)
         try:
             result: Dict[str, Any] = json.loads(chatgpt_result_string)
-            print(str(result))
             if not result.get("type"):
                 raise Exception("result doesn't have type")
             if result.get("slots", None) is None or type(result.get("slots")) != dict:

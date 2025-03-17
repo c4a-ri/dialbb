@@ -32,7 +32,7 @@ from dialbb.abstract_block import AbstractBlock
 from dialbb.util.error_handlers import abort_during_building
 
 DIALOGUE_HISTORY_TAG: str = '@dialogue_history'
-DEFAULT_GPT_MODEL: str = "gpt-3.5-turbo"
+DEFAULT_GPT_MODEL: str = "gpt-4o-mini"
 
 
 class ChatGPT(AbstractBlock):

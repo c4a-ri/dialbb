@@ -155,6 +155,12 @@ def builtin_confidence_is_low(context: Dict[str, Any]) -> bool:
 
 
 def builtin_num_turns_exceeds(threshold_str: str, context: Dict[str, Any]) -> bool:
+    """
+    Checks number of turns from the beginning of the session exceeds the threshold
+    :param threshold_str:
+    :param context:
+    :return: True if exceeds
+    """
 
     try:
         threshold: int = int(threshold_str)
@@ -171,6 +177,22 @@ def builtin_num_turns_exceeds(threshold_str: str, context: Dict[str, Any]) -> bo
     else:
         return False
 
+
+def builtin_num_turns_in_state_exceeds(threshold_str: str, context: Dict[str, Any]) -> bool:
+    """
+    Checks number of turns in the state exceeds the threshold
+    :param threshold_str:
+    :param context:
+    :return: True if exceeds
+    """
+
+    try:
+        threshold: int = int(threshold_str)
+    except ValueError:
+        print("Warning: threshold for turns is not an integer: " + threshold_str)
+        return False
+
+    return True if context.get("_turns_in_state", 0) > threshold else False
 
 def create_prompt_for_chatgpt(task: str, language: str, system_persona: str, situation: str,
                               dialogue_history: List[Dict[str, str]]) -> str:
@@ -243,12 +265,12 @@ def builtin_generate_with_llm(task: str, context: Dict[str, Any]) -> str:
         # read chatgpt settings in the block config
         chatgpt_settings: Dict[str, Any] = context['_block_config'].get("chatgpt")
         if chatgpt_settings:
-            gpt_model: str = chatgpt_settings.get("gpt_model", "gpt-3.5-turbo")
+            gpt_model: str = chatgpt_settings.get("gpt_model", "gpt-4o-mini")
             gpt_temperature: float = chatgpt_settings.get("temperature", 0.7)
             system_persona: List[str] = chatgpt_settings.get("persona")
             situation: List[str] = chatgpt_settings.get("situation")
         else:
-            gpt_model: str = "gpt-3.5-turbo"
+            gpt_model: str = "gpt-4o-mini"
             gpt_temperature: float = 0.7
             system_persona: str = ""
             situation: str = ""
@@ -306,12 +328,12 @@ def builtin_check_with_llm(task: str, context: Dict[str, Any]) -> bool:
         # read chatgpt settings in the block config
         chatgpt_settings: Dict[str, Any] = context['_block_config'].get("chatgpt")
         if chatgpt_settings:
-            gpt_model: str = chatgpt_settings.get("gpt_model", "gpt-3.5-turbo")
-            gpt_temperature: float = chatgpt_settings.get("temperature", 0.7)
+            gpt_model: str = chatgpt_settings.get("gpt_model", "gpt-4o-mini")
+            gpt_temperature: float = chatgpt_settings.get("temperature_for_checking", 0.7)
             system_persona: List[str] = chatgpt_settings.get("persona")
             situation: List[str] = chatgpt_settings.get("situation")
         else:
-            gpt_model: str = "gpt-3.5-turbo"
+            gpt_model: str = "gpt-4o-mini"
             gpt_temperature: float = 0.7
             system_persona: str = ""
             situation: str = ""

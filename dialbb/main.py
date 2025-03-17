@@ -29,14 +29,15 @@ import time
 from typing import Dict, Any, List
 import importlib
 import yaml
+import io, sys
 import os
-import sys
 import hashlib
 
 from dialbb.util.globals import DEBUG
 from dialbb.abstract_block import AbstractBlock
 from dialbb.util.error_handlers import abort_during_building
 from dialbb.util.logger import get_logger
+
 
 session_count = 0  # used in generating session id's
 ANY_FLAG: str = "Any"
@@ -47,6 +48,8 @@ KEY_USER_UTTERANCE: str = 'user_utterance'
 KEY_BLOCK_CLASS: str = 'block_class'
 CONFIG_DIR: str = ""
 
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 @dataclasses.dataclass
 class BlockInfo:

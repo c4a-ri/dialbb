@@ -26,16 +26,16 @@ blocks:  # list of blocks
       - 'Y'
       - 'T'
   - name: ner
-    block_class: dialbb.builtin_blocks.ner_with_spacy.ne_recognizer.SpaCyNER
+    block_class: dialbb.builtin_blocks.ner_with_chatgpt.chatgpt_ner.NER
     input:
       input_text: user_utterance
       aux_data: aux_data
     output:
       aux_data: aux_data
-    model: en_core_web_trf
-    patterns:
-      - label: Date
-        pattern: yesterday
+    knowledge_file: lab_app_ner_knowledge_en.xlsx  # ner knowledge description
+    flags_to_use:
+      - 'Y'
+      - 'T'
   - name: manager
     block_class: dialbb.builtin_blocks.stn_management.stn_manager.Manager
     knowledge_file: lab_app_scenario_en.xlsx # knowledge description file
