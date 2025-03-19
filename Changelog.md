@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.1 (2025.3.19)
+
+- uninstall batch file added
+	
 ## 1.0.0 (2025.3.17)
 
 - Installation via pip enabled
