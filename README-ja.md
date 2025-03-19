@@ -1,7 +1,7 @@
 # DialBB: 対話システム構築フレームワーク
 
 
-ver. 1.0.0
+ver. 1.0.1
 
 [English](README.md)
 
@@ -37,8 +37,8 @@ Ubuntu 20.04/Windows 10上のpython 3.10.13で，以下の手順で動作する�
 - 必要なら仮想環境を構築します．以下はvenvの例です．
 
   ```sh
-  $ python -m venv venv  # 仮想環境をvenvという名前で構築
-  $ venv/bin/activate   # 仮想環境に入る
+  $ python -m venv venv        # 仮想環境をvenvという名前で構築
+  $ source venv/bin/activate   # 仮想環境に入る
   ```
 
 - [配布用ディレクトリ](dist)からwhlファイルをダウンロードします．
@@ -119,7 +119,7 @@ http://<hostname>:8080/test
 
 - 日本語アプリケーション
 
-  - Japanese Canonicalizer Block
+  - Japanese Canonicalizer Block（日本語文字列正規化）
   - LR-CRF Understander  Block  (ロジスティック回帰と条件付き確率場を用いた言語理解)
   - STN Manager  Block (状態遷移ネットワークに基づく対話管理)
 - 英語アプリケーション
@@ -183,18 +183,10 @@ http://<hostname>:8080/test
 
 - 日本語アプリケーション
 
-
-    - Japanese Canonicalizer Block 
-
-
-    - ChatGPT Understander Block
-
-
-    - ChatGPT NER Block
-
-
-    - STN Manager Block
-
+  -  Japanese Canonicalizer Block 
+  - ChatGPT Understander Block
+  - ChatGPT NER Block
+  - STN Manager Block
 
 
 - 英語アプリケーション
@@ -235,15 +227,6 @@ http://<hostname>:8080/test
 
 - ChatGPT Dialogue Block
 
-
-#### Pythonライブラリのインストール
-
-  以下を実行します．
-
-  ```sh
-  $ pip install -r sample_apps/chatgpt/requirements.txt 
-  ```
-
 #### 環境変数の設定
 
   環境変数OPENAI_API_KEYにOpenAIのAPIキーを設定します．以下はbashの例です．
@@ -265,6 +248,14 @@ http://<hostname>:8080/test
   ```sh
   $ dialbb-server sample_apps/chatgpt/config_en.yml 
   ```
+
+### DialBBのアンインストール
+
+以下でアンインストールできます．
+
+```sh
+$ pip uninstall -y dialbb
+```
 
 ## 要望・質問・バグ報告
 
