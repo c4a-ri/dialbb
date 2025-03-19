@@ -6,7 +6,7 @@ ver. 1.0.1
 
 ## Project Main Page
 
-Please refer the [the project main page](https://c4a-ri.github.io/dialbb/), which includes the overview of DialBB and the links to the documents.
+Please refer to [the project main page](https://c4a-ri.github.io/dialbb/), which includes the overview of DialBB and the links to the documents.
 
 ## Documents
 
