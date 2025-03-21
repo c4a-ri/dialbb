@@ -39,7 +39,7 @@ The following instructions assume that you are working with bash on Ubuntu. If y
   $ venv/bin/activate   # Enter the virtual environment
   ```
 
-- Download whl file from [distribution directory](dist).
+- Download whl file from [distribution directory](docs/filest).
 
 - Execute the following.
 

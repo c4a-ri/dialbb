@@ -51,7 +51,7 @@ Ubuntu 20.04/Windows 10上のpython 3.10.13で，以下の手順で動作する�
 
 ### サンプルアプリケーションのダウンロード
 
-[配布用ディレクトリ](dist)から`sample_apps.zip`ファイルをダウンロードし，適当なところに展開します．
+[`sample_apps.zip`ファイル](https://c4a-ri.github.io/dialbb/files/sample_apps.zip)をダウンロードし，適当なところに展開します．
 
 
 ### オウム返しサンプルアプリケーション
