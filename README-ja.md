@@ -41,7 +41,7 @@ Ubuntu 20.04/Windows 10上のpython 3.10.13で，以下の手順で動作する�
   $ source venv/bin/activate   # 仮想環境に入る
   ```
 
-- [配布用ディレクトリ](dist)からwhlファイルをダウンロードします．
+- [配布用ディレクトリ](dist)から`dialbb-*-py3-none-any.whl`ファイルをダウンロードします．
 
 - 以下を実行します．
 
@@ -51,7 +51,7 @@ Ubuntu 20.04/Windows 10上のpython 3.10.13で，以下の手順で動作する�
 
 ### サンプルアプリケーションのダウンロード
 
-[`sample_apps.zip`ファイル](https://c4a-ri.github.io/dialbb/files/sample_apps.zip)をダウンロードし，適当なところに展開します．
+サンプルアプリケーションファイルを[https://c4a-ri.github.io/dialbb/files/sample_apps.zip](https://c4a-ri.github.io/dialbb/files/sample_apps.zip)をクリックしてダウンロードし，適当なところに展開します．
 
 
 ### オウム返しサンプルアプリケーション
