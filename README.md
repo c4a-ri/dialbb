@@ -39,7 +39,7 @@ The following instructions assume that you are working with bash on Ubuntu. If y
   $ venv/bin/activate   # Enter the virtual environment
   ```
 
-- Download whl file from [distribution directory](docs/filest).
+- Download `dialbb-*-py3-none-any.whl` file from [distribution directory](dist).
 
 - Execute the following.
 
@@ -49,7 +49,7 @@ The following instructions assume that you are working with bash on Ubuntu. If y
 
 ### Download the Sample Applications
 
-Download the `sample_apps.zip` file from the [distribution directory](dist) and extract it to a suitable location.
+Download the sample applications file by clicking [https://c4a-ri.github.io/dialbb/files/sample_apps.zip](https://c4a-ri.github.io/dialbb/files/sample_apps.zip) and extract them in an appropriate directory.
 
 
 ### Running the Parroting Application
