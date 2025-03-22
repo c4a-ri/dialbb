@@ -44,7 +44,7 @@ The following instructions assume that you are working with bash on Ubuntu. If y
 - Execute the following.
 
   ```sh
-  $ pip install <ダウンロードしたwhlファイル>
+  $ pip install <downloaded whl file>
   ```
 
 ### Download the Sample Applications
