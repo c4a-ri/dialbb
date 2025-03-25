@@ -1,7 +1,7 @@
 # DialBB: 対話システム構築フレームワーク
 
 
-ver. 1.0.1
+ver. 1.0.2
 
 [English](README.md)
 
@@ -254,6 +254,7 @@ http://<hostname>:8080/test
 以下でアンインストールできます．
 
 ```sh
+$ dialbb-uninstall
 $ pip uninstall -y dialbb
 ```
 
