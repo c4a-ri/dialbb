@@ -1,6 +1,6 @@
 # DialBB: A Framework for Building Dialogue Systems
 
-ver. 1.0.1
+ver. 1.0.2
 
 [<img src="./docs/images/japan_national_flag.jpg" width="5%">日本語](README-ja.md)
 
@@ -272,6 +272,7 @@ $ export OPENAI_API_KEY=<OpenAI's API key>.
 Do the following
 
 ```sh
+$ dialbb-uninstall
 $ pip uninstall -y dialbb
 ```
 
