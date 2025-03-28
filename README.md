@@ -1,12 +1,12 @@
 # DialBB: A Framework for Building Dialogue Systems
 
-ver. 1.0.0
+ver. 1.0.2
 
 [<img src="./docs/images/japan_national_flag.jpg" width="5%">日本語](README-ja.md)
 
 ## Project Main Page
 
-Please refer the [the project main page](https://c4a-ri.github.io/dialbb/), which includes the overview of DialBB and the links to the documents.
+Please refer to [the project main page](https://c4a-ri.github.io/dialbb/), which includes the overview of DialBB and the links to the documents.
 
 ## Documents
 
@@ -39,17 +39,17 @@ The following instructions assume that you are working with bash on Ubuntu. If y
   $ venv/bin/activate   # Enter the virtual environment
   ```
 
-- Download whl file from [distribution directory](dist).
+- Download `dialbb-*-py3-none-any.whl` file from [distribution directory](dist).
 
 - Execute the following.
 
   ```sh
-  $ pip install <ダウンロードしたwhlファイル>
+  $ pip install <downloaded whl file>
   ```
 
 ### Download the Sample Applications
 
-Download the `sample_apps.zip` file from the [distribution directory](dist) and extract it to a suitable location.
+Download the sample applications file by clicking [https://c4a-ri.github.io/dialbb/files/sample_apps.zip](https://c4a-ri.github.io/dialbb/files/sample_apps.zip) and extract them in an appropriate directory.
 
 
 ### Running the Parroting Application
@@ -266,6 +266,15 @@ $ export OPENAI_API_KEY=<OpenAI's API key>.
   ```sh
   $ dialbb-server sample_apps/chatgpt/config_en.yml
   ```
+
+### Uninstalling DialBB
+
+Do the following
+
+```sh
+$ dialbb-uninstall
+$ pip uninstall -y dialbb
+```
 
 ## Requests, Questions, and Bug Reports
 
