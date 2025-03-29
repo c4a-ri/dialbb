@@ -8,24 +8,6 @@ OpenAI ChatGPTを用いたDialBBアプリケーションのテスタ
 
 - DialBBをインストールします．
 
-- DialBBをインストールしたディレクトリを環境変数`DIALBB_HOME`に設定します．
-
-  ```sh
-  export DIALBB_HOME=<DIALBBのインストールディレクトリ>
-  ```
-
-- 環境変数`PYTHONPATH`にDialBBのインストールディレクトリを設定します．
-  
-  ```sh
-  export PYTHONPATH=$DIALBB_HOME:$PYTHONPATH
-  ```
-
-- Open AIのライブラリをインストールします．
-
-  ```sh
-  pip install openai
-  ```
-
 - 環境変数`OPENAI_KEY`または`OPENAI_API_KEY`にOpenAI APIのキーを設定します．
 
   ```sh
@@ -35,10 +17,20 @@ OpenAI ChatGPTを用いたDialBBアプリケーションのテスタ
 - このREADMEのあるディレクトリで以下のコマンドを実行します．
 
   ```sh
-  python main.py --app_config $DIALBB_HOME/sample_apps/chatgpt/config_ja.yml --test_config sample_ja/config.yml --output _output.txt
+  dialbb-tester --app_config sample_apps/chatgpt/config_ja.yml --test_config sample_ja/config.yml --output _output.txt
   ```
   
 - `_output.txt`に結果が記述されます．
+
+- プログラムの中でテスタを起動するには以下のようにします
+
+  ```python
+  import dialbb
+  
+  dialbb.sim_tester.test.main("sample_apps/chatgpt/config_ja.yml", 
+                              "sample_ja/config.yml", output="_output.txt")
+  ```
+
 
 ## 仕様
 
@@ -83,3 +75,11 @@ OpenAI ChatGPTを用いたDialBBアプリケーションのテスタ
   - `temperatures`: （浮動小数点数のリスト．任意）GPTの温度パラメータのリスト．デフォルト値は0.7の一要素のみのリスト．`prompt_templates`のリストの長さ×このリストの長さのセッションが行われます．
   
   - `max_turns`: (整数．任意）セッションあたりの最大ターン数．デフォルト値15．
+
+- 関数仕様
+
+  ```
+  dialbb.sim_tester.test.main(<テストコンフィギュレーション: str>, 
+                              <DialBBアプリケーションコンフィギュレーション>,
+                              "sample_ja/config.yml", output="_output.txt")
+  ```

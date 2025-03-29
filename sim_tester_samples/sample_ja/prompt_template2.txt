@@ -1,6 +1,5 @@
 # タスク説明
 
-@task_description
 
 # あなたのペルソナ
 
