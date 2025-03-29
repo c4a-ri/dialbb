@@ -1,0 +1,14 @@
+user_name: ユーザ
+system_name: システム
+model: gpt-4o-mini
+
+settings:
+  - prompt_template: prompt_template1.txt
+    task_description: task.txt
+    initial_aux_data: aux_data1.json
+  - prompt_template: prompt_template2.txt
+    task_description: task.txt
+temperatures:
+  - 0.0
+  - 0.7
+
