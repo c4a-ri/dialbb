@@ -78,8 +78,14 @@ OpenAI ChatGPTを用いたDialBBアプリケーションのテスタ
 
 - 関数仕様
 
-  ```
-  dialbb.sim_tester.test.main(<テストコンフィギュレーション: str>, 
-                              <DialBBアプリケーションコンフィギュレーション>,
-                              "sample_ja/config.yml", output="_output.txt")
-  ```
+  - `dialbb.sim_tester.test.main(test_config_file: str, app_config_file: str, output_file: str=None, json_output: bool=False)`
+ 
+    パラメータ
+    
+    - `test_config_file` テストコンフィギュレーション
+
+    - `app_config_file` DialBBアプリケーションファイル
+
+    - `output_file` 対話ログ出力ファイル
+  
+    - `json_output` 出力ファイルのフォーマットがJSONかどうか。Falseならテキストファイル。
