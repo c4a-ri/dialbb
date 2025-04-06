@@ -25,10 +25,10 @@ OpenAI ChatGPTを用いたDialBBアプリケーションのテスタ
 - プログラムの中でテスタを起動するには以下のようにします
 
   ```python
-  import dialbb
+  from dialbb.sim_tester.main import test_by_simulation
   
-  dialbb.sim_tester.test.main("sample_apps/chatgpt/config_ja.yml", 
-                              "sample_ja/config.yml", output="_output.txt")
+  test_by_simulation("sample_apps/chatgpt/config_ja.yml", 
+                     "sample_ja/config.yml", output="_output.txt")
   ```
 
 
@@ -78,7 +78,7 @@ OpenAI ChatGPTを用いたDialBBアプリケーションのテスタ
 
 - 関数仕様
 
-  - `dialbb.sim_tester.test.main(test_config_file: str, app_config_file: str, output_file: str=None, json_output: bool=False)`
+  - `dialbb.sim_test.main.test_by_simulation(test_config_file: str, app_config_file: str, output_file: str=None, json_output: bool=False, prompt_params: Dict[str, str])`
  
     パラメータ
     
@@ -89,3 +89,5 @@ OpenAI ChatGPTを用いたDialBBアプリケーションのテスタ
     - `output_file` 対話ログ出力ファイル
   
     - `json_output` 出力ファイルのフォーマットがJSONかどうか。Falseならテキストファイル。
+
+    - `prompt_params` プロンプトに埋め込む情報を辞書型で記述したもの。プロンプトテンプレートに`{<key>}`があれば、<value>で置き換えられる。prom

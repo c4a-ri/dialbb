@@ -6,7 +6,8 @@ from typing import Dict, Any
 
 
 DEFAULT_GPT_MODEL: str = "gpt-3.5-turbo"
-DIALOG_HISTORY_TAG: str = '@dialogue_history'
+DIALOG_HISTORY_TAG: str = '{dialogue_history}'
+DIALOG_HISTORY_OLD_TAG: str = '@dialogue_history'
 TIMEOUT: int = 10
 
 
@@ -42,6 +43,10 @@ class ChatGPTTester:
         self._temperature = temperature
         self._dialogue_history = ""
 
+        if DIALOG_HISTORY_OLD_TAG in self._prompt_template:
+            print(f"Warning: {DIALOG_HISTORY_OLD_TAG} is deprecated. Use {DIALOG_HISTORY_TAG} instead.")
+
+
     def generate_next_user_utterance(self, system_utterance: str) -> str:
         """
         generate simulated user utterance following the system utterance
@@ -52,6 +57,7 @@ class ChatGPTTester:
         self._dialogue_history += f'{self._system_name_string}: "{system_utterance}"\n'
 
         prompt = self._prompt_template.replace(DIALOG_HISTORY_TAG, self._dialogue_history)
+        prompt = self._prompt_template.replace(DIALOG_HISTORY_OLD_TAG, self._dialogue_history)
 
         chat_completion = None
 
