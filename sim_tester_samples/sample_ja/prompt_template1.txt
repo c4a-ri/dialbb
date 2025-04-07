@@ -21,6 +21,6 @@
 
 # 現在までの対話
 
-@dialogue_history
+{dialogue_history}
 
 
