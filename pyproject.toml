@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dialbb"
-version = "1.0.2"
+version = "1.0.3"
 description = "A dialogue system development framework"
 authors = ["Mikio Nakano <mikio.nakano@c4a.jp>"]
 readme = "README.md"
@@ -102,5 +102,4 @@ dialbb-nc = 'dialbb.no_code.main:main'
 dialbb-server = 'dialbb.server.run_server:main'
 dialbb-test = 'dialbb.util.test:main'
 dialbb-send-test-requests = 'dialbb.util.send_test_requests:main'
-dialbb-install-scenario-editor = 'dialbb.no_code.install_editor_gui:main'
 dialbb-uninstall = 'dialbb.uninstall:main'
