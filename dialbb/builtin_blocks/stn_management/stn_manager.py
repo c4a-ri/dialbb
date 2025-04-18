@@ -473,9 +473,12 @@ class Manager(AbstractBlock):
 
             # make another transition if new state is a skip state
             if self._network.is_skip_state(new_state_name):
-                self.log_debug("Skip state. Making another transition.", session_id=session_id)
-                new_state_name = self._transition(new_state_name, nlu_result, aux_data, context,
-                                                  user_id, session_id, sentence)
+                while True:
+                    self.log_debug("Skip state. Making another transition.", session_id=session_id)
+                    new_state_name = self._transition(new_state_name, nlu_result, aux_data, context,
+                                                      user_id, session_id, sentence)
+                    if self._network.is_skip_state(new_state_name):
+                        break
 
             # when no transition found 遷移がみつからなかった場合
             if new_state_name == "":
