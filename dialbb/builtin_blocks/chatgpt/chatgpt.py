@@ -31,7 +31,8 @@ import openai
 from dialbb.abstract_block import AbstractBlock
 from dialbb.util.error_handlers import abort_during_building
 
-DIALOGUE_HISTORY_TAG: str = '@dialogue_history'
+DIALOGUE_HISTORY_OLD_TAG: str = '@dialogue_history'
+DIALOGUE_HISTORY_TAG: str = '{dialogue_history}'
 DEFAULT_GPT_MODEL: str = "gpt-4o-mini"
 
 
@@ -147,6 +148,7 @@ class ChatGPT(AbstractBlock):
                 dialogue_history_string += f"{self.system_name}: {turn['utterance']}\n"
 
         prompt: str = self._prompt_template.replace(DIALOGUE_HISTORY_TAG, dialogue_history_string)
+        prompt: str = prompt.replace(DIALOGUE_HISTORY_OLD_TAG, dialogue_history_string)
         self.log_debug("prompt: " + prompt, session_id=session_id)
         generated_utterance: str = self._generate_with_openai_gpt(prompt)
         self.log_debug("generated system utterance: " + generated_utterance, session_id=session_id)

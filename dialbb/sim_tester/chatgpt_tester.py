@@ -10,7 +10,6 @@ DIALOG_HISTORY_TAG: str = '{dialogue_history}'
 DIALOG_HISTORY_OLD_TAG: str = '@dialogue_history'
 TIMEOUT: int = 10
 
-
 class ChatGPTTester:
 
     def __init__(self, test_config: Dict[str, Any]):
@@ -57,12 +56,12 @@ class ChatGPTTester:
         self._dialogue_history += f'{self._system_name_string}: "{system_utterance}"\n'
 
         prompt = self._prompt_template.replace(DIALOG_HISTORY_TAG, self._dialogue_history)
-        prompt = self._prompt_template.replace(DIALOG_HISTORY_OLD_TAG, self._dialogue_history)
+        prompt = prompt.replace(DIALOG_HISTORY_OLD_TAG, self._dialogue_history)
 
         chat_completion = None
 
         if self._debug:
-            print("prompt for generating user utterance: " + prompt)
+            print("prompt for generating user utterance: \n" + prompt)
 
         while True:
             try:
