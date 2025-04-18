@@ -210,6 +210,7 @@ class Manager(AbstractBlock):
                     f"Neither knowledge file nor google sheet info is not specified for the block {self.name}.")
             scenario_df = self.get_dfs_from_excel(excel_file, sheet_name)
         scenario_df.fillna('', inplace=True)
+        scenario_df = scenario_df.map(lambda x: x.strip() if isinstance(x, str) else x)  # strip
         flags_to_use = self.block_config.get(CONFIG_KEY_FLAGS_TO_USE, [ANY_FLAG])
         self._network: StateTransitionNetwork = create_stn(scenario_df, flags_to_use)
         if self.block_config.get(CONFIG_KEY_SCENARIO_GRAPH, False):
@@ -477,7 +478,7 @@ class Manager(AbstractBlock):
                     self.log_debug("Skip state. Making another transition.", session_id=session_id)
                     new_state_name = self._transition(new_state_name, nlu_result, aux_data, context,
                                                       user_id, session_id, sentence)
-                    if self._network.is_skip_state(new_state_name):
+                    if not self._network.is_skip_state(new_state_name):
                         break
 
             # when no transition found 遷移がみつからなかった場合
