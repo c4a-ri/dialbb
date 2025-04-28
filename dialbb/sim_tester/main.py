@@ -18,7 +18,7 @@ import yaml
 import os, sys
 
 from dialbb.main import DialogueProcessor
-from dialbb.sim_tester.chatgpt_tester import ChatGPTTester
+from dialbb.sim_tester.llm_tester import LLMTester
 
 DEFAULT_MAX_TURNS: int = 15
 DEFAULT_TEMPERATURE: float = 0.7
@@ -48,7 +48,7 @@ def test_one_setting(user_simulator, dialogue_processor,
 
     request = {"user_id": USER_ID, "aux_data": initial_aux_data}  # initial request
     log_text += "----settings\n"
-    log_text += f"model: {user_simulator.get_gpt_model()}\n"
+    log_text += f"model: {user_simulator.get_llm_model()}\n"
     log_text += "prompt_template:\n---\n"
     log_text += prompt_template
     log_text += "---\n"
@@ -142,7 +142,7 @@ def test_by_simulation(test_config_file: str, app_config_file: str, output_file:
     # temperature list
     temperatures: List[float] = test_config.get("temperatures", [DEFAULT_TEMPERATURE])
 
-    user_simulator = ChatGPTTester(test_config)
+    user_simulator = LLMTester(test_config)
 
     max_turns = test_config.get('max_turns', DEFAULT_MAX_TURNS)
 
