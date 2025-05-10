@@ -245,7 +245,7 @@ Edit Application画面で`シナリオ`ボタンを押すと，シナリオエ�
 
 <img src="images/editor-connection-ja.jpg" width="50%">　
 
-削除は`from`をつまんで離すか，リンク上で右クリック して`削除`を選択します．
+削除は`from`をつまんで離すか，リンク上で右クリックして`削除`を選択します．
 
 <img src="images/editor-conn-del-ja.jpg" width="50%">
 
