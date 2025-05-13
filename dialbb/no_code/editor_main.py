@@ -18,8 +18,8 @@
 # editor_main.py
 #   dialbb GUI scenario editor main routine.
 
-__version__ = '0.1'
-__author__ = 'Mikio Nakano'
+__version__ = "0.1"
+__author__ = "Mikio Nakano"
 
 import sys
 import os
@@ -35,11 +35,12 @@ import platform
 from typing import List
 from tools.knowledgeConverter2json import convert2json
 from tools.knowledgeConverter2excel import convert2excel
+from dialbb.no_code.gui_utils import gui_text
 
 # 実行環境パス
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
-EDITOR_DIR: str = os.path.join(SCRIPT_ROOT, 'gui_editor')
-print(f'SCRIPT_ROOT={SCRIPT_ROOT}\nEDITOR_DIR={EDITOR_DIR}')
+EDITOR_DIR: str = os.path.join(SCRIPT_ROOT, "gui_editor")
+print(f"SCRIPT_ROOT={SCRIPT_ROOT}\nEDITOR_DIR={EDITOR_DIR}")
 
 
 # -------- プロセス管理クラス -------------------------------------
@@ -54,45 +55,46 @@ class ProcessManager:
     # プロセス起動
     def start(self) -> bool:
         # プロセス起動コマンド
-        # ブラウザをアプリケーションモードで起動する
-        if self.pf == 'Windows':
+        if self.pf == "Windows":
             # windows
             # Pythonの実行可能ファイルのパスを取得
             cmd = [sys.executable, self.cmd] + self.param
-            print(f'CLI:{cmd}')
+            print(f"CLI:{cmd}")
             self.process = subprocess.Popen(cmd)
         else:
             # Linux
-            cmd = f'exec python {self.cmd} {" ".join(self.param)}'
+            cmd = f"exec python {self.cmd} {' '.join(self.param)}"
             self.process = subprocess.Popen(cmd, shell=True)
 
         ret_code = self.process.poll()
         if ret_code is not None:
-            messagebox.showerror('ERROR', "サーバ起動に失敗しました.", detail=self.process.stdout)
+            messagebox.showerror(
+                "ERROR", "サーバ起動に失敗しました.", detail=self.process.stdout
+            )
             return False
-        print(f'# Start process pid={self.process.pid}.')
+        print(f"# Start process pid={self.process.pid}.")
         return True
-    
+
     # プロセス停止
     def stop(self) -> None:
         # サーバ停止
-        if self.pf == 'Windows':
+        if self.pf == "Windows":
             # windows
             os.system(f"taskkill /F /T /PID {self.process.pid}")
         else:
             # Linux
             self.process.terminate()
         self.process.wait()
-        print(f'# Terminated process of {self.cmd}.')
+        print(f"# Terminated process of {self.cmd}.")
 
 
 # カスタムメッセージダイアログのクラス
 class CustomDialog(simpledialog.Dialog):
-    def __init__(self, master, title=None, msg='', detail='', btn='OK') -> None:
-        self.mater = master     # 親フレーム
-        self.msg = msg          # 表示メッセージ
-        self.detail = detail    # 表示Detail（省略可）
-        self.btn = btn          # ボタンの文字（省略時"OK"）
+    def __init__(self, master, title=None, msg="", detail="", btn="OK") -> None:
+        self.mater = master  # 親フレーム
+        self.msg = msg  # 表示メッセージ
+        self.detail = detail  # 表示Detail（省略可）
+        self.btn = btn  # ボタンの文字（省略時"OK"）
         super(CustomDialog, self).__init__(parent=master, title=title)
 
     def body(self, master):
@@ -114,15 +116,15 @@ class CustomDialog(simpledialog.Dialog):
 # GUIエディタ起動
 def exec_editor(parent):
     # 知識記述Excel-json変換
-    init_json = os.path.join(EDITOR_DIR, 'static', 'data', 'init.json')
+    init_json = os.path.join(EDITOR_DIR, "static", "data", "init.json")
     ret = Conv_exl2json(parent.edit_box.get(), init_json)
     if not ret:
         return
-    
+
     print(f"exec_Editor os:{os.name} editor dir:{EDITOR_DIR}")
     # サーバ起動
-    cmd = os.path.join(SCRIPT_ROOT, 'start_editor.py')
-    editor_proc = ProcessManager(cmd, ['sole'])
+    cmd = os.path.join(SCRIPT_ROOT, "start_editor.py")
+    editor_proc = ProcessManager(cmd, ["sole"])
     ret = editor_proc.start()
     if ret:
         # ブラウザ起動
@@ -131,28 +133,45 @@ def exec_editor(parent):
             # webbrowser.open('http://localhost:5000/', new=1, autoraise=True)
             pf = platform.system()
             # ブラウザをアプリケーションモードで起動する
-            if pf == 'Windows':
-                subprocess.Popen(["start", "chrome", "--app=http://localhost:5000/"], shell=True)
-            elif pf == 'Darwin':
+            if pf == "Windows":
+                subprocess.Popen(
+                    ["start", "chrome", "--app=http://localhost:5000/"], shell=True
+                )
+            elif pf == "Darwin":
                 # Mac OSX
-                subprocess.Popen(["open", "-a", "'Google Chrome'", "--args",
-                                  "'--app=http://localhost:5000/'"], shell=True)
+                subprocess.Popen(
+                    [
+                        "open",
+                        "-a",
+                        "'Google Chrome'",
+                        "--args",
+                        "'--app=http://localhost:5000/'",
+                    ],
+                    shell=True,
+                )
         except Exception:
             pass
 
         # 終了の指示待ち
         # messagebox.showinfo("DialBB GUI Scenario Editor", msg, detail='http://localhost:5000/にアクセス！\n終了する時はOKボタンを押してください.')
-        CustomDialog(parent, title='DialBB GUI Scenario Editor', btn='Stop',
-                     msg='DialBB GUI Scenario Editor is running...',
-                     detail='Please access http://localhost:5000/\nPress "Stop" to stop the server.')
+        CustomDialog(
+            parent,
+            title=gui_text("editor_st_title"),
+            btn=gui_text("stop"),
+            msg=gui_text("editor_st_msg"),
+            detail="",
+        )
 
         # 終了処理
-        save_json = os.path.join(EDITOR_DIR, 'static', 'data', 'save.json')
+        save_json = os.path.join(EDITOR_DIR, "static", "data", "save.json")
         if not os.path.isfile(save_json):
             # messagebox.showwarning('Warning', 'サーバを終了すると保存機能は使えません、よろしいでしょうか？',
             #                        detail='必要な場合はエディタの[Save]ボタンでセーブしてから[OK]を押してください.')
-            messagebox.showwarning('Warning', 'Scenario will not be saved if you stop the server. Do you want to continue?',
-                                   detail='To save the scenario, press "Save" on the editor and then press "Stop".')
+            messagebox.showwarning(
+                "Warning",
+                "Scenario will not be saved if you stop the server. Do you want to continue?",
+                detail='To save the scenario, press "Save" on the editor and then press "Stop".',
+            )
         # WarningでSaveした場合を考慮して再チェック
         if os.path.isfile(save_json):
             # json-知識記述Excel変換
@@ -177,7 +196,7 @@ def Conv_exl2json(xlsx, json):
     # 変換処理起動
     convert2json(xlsx, json)
     result = True
-    
+
     return result
 
 
@@ -196,10 +215,12 @@ def Conv_json2exl(json, xlsx):
 # ウィンドウのサイズと中央表示の設定
 def central_position(frame, width: int, height: int):
     # スクリーンの縦横サイズを取得する
-    sw=frame.winfo_screenwidth()
-    sh=frame.winfo_screenheight()
+    sw = frame.winfo_screenwidth()
+    sh = frame.winfo_screenheight()
     # ウィンドウサイズと表示位置を指定する
-    frame.geometry(f"{width}x{height}+{int(sw/2-width/2)}+{int(sh/2-height/2)}")
+    frame.geometry(
+        f"{width}x{height}+{int(sw / 2 - width / 2)}+{int(sh / 2 - height / 2)}"
+    )
 
 
 # 親ウジェットに重ねて子ウジェットを表示
@@ -216,25 +237,32 @@ def child_position(parent, child, width: int = 0, height: int = 0):
 # ファイル設定エリアのフレームを作成して返却する
 def set_file_frame(parent_frame, label_text, file_type_list):
     # ラベルの作成
-    file_frame = ttk.Frame(parent_frame, style='My.TLabelframe')
+    file_frame = ttk.Frame(parent_frame, style="My.TLabelframe")
     file_frame.spec_app = tk.Label(file_frame, text=label_text)
     file_frame.spec_app.grid(column=0, row=0, sticky=tk.NSEW, padx=5)
-    
+
     # テキストボックスの作成
     file_frame.edit_box = tk.Entry(file_frame)
     file_frame.edit_box.grid(column=0, row=1, sticky=tk.NSEW, padx=5)
     file_frame.grid_columnconfigure(0, weight=1)
     file_frame.grid_rowconfigure(1, weight=1)
-    
+
     # selectボタンの作成
-    file_button = tk.Button(file_frame, text='select', width=5,
-                            command=lambda: open_file_command(file_frame.edit_box,
-                                                              file_type_list))
+    file_button = tk.Button(
+        file_frame,
+        text=gui_text("select"),
+        width=5,
+        command=lambda: open_file_command(file_frame.edit_box, file_type_list),
+    )
     file_button.grid(column=1, row=1, padx=5)
-    
+
     # editボタンの作成:GUIエディタ起動
-    btnEditor = tk.Button(file_frame, text="edit", width=5,
-                          command=lambda: exec_editor(file_frame))
+    btnEditor = tk.Button(
+        file_frame,
+        text=gui_text("edit"),
+        width=5,
+        command=lambda: exec_editor(file_frame),
+    )
     btnEditor.grid(column=2, row=1, padx=5)
 
     return file_frame
@@ -268,13 +296,18 @@ def open_file_command(edit_box, file_type_list):
 # Mainフレームを作成する関数
 def set_main_frame(root_frame):
     # ファイル選択エリア作成（ファイルの拡張子を指定）
-    file_frame = set_file_frame(root_frame, "Scenario file",
-                                [('Excelファイル', '*.xlsx')])
+    file_frame = set_file_frame(
+        root_frame, "Scenario file", [("Excelファイル", "*.xlsx")]
+    )
     file_frame.pack(fill=tk.BOTH)
 
     # closeボタン
-    close_btn = tk.Button(root_frame, text="close", width=5,
-                          command=lambda: close_app(root_frame))
+    close_btn = tk.Button(
+        root_frame,
+        text=gui_text("close"),
+        width=5,
+        command=lambda: close_app(root_frame),
+    )
     close_btn.pack(side=tk.BOTTOM, anchor=tk.NE, padx=10, pady=10)
 
 
@@ -289,7 +322,7 @@ def main():
 
     # ウィンドウサイズと表示位置を指定
     central_position(root, 400, 120)
-    
+
     # GUIの画面構築
     set_main_frame(root)
 
@@ -297,5 +330,5 @@ def main():
     root.mainloop()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

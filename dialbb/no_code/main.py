@@ -22,6 +22,7 @@ __version__ = "0.1"
 __author__ = "Mikio Nakano"
 
 import os
+import argparse
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
@@ -39,6 +40,8 @@ from dialbb.no_code.gui_utils import (
     FileTimestamp,
     central_position,
     child_position,
+    read_gui_text_data,
+    gui_text,
 )
 from typing import Dict, Optional
 
@@ -69,6 +72,7 @@ APP_FILES: Dict[str, str] = {
     "config": "config.yml",
 }
 
+
 # dialbb process information  DialBBサーバのプロセス情報
 dialbb_proc: Optional[ProcessManager] = None
 dialbb_log_file: str = ""
@@ -95,16 +99,17 @@ def exec_editor(file_path, parent):
             # シナリオエディタアプリの実行
             if not os.path.exists(EDITOR_APL_EXE):
                 raise FileNotFoundError(
-                    f"シナリオエディタアプリが存在しません: {EDITOR_APL_EXE}"
+                    gui_text("msg_editor_err_notfound") + ": {EDITOR_APL_EXE}"
                 )
-            # アプリ起動
-            editor_apl = subprocess.Popen(EDITOR_APL_EXE)
+            # アプリ起動 （言語種別引数あり）
+            arg1 = f"--lang={gui_text('language type')}"
+            editor_apl = subprocess.Popen([EDITOR_APL_EXE, arg1])
 
             # waiting for an order to quit   終了の指示待ち
             messagebox.showinfo(
-                "GUI Editor",
-                "シナリオエディタが起動されました。",
-                detail="OKボタンを押すと終了します。",
+                gui_text("msg_editor_st_title"),
+                gui_text("msg_editor_st_msg"),
+                detail=gui_text("msg_editor_st_detail"),
                 parent=parent,
             )
             # finish editing   終了処理
@@ -114,8 +119,8 @@ def exec_editor(file_path, parent):
         except Exception as e:
             print(f"アプリ起動失敗: {e}")
             messagebox.showerror(
-                "GUI Editor",
-                "シナリオエディタアプリの起動に失敗しました.",
+                gui_text("msg_editor_err_title"),
+                gui_text("msg_editor_err_msg"),
                 detail=f"{e}",
                 parent=parent,
             )
@@ -125,9 +130,9 @@ def exec_editor(file_path, parent):
             editor_proc.stop()
     else:
         messagebox.showerror(
-            "GUI Editor",
-            "シナリオエディタサーバの起動に失敗しました.",
-            detail="動作環境を確認してください.",
+            gui_text("msg_editor_err_title"),
+            gui_text("msg_editor_err_msg"),
+            detail=gui_text("msg_editor_err_detail"),
             parent=parent,
         )
 
@@ -143,7 +148,7 @@ def convert_excel_to_json(xlsx: str, json: str):
     result = False
     # メッセージを表示する
     if xlsx == "" or json == "":
-        messagebox.showerror("Warning", "Excel file or Json file is not specified.")
+        messagebox.showerror("Warning", gui_text("msg_convfile_nothing"))
     else:
         convert2json(xlsx, json)
         # messagebox.showinfo("File Convertor", f"{json}を生成しました.")
@@ -156,10 +161,12 @@ def convert_excel_to_json(xlsx: str, json: str):
 def convert_json_to_excel(json: str, xlsx: str) -> None:
     # メッセージを表示する
     if xlsx == "" or json == "":
-        messagebox.showerror("Warning", "Excel file or Json file is not specified.")
+        messagebox.showerror("Warning", gui_text("msg_convfile_nothing"))
     else:
         convert2excel(json, xlsx)
-        messagebox.showinfo("File Convertor", f"Excelファイル{xlsx}が保存されました。")
+        messagebox.showinfo(
+            "File Convertor", f"{xlsx}" + gui_text("msg_convfile_saved")
+        )
 
 
 # -------- DialBBサーバ関連 -------------------------------------
@@ -169,7 +176,7 @@ def exec_dialbb(app_file):
     global dialbb_log_file
 
     if dialbb_proc:
-        messagebox.showwarning("Warning", "DialBBサーバはすでに動作しています。")
+        messagebox.showwarning("Warning", gui_text("msg_editor_warn_server_already"))
     else:
         print(f"app_file:{app_file}")
         # サーバ起動
@@ -190,7 +197,7 @@ def stop_dialbb():
         dialbb_proc.stop()
         dialbb_proc = None
     else:
-        messagebox.showwarning("Warning", "DialBBサーバは動いていません。")
+        messagebox.showwarning("Warning", gui_text("msg_editor_warn_server_none"))
 
 
 # Show log
@@ -204,7 +211,7 @@ def show_log():
         else:
             subprocess.run(["open", dialbb_log_file])
     else:
-        messagebox.showwarning("Warning", "ログファイルが見つかりません。")
+        messagebox.showwarning("Warning", gui_text("msg_editor_warn_no_log"))
 
 
 # -------- GUI画面制御サブルーチン -------------------------------------
@@ -212,12 +219,12 @@ def show_log():
 def set_file_frame(parent_frame, settings, label_text, file_type_list):
     # ラベルの作成
     file_frame = ttk.Frame(parent_frame, style="My.TLabelframe")
-    file_frame.spec_app = tk.Label(file_frame, text=label_text)
+    file_frame.spec_app = tk.Label(file_frame)
     file_frame.spec_app.grid(column=0, columnspan=2, row=0, sticky=tk.W, padx=5)
     # アプリ名の表示エリアを登録して保存アプリ名を表示する
     settings.reg_disp_area(file_frame.spec_app)
 
-    label = tk.Label(file_frame, text="読み込むファイル: ")
+    label = tk.Label(file_frame, text=gui_text("main_import"))
     label.grid(column=0, row=1, padx=0, sticky=tk.E)
 
     # テキストボックスの作成
@@ -229,10 +236,10 @@ def set_file_frame(parent_frame, settings, label_text, file_type_list):
     # select button
     select_button = ttk.Button(
         file_frame,
-        text="選択",
+        text=gui_text("btn_select"),
         width=7,
         command=lambda: set_file_path_command(
-            file_frame.edit_box, settings, file_type_list
+            file_frame.edit_box, settings, label_text, file_type_list
         ),
     )
     select_button.grid(column=2, row=1, padx=5)
@@ -240,7 +247,7 @@ def set_file_frame(parent_frame, settings, label_text, file_type_list):
     # import button
     import_button = ttk.Button(
         file_frame,
-        text="読み込み",
+        text=gui_text("btn_load"),
         width=12,
         command=lambda: import_application_file(
             file_frame.edit_box, settings, file_type_list
@@ -253,7 +260,7 @@ def set_file_frame(parent_frame, settings, label_text, file_type_list):
 
 # Excel編集処理
 def edit_excel(file_path):
-    print("Excelファイルを開いています: " + file_path)
+    print(file_path)
     # ファイルを関連付けされたアプリで開く
     if os.name == "nt":
         os.startfile(filepath=file_path)
@@ -296,8 +303,8 @@ def on_cancel(frame):
 
 
 # [select]ボタン：アプリファイルの読み込み
-def set_file_path_command(edit_box, settings, file_type_list):
-    file_path = filedialog.askopenfilename(filetypes=file_type_list)
+def set_file_path_command(edit_box, settings, title, file_type_list):
+    file_path = filedialog.askopenfilename(title=title, filetypes=file_type_list)
     if file_path:
         # パスをテキストボックスに設定する
         edit_box.delete(0, tk.END)
@@ -308,7 +315,7 @@ def import_application_file(edit_box, settings, file_type_list):
     file_path = edit_box.get()
     if file_path:
         print(f"{file_path} decompress to {APP_FILE_DIR}")
-        # zipアフィルをシステムエリアに展開する
+        # zipファイルをシステムエリアに展開する
         with zipfile.ZipFile(file_path) as zf:
             zf.extractall(APP_FILE_DIR)
 
@@ -316,9 +323,7 @@ def import_application_file(edit_box, settings, file_type_list):
         file_name, _ = os.path.splitext(os.path.basename(file_path))
         settings.set_appname(file_name)
 
-        messagebox.showinfo(
-            "Import", f"アプリケーション{file_name}が読み込まれました。"
-        )
+        messagebox.showinfo("Import", f"{file_name}" + gui_text("msg_info_appload"))
 
 
 # [edit]ボタン：編集するファイルを選択
@@ -327,7 +332,7 @@ def select_edit_file(parent, settings):
 
     # 選択画面を表示
     sub_menu = tk.Toplevel(parent)
-    sub_menu.title("Edit Application")
+    sub_menu.title(gui_text("edt_list_title"))
     sub_menu.grab_set()  # モーダルにする
     sub_menu.focus_set()  # フォーカスを新しいウィンドウをへ移す
     sub_menu.transient(parent)
@@ -337,7 +342,7 @@ def select_edit_file(parent, settings):
     # ボタンの作成
     btn_gui = ttk.Button(
         sub_menu,
-        text="シナリオ",
+        text=gui_text("btn_scenario"),
         width=20,
         command=lambda: [
             exec_editor(os.path.join(APP_FILE_DIR, APP_FILES["scenario"]), sub_menu),
@@ -354,7 +359,7 @@ def select_edit_file(parent, settings):
 
     btn_nlu = ttk.Button(
         sub_menu,
-        text="言語理解知識",
+        text=gui_text("btn_lang_knowledge"),
         width=20,
         command=lambda: [
             edit_excel(os.path.join(APP_FILE_DIR, APP_FILES["nlu-knowledge"])),
@@ -365,7 +370,7 @@ def select_edit_file(parent, settings):
 
     btn_ner = ttk.Button(
         sub_menu,
-        text="固有表現抽出知識",
+        text=gui_text("btn_named_entity"),
         width=20,
         command=lambda: [
             edit_excel(os.path.join(APP_FILE_DIR, APP_FILES["ner-knowledge"])),
@@ -376,7 +381,7 @@ def select_edit_file(parent, settings):
 
     btn_conf = ttk.Button(
         sub_menu,
-        text="シナリオ関数（上級用）",
+        text=gui_text("btn_scenario_func"),
         width=20,
         command=lambda: edit_scenario_functions(
             sub_menu, os.path.join(APP_FILE_DIR, APP_FILES["scenario-functions"])
@@ -386,7 +391,7 @@ def select_edit_file(parent, settings):
 
     btn_conf = ttk.Button(
         sub_menu,
-        text="コンフィギュレーション",
+        text=gui_text("btn_configuration"),
         width=20,
         command=lambda: edit_config(
             sub_menu,
@@ -398,7 +403,9 @@ def select_edit_file(parent, settings):
     btn_conf.pack(side=tk.TOP, pady=5)
 
     # Cancelボタン
-    cancel_btn = ttk.Button(sub_menu, text="終了", command=lambda: on_cancel(sub_menu))
+    cancel_btn = ttk.Button(
+        sub_menu, text=gui_text("btn_exit"), command=lambda: on_cancel(sub_menu)
+    )
     cancel_btn.pack(side="right", padx=5, pady=5)
 
 
@@ -407,26 +414,30 @@ def create_app_files(parent, settings):
     global APP_FILES
 
     sub_menu = tk.Toplevel(parent)
-    sub_menu.title("新規作成")
+    sub_menu.title(gui_text("cre_title"))
     sub_menu.grab_set()  # モーダルにする
     sub_menu.focus_set()  # フォーカスを新しいウィンドウをへ移す
     sub_menu.transient(parent)
 
     # Label Frameを作成
     label_frame = ttk.Labelframe(
-        sub_menu, text="言語", padding=(10), style="My.TLabelframe"
+        sub_menu, text=gui_text("cre_language"), padding=(10), style="My.TLabelframe"
     )
     label_frame.pack(side="top", padx=5, pady=5)
 
     # ［英語/日本語］ラジオボタン
     radio_val = tk.StringVar()
-    rb1 = ttk.Radiobutton(label_frame, text="英語", value="en", variable=radio_val)
-    rb2 = ttk.Radiobutton(label_frame, text="日本語", value="ja", variable=radio_val)
+    rb1 = ttk.Radiobutton(
+        label_frame, text=gui_text("cre_english"), value="en", variable=radio_val
+    )
+    rb2 = ttk.Radiobutton(
+        label_frame, text=gui_text("cre_japanese"), value="ja", variable=radio_val
+    )
 
     # Button
-    ok_btn = ttk.Button(sub_menu, text="OK", command=lambda: btn_click())
+    ok_btn = ttk.Button(sub_menu, text=gui_text("btn_ok"), command=lambda: btn_click())
     can_btn = ttk.Button(
-        sub_menu, text="キャンセル", command=lambda: on_cancel(sub_menu)
+        sub_menu, text=gui_text("btn_cancel"), command=lambda: on_cancel(sub_menu)
     )
 
     # Layout
@@ -442,7 +453,7 @@ def create_app_files(parent, settings):
     def btn_click():
         lang = radio_val.get()
         if not lang:
-            messagebox.showerror("Warning", "言語が指定されていません。")
+            messagebox.showerror("Warning", gui_text("msg_cre_nolang"))
             return
 
         # templateファイルをコピー
@@ -456,13 +467,13 @@ def create_app_files(parent, settings):
                 shutil.copy2(org_file, dist_file)
             except FileNotFoundError:
                 messagebox.showerror(
-                    "Error", "ファイルが存在しません。", detail=f"{org_file}"
+                    "Error", gui_text("msg_warn_no_file"), detail=f"{org_file}"
                 )
                 return
 
         messagebox.showinfo(
             "File copy",
-            "新規アプリケーションが作成されました。",
+            gui_text("msg_info_new_app"),
             detail=f"Language ={lang}",
         )
 
@@ -486,7 +497,7 @@ def export_app_file(file_path, settings):
         dir = os.path.dirname(file_path)
 
     zip_file = filedialog.asksaveasfilename(
-        title="Export application file",
+        title=gui_text("msg_appfile_export"),
         initialdir=dir,
         filetypes=[("zip file", "*.zip")],
         defaultextension="zip",
@@ -513,7 +524,7 @@ def export_app_file(file_path, settings):
 # [setting]ボタンの処理。ユーザ情報の設定。
 def setting_json(parent, settings):
     sub_menu = tk.Toplevel(parent)
-    sub_menu.title("Settings")
+    sub_menu.title(gui_text("set_title_top"))
     sub_menu.grab_set()  # モーダルにする
     sub_menu.focus_set()  # フォーカスを新しいウィンドウをへ移す
     sub_menu.transient(parent)
@@ -533,9 +544,9 @@ def setting_json(parent, settings):
     api_key.insert(0, settings.get_gptkey())
 
     # Button
-    ok_btn = ttk.Button(sub_menu, text="OK", command=lambda: ok_click())
+    ok_btn = ttk.Button(sub_menu, text=gui_text("btn_ok"), command=lambda: ok_click())
     can_btn = ttk.Button(
-        sub_menu, text="キャンセル", command=lambda: on_cancel(sub_menu)
+        sub_menu, text=gui_text("btn_cancel"), command=lambda: on_cancel(sub_menu)
     )
 
     # Layout
@@ -554,7 +565,7 @@ def setting_json(parent, settings):
         settings.set_gptkey(key)
         # OPENAI_KEY環境変数をセット
         os.environ["OPENAI_API_KEY"] = key
-        messagebox.showinfo("Settings", "保存しました。")
+        messagebox.showinfo("Settings", gui_text("msg_saved"))
         # 画面を閉じる
         sub_menu.destroy()
 
@@ -571,22 +582,22 @@ def set_main_frame(root_frame):
 
     # App file Label 作成
     application_frame = ttk.Labelframe(
-        root_frame, text="アプリケーション", padding=(10), style="My.TLabelframe"
+        root_frame, text=gui_text("main_title_1"), padding=(10), style="My.TLabelframe"
     )
 
     # ファイル選択エリア作成（ファイルの拡張子を指定）
     file_frame = set_file_frame(
         application_frame,
         settings,
-        "アプリケーションファイルの指定 (Zip file)",
-        [("zipファイル", "*.zip")],
+        gui_text("msg_appfile_select"),
+        [("zip File", "*.zip")],
     )
     file_frame.pack(fill=tk.BOTH)
 
     # createボタン:アプリファイルの新規作成
     create_btn = ttk.Button(
         application_frame,
-        text="新規作成",
+        text=gui_text("btn_create"),
         width=10,
         command=lambda: create_app_files(application_frame, settings),
     )
@@ -595,7 +606,7 @@ def set_main_frame(root_frame):
     # editボタンの作成:GUIエディタ起動
     edit_button = ttk.Button(
         application_frame,
-        text="編集",
+        text=gui_text("btn_edit"),
         width=7,
         command=lambda: select_edit_file(file_frame, settings),
     )
@@ -604,7 +615,7 @@ def set_main_frame(root_frame):
     # export ボタン:アプリファイルのzip保存
     export_btn = ttk.Button(
         application_frame,
-        text="書き出し",
+        text=gui_text("btn_export"),
         width=10,
         command=lambda: export_app_file(file_frame.edit_box.get(), settings),
     )
@@ -612,13 +623,16 @@ def set_main_frame(root_frame):
 
     # DialBB Label 作成
     dialbb_label = ttk.Labelframe(
-        root_frame, text="サーバ起動", padding=(10), style="My.TLabelframe"
+        root_frame,
+        text=gui_text("main_title_2"),
+        padding=(10),
+        style="My.TLabelframe",
     )
 
     # settingボタン:ユーザ情報の設定
     setting_btn = ttk.Button(
         dialbb_label,
-        text="設定",
+        text=gui_text("btn_setting"),
         width=7,
         command=lambda: setting_json(file_frame, settings),
     )
@@ -627,23 +641,30 @@ def set_main_frame(root_frame):
     # startボタン:DialBBサーバ起動
     start_btn = ttk.Button(
         dialbb_label,
-        text="起動",
+        text=gui_text("btn_exec"),
         width=7,
         command=lambda: exec_dialbb(os.path.join(APP_FILE_DIR, APP_FILES["config"])),
     )
     start_btn.pack(side=tk.LEFT, padx=10)
 
     # stopボタン:DialBBサーバ停止
-    stop_btn = ttk.Button(dialbb_label, text="停止", width=7, command=stop_dialbb)
+    stop_btn = ttk.Button(
+        dialbb_label, text=gui_text("btn_stop"), width=7, command=stop_dialbb
+    )
     stop_btn.pack(side=tk.LEFT, padx=10)
 
     # show log button
-    show_log_btn = ttk.Button(dialbb_label, text="ログ表示", width=10, command=show_log)
+    show_log_btn = ttk.Button(
+        dialbb_label, text=gui_text("btn_view_log"), width=10, command=show_log
+    )
     show_log_btn.pack(side=tk.LEFT, padx=10)
 
     # closeボタン
     close_btn = ttk.Button(
-        root_frame, text="終了", width=7, command=lambda: close_dialbb_nc(root_frame)
+        root_frame,
+        text=gui_text("btn_exit"),
+        width=7,
+        command=lambda: close_dialbb_nc(root_frame),
     )
     close_btn.pack(side=tk.BOTTOM, anchor=tk.NE, padx=10, pady=10)
 
@@ -653,6 +674,19 @@ def set_main_frame(root_frame):
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "lang",
+        choices=["ja", "en"],
+        nargs="?",
+        default="ja",
+        help="Language type: ja/en",
+    )
+    args = parser.parse_args()
+
+    # GUI表示テキストデータを取得
+    read_gui_text_data(os.path.join(NC_PATH, "gui_nc_text.yml"), args.lang)
+
     # create root widget
     # Rootウジェットの生成
     root = tk.Tk()
@@ -663,7 +697,7 @@ def main():
 
     # set title and icon
     # タイトルとアイコンを設定
-    root.title("DialBB-NC")
+    root.title(gui_text("main_title_top"))
     # photo = os.path.join(NC_PATH, 'img', 'dialbb-icon.png')
     # root.iconphoto(True, tk.PhotoImage(file=photo))
 
