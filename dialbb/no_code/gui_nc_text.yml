@@ -7,11 +7,11 @@ language type:
 # ----- ボタン表記 -----
 btn_create:
   ja: "新規作成"
-  en: "create"
+  en: "Create"
 
 btn_edit:
   ja: "編集"
-  en: "edit"
+  en: "Edit"
 
 btn_export:
   ja: "書き出し"
@@ -19,7 +19,7 @@ btn_export:
 
 btn_setting:
   ja: "設定"
-  en: "Setting"
+  en: "Settings"
 
 btn_select:
   ja: "選択"
@@ -27,7 +27,7 @@ btn_select:
 
 btn_load:
   ja: "読み込み"
-  en: "Load"
+  en: "Import"
 
 btn_exec:
   ja: "起動"
@@ -43,7 +43,7 @@ btn_exit:
 
 btn_view_log:
   ja: "ログ表示"
-  en: "View log"
+  en: "Show log"
 
 btn_ok:
   ja: "OK"
@@ -55,11 +55,11 @@ btn_cancel:
 
 btn_yes:
   ja: "はい"
-  en: "yes"
+  en: "Yes"
 
 btn_no:
   ja: "いいえ"
-  en: "no"
+  en: "No"
 
 btn_scenario:
   ja: "シナリオ"
@@ -67,11 +67,11 @@ btn_scenario:
 
 btn_lang_knowledge:
   ja: "言語理解知識"
-  en: "Language knowledge"
+  en: "NLU Knowledge"
 
 btn_named_entity:
   ja: "固有表現抽出知識"
-  en: "Named entity"
+  en: "NER Knowledge"
 
 btn_scenario_func:
   ja: "シナリオ関数（上級用）"
@@ -145,7 +145,7 @@ msg_info_new_app:
 
 msg_info_appload:
   ja: " が読み込まれました。"
-  en: " loaded."
+  en: " imported."
 
 msg_cre_nolang:
   ja: "言語が指定されていません。"
@@ -168,7 +168,7 @@ main_title_2:
 
 main_import:
   ja: "読み込むファイル: "
-  en: "Import file: "
+  en: "File to import: "
 
 main_app_name:
   ja: "現在のアプリケーション"
@@ -222,11 +222,11 @@ conf_edt_title:
 
 conf_edt_named_entity:
   ja: "固有表現抽出を行いますか？"
-  en: "Would you like to perform named entity extraction?"
+  en: "Use named entity extraction?"
 
 conf_edt_lang_understanding:
   ja: "言語理解を行いますか？"
-  en: "Would you like to perform language understanding?"
+  en: "Use language understanding?"
 
 conf_edt_chatgpt:
   ja: "ChatGPTの設定"
