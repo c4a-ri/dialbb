@@ -52,6 +52,7 @@ NC_PATH: str = SCRIPT_ROOT
 APP_FILE_DIR: str = os.path.join(NC_PATH, "app")
 TEMPLATE_DIR: str = os.path.join(NC_PATH, "templates")
 EDITOR_DIR: str = os.path.join(NC_PATH, "gui_editor")
+DATA_DIR: str = os.path.join(NC_PATH, "data")
 
 EDITOR_APL_EXE: str = os.path.join(
     os.environ.get("LOCALAPPDATA"),
@@ -85,14 +86,17 @@ app_file_timestamp: float = FileTimestamp(APP_FILE_DIR, APP_FILES.values())
 # Start GUI Editor GUIエディタ起動
 def exec_editor(file_path, parent):
     # convert knowledge excel to JSON 知識記述Excel-json変換
-    ret = convert_excel_to_json(file_path, f"{EDITOR_APPDATA_DIR}/init.json")
+    ret = convert_excel_to_json(
+        file_path, os.path.join(EDITOR_APPDATA_DIR, "init.json")
+    )
     if not ret:
         return
 
-    print(f"exec_Editor os:{os.name} editor dir:{EDITOR_DIR}")
+    arg_lang = f"--lang={gui_text('language type')}"
+    print(f"exec_Editor os:{os.name} editor dir:{EDITOR_DIR} {arg_lang}")
     # invoke server サーバ起動
     cmd = os.path.join(NC_PATH, r"start_editor.py")
-    editor_proc = ProcessManager(cmd, ["nc"])
+    editor_proc = ProcessManager(cmd, ["--mode=nc", arg_lang])
     ret = editor_proc.start()
     if ret:
         try:
@@ -102,8 +106,7 @@ def exec_editor(file_path, parent):
                     gui_text("msg_editor_err_notfound") + ": {EDITOR_APL_EXE}"
                 )
             # アプリ起動 （言語種別引数あり）
-            arg1 = f"--lang={gui_text('language type')}"
-            editor_apl = subprocess.Popen([EDITOR_APL_EXE, arg1])
+            editor_apl = subprocess.Popen([EDITOR_APL_EXE, arg_lang])
 
             # waiting for an order to quit   終了の指示待ち
             messagebox.showinfo(
@@ -113,6 +116,22 @@ def exec_editor(file_path, parent):
                 parent=parent,
             )
             # finish editing   終了処理
+            json_file = os.path.join(DATA_DIR, "save.json")
+            # エディタ保存データをチェック
+            if not os.path.isfile(json_file):
+                messagebox.showwarning(
+                    "Warning",
+                    gui_text("msg_warn_no_saved"),
+                    detail=gui_text("msg_warn_no_saved_detail"),
+                    parent=parent,
+                )
+            # recheck   WarningでSaveした場合を考慮して再チェックしてから変換
+            if os.path.isfile(json_file):
+                # convert JSON to Excel   json-知識記述Excel変換
+                convert_json_to_excel(json_file, file_path)
+                # remove temp file    tempファイル削除
+                os.remove(json_file)
+
             # エディタアプリ停止
             os.system(f"taskkill /F /T /PID {editor_apl.pid}")
 

@@ -139,6 +139,14 @@ msg_warn_no_file:
   ja: "ファイルが存在しません。"
   en: "File does not exist."
 
+msg_warn_no_saved:
+  ja: "シナリオデータが保存されていません。"
+  en: "Scenario data not saved."
+
+msg_warn_no_saved_detail:
+  ja: "必要ならエディターの[保存]ボタンを押してから、[OK]を押します。"
+  en: "Press the editor's Save button if necessary, then press OK."
+
 msg_info_new_app:
   ja: "新規アプリケーションが作成されました。"
   en: "A new application has been created."
@@ -150,6 +158,38 @@ msg_info_appload:
 msg_cre_nolang:
   ja: "言語が指定されていません。"
   en: "No language specified."
+
+msg_warn_user_node_bad_condition:
+  ja: "Warning: ユーザノード%sの遷移の条件\"%s\"は正しい条件ではありません。"
+  en: "Warning: The transition condition for user node %s is not valid as \"%s\"."
+
+msg_warn_user_node_action_note:
+  ja: "Warning: ユーザノード%sの遷移時のアクションに\"%s\"が書かれています。遷移時のアクションは上級者向けのものであることに注意して下さい。"
+  en: "Warning: The action at the transition of user node %s contains \"%s\". Transition actions are for advanced users only. Please be careful."
+
+msg_warn_user_node_no_transition_dest:
+  ja: "Warning: ユーザノード%sの遷移先がありません。"
+  en: "Warning: User node %s has no transition destination."
+
+msg_warn_sys_node_no_type:
+  ja: "Warning: システムノード%sのタイプが未定です。"
+  en: "Warning: System node %s is of unknown type."
+
+msg_warn_sys_node_no_transition_dest:
+  ja: "Warning: システムノード%sの遷移先がありません。"
+  en: "Warning: System node %s has no transition destination."
+
+msg_warn_sys_node_utter_empty:
+  ja: "Warning: システムノード%sの発話が空です。"
+  en: "Warning: The utterance for system node %s is empty."
+
+msg_warn_initial_node_exists:
+  ja: "Warning: typeがinitialのシステムノードがありません。"
+  en: "Warning: Initial system node has no type."
+
+msg_warn_error_node_exists:
+  ja: "Warning: typeがerrorのシステムノードがありません。"
+  en: "Warning: Error system node has no type."
 
 
 # ----- ダイアログ関連 -----
