@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DialBB Main Page</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Font Awesome（GitHubアイコン用 CDN） -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <header>
+    <p class="brand">DialBB: 対話システム構築フレームワーク</p></li>
+    <nav>
+      <ul class="nav-links">
+        <li><a href="index.html">English</a></li>
+        <li><a href="index-ja.html">日本語</a></li>
+        <li><a href="https://github.com/c4a-ri/dialbb" target="_blank" class="github-btn">
+            <i class="fab fa-github"></i>GitHub</a></li>
+      </ul>
+    </nav>
+  </header>
+
+      <div class="container">
+
+	<p class="section">News</p>
+
+	<ul class="container-ul">
+
+	  <li>2025/3/25: ver. 1.0.2をリリースしました．uninstallのスクリプトが改善されました．</li>
+	  <li>2025/3/17: ver. 1.0.0をリリースしました．</li>
+
+	</ul>
+
+	<p class="section">概要</p>
+
+
+<p class="container-p">DialBBは，<a href="https://www.c4a.jp/">株式会社C4A研究所</a>が開発した対話システムを構築するためのフレームワークです．情報技術の教材として作られました．拡張可能性の高いアーキテクチャを持ち，読みやすいコードで書かれています．ブロックと呼ぶモジュールを組み合わせてシステムを開発できます．開発者は簡単なシステムを組み込みブロックを用いて作ることができ，高度なシステムを自作のブロックを使って作ることもできます．</p>
+
+<p class="container-p">DialBBのメインモジュールは，メソッド呼び出しまたはWeb API経由で，ユーザ発話の入力をJSON形式で受けとり，システム発話をJSON形式で返します．メインモジュールは，ブロックを順に呼び出すことによって動作します．各ブロックはJSON形式(pythonのdictのデータ)を受け取り，JSON形式のデータを返します．各ブロックのクラスや入出力仕様はアプリケーション毎のコンフィギュレーションファイルで規定します．</p>
+
+        <p><img src="images/dialbb-arch.jpg"/></p>
+
+	<p class="section">インストール</p>
+      
+        <p class="container-p"><a href="https://github.com/c4a-ri/dialbb/blob/main/README-ja.md">DialBBのGitHubサイトの日本語README</a>を参照してください．</p>
+	
+        <p class="section">ドキュメント</p>
+
+          <p class="container-p">詳細な仕様は<a href="document-ja/build/html/index.html">最新版ドキュメント</a>を参照してください．</p>
+          <p class="container-p"> <a href="old-docs/index.html">古いバージョンのドキュメント</a>もあります．</p>
+
+        <p class="section">チュートリアルスライド</p>
+
+        <p class="container-p">DialBBのチュートリアルで用いるスライドが<a href="tutorial-slides/DialBB-tutorial-ja-v1.0.pdf">ここ</a>にあります
+	</p>
+
+        <p class="section">ノーコードツール</p>
+
+        <p class="container-p">DialBBにはノーコードで対話システムを構築するためのツールが付属しています．詳しくは<a href="no-code/index-ja.html">ノーコードツールのページ</a>を御覧ください．
+	</p>
+
+        <p class="section">論文および引用</p>
+
+        <p class="container-p">DialBBを利用した研究を学会発表する際は以下の論文の引用をお願いします．</p>
+
+        <p class="container-p">Mikio Nakano and Kazunori Komatani. <a href="https://aclanthology.org/2024.sigdial-1.56">DialBB: A Dialogue System Development Framework as an Educational Material</a>. In Proceedings of the 25th Annual Meeting of the Special Interest Group on Discourse and Dialogue (SIGDIAL-24), pages 664–668, Kyoto, Japan. Association for Computational Linguistics, 2024<p>
+
+	
+        <p class="section">ライセンス</p>
+	
+          <p class="container-p">DialBBはApache License 2.0の下で公開されています．（ノーコードツールの一部はMIT Licenseの下で公開されています．）</p>
+
+        <p class="section">問い合わせ先</p>
+
+          <p class="container-p">問題点を発見されたり，質問があったりした場合は，<code>dialbb at c4a.jp</code>までご連絡ください．</p>
+
+        <p class="section">Discordサーバ</p>
+
+        <p class="container-p">DialBBおよび関連する対話システム技術に関して日本語で情報交換を行うためのDiscordサーバを立てています．DialBBユーザではなくても，お気軽に参加してください．招待リンクは<a href="https://discord.gg/KbmYbCTwRH">こちら</a>．</p>
+
+        <p class="section">著作権</p>
+
+	<p class="container-p">(c) 株式会社C4A研究所</p>
+	
+      </div>
+
+
+  <footer>
+    <p>&copy; 株式会社C4A研究所</p>
+  </footer>
+</body>
+</html>

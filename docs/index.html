@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DialBB Main Page</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Font Awesome（GitHubアイコン用 CDN） -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <header>
+    <p class="brand">DialBB: A Framework for Developing Dialogue Systems</p></li>
+    <nav>
+      <ul class="nav-links">
+        <li><a href="index.html">English</a></li>
+        <li><a href="index-ja.html">日本語</a></li>
+        <li><a href="https://github.com/c4a-ri/dialbb" target="_blank" class="github-btn">
+            <i class="fab fa-github"></i>GitHub</a></li>
+      </ul>
+    </nav>
+  </header>
+
+      <div class="container">
+
+	<p class="section">News</p>
+
+	<ul class="container-ul">
+  	  <li>March 25, 2025: ver. 1.0.2 is released. Uninstalling scripts were improved.</li>
+	  <li>March 17, 2025: ver. 1.0.0 is released.</li>
+	</ul>
+
+	<p class="section">Overview</p>
+
+	<p class="container-p">DialBB is a framework for building dialogue systems developed by
+	  <a href="https://www.c4a.jp/en/">C4A Research Institute, Inc.</a> DialBB has been developed as an information technology educational material. DialBB has <i>extensible</i> architecture and is written in <i>readable codes</i>. DialBB enables the development of dialogue systems by combining modules called <i>building blocks</i>. Developers can easily build simple systems using built-in blocks and can build advanced systems using their own developed blocks. </p>
+
+<p class="container-p">The main module of DialBB application receives a user utterance input in JSON format via method calls or via the Web API returns a system utterance in JSON format. The main module works by calling blocks, in sequence. Each block takes JSON format (data in Python dictionary) and returns the data in JSON format. The class and input/output of each block are specified in the configuration file for each application.</p>
+
+        <p><img src="images/dialbb-arch-en.jpg"/></p>
+
+	<p class="section">Getting Started</p>
+      
+        <p class="container-p">See <a href="https://github.com/c4a-ri/dialbb">DialBB GitHub site</a></p>
+	
+        <p class="section">Documents</p>
+
+          <p class="container-p"><a href="document-en/build/html/index.html">Dcoument for the latest version</a></p>
+          <p class="container-p"> <a href="old-docs/index.html">Documents for older versions</a></p>
+
+        <p class="section">Papers and Citation</p>
+
+        <p class="container-p">Please cite the following paper when publishing a paper on work that uses DialBB.</p>
+
+        <p class="container-p">Mikio Nakano and Kazunori Komatani. <a href="https://aclanthology.org/2024.sigdial-1.56">DialBB: A Dialogue System Development Framework as an Educational Material</a>. In Proceedings of the 25th Annual Meeting of the Special Interest Group on Discourse and Dialogue (SIGDIAL-24), pages 664–668, Kyoto, Japan. Association for Computational Linguistics, 2024<p>
+
+	
+        <p class="section">Questions</p>
+
+        <p class="container-p"> If you have any questions or find problems, please feel free to email at <code>dialbb at c4a.jp</code></p>
+
+        <p class="section">License</p>
+	
+          <p class="container-p">DialBB is released under Apache License 2.0.</p>
+
+     </div>
+
+
+  <footer>
+    <p>&copy; C4A Research Institute, Inc.</p>
+  </footer>
+</body>
+</html>
