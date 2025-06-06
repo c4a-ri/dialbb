@@ -1,0 +1,59 @@
+# .github/workflows/docs-build-deploy.yml
+name: Build and deploy Sphinx Docs
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "docs/**"
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+          fetch-depth: 2  # Fetch the current commit and its parent commits
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+
+    - name: Get changed files
+      id: changed-files
+      uses: tj-actions/changed-files@v44
+
+    - name: print changed files
+      run: echo ${{ steps.changed-files.outputs.all_changed_files }}
+
+    - name: Build Sphinx documentation for Japanese
+      if: contains(steps.changed-files.outputs.all_changed_files, 'docs/document-ja/source/')
+      run: |
+          cd docs/document-ja
+          pip install -r requirements.txt
+          make html
+
+    - name: Build Sphinx documentation for English
+      if: contains(steps.changed-files.outputs.all_changed_files, 'docs/document-en/source/')
+      run: |
+          cd docs/document-en
+          pip install -r requirements.txt
+          make html
+
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_branch: gh-pages
+        publish_dir: ./docs
