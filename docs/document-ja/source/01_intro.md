@@ -14,3 +14,4 @@ DialBBのインストールの仕方とサンプルアプリケーションの�
 また，[東中，稲葉，水上著：Pythonでつくる対話システム](https://www.amazon.co.jp/Python%E3%81%A7%E3%81%A4%E3%81%8F%E3%82%8B%E5%AF%BE%E8%A9%B1%E3%82%B7%E3%82%B9%E3%83%86%E3%83%A0-%E6%9D%B1%E4%B8%AD-%E7%AB%9C%E4%B8%80%E9%83%8E/dp/4274224791)は，対話システムの実装の仕方についてPythonのコードを用いて説明しています．
 
 DialBBは[株式会社C4A研究所](https://www.c4a.jp)が開発し，著作権を保有し，Apache License 2.0のもとにに公開しています．
+
