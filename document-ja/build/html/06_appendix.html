@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="ja" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>6. Appendix &mdash; DialBB ver. 1.0 ドキュメント v1.0.0 ドキュメント</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+        <script src="_static/translations.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="索引" href="genindex.html" />
+    <link rel="search" title="検索" href="search.html" />
+    <link rel="prev" title="5. 組み込みブロッククラスの仕様" href="05_builtin_blocks.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            DialBB ver. 1.0 ドキュメント
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="01_intro.html">1. はじめに</a></li>
+<li class="toctree-l1"><a class="reference internal" href="02_concept.html">2. DialBBの概要</a></li>
+<li class="toctree-l1"><a class="reference internal" href="03_tutorial.html">3. チュートリアル</a></li>
+<li class="toctree-l1"><a class="reference internal" href="04_framework.html">4. フレームワーク仕様</a></li>
+<li class="toctree-l1"><a class="reference internal" href="05_builtin_blocks.html">5. 組み込みブロッククラスの仕様</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">6. Appendix</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id1">6.1. フロントエンド</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id2">6.1.1. シンプルなフロントエンド</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id3">6.1.2. デバッグ用フロントエンド</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#dialbbpip">6.2. DialBBをpipでインストールせずに利用する方法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id4">6.3. 廃止された機能</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#snips-understander">6.3.1. Snips Understander組み込みブロック</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#whitespace-tokenizersudachi-tokenizer">6.3.2. Whitespace Tokenizer組み込みブロックおよびSudachi Tokenizer組み込みブロック</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#snips-stn">6.3.3. Snips+STNサンプルアプリケーション</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">DialBB ver. 1.0 ドキュメント</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active"><span class="section-number">6. </span>Appendix</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/06_appendix.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="appendix">
+<h1><span class="section-number">6. </span>Appendix<a class="headerlink" href="#appendix" title="この見出しへのパーマリンク"></a></h1>
+<section id="id1">
+<h2><span class="section-number">6.1. </span>フロントエンド<a class="headerlink" href="#id1" title="この見出しへのパーマリンク"></a></h2>
+<p>DialBBには，Web APIにアクセスするための，2種類のサンプルフロントエンドが付属しています．</p>
+<section id="id2">
+<h3><span class="section-number">6.1.1. </span>シンプルなフロントエンド<a class="headerlink" href="#id2" title="この見出しへのパーマリンク"></a></h3>
+<p>以下でアクセスできます．</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">http</span><span class="p">:</span><span class="o">//&lt;</span><span class="n">ホスト</span><span class="o">&gt;</span><span class="p">:</span><span class="o">&lt;</span><span class="n">ポート番号</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>システム発話とユーザ発話を吹き出しで表示します．</p>
+<p><code class="docutils literal notranslate"><span class="pre">aux_data</span></code>の送信はできません．また，レスポンスに含まれるシステム発話以外の情報は表示されません．</p>
+</section>
+<section id="id3">
+<h3><span class="section-number">6.1.2. </span>デバッグ用フロントエンド<a class="headerlink" href="#id3" title="この見出しへのパーマリンク"></a></h3>
+<p>以下でアクセスできます．</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">http</span><span class="p">:</span><span class="o">//&lt;</span><span class="n">ホスト</span><span class="o">&gt;</span><span class="p">:</span><span class="o">&lt;</span><span class="n">ポート番号</span><span class="o">&gt;/</span><span class="n">test</span>
+</pre></div>
+</div>
+<p>システム発話とユーザ発話をリスト型式で表示します．</p>
+<p><code class="docutils literal notranslate"><span class="pre">aux_data</span></code>の送信ができます．また，レスポンスに含まれる<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>も表示されます．</p>
+</section>
+</section>
+<section id="dialbbpip">
+<h2><span class="section-number">6.2. </span>DialBBをpipでインストールせずに利用する方法<a class="headerlink" href="#dialbbpip" title="この見出しへのパーマリンク"></a></h2>
+<p>GitHubリポジトリからcloneします．cloneしたディレクトリを&lt;DialBBのディレクトリ&gt;とします．</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>git@github.com:c4a-ri/dialbb.git<span class="w"> </span>&lt;DialBBのディレクトリ&gt;
+</pre></div>
+</div>
+<p>環境変数<code class="docutils literal notranslate"><span class="pre">PYTHONPATH</span></code>を設定します．</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span>&lt;DialBBのディレクトリ&gt;:<span class="nv">$PYTHONPATH</span>
+</pre></div>
+</div>
+<p>クラスAPIで利用する場合，Pythonを立ち上げた後<code class="docutils literal notranslate"><span class="pre">dialbb</span></code>から必要なモジュールやクラスをimportします．</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">dialbb.main</span> <span class="kn">import</span> <span class="n">DialogueProcessor</span>
+</pre></div>
+</div>
+<p>WebAPIで利用する場合，コンフィギュレーションファイルを指定してサーバを起動します．</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python<span class="w"> </span>&lt;DialBBのディレクトリ&gt;/run_server.py<span class="w"> </span><span class="o">[</span>--port<span class="w"> </span>&lt;port&gt;<span class="o">]</span><span class="w"> </span>&lt;config<span class="w"> </span>file&gt;
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">port</span></code>（ポート番号）のデフォルトは8080です．</p>
+</section>
+<section id="id4">
+<h2><span class="section-number">6.3. </span>廃止された機能<a class="headerlink" href="#id4" title="この見出しへのパーマリンク"></a></h2>
+<section id="snips-understander">
+<h3><span class="section-number">6.3.1. </span>Snips Understander組み込みブロック<a class="headerlink" href="#snips-understander" title="この見出しへのパーマリンク"></a></h3>
+<p>SnipsがPython3.9以上ではインストールが困難なため，ver. 0.9で廃止されました．代わりにLR-CRF Understander組み込みブロックを用いてください．</p>
+</section>
+<section id="whitespace-tokenizersudachi-tokenizer">
+<h3><span class="section-number">6.3.2. </span>Whitespace Tokenizer組み込みブロックおよびSudachi Tokenizer組み込みブロック<a class="headerlink" href="#whitespace-tokenizersudachi-tokenizer" title="この見出しへのパーマリンク"></a></h3>
+<p>ver. 0.9で廃止されました．LR-CRF UnderstanderやChatGPT Understanderを使えばTokenizerブロックを使う必要はありません．</p>
+</section>
+<section id="snips-stn">
+<h3><span class="section-number">6.3.3. </span>Snips+STNサンプルアプリケーション<a class="headerlink" href="#snips-stn" title="この見出しへのパーマリンク"></a></h3>
+<p>ver. 0.9で廃止されました．</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="05_builtin_blocks.html" class="btn btn-neutral float-left" title="5. 組み込みブロッククラスの仕様" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright C4A Research Institute, Inc.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
