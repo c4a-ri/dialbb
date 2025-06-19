@@ -9,4 +9,3 @@ Please see the [README](https://github.com/c4a-ri/dialbb/blob/main/README.md) fo
 
 DialBB is developed and copyrighted by [C4A Research Institute,Inc.](https://www.c4a.jp/en) and reeased under Apache License 2.0.
 
-
