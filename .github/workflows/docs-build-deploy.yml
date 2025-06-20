@@ -38,14 +38,12 @@ jobs:
       run: echo ${{ steps.changed-files.outputs.all_changed_files }}
 
     - name: Build Sphinx documentation for Japanese
-      if: contains(steps.changed-files.outputs.all_changed_files, 'docs/document-ja/source/')
       run: |
           cd docs/document-ja
           pip install -r requirements.txt
           make html
 
     - name: Build Sphinx documentation for English
-      if: contains(steps.changed-files.outputs.all_changed_files, 'docs/document-en/source/')
       run: |
           cd docs/document-en
           pip install -r requirements.txt
