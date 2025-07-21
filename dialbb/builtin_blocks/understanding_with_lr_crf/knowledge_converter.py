@@ -106,6 +106,7 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame,
         # converting slots dataframe
         # slots dataframeの変換
         slots_df.fillna('', inplace=True)
+        slots_df = slots_df.map(lambda x: x.strip() if isinstance(x, str) else x)  # strip
         check_columns([COLUMN_FLAG, COLUMN_SLOT_NAME, COLUMN_ENTITY, COLUMN_SYNONYMS], slots_df, "slots")
         for index, row in slots_df.iterrows():
             if row[COLUMN_FLAG] not in flags and ANY_FLAG not in flags:
@@ -131,6 +132,7 @@ def convert_nlu_knowledge(utterances_df: DataFrame, slots_df: DataFrame,
         abort_during_building(f"Warning: no utterances sheet.")
     else:
         utterances_df.fillna('', inplace=True)
+        utterances_df = utterances_df.map(lambda x: x.strip() if isinstance(x, str) else x)  # strip
         check_columns([COLUMN_FLAG, COLUMN_TYPE, COLUMN_UTTERANCE, COLUMN_SLOTS], utterances_df, "utterances")
         for index, row in utterances_df.iterrows():
             if row[COLUMN_FLAG].strip() not in flags and ANY_FLAG not in flags:
