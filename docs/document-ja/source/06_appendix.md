@@ -60,43 +60,27 @@ $ python <DialBBのディレクトリ>/run_server.py [--port <port>] <config fil
 
 
 
-## 廃止された機能
 
-### Snips Understander組み込みブロック
+## ユーザシミュレータを用いたテスタ
 
-SnipsがPython3.9以上ではインストールが困難なため，ver. 0.9で廃止されました．代わりにLR-CRF Understander組み込みブロックを用いてください．
-
-### Whitespace Tokenizer組み込みブロックおよびSudachi Tokenizer組み込みブロック
-
-ver. 0.9で廃止されました．LR-CRF UnderstanderやChatGPT Understanderを使えばTokenizerブロックを使う必要はありません．
-
-### Snips+STNサンプルアプリケーション
-
-ver. 0.9で廃止されました．
-
-
-
-
-## dialbb-tester
-
-OpenAI ChatGPTを用いたDialBBアプリケーションのテスタ
+LLM (ChatGPT) を用いたユーザシミュレータを用いたテスタが付属しています。
 
 ### サンプルの動かし方
 
-以下bashの例で説明します．
+以下bashの例で説明します．Windows コマンドプロンプトの場合は適宜読み替えてください。
 
-- DialBBをインストールします．
+- DialBBをインストールし、サンプルアプリケーションをダウンロードして展開します．
 
-- 環境変数`OPENAI_KEY`または`OPENAI_API_KEY`にOpenAI APIのキーを設定します．
+- 環境変数`OPENAI_API_KEY`にOpenAI APIのキーを設定します．
 
   ```sh
   export OPENAI_KEY=<OPENAIのAPIキー>
   ```
 
-- このREADMEのあるディレクトリで以下のコマンドを実行します．
+- サンプルアプリケーションを展開したディレクトリ（`sample_apps`）で以下のコマンドを実行します．
 
   ```sh
-  dialbb-tester --app_config sample_apps/chatgpt/config_ja.yml --test_config sample_ja/config.yml --output _output.txt
+  dialbb-tester --app_config lab_app_ja/config.yml --test_config lab_app_ja/simulation/config.yml --output _output.txt
   ```
   
 - `_output.txt`に結果が記述されます．
@@ -106,8 +90,8 @@ OpenAI ChatGPTを用いたDialBBアプリケーションのテスタ
   ```python
   from dialbb.sim_tester.main import test_by_simulation
   
-  test_by_simulation("sample_apps/chatgpt/config_ja.yml", 
-                     "sample_ja/config.yml", output="_output.txt")
+  test_by_simulation("lab_app_ja/config.yml", 
+                     "lab_app_ja/simulation/config.yml", output="_output.txt")
   ```
 
 
@@ -116,7 +100,7 @@ OpenAI ChatGPTを用いたDialBBアプリケーションのテスタ
 - 起動オプション
 
   ```sh
-  python main.py --app_config <DialBBアプリケーションのコンフィギュレーションファイル> --test_config <テストコンフィギュレーションファイル> --output <出力ファイル>
+  dialbb-tester --app_config <DialBBアプリケーションのコンフィギュレーションファイル> --test_config <テストコンフィギュレーションファイル> --output <出力ファイル>
   ```
   
 - テストコンフィギュレーションファイル
@@ -134,7 +118,7 @@ OpenAI ChatGPTを用いたDialBBアプリケーションのテスタ
     - `prompt_templates`: （文字列のリスト．必須）プロンプトテンプレートを記述したテキストファイルのパスのリスト．ファイルパスはコンフィギュレーションファイルからの相対パス．プロンプトテンプレートには以下のタグを含めることができる
   
       - `{dialogue_history}` 必須．対話履歴に置き換えられます．
-   
+  
        ```
        <ブロックコンフィギュレーションのsystem_nameの値>: <システム発話>
        <ブロックコンフィギュレーションのuser_nameの値>: <ユーザ発話>
@@ -153,15 +137,30 @@ OpenAI ChatGPTを用いたDialBBアプリケーションのテスタ
 - 関数仕様
 
   - `dialbb.sim_test.main.test_by_simulation(test_config_file: str, app_config_file: str, output_file: str=None, json_output: bool=False, prompt_params: Dict[str, str])`
- 
+
     パラメータ
     
-    - `test_config_file` テストコンフィギュレーション
+    - `test_config_file`: テストコンフィギュレーション
 
-    - `app_config_file` DialBBアプリケーションファイル
+    - `app_config_file`: DialBBアプリケーションファイル
 
-    - `output_file` 対話ログ出力ファイル
+    - `output_file`: 対話ログ出力ファイル
   
-    - `json_output` 出力ファイルのフォーマットがJSONかどうか。Falseならテキストファイル。
+    - `json_output`: 出力ファイルのフォーマットがJSONかどうか。Falseならテキストファイル。
 
-    - `prompt_params` プロンプトに埋め込む情報を辞書型で記述したもの。プロンプトテンプレートに`{<key>}`があれば、<value>で置き換えられる。
+    - `prompt_params`: プロンプトに埋め込む情報を辞書型で記述したもの。プロンプトテンプレートに`{<key>}`があれば、`<value>`で置き換えられる。
+
+## 廃止された機能
+
+### Snips Understander組み込みブロック
+
+SnipsがPython3.9以上ではインストールが困難なため，ver. 0.9で廃止されました．代わりにLR-CRF Understander組み込みブロックを用いてください．
+
+### Whitespace Tokenizer組み込みブロックおよびSudachi Tokenizer組み込みブロック
+
+ver. 0.9で廃止されました．LR-CRF UnderstanderやChatGPT Understanderを使えばTokenizerブロックを使う必要はありません．
+
+### Snips+STNサンプルアプリケーション
+
+ver. 0.9で廃止されました．
+

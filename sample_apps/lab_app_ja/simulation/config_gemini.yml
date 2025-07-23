@@ -1,0 +1,13 @@
+user_name: ユーザ
+system_name: システム
+llm_type: gemini
+model: gemini-2.0-flash-001
+
+settings:
+  - prompt_template: prompt_template1.txt
+    initial_aux_data: aux_data1.json
+  - prompt_template: prompt_template2.txt
+temperatures:
+  - 0.0
+  - 0.7
+
