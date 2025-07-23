@@ -92,9 +92,7 @@ Pythonがインストールされていない場合，以下の手順でイン�
 
 ### DialBBのインストール
 
-https://github.com/c4a-ri/dialbb/blob/dev-v1.0/docs/files/dialbb.zip から`dialbb.zip`ファイルをダウンロードします．Downloadフォルダにダウンロードされます．ダウンロードフォルダにすでに`dialbb.zip`がある場合，`dialbb(1).zip`のような名前になっている場合があるのでその場合，古いdialbb.zipを消してからもう一度ダウンロードしてください．
-
-ターミナルを開きます．適当なディレクトリ（DialBBディレクトリと呼びます）を作って移動してください．
+https://c4a-ri.github.io/dialbb/files/dialbb-setup.zip から`dialbb-setup.zip`ファイルをダウンロードします．Downloadフォルダにダウンロードされます．ターミナルを開きます．適当なディレクトリ（DialBBディレクトリと呼びます）を作って移動してください．
 
 そこで，
 
@@ -245,7 +243,7 @@ Edit Application画面で`シナリオ`ボタンを押すと，シナリオエ�
 
 <img src="images/editor-connection-ja.jpg" width="50%">　
 
-削除は`from`をつまんで離すか，リンク上で右クリック して`削除`を選択します．
+削除は`from`をつまんで離すか，リンク上で右クリックして`削除`を選択します．
 
 <img src="images/editor-conn-del-ja.jpg" width="50%">
 
