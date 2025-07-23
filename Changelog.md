@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.3 (2025.4.27)
+
+- STN Manager Builtin Block
+
+  - Allows to skip twice at once
+
 ## 1.0.2 (2025.3.25)
 
 - uninstall scripts improved

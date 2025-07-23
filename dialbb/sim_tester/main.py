@@ -18,7 +18,7 @@ import yaml
 import os, sys
 
 from dialbb.main import DialogueProcessor
-from dialbb.sim_tester.chatgpt_tester import ChatGPTTester
+from dialbb.sim_tester.llm_tester import LLMTester
 
 DEFAULT_MAX_TURNS: int = 15
 DEFAULT_TEMPERATURE: float = 0.7
@@ -48,7 +48,7 @@ def test_one_setting(user_simulator, dialogue_processor,
 
     request = {"user_id": USER_ID, "aux_data": initial_aux_data}  # initial request
     log_text += "----settings\n"
-    log_text += f"model: {user_simulator.get_gpt_model()}\n"
+    log_text += f"model: {user_simulator.get_llm_model()}\n"
     log_text += "prompt_template:\n---\n"
     log_text += prompt_template
     log_text += "---\n"
@@ -91,13 +91,16 @@ def test_one_setting(user_simulator, dialogue_processor,
     return result
 
 
-def test(test_config_file: str, app_config_file: str, output_file=None, json_output=False) -> List[Dict[str, Any]]:
+def test_by_simulation(test_config_file: str, app_config_file: str, output_file: str = None,
+                       json_output: bool = False,
+                       prompt_params: Dict[str, str] = None) -> List[Dict[str, Any]]:
     """
     test using LLM-based simulator
     :param test_config_file: config file for test
     :param app_config_file: config file for dialbb app to test
     :param output_file: file to output log
     :param json_output: if True, output file will be JSON
+    :param prompt_params: parameters to replace tags in prompt
     :return: list of logs in JSON format
     """
 
@@ -118,6 +121,10 @@ def test(test_config_file: str, app_config_file: str, output_file=None, json_out
         with open(os.path.join(test_config_dir, prompt_template_file), encoding='utf-8') as fp:
             prompt_template = fp.read()
 
+        if prompt_params:
+            for param, value in prompt_params.items():
+                prompt_template = prompt_template.replace("{" + param + "}", value)
+
         initial_aux_data = {}
         initial_aux_data_file: str = setting_description.get("initial_aux_data")
         if initial_aux_data_file:
@@ -135,7 +142,7 @@ def test(test_config_file: str, app_config_file: str, output_file=None, json_out
     # temperature list
     temperatures: List[float] = test_config.get("temperatures", [DEFAULT_TEMPERATURE])
 
-    user_simulator = ChatGPTTester(test_config)
+    user_simulator = LLMTester(test_config)
 
     max_turns = test_config.get('max_turns', DEFAULT_MAX_TURNS)
 
@@ -175,9 +182,9 @@ def main():
     app_config_file: str = args.app_config
     test_config_file: str = args.test_config
     if args.output:
-        test(test_config_file, app_config_file, output_file=args.output, json_output=args.json_output)
+        test_by_simulation(test_config_file, app_config_file, output_file=args.output, json_output=args.json_output)
     else:
-        test(test_config_file, app_config_file)
+        test_by_simulation(test_config_file, app_config_file)
 
 
 if __name__ == '__main__':
