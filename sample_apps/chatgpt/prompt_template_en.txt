@@ -26,7 +26,7 @@
 
 # Dialogue up to now
 
-@dialogue_history
+{dialogue_history}
 
 
 
