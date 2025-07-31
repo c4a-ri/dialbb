@@ -12,7 +12,7 @@ PROMPT_TEMPLATE_JA: str = '''
 
 # 固有表現のクラス
 
-@lasses
+@classes
 
 # 固有表現のクラスの説明
 
