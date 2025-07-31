@@ -111,7 +111,7 @@ class NER(AbstractBlock):
         class_list, class_explanations, ne_examples, ner_examples \
             = convert_ner_knowledge(utterances_df, slots_df, self.block_config, language=self._language)
         self._prompt_template = (prompt_template.replace('@classes', class_list)
-                                 .replace('@explanations', class_explanations)
+                                 .replace('@class_explanations', class_explanations)
                                  .replace('@ne_examples', ne_examples)
                                  .replace('@ner_examples', ner_examples))
 
