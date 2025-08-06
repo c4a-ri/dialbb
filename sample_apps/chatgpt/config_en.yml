@@ -16,6 +16,7 @@ blocks:
     first_system_utterance: "Hello! Let's talk about food. What kind of cuisine do you like?"
     prompt_template: prompt_template_en.txt
     gpt_model: gpt-4o-mini
+    temperature: 0.7
     
     
 

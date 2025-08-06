@@ -131,7 +131,7 @@ The following explains how to run it using Bash. If you are using Windows Comman
         <system_name>: <System utterance>
         ```
 
-      -  `initial_aux_data`: (string, optional) Path to a JSON file containing content to be included in `aux_data` at the beginning of the dialogue when accessing the DialBB application. Path is relative to the configuration file.
+    - `initial_aux_data`: (string, optional) Path to a JSON file containing content to be included in `aux_data` at the beginning of the dialogue when accessing the DialBB application. Path is relative to the configuration file.
 
   - `temperatures`: (list of floats, optional) A list of temperature parameters for GPT. Default is a single-element list `[0.7]`. Sessions will be conducted for all combinations of the length of `prompt_templates` × this list.
 
@@ -151,7 +151,7 @@ The following explains how to run it using Bash. If you are using Windows Comman
 
     - `json_output`: Whether the output file should be in JSON format. If `False`, it will be a text file.
 
-    - `prompt_params`: Dictionary of parameters to inject into the prompt. If the prompt template contains `{<key>}`, it will be replaced with `<value>`.
+    - `prompt_params`: Dictionary of parameters to embed into the prompt. If the prompt template contains `{<key>}`, it will be replaced with `<value>`.
 
 
 ## Discontinued Features
