@@ -59,9 +59,9 @@ class ChatGPT(AbstractBlock):
             abort_during_building("prompt template file is not specified")
         filepath: str = os.path.join(self.config_dir, prompt_template_file)
         with open(filepath, encoding='utf-8') as fp:
-             self._prompt_template = fp.read()
+            self._prompt_template = fp.read()
         if self._prompt_template.find(DIALOGUE_HISTORY_TAG) >= 0 \
-            or self._prompt_template.find(DIALOGUE_HISTORY_OLD_TAG) >= 0:
+           or self._prompt_template.find(DIALOGUE_HISTORY_OLD_TAG) >= 0:
             abort_during_building("The format of the prompt template is obsolete. " +
                                   "The 'dialogue_history' tag is no longer necessary.")
 

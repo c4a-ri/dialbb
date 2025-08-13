@@ -20,8 +20,4 @@
 - This is your first time talking to an AI
 - You talk to the AI with a somewhat serious tone
 
-# Dialogue up to now
-
-{dialogue_history}
-
 

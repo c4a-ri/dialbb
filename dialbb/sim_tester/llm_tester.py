@@ -1,13 +1,37 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#
+# Copyright 2025 C4A Research Institute, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+#
+# llm_tester.py
+#   Tester using LLM-based simulation
+#   LLMを利用したシミュレーションによるテスタ
+
+
+
 import os, sys
 import traceback
 
 import openai
 import google.generativeai as genai
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 DEFAULT_GPT_MODEL: str = "gpt-4o-mini"
-DIALOG_HISTORY_TAG: str = '{dialogue_history}'
-DIALOG_HISTORY_OLD_TAG: str = '@dialogue_history'
+DIALOGUE_HISTORY_TAG: str = '{dialogue_history}'
+DIALOGUE_HISTORY_OLD_TAG: str = '@dialogue_history'
 TIMEOUT: int = 10
 
 class LLMTester:
@@ -31,21 +55,13 @@ class LLMTester:
             openai.api_key = openai_key
             self._gpt_model: str = test_config.get("model", DEFAULT_GPT_MODEL)
 
-        elif self._llm_type == "gemini":
-
-            google_api_key: str = os.environ.get('GOOGLE_API_KEY')
-            if not google_api_key:
-                print("environment variable GOOGLE_API_KEY is not defined.")
-                sys.exit(1)
-            genai.configure(api_key=google_api_key)
-            self._gemini_model = genai.GenerativeModel(self._llm)
-
         else:
 
             print("unsupported llm type: " + self._llm_type)
             sys.exit(1)
 
-        self._prompt_template: str = ""
+        self._temperature: float = 0.0
+        self._messages: List[Dict[str, str]] = []
         self._user_name_string: str = test_config.get("user_name", "User")
         self._system_name_string: str = test_config.get("system_name", "System")
         self._dialogue_history = ""
@@ -58,12 +74,14 @@ class LLMTester:
         :return: None
         """
 
-        self._prompt_template = prompt_template
-        self._temperature = temperature
-        self._dialogue_history = ""
+        # check old prompt
+        if prompt_template.find(DIALOGUE_HISTORY_TAG) >= 0 \
+           or prompt_template.find(DIALOGUE_HISTORY_OLD_TAG) >= 0:
+            print("The format of the prompt template is obsolete. The 'dialogue_history' tag is no longer necessary.")
+            sys.exit(1)
 
-        if DIALOG_HISTORY_OLD_TAG in self._prompt_template:
-            print(f"Warning: {DIALOG_HISTORY_OLD_TAG} is deprecated. Use {DIALOG_HISTORY_TAG} instead.")
+        self._temperature = temperature
+        self._messages.append({"role": "system", "content": prompt_template})
 
     def generate_next_user_utterance(self, system_utterance: str) -> str:
         """
@@ -71,15 +89,8 @@ class LLMTester:
         :param system_utterance: recent system utterance
         :return: generated user utterance
         """
-        self._dialogue_history += f'{self._system_name_string}: "{system_utterance}"\n'
 
-        prompt = self._prompt_template.replace(DIALOG_HISTORY_TAG, self._dialogue_history)
-        prompt = prompt.replace(DIALOG_HISTORY_OLD_TAG, self._dialogue_history)
-
-
-
-        if self._debug:
-            print("prompt for generating user utterance: \n" + prompt)
+        self._messages.append({"role": "user", "content": system_utterance})
 
         if self._llm_type == 'chatgpt':
 
@@ -88,7 +99,7 @@ class LLMTester:
                 try:
                     chat_completion = self._openai_client.with_options(timeout=TIMEOUT).chat.completions.create(
                         model=self._gpt_model,
-                        messages=[{"role": "user", "content": prompt}],
+                        messages=self._messages,
                         temperature=self._temperature,
                         )
                 except openai.APITimeoutError:
@@ -105,29 +116,11 @@ class LLMTester:
 
         elif self._llm_type == 'gemini':
 
-            response = None
-            while True:
-                try:
-                    gemini_config = genai.types.GenerationConfig(temperature=self._temperature)
-                    response = self._gemini_model.generate_content(prompt, generation_config=gemini_config)
-                except genai.errors.APIError as e:
-                    if hasattr(e, "code") and e.code in [429, 500, 503]:
-                        print (f"Gemini error with code {str(e.code)}. Repeating.")
-                        continue
-                except Exception:
-                    traceback.print_exc()
-                    raise Exception
-                finally:
-                    if not response:
-                        print (f"No response from Gemini. Repeating.")
-                        continue
-                    else:
-                        break
-            user_utterance: str = response.text.strip()
+            raise Exception("gemini can't be used.")  # this won't occur
 
         print(f"generated user utterance: {user_utterance}")
         user_utterance = user_utterance.replace('"','')
-        self._dialogue_history += f'{self._user_name_string} "{user_utterance}"\n'
+        self._messages.append({"role": "assistant", "content": user_utterance})
 
         return user_utterance
 
