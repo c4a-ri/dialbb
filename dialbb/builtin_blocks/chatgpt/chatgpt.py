@@ -19,7 +19,6 @@
 #   performs dialogue using ChatGPT
 #   ChatGPTを用いた対話
 
-__version__ = '0.1'
 __author__ = 'Mikio Nakano'
 __copyright__ = 'C4A Research Institute, Inc.'
 
@@ -54,12 +53,20 @@ class ChatGPT(AbstractBlock):
         self.user_name: str = self.block_config.get("user_name", "User")
         self.system_name: str = self.block_config.get("system_name", "System")
 
+        # reading prompt template file
         prompt_template_file: str = self.block_config.get("prompt_template", "")
         if not prompt_template_file:
             abort_during_building("prompt template file is not specified")
         filepath: str = os.path.join(self.config_dir, prompt_template_file)
         with open(filepath, encoding='utf-8') as fp:
-             self._prompt_template = fp.read()
+            self._prompt_template = fp.read()
+        if self._prompt_template.find(DIALOGUE_HISTORY_TAG) >= 0 \
+           or self._prompt_template.find(DIALOGUE_HISTORY_OLD_TAG) >= 0:
+            abort_during_building("The format of the prompt template is obsolete. " +
+                                  "The 'dialogue_history' tag is no longer necessary.")
+
+        # temperature
+        self._temperature = self.block_config.get("temperature", 0.7)
 
         # {"session1" : [{"speaker": "user", "utterance": <user utterance>},
         #                {"speaker": "system", "utterance": <system utterance>},
@@ -94,13 +101,13 @@ class ChatGPT(AbstractBlock):
                 "aux_data": aux_data,
                 "final": final}
 
-    def _generate_with_openai_gpt(self, prompt: str) -> str:
+    def _generate_with_openai_gpt(self, messages: List[Dict[str, str]]) -> str:
 
         """
         Generates system utterance using openai GPT. Does not use "assistant" role.
         This is to be used in the "generate_system_utterance" method.
 
-        :param prompt: prompt string
+        :param messages: dialogue history
         :return: generated string
         """
 
@@ -109,8 +116,8 @@ class ChatGPT(AbstractBlock):
             try:
                 chat_completion = self._openai_client.with_options(timeout=10).chat.completions.create(
                     model=self._gpt_model,
-                    messages=[{"role": "user", "content": prompt}],
-                    temperature=0.0,
+                    messages=messages,
+                    temperature=self._temperature,
                     )
             except openai.APITimeoutError:
                 continue
@@ -139,18 +146,17 @@ class ChatGPT(AbstractBlock):
         :return: a tuple of system utterance string, aux_data as is, and final flag (always False)
         """
 
-        dialogue_history_string: str = ""
+        messages = []
+        messages.append({'role': "system", "content": self._prompt_template})
 
         for turn in dialogue_history:
             if turn["speaker"] == 'user':
-                dialogue_history_string += f"{self.user_name}: {turn['utterance']}\n"
+                messages.append({'role': "user", "content": turn['utterance']})
             else:
-                dialogue_history_string += f"{self.system_name}: {turn['utterance']}\n"
+                messages.append({'role': "assistant", "content": turn['utterance']})
 
-        prompt: str = self._prompt_template.replace(DIALOGUE_HISTORY_TAG, dialogue_history_string)
-        prompt: str = prompt.replace(DIALOGUE_HISTORY_OLD_TAG, dialogue_history_string)
-        self.log_debug("prompt: " + prompt, session_id=session_id)
-        generated_utterance: str = self._generate_with_openai_gpt(prompt)
+        self.log_debug("messages: " + str(messages), session_id=session_id)
+        generated_utterance: str = self._generate_with_openai_gpt(messages)
         self.log_debug("generated system utterance: " + generated_utterance, session_id=session_id)
         system_utterance: str = generated_utterance.replace(f'{self.system_name}:', '').strip()
         self.log_debug("final system utterance: " + system_utterance, session_id=session_id)

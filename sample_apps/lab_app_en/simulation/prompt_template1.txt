@@ -20,8 +20,4 @@
 - You first talk to AI
 - You talk friendly
 
-# Dialogue up to now
-
-{dialogue_history}
-
 
