@@ -58,26 +58,36 @@ class LLMDialogue(AbstractBlock):
         llm_type = self.block_config.get("llm_type", "chatgpt")
         llm_model = self.block_config.get("llm_model", "")
         print(f"{llm_type=} : {llm_model=}")
-        llm = llm_selector(llm_type, llm_model)
+        llm = llm_selector(
+            llm_type, llm_model
+        )  # LangChainで利用するLLMインスタンスを取得
         print(f"LLM type : {type(llm)}")
 
         # 出力結果のOutput Parserを定義
-        parser = StrOutputParser()
+        parser = StrOutputParser()  # LLMの出力を文字列としてパースするパーサ
 
         # PromptTemplateの定義
         prompt = ChatPromptTemplate.from_messages(
             [
                 # 毎回必ず含まれるSystemプロンプトを追加
-                SystemMessage(content=self._prompt_template),
+                SystemMessage(
+                    content=self._prompt_template
+                ),  # システムプロンプト（指示文）を追加
                 # ChatMessageHistory(BufferMemory)をプロンプトに追加
-                MessagesPlaceholder(variable_name="history"),
+                MessagesPlaceholder(
+                    variable_name="history"
+                ),  # 会話履歴をプロンプトに挿入
                 # ユーザーの入力をプロンプトに追加
-                HumanMessagePromptTemplate.from_template("{utterance}"),
+                HumanMessagePromptTemplate.from_template(
+                    "{utterance}"
+                ),  # ユーザー発話を挿入
             ]
         )
 
         # Chainを構成
-        chain = prompt | llm | parser
+        chain = (
+            prompt | llm | parser
+        )  # プロンプト→LLM→パーサの順で処理を流すLangChainのChainを作成
 
         # 対話履歴のMemoryを定義
         self._history_buffer = {}
@@ -85,9 +95,9 @@ class LLMDialogue(AbstractBlock):
         # RunnableWithMessageHistoryの準備
         self.chat_model = RunnableWithMessageHistory(
             chain,
-            self._get_session_history,
-            input_messages_key="utterance",
-            history_messages_key="history",
+            self._get_session_history,  # セッションごとの履歴取得関数
+            input_messages_key="utterance",  # 入力メッセージのキー
+            history_messages_key="history",  # 履歴メッセージのキー
         )
 
     def process(
@@ -137,7 +147,9 @@ class LLMDialogue(AbstractBlock):
         """
         # セッションIDごとの会話履歴の取得
         if session_id not in self._history_buffer:
-            self._history_buffer[session_id] = ChatMessageHistory()
+            self._history_buffer[session_id] = (
+                ChatMessageHistory()
+            )  # LangChainの会話履歴管理クラス
         return self._history_buffer[session_id]
 
     def generate_system_utterance(
@@ -166,8 +178,10 @@ class LLMDialogue(AbstractBlock):
             try:
                 # ChatModelの実行
                 system_utterance = self.chat_model.invoke(
-                    {"utterance": user_utterance},
-                    config={"configurable": {"session_id": session_id}},
+                    {"utterance": user_utterance},  # ユーザー発話を入力
+                    config={
+                        "configurable": {"session_id": session_id}
+                    },  # セッションIDで履歴管理
                 )
             except Exception as e:
                 self.log_error("LangChain Error: " + traceback.format_exc())
