@@ -61,20 +61,21 @@ Windows11，MacOSで動作します．
 
 ### シナリオエディタのインストール
 
-- 以下の手順でシナリオエディタ（のGUIプログラム）をインストールします．このプログラムのライセンスなどの情報は，https://c4a-ri.github.io/dialbb-scenario-editor/ に書いてあります．
+必要なファイルを以下の要領でダウンロードします．
 
-- ブラウザから https://c4a-ri.github.io/dialbb-scenario-editor/files/editor-gui.zip にアクセスします．
-- `ダウンロード`フォルダに`editor_gui`という名前のzipファイル（または`editor_gui.zip`）がダウンロードされます．
-- このファイルを先ほどの`dialbb-setup`フォルダ（展開してできたフォルダ）に移動します．
-- `dialbb-setup`フォルダにある，`install-scenario-editor`アイコンをダブルクリックします．
-  - 「WindowsによってPCが保護されました」と出るかもしれません．その場合，「詳細情報」をクリックすると，「実行」ボタンが出てくるので，それを押してください．
-  - `Press any key to continue . . .`と表示されたらインストールは完了なので，何かキーを押して終了してください．
+  - ブラウザでのアドレスバーに https://github.com/c4a-ri/dialbb-scenario-editor/blob/main/docs/files/DialBB_Scenario_Editor-installer-1.0.0-win.exe を打ち込んでEnterキーを押します．
+- 遷移したページの右側の下向き矢印をクリックします．
+  
+- `ダウンロード`フォルダに`DialBB_Scenario_Editor-installer-1.0.0-win.exe`という名前のアプリのインストーラーがダウンロードされます．
+  - エクスプローラでこのインストーラーをダブルクリックします．
+    - 「WindowsによってPCが保護されました」と出るかもしれません．その場合，「詳細情報」をクリックすると，「実行」ボタンが出てくるので，それを押してください．
+  - ダイアログが表示されたら\[OK\]ボタンを押すとインストールが始まります．
 
 ### 起動
 
 `dialbb-setup`フォルダ内で`start-dialbb-nc`（または`start-dialbb-nc.bat`）をダブルクリックします．
 
-正常に起動するとメイン画面が表示されます．（少し時間がかかることがあります．）
+正常に起動するとメイン画面が表示されます．
 
 <img src="images/gui-main-ja.jpg" width="70%">
 
@@ -105,13 +106,8 @@ pip install --force-reinstall *.whl
 
 ### シナリオエディタのインストール
 
-https://github.com/c4a-ri/dialbb-scenario-editor/blob/main/docs/files/editor-gui.zipから`editor-gui.zip`ををダウンロードします．Downloadファイルにダウンロードされます．
+(to write)
 
-ターミナルで以下を実行します．（ディレクトリはどこでも構いません）
-
-```sh
-dialbb-install-scenario-editor ~/Downloads/editor-gui.zip
-```
 
 ### 起動
 
@@ -121,7 +117,7 @@ dialbb-install-scenario-editor ~/Downloads/editor-gui.zip
 dialbb-nc
 ```
 
-Macの場合少し画面が乱れます。（修正予定）
+Macの場合少し画面が乱れます．（修正予定）
 
 ## アプリケーションの読み込み・作成・書き出し
 
@@ -152,7 +148,7 @@ Macの場合少し画面が乱れます。（修正予定）
 - `設定ボタンを押します．  
   ![settings](images/settings-ja.jpg)
 - `OPENAI_API_KEY`の右側に別途入手したOpenAIのAPIキーを入力し，`OK`ボタンを押します．`保存しました`という表示が出るので再度`OK`ボタンを押します．OpenAIのAPIキーの入手方法は別途「OpenAI API キー」などで検索して調べてください．
-- 入力したAPIキーは暗号化して保存されますが、DialBBのプログラムがあれば復号できるので、個人用PC以外では保存しないようにしてください。消去する場合には、`OPENAI_API_KEY`に他の文字列をセットするか、DialBBをアンインストールしてください。
+- 入力したAPIキーは暗号化して保存されますが，DialBBのプログラムがあれば復号できるので，個人用PC以外では保存しないようにしてください．消去する場合には，`OPENAI_API_KEY`に他の文字列をセットするか，DialBBをアンインストールしてください．
 
 ### 起動
 
@@ -182,7 +178,7 @@ Macの場合少し画面が乱れます。（修正予定）
 
 ### アンインストール
 
-`dialbb-setup`フォルダの中にある、uninstallというアイコンをダブルクリックするとDialBBがアンインストールできます。
+`dialbb-setup`フォルダの中にある，uninstallというアイコンをダブルクリックするとDialBBがアンインストールできます．
 
 
 ## アプリケーションの編集
@@ -247,7 +243,7 @@ Edit Application画面で`シナリオ`ボタンを押すと，シナリオエ�
 
 <img src="images/editor-conn-del-ja.jpg" width="50%">
 
-変更を戻すときにはコントロールキーを押しながら`z`を押してください。
+変更を戻すときにはコントロールキーを押しながら`z`を押してください．
 
 #### 保存
 
@@ -428,3 +424,18 @@ Edit Application画面で`シナリオ`ボタンを押すと，シナリオエ�
 - `class`列には固有表現のクラスを書きます．
 - `explanation`列には固有表現の説明を書きます．
 - `examples`列には，そのクラスの固有表現の例をカンマまたは読点で並べて書きます．
+
+
+
+### ノーコードGUIの日本語／英語表示切替について
+
+実行コマンドの引数[ja/en]で指定します．
+
+- `dialbb-nc [ja]`  …日本語，省略時は日本語がデフォルトです．
+- `dialbb-nc en`  …英語
+
+日本語／英語を定義したyamlファイル
+
+- `dialbb/no_code/gui_nc_text.yml`
+
+

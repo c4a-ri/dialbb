@@ -125,7 +125,7 @@ def obj2dict(obj):
 #  次状態→状態へNode接続コネクターを生成
 # --------------------
 def generate_connectors(nodes: any = None) -> List[connectorItem]:
-    print(f"##>>{nodes=}")
+    # print(f"##>>{nodes=}")
     if nodes is None:
         nodes = []
     node_list = []
