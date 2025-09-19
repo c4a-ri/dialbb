@@ -21,7 +21,7 @@
 __version__ = "0.1"
 __author__ = "Mikio Nakano"
 
-import os
+import os, sys
 import argparse
 import tkinter as tk
 from tkinter import ttk
@@ -51,20 +51,34 @@ LIB_DIR: str = os.path.abspath(os.path.join(SCRIPT_ROOT, ".."))
 NC_PATH: str = SCRIPT_ROOT
 APP_FILE_DIR: str = os.path.join(NC_PATH, "app")
 TEMPLATE_DIR: str = os.path.join(NC_PATH, "templates")
-EDITOR_DIR: str = os.path.join(NC_PATH, "gui_editor")
 DATA_DIR: str = os.path.join(NC_PATH, "data")
 
-EDITOR_APL_EXE: str = os.path.join(
-    os.environ.get("LOCALAPPDATA"),
-    "Programs",
-    "DialBB_Scenario_Editor",
-    "DialBB_Scenario_Editor.exe",
-)
-EDITOR_APPDATA_DIR: str = os.path.join(
-    os.environ.get("APPDATA"), "dialbb-scenario-editor"
-)
+if sys.platform.startswith("win"):   # windows
+    EDITOR_APL_EXE: str = os.path.join(
+        os.environ.get("LOCALAPPDATA"),
+        "Programs",
+        "DialBB_Scenario_Editor",
+        "DialBB_Scenario_Editor.exe",
+    )
+    EDITOR_APPDATA_DIR: str = os.path.join(
+        os.environ.get("APPDATA"), "dialbb-scenario-editor"
+    )
+elif sys.platform == "darwin":  # mac
+    EDITOR_APL_EXE: str = os.path.join(
+        os.environ.get("HOME"),
+        "Applications",
+        "DialBB_Scenario_Editor.app"
+    )
+    EDITOR_APPDATA_DIR: str = os.path.join(
+        os.environ.get("HOME"),
+        "Library/Application Support",
+        "dialbb-scenario-editor"
+    )
 
-# define application files  アプリファイルの定義
+else:  # linux isn't supported
+    print(f"Unsupported OS: {sys.platform}")
+
+
 APP_FILES: Dict[str, str] = {
     "scenario": "scenario.xlsx",
     "nlu-knowledge": "nlu-knowledge.xlsx",
@@ -72,6 +86,8 @@ APP_FILES: Dict[str, str] = {
     "scenario-functions": "scenario_functions.py",
     "config": "config.yml",
 }
+
+# define application files  アプリファイルの定義
 
 
 # dialbb process information  DialBBサーバのプロセス情報
@@ -93,7 +109,7 @@ def exec_editor(file_path, parent):
         return
 
     arg_lang = f"--lang={gui_text('language type')}"
-    print(f"exec_Editor os:{os.name} editor dir:{EDITOR_DIR} {arg_lang}")
+    print(f"Starting editor. OS: {sys.platform}, Editor exec: {EDITOR_APL_EXE}, Language: {arg_lang}")
     # invoke server サーバ起動
     cmd = os.path.join(NC_PATH, r"start_editor.py")
     editor_proc = ProcessManager(cmd, ["--mode=nc", arg_lang])
@@ -103,7 +119,7 @@ def exec_editor(file_path, parent):
             # シナリオエディタアプリの実行
             if not os.path.exists(EDITOR_APL_EXE):
                 raise FileNotFoundError(
-                    gui_text("msg_editor_err_notfound") + ": {EDITOR_APL_EXE}"
+                    gui_text("msg_editor_err_notfound") + f": {EDITOR_APL_EXE}"
                 )
             # アプリ起動 （言語種別引数あり）
             editor_apl = subprocess.Popen([EDITOR_APL_EXE, arg_lang])
