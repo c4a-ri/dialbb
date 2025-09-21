@@ -23,6 +23,7 @@ __author__ = 'Mikio Nakano'
 __copyright__ = 'C4A Research Institute, Inc.'
 
 import sys
+import jaconv
 
 from pandas import DataFrame
 from typing import List
@@ -30,6 +31,7 @@ from typing import List
 from dialbb.builtin_blocks.stn_management.state_transition_network import StateTransitionNetwork, State
 from dialbb.main import ANY_FLAG
 from dialbb.util.error_handlers import abort_during_building, warn_during_building
+
 
 COLUMN_FLAG: str = "flag"
 COLUMN_STATE: str = "state"
@@ -40,6 +42,14 @@ COLUMN_CONDITIONS: str = "conditions"
 COLUMN_ACTIONS: str = "actions"
 COLUMN_DESTINATION: str = "next state"
 
+def normalize(cell_content: str) -> str:
+    """
+    normalize the content of a cell. e.g., zenkaku -> hankaku
+    :param cell_content: input
+    :return: normalized string
+    """
+
+    return jaconv.z2h(cell_content, kana=False, ascii=True, digit=False)
 
 def create_stn(df: DataFrame, flags_to_use: List[str]) -> StateTransitionNetwork:
     """
@@ -65,19 +75,22 @@ def create_stn(df: DataFrame, flags_to_use: List[str]) -> StateTransitionNetwork
     for index, row in df.iterrows():
         if row[COLUMN_FLAG] not in flags_to_use and ANY_FLAG not in flags_to_use:
             continue  # ignore the row
-        current_state_name = row[COLUMN_STATE]
+        current_state_name = normalize(row[COLUMN_STATE])
         if current_state_name == "":
             warn_during_building(f"'state' column is empty at row {str(index + 1)}.")
             continue
         current_state: State = stn.get_state_from_state_name(current_state_name)
         if current_state is None:
             current_state = stn.create_new_state(current_state_name)
-        system_utterance = row[COLUMN_SYSTEM_UTTERANCE]
+        system_utterance = normalize(row[COLUMN_SYSTEM_UTTERANCE])
+
         if system_utterance != "":
             current_state.add_system_utterance(system_utterance)
         if row[COLUMN_DESTINATION]:
-            current_state.add_transition(row[COLUMN_USER_UTTERANCE_TYPE], row[COLUMN_CONDITIONS],
-                                         row[COLUMN_ACTIONS], row[COLUMN_DESTINATION])
+            current_state.add_transition(normalize(row[COLUMN_USER_UTTERANCE_TYPE]),
+                                         normalize(row[COLUMN_CONDITIONS]),
+                                         normalize(row[COLUMN_ACTIONS]),
+                                         normalize(row[COLUMN_DESTINATION]))
         elif row[COLUMN_USER_UTTERANCE_TYPE] or row[COLUMN_CONDITIONS] or row[COLUMN_ACTIONS]:
             warn_during_building(f"empty destination with non-empty conditions or actions at row {str(index + 1)}")
 

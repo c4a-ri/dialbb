@@ -18,8 +18,8 @@
 # gui_utils.py
 #   functions used in GUI of Dialbb No Code
 #
-__version__ = '0.1'
-__author__ = 'Mikio Nakano'
+__version__ = "0.1"
+__author__ = "Mikio Nakano"
 
 import sys
 import os
@@ -29,6 +29,7 @@ from typing import List, Dict, Any
 import json
 from cryptography.fernet import Fernet
 from datetime import datetime
+import yaml
 
 
 # -------- Process manager class プロセス管理クラス -------------------------------------
@@ -49,56 +50,63 @@ class ProcessManager:
 
         if self.is_dialbb:
             # debug mode
-            os.environ['DIALBB_DEBUG'] = 'yes'
+            os.environ["DIALBB_DEBUG"] = "yes"
 
             # current time
             current_date: str = datetime.now().strftime("%Y%m%d")
             current_time: str = datetime.now().strftime("%H%M%S")
 
-            log_root_dir: str = os.environ.get('HOMEPATH', os.environ.get('HOME', os.getcwd()))
-            log_dir: str = os.path.join(log_root_dir, '.dialbb_nc_logs', current_date)
+            log_root_dir: str = os.environ.get(
+                "HOMEPATH", os.environ.get("HOME", os.getcwd())
+            )
+            log_dir: str = os.path.join(log_root_dir, ".dialbb_nc_logs", current_date)
             if not os.path.exists(log_dir):
                 os.makedirs(log_dir)
-            self.log_file: str = os.path.join(log_dir, f"{current_date}.{current_time}.txt")
+            self.log_file: str = os.path.join(
+                log_dir, f"{current_date}.{current_time}.txt"
+            )
 
-            with open(self.log_file, 'w') as fp:
-                if os.name == 'nt':  # windows
+            with open(self.log_file, "w") as fp:
+                if os.name == "nt":  # windows
                     cmd = [sys.executable, self.cmd] + self.params
                 else:
-                    cmd = f'exec python {self.cmd} {" ".join(self.params)}'  # todo python3?
-                print(f'CLI:{cmd}')
-                self.process = subprocess.Popen(cmd, stdout=fp, stderr=subprocess.STDOUT, shell=True)
+                    cmd = f"exec python {self.cmd} {' '.join(self.params)}"  # todo python3?
+                print(f"CLI:{cmd}")
+                self.process = subprocess.Popen(
+                    cmd, stdout=fp, stderr=subprocess.STDOUT, shell=True
+                )
         else:
-            if os.name == 'nt':
+            if os.name == "nt":
                 # windows
                 # Pythonの実行可能ファイルのパスを取得
                 cmd = [sys.executable, self.cmd] + self.params
-                print(f'CLI:{cmd}')
+                print(f"CLI:{cmd}")
                 self.process = subprocess.Popen(cmd)
             else:
                 # Linux
-                cmd = f'exec python {self.cmd} {" ".join(self.params)}'
+                cmd = f"exec python {self.cmd} {' '.join(self.params)}"
                 self.process = subprocess.Popen(cmd, shell=True)
 
         ret_code = self.process.poll()
         if ret_code is not None:
-            messagebox.showerror('ERROR', "Failed to start the server.",
-                                 detail=self.process.stdout)
+            messagebox.showerror(
+                "ERROR", "Failed to start the server.", detail=self.process.stdout
+            )
             return False
-        print(f'# Start process pid={self.process.pid}.')
+        print(f"# Start process pid={self.process.pid}.")
         return True
-    
+
     # stop process プロセス停止
     def stop(self) -> None:
         # stp server サーバ停止
-        if os.name == 'nt':
+        if os.name == "nt":
             # windows
             os.system(f"taskkill /F /T /PID {self.process.pid}")
         else:
             # Linux
             self.process.terminate()
         self.process.wait()
-        print(f'# Terminated process of {self.cmd}.')
+        print(f"# Terminated process of {self.cmd}.")
 
     # show log file
     def get_log_file(self) -> str:
@@ -107,7 +115,6 @@ class ProcessManager:
 
 # -------- ファイルタイムスタンプ管理クラス -------------------------------------
 class FileTimestamp:
-
     files = []
 
     def __init__(self, dir: str, files: List[str] = None) -> None:
@@ -147,15 +154,14 @@ class FileTimestamp:
 # -------- JSONファイルの管理クラス -------------------------------------
 class JsonInfo:
     # データ要素
-    label_gpt = 'OPENAI_API_KEY'
-    label_app = 'Specify_application'
-    label_model = 'gpt_models'
+    label_gpt = "OPENAI_API_KEY"
+    label_app = "Specify_application"
+    label_model = "gpt_models"
 
     # 暗号化キー
-    key = '6QvOzPwlGXvFpvv4ZrL4RSrpxZmCUK7wSxnmd9qDzp4='
-    
-    def __init__(self, filename):
+    key = "6QvOzPwlGXvFpvv4ZrL4RSrpxZmCUK7wSxnmd9qDzp4="
 
+    def __init__(self, filename):
         self.filename = filename
         self.data = {}
         self.disp = None
@@ -179,7 +185,7 @@ class JsonInfo:
         encrypted = fernet.encrypt(byte_data)
 
         # 暗号化したファイルを保存する
-        with open(self.filename, 'wb') as file:
+        with open(self.filename, "wb") as file:
             file.write(encrypted)
 
     # ファイル復号化
@@ -188,7 +194,7 @@ class JsonInfo:
         fernet = Fernet(self.key)
 
         # 暗号化されたファイルを読み込む
-        with open(self.filename, 'rb') as file:
+        with open(self.filename, "rb") as file:
             encrypted = file.read()
 
         # ファイルを復号化する
@@ -198,7 +204,7 @@ class JsonInfo:
 
     # ゲッター
     def _get(self, key):
-        return self.data.get(key, '')
+        return self.data.get(key, "")
 
     # セッター
     def _set(self, key, value):
@@ -210,7 +216,7 @@ class JsonInfo:
     def _disp_appname(self, app_name):
         if self.disp:
             # 表示エリアにセット
-            self.disp['text'] = f'現在のアプリケーション: {app_name}'
+            self.disp["text"] = f"{gui_text('main_app_name')}: {app_name}"
 
     # OPENAI_API_KEY取得
     def get_gptkey(self):
@@ -253,7 +259,9 @@ def central_position(frame, width: int, height: int):
     sw = frame.winfo_screenwidth()
     sh = frame.winfo_screenheight()
     # ウィンドウサイズと表示位置を指定する
-    frame.geometry(f"{width}x{height}+{int(sw/2-width/2)}+{int(sh/2-height/2)}")
+    frame.geometry(
+        f"{width}x{height}+{int(sw / 2 - width / 2)}+{int(sh / 2 - height / 2)}"
+    )
 
 
 # 親ウジェットに重ねて子ウジェットを表示
@@ -270,3 +278,31 @@ def child_position(parent, child, width: int = 0, height: int = 0):
 # GUIで利用するセッティング情報を制御
 def read_gui_settings(file_path):
     return JsonInfo(file_path)
+
+
+# GUIテキスト言語対応テーブル
+GUI_TEXT_DATA = {}
+
+
+# GUIで利用するラベルなどの言語データ読み込み
+def read_gui_text_data(filename: str, lang: str):
+    global GUI_TEXT_DATA
+
+    # 多言語ファイルを読み込む
+    with open(filename, "r", encoding="utf-8") as f:
+        multi_lang_data = yaml.safe_load(f)
+
+    # lang対応の辞書データを作成
+    GUI_TEXT_DATA = {
+        key: value.get(lang, f"[{key}]") for key, value in multi_lang_data.items()
+    }
+
+
+# 指定キーの言語データ取得
+def gui_text(key: str):
+    global GUI_TEXT_DATA
+
+    if not key:
+        return "Key is empty."
+
+    return GUI_TEXT_DATA.get(key, f'No data found for "{key}"')
