@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.0 (2025.x.x)
+
+- ChatGPT Dialogue組み込みブロック
+
+  - dialogue_historyプレイスホルダを廃止
+
+- シミュレーションベーステスタを導入
+
 ## 1.0.3 (2025.4.27)
 
 - STN Manager組み込みブロック

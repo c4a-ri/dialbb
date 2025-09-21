@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dialbb"
-version = "1.0.5"
+version = "1.1.0"
 description = "A dialogue system development framework"
 authors = ["Mikio Nakano <mikio.nakano@c4a.jp>"]
 readme = "README.md"
@@ -91,6 +91,8 @@ sklearn-crfsuite = "0.5.0"
 tabulate = "0.9.0"
 threadpoolctl = "3.5.0"
 pymongo = "4.11"
+google-generativeai = "0.8.5"
+
 
 [build-system]
 requires = ["poetry-core"]
@@ -103,3 +105,4 @@ dialbb-server = 'dialbb.server.run_server:main'
 dialbb-test = 'dialbb.util.test:main'
 dialbb-send-test-requests = 'dialbb.util.send_test_requests:main'
 dialbb-uninstall = 'dialbb.uninstall:main'
+dialbb-tester = 'dialbb.sim_tester.main:main'

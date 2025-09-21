@@ -943,22 +943,7 @@ When using these blocks, you need to set the OpenAI license key in the environme
 
 - `prompt_template` (string)
 
-  This specifies the prompt template file as a relative path from the configuration file directory.
-
-  A prompt template is a template of prompts for making ChatGPT generate a system utterance, and it can contain the following variables starting with `@`.
-
-   - `@dialogue_history` Dialogue history. This is replaced by a string in the following form:
-
-     ```
-     <The value of system_name in the block configuration>: <system utterance>
-     <The value of user_name in the block configuration>: <user utterance>
-     <The value of system_name in the block configuration>: <system utterance>
-     <The value of user_name in the block configuration>: <user utterance>
-     ...
-     <The value of system_name in the block configuration>: <system utterance>
-     <The value of user_name in the block configuration>: <user utterance>
-     ```
-
+  This specifies the file of the prompt for making ChatGPT generate a system utterance as a relative path from the configuration file directory.
 
 - `gpt_model` (string, default value is `gpt-4o-mini`)
 
@@ -968,7 +953,7 @@ When using these blocks, you need to set the OpenAI license key in the environme
 
 - At the beginning of the dialog, the value of `first_system_utterance` in the block configuration is returned as system utterance.
 
-- In the second and subsequent turns, the prompt template in which `@dialogue_history` is replace by the dialogue histor is given to ChatGPT and the returned string is returned as the system utterance.
+- In the second and subsequent turns, the prompt template is given to ChatGPT and the returned string is returned as the system utterance.
 
 
 (chatgpt_ner)=

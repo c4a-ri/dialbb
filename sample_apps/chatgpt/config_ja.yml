@@ -16,6 +16,7 @@ blocks:
     first_system_utterance: "こんにちは。私の名前は由衣です。少しお話させてください。スイーツって好きですか？"
     prompt_template: prompt_template_ja.txt
     gpt_model: gpt-4o-mini
+    temperature: 0.7
     
     
 
