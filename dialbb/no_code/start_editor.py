@@ -8,6 +8,7 @@ from tools.knowledgeConverter2excel import convert2excel
 import argparse
 import re
 from dialbb.no_code.gui_utils import read_gui_text_data, gui_text
+from dialbb.builtin_blocks.stn_management.stn_creator import normalize
 
 
 DOC_ROOT: str = os.path.join(os.path.dirname(os.path.abspath(__file__)))
@@ -23,10 +24,10 @@ app = Flask(
 llm_pattern = re.compile(r"\$\".*?\"")
 str_eq_pattern = re.compile(r"(.+?)\s*==\s*(.+)")
 str_ne_pattern = re.compile(r"(.+?)\s*!=\s*(.+)")
-num_turns_exceeds_pattern = re.compile(r"_num_turns_exceeds\(\s*\"\d+\"\s*\)")
-num_turns_in_state_exceeds_pattern = re.compile(
-    r"_num_turns_in_state_exceeds\(\s*\"\d+\"\s*\)"
-)
+num_turns_exceeds_pattern = re.compile(r'TT\s*>\s*\d+')  # matches TT><n> such as "TT>3"
+num_turns_in_state_exceeds_pattern = re.compile(r'TS\s*>\s*\d+')   #  matches TS><n> e.g. "TS > 4"
+num_turns_exceeds_pattern_old = re.compile(r"_num_turns_exceeds\(\s*\"\d+\"\s*\)")
+num_turns_in_state_exceeds_pattern_old = re.compile(r"_num_turns_in_state_exceeds\(\s*\"\d+\"\s*\)")
 
 
 def illegal_condition(condition: str) -> bool:
@@ -41,9 +42,12 @@ def illegal_condition(condition: str) -> bool:
         or str_ne_pattern.fullmatch(condition)
         or num_turns_exceeds_pattern.fullmatch(condition)
         or num_turns_in_state_exceeds_pattern.fullmatch(condition)
+        or num_turns_exceeds_pattern_old.fullmatch(condition)
+        or num_turns_in_state_exceeds_pattern_old.fullmatch(condition)
     ):
         return False
     else:
+        print("illegal condition: " + condition)
         return True
 
 
@@ -69,6 +73,7 @@ def check_and_warn(scenario_json_file: str) -> str:
         node_id: str = node["id"]
         if node.get("label") == "userNode":
             conditions: str = node["controls"]["conditions"]["value"].strip()
+            conditions = normalize(conditions)  # zenkaku -> hankaku
             if conditions != "":
                 for condition in [x.strip() for x in re.split("[;；]", conditions)]:
                     if illegal_condition(condition):
@@ -78,6 +83,7 @@ def check_and_warn(scenario_json_file: str) -> str:
                             + "\n"
                         )
             actions = node["controls"]["actions"]["value"].strip()
+            actions = normalize(actions)  # zenkaku -> hankaku
             if actions != "":
                 warning += (
                     gui_text("msg_warn_user_node_action_note") % (node_id, actions)

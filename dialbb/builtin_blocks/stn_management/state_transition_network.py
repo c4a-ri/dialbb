@@ -47,8 +47,8 @@ function_call_pattern = re.compile(r"([^(]+)\(([^)]*)\)")  # matches function pa
 ne_condition_pattern = re.compile("([^=]+)!=(.+)")  # matches <variable>!=<value>
 eq_condition_pattern = re.compile("([^=]+)==(.+)")  # matches <variable>==<value>
 set_action_pattern = re.compile("([^=]+)=(.+)")  # matches <variable>=<value>
-num_turns_exceeds_pattern = re.compile(r'tt\s*>\s*(\d+)')  # matches tt><n> such as "tt>3"
-num_turns_in_state_exceeds_pattern = re.compile(r'T\s*>\s*(\d+)')   #  matches T><n> e.g. "T > 4"
+num_turns_exceeds_pattern = re.compile(r'TT\s*>\s*(\d+)')  # matches TT><n> such as "TT>3"
+num_turns_in_state_exceeds_pattern = re.compile(r'TS\s*>\s*(\d+)')   #  matches TS><n> e.g. "TS > 4"
 
 
 class Argument:
@@ -241,7 +241,7 @@ class Transition:
     @staticmethod
     def _replace_turn_condition_pattern(condition_str: str) -> str:
         """
-        replace num_turns_exceeds syntax sugar (T>n, tt>n) in condition
+        replace num_turns_exceeds syntax sugar (TS>n, TT>n) in condition
         :param condition_str: condition string
         :return: replaced string
         """
@@ -250,7 +250,7 @@ class Transition:
         m = num_turns_in_state_exceeds_pattern.match(condition_str)
         if m:
             n_str: str = m.group(1)
-            n_str = str(int(n_str))
+            n_str = str(int(n_str))  # e.g. "003" -> 3 -> "3"
             result = f'_num_turns_in_state_exceeds("{n_str}")'
         else:
             m = num_turns_exceeds_pattern.match(condition_str)
@@ -259,6 +259,7 @@ class Transition:
                 n_str = str(int(n_str))
                 result = f'_num_turns_exceeds("{n_str}")'
         return result
+
 
     @staticmethod
     def _replace_eq_ne_pattern(condition_str: str) -> str:
