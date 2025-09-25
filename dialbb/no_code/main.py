@@ -206,7 +206,7 @@ def convert_json_to_excel(json: str, xlsx: str) -> None:
 
 # -------- DialBBサーバ関連 -------------------------------------
 # DialBBサーバ起動
-def exec_dialbb(app_file):
+def exec_dialbb(app_file, button):
     global dialbb_proc
     global dialbb_log_file
 
@@ -219,18 +219,22 @@ def exec_dialbb(app_file):
         dialbb_proc = ProcessManager(cmd, [app_file], dialbb=True)
         ret = dialbb_proc.start()
         dialbb_log_file = dialbb_proc.get_log_file()
-        if not ret:
+        if ret:
+            button["state"] = "disabled"
+        else:
+            messagebox.showerror("Error", gui_text("msg_editor_err_start"))
             dialbb_proc = None
 
 
 # DialBBサーバ停止
-def stop_dialbb():
+def stop_dialbb(button):
     global dialbb_proc
 
     if dialbb_proc:
         # サーバ停止
         dialbb_proc.stop()
         dialbb_proc = None
+        button["state"] = "normal"
     else:
         messagebox.showwarning("Warning", gui_text("msg_editor_warn_server_none"))
 
@@ -678,13 +682,18 @@ def set_main_frame(root_frame):
         dialbb_label,
         text=gui_text("btn_exec"),
         width=7,
-        command=lambda: exec_dialbb(os.path.join(APP_FILE_DIR, APP_FILES["config"])),
+        command=lambda: exec_dialbb(
+            os.path.join(APP_FILE_DIR, APP_FILES["config"]), start_btn
+        ),
     )
     start_btn.pack(side=tk.LEFT, padx=10)
 
     # stopボタン:DialBBサーバ停止
     stop_btn = ttk.Button(
-        dialbb_label, text=gui_text("btn_stop"), width=7, command=stop_dialbb
+        dialbb_label,
+        text=gui_text("btn_stop"),
+        width=7,
+        command=lambda: stop_dialbb(start_btn),
     )
     stop_btn.pack(side=tk.LEFT, padx=10)
 
