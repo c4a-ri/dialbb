@@ -105,6 +105,8 @@ SCOPES = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/a
 
 # {<variable name>||<function call>|<LLM instruction>}
 EMBEDDING_PATTERN = re.compile(r'{([^}]+)}')
+PROMPT_TEMPLATE_PATTERN = re.compile(r"\$\$\$(.*?)\$\$\$", re.DOTALL)
+LLM_INSTRUCTION_PATTERN = re.compile(r"\$(.*?)\$")
 
 
 class STNError(Exception):
@@ -579,6 +581,9 @@ class Manager(AbstractBlock):
         """
 
         result = Transition.replace_special_characters_in_constant(text)  # replace commas and semicolons in constant
+
+        result = PROMPT_TEMPLATE_PATTERN.sub(r'{_generate_with_prompt_template("\1")}', result)  # $$$ ... $$$
+        result = LLM_INSTRUCTION_PATTERN.sub(r'{_generate_with_llm("\1")}', result)   # $ ... $
 
         # variable in context, special variable (starting with '#'), function call,
         # or LLM instruction (starting with !)

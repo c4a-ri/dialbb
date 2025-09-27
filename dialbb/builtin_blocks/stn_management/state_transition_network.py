@@ -200,7 +200,13 @@ class Transition:
             condition_str = condition_str.strip()
             if condition_str == '':
                 continue
-            if condition_str.startswith('$"') and condition_str[-1] == '"':   # $" .... "
+            if condition_str.startswith('$$$') and condition_str.endswith("$$$"):   # $$$$ .... $$$ "
+                prompt_template: str = condition_str[3:-3]
+                condition_str = f'_check_with_prompt_template("{prompt_template}")'
+            elif condition_str.startswith('$') and condition_str.endswith("$"):   # $$$$ .... $$$ "
+                task: str = condition_str[1:-1]
+                condition_str = f'_check_with_prompt_template("{task}")'
+            elif condition_str.startswith('$"') and condition_str[-1] == '"':   # $" .... "
                 task: str = condition_str[1:]
                 condition_str = f'_check_with_llm({task})'
             else:
