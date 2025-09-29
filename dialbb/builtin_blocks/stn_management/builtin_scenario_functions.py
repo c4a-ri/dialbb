@@ -182,6 +182,14 @@ def builtin_num_turns_exceeds(threshold_str: str, context: Dict[str, Any]) -> bo
         return False
 
 
+def get_bullet_pointed_string(situation: List[str]) -> str:
+
+    result = ""
+    for situation_element in situation:
+        result += f"- {situation_element}\n"
+    return result
+
+
 def builtin_num_turns_in_state_exceeds(threshold_str: str, context: Dict[str, Any]) -> bool:
     """
     Checks number of turns in the state exceeds the threshold
@@ -198,7 +206,8 @@ def builtin_num_turns_in_state_exceeds(threshold_str: str, context: Dict[str, An
 
     return True if context.get("_turns_in_state", 0) > threshold else False
 
-def create_prompt_in_default_format(task: str, language: str, system_persona: str, situation: str,
+
+def create_prompt_in_default_format(task: str, language: str, persona: str, situation: str,
                                     dialogue_history: List[Dict[str, Any]]) -> str:
     """
     create prompt for chatgpt-based generation/condition check in default format
@@ -209,7 +218,6 @@ def create_prompt_in_default_format(task: str, language: str, system_persona: st
     :param dialogue_history: dialogue history string
     :return: generated utterance or check result
     """
-
 
     prompt: str = ""
 
@@ -226,14 +234,12 @@ def create_prompt_in_default_format(task: str, language: str, system_persona: st
 
     if situation:
         prompt += f"# {word_situation}\n\n"
-        for situation_element in situation:
-            prompt += f"- {situation_element}\n"
+        prompt += situation
         prompt += '\n'
 
-    if system_persona:
+    if persona:
         prompt += f"# {word_your_persona}\n\n"
-        for persona_element in system_persona:
-            prompt += f"- {persona_element}\n"
+        prompt += persona
         prompt += '\n'
 
     dialogue_history_string: str = create_dialogue_history_string(dialogue_history, language)
@@ -284,10 +290,10 @@ def call_chatgpt(prompt: str, context: Dict[str, Any]) -> str:
     return result
 
 
-def get_current_time_string(language: str):
+def get_current_time_string(language: str) -> str:
     
     now = datetime.datetime.now()
-    if langauge == 'ja':
+    if language == 'ja':
         weekdays = ["月", "火", "水", "木", "金", "土", "日"]
         date_str = now.strftime("%Y年%m月%d日")
         time_str = now.strftime("%H時%M分%S秒")
@@ -300,7 +306,9 @@ def get_current_time_string(language: str):
     result: str = f"{date_str}（{weekday_str}） {time_str}"
     return result
 
-def create_prompt_from_template(prompt_template: str, dialogue_history_string: str, language: str) -> str:
+
+def create_prompt_from_template(prompt_template: str, dialogue_history_string: str,
+                                situation: str, persona: str, language: str) -> str:
     """
     create prompt from prompt template
     :param prompt_template:
@@ -312,6 +320,12 @@ def create_prompt_from_template(prompt_template: str, dialogue_history_string: s
     prompt: str = prompt_template
     prompt = prompt.replace("{dialogue_history}", dialogue_history_string)
     prompt = prompt.replace("{current_time}", get_current_time_string(language))
+    prompt = prompt.replace("{persona}", persona)
+    prompt = prompt.replace("{situation}", situation)
+    prompt = prompt.replace("@dialogue_history@", dialogue_history_string)
+    prompt = prompt.replace("@current_time@", get_current_time_string(language))
+    prompt = prompt.replace("@persona@", persona)
+    prompt = prompt.replace("@situation@", situation)
     return prompt
 
 
@@ -363,7 +377,8 @@ def builtin_generate_with_prompt_template(prompt_template: str, context: Dict[st
 
     dialogue_history: List[Dict[str, str]] = context['_dialogue_history']
     dialogue_history_string: str = create_dialogue_history_string(dialogue_history, language)
-    prompt: str = create_prompt_from_template(prompt_template, dialogue_history_string)
+    situation, persona = get_situation_and_persona_from_config(context)
+    prompt: str = create_prompt_from_template(prompt_template, situation, persona, dialogue_history_string, language)
     generated_utterance = call_chatgpt(prompt, context)
 
     if DEBUG:
@@ -371,6 +386,23 @@ def builtin_generate_with_prompt_template(prompt_template: str, context: Dict[st
     generated_utterance = generated_utterance.replace(f'{system_name}:', '').strip()  # remove 'System: '
 
     return generated_utterance
+
+
+def get_situation_and_persona_from_config(context: Dict[str, Any]) :
+
+    # read chatgpt settings in the block config
+    chatgpt_settings: Dict[str, Any] = context['_block_config'].get("chatgpt")
+    if chatgpt_settings:
+        persona_list: List[str] = chatgpt_settings.get("persona")
+        persona = get_bullet_pointed_string(persona_list)
+        situation_list: List[str] = chatgpt_settings.get("situation")
+        situation = get_bullet_pointed_string(situation_list)
+    else:
+        persona: str = ""
+        situation: str = ""
+
+    return situation, persona
+
 
 def builtin_check_with_prompt_template(prompt_template: str, context: Dict[str, Any]) -> str:
     """
@@ -385,11 +417,10 @@ def builtin_check_with_prompt_template(prompt_template: str, context: Dict[str, 
         return "..."
 
     language: str = context['_config'].get("language")
-    system_name: str = "システム" if language == 'ja' else "System"
-
     dialogue_history: List[Dict[str, str]] = context['_dialogue_history']
     dialogue_history_string: str = create_dialogue_history_string(dialogue_history, language)
-    prompt: str = create_prompt_from_template(prompt_template, dialogue_history_string)
+    situation, persona = get_situation_and_persona_from_config(context)
+    prompt: str = create_prompt_from_template(prompt_template, situation, persona, dialogue_history_string, language)
     response = call_chatgpt(prompt, context)
 
     if DEBUG:
@@ -420,18 +451,10 @@ def builtin_generate_with_llm(task: str, context: Dict[str, Any]) -> str:
     else:
         task = task + "Please don't include your name."
 
-    # read chatgpt settings in the block config
-    chatgpt_settings: Dict[str, Any] = context['_block_config'].get("chatgpt")
-    if chatgpt_settings:
-        system_persona: List[str] = chatgpt_settings.get("persona")
-        situation: List[str] = chatgpt_settings.get("situation")
-    else:
-        system_persona: str = ""
-        situation: str = ""
-
+    situation, persona = get_situation_and_persona_from_config(context)
     dialogue_history: List[Dict[str, str]] = context['_dialogue_history']
 
-    prompt: str = create_prompt_in_default_format(task, language, system_persona, situation, dialogue_history)
+    prompt: str = create_prompt_in_default_format(task, language, persona, situation, dialogue_history)
     if DEBUG:
         print("prompt: \n" + prompt)
 
@@ -459,17 +482,9 @@ def builtin_check_with_llm(task: str, context: Dict[str, Any]) -> bool:
         print("Error: can't use openai")
         return False
 
-
     language: str = context['_config'].get("language")
 
-    # read chatgpt settings in the block config
-    chatgpt_settings: Dict[str, Any] = context['_block_config'].get("chatgpt")
-    if chatgpt_settings:
-        system_persona: List[str] = chatgpt_settings.get("persona")
-        situation: List[str] = chatgpt_settings.get("situation")
-    else:
-        system_persona: str = ""
-        situation: str = ""
+    situation, persona = get_situation_and_persona_from_config(context)
 
     dialogue_history: List[Dict[str, str]] = context['_dialogue_history']
 
@@ -478,7 +493,7 @@ def builtin_check_with_llm(task: str, context: Dict[str, Any]) -> bool:
     else:
         task = task + "Please answer with yes or no."
 
-    prompt: str = create_prompt_in_default_format(task, language, system_persona, situation, dialogue_history)
+    prompt: str = create_prompt_in_default_format(task, language, persona, situation, dialogue_history)
 
     if DEBUG:
         print("prompt: \n" + prompt)

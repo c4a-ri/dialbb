@@ -43,7 +43,7 @@ SKIP: str = "$skip"
 COMMA: str = "&&&comma&&&"
 SEMICOLON: str = "&&&semicolon&&&"
 
-function_call_pattern = re.compile(r"([^(]+)\(([^)]*)\)")  # matches function patter such as "func(..)"
+function_call_pattern = re.compile(r"([^(]+)\(([^)]*)\)", re.DOTALL)  # matches function patter such as "func(..)"
 ne_condition_pattern = re.compile("([^=]+)!=(.+)")  # matches <variable>!=<value>
 eq_condition_pattern = re.compile("([^=]+)==(.+)")  # matches <variable>==<value>
 set_action_pattern = re.compile("([^=]+)=(.+)")  # matches <variable>=<value>
@@ -202,6 +202,7 @@ class Transition:
                 continue
             if condition_str.startswith('$$$') and condition_str.endswith("$$$"):   # $$$$ .... $$$ "
                 prompt_template: str = condition_str[3:-3]
+                prompt_template = prompt_template.replace('{', '@').replace('}', '@')
                 condition_str = f'_check_with_prompt_template("{prompt_template}")'
             elif condition_str.startswith('$') and condition_str.endswith("$"):   # $$$$ .... $$$ "
                 task: str = condition_str[1:-1]
