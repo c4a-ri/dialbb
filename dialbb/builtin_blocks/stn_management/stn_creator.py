@@ -42,6 +42,7 @@ COLUMN_CONDITIONS: str = "conditions"
 COLUMN_ACTIONS: str = "actions"
 COLUMN_DESTINATION: str = "next state"
 
+
 def normalize(cell_content: str) -> str:
     """
     normalize the content of a cell. e.g., zenkaku -> hankaku
@@ -50,6 +51,7 @@ def normalize(cell_content: str) -> str:
     """
 
     return jaconv.z2h(cell_content, kana=False, ascii=True, digit=False)
+
 
 def create_stn(df: DataFrame, flags_to_use: List[str]) -> StateTransitionNetwork:
     """
