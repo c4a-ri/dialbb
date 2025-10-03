@@ -218,7 +218,7 @@ def edit_config(parent, file_path, template_path, settings):
         + parent.winfo_height() // 10
         - sub_menu.winfo_height() // 2
     )
-    sub_menu.geometry(f"400x500+{parent_x}+{parent_y}")
+    sub_menu.geometry(f"400x600+{parent_x}+{parent_y}")
 
     # Spacy Frameを作成
     ner_frame = ttk.Labelframe(
@@ -287,13 +287,14 @@ def edit_config(parent, file_path, template_path, settings):
     # combobox.bind('<<ComboboxSelected>>', select_combo)
 
     label1.grid(column=0, row=1)
-    combobox.grid(column=1, row=1, columnspan=2, padx=5, pady=5)
+    # combobox.grid(column=1, row=1, columnspan=2, padx=5, pady=5)
+    combobox.grid(column=1, row=1, padx=5, pady=5)
 
     # モデル候補の編集ボタンを追加
     other_model_button = ttk.Button(
         gpt_mng_fr,
         text=gui_text("conf_edt_other"),
-        width=10,
+        # width=10,
         command=lambda: gptmodel_edit(sub_menu, settings),
     )
     other_model_button.grid(column=2, row=1, padx=5)
