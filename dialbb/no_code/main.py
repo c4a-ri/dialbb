@@ -52,8 +52,9 @@ NC_PATH: str = SCRIPT_ROOT
 APP_FILE_DIR: str = os.path.join(NC_PATH, "app")
 TEMPLATE_DIR: str = os.path.join(NC_PATH, "templates")
 DATA_DIR: str = os.path.join(NC_PATH, "data")
+EDITOR_APL_NAME: str = "DialBB_Scenario_Editor"
 
-if sys.platform.startswith("win"):   # windows
+if sys.platform.startswith("win"):  # windows
     EDITOR_APL_EXE: str = os.path.join(
         os.environ.get("LOCALAPPDATA"),
         "Programs",
@@ -63,17 +64,16 @@ if sys.platform.startswith("win"):   # windows
     EDITOR_APPDATA_DIR: str = os.path.join(
         os.environ.get("APPDATA"), "dialbb-scenario-editor"
     )
+    EDITOR_EXE_CMD: list[str] = [f"{EDITOR_APL_EXE}", f"--lang=LANG"]
+
 elif sys.platform == "darwin":  # mac
     EDITOR_APL_EXE: str = os.path.join(
-        os.environ.get("HOME"),
-        "Applications",
-        "DialBB_Scenario_Editor.app"
+        os.environ.get("HOME"), "Applications", f"{EDITOR_APL_NAME}.app"
     )
     EDITOR_APPDATA_DIR: str = os.path.join(
-        os.environ.get("HOME"),
-        "Library/Application Support",
-        "dialbb-scenario-editor"
+        os.environ.get("HOME"), "Library/Application Support", "dialbb-scenario-editor"
     )
+    EDITOR_EXE_CMD: list[str] = ["open", "-a", f"{EDITOR_APL_NAME}", "--args", "LANG"]
 
 else:  # linux isn't supported
     print(f"Unsupported OS: {sys.platform}")
@@ -109,7 +109,9 @@ def exec_editor(file_path, parent):
         return
 
     arg_lang = f"--lang={gui_text('language type')}"
-    print(f"Starting editor. OS: {sys.platform}, Editor exec: {EDITOR_APL_EXE}, Language: {arg_lang}")
+    print(
+        f"Starting editor. OS: {sys.platform}, Editor exec: {EDITOR_APL_EXE}, Language: {arg_lang}"
+    )
     # invoke server サーバ起動
     cmd = os.path.join(NC_PATH, r"start_editor.py")
     editor_proc = ProcessManager(cmd, ["--mode=nc", arg_lang])
@@ -122,7 +124,9 @@ def exec_editor(file_path, parent):
                     gui_text("msg_editor_err_notfound") + f": {EDITOR_APL_EXE}"
                 )
             # アプリ起動 （言語種別引数あり）
-            editor_apl = subprocess.Popen([EDITOR_APL_EXE, arg_lang])
+            cmd = [s.replace("LANG", gui_text("language type")) for s in EDITOR_EXE_CMD]
+            print(f"Editor command: {cmd}")
+            editor_apl = subprocess.Popen(cmd)
 
             # waiting for an order to quit   終了の指示待ち
             messagebox.showinfo(
@@ -149,7 +153,17 @@ def exec_editor(file_path, parent):
                 os.remove(json_file)
 
             # エディタアプリ停止
-            os.system(f"taskkill /F /T /PID {editor_apl.pid}")
+            import signal
+
+            if sys.platform.startswith("win"):
+                os.system(f"taskkill /F /T /PID {editor_apl.pid}")
+            else:
+                applescript_command = f'tell application "{EDITOR_APL_NAME}" to quit'
+                try:
+                    subprocess.run(["osascript", "-e", applescript_command], check=True)
+                    print(f"{EDITOR_APL_NAME} を正常に終了しました。")
+                except subprocess.CalledProcessError as e:
+                    print(f"{EDITOR_APL_NAME} の終了に失敗しました: {e}")
 
         except Exception as e:
             print(f"アプリ起動失敗: {e}")
@@ -257,42 +271,46 @@ def show_log():
 # ファイル設定エリアのフレームを作成して返却する
 def set_file_frame(parent_frame, settings, label_text, file_type_list):
     # ラベルの作成
-    file_frame = ttk.Frame(parent_frame, style="My.TLabelframe")
+    # file_frame = ttk.Frame(parent_frame, style="My.TLabelframe")
+    file_frame = ttk.Frame(parent_frame)
     file_frame.spec_app = tk.Label(file_frame)
     file_frame.spec_app.grid(column=0, columnspan=2, row=0, sticky=tk.W, padx=5)
     # アプリ名の表示エリアを登録して保存アプリ名を表示する
     settings.reg_disp_area(file_frame.spec_app)
 
     label = tk.Label(file_frame, text=gui_text("main_import"))
-    label.grid(column=0, row=1, padx=0, sticky=tk.E)
+    # label.grid(column=0, row=1, padx=0, sticky=tk.E)
+    label.grid(column=0, row=1, padx=0, pady=5, sticky=tk.E)
 
     # テキストボックスの作成
     file_frame.edit_box = tk.Entry(file_frame)
-    file_frame.edit_box.grid(column=1, row=1, sticky=tk.NSEW, padx=20)
-    file_frame.grid_columnconfigure(0, weight=1)
+    file_frame.edit_box.grid(column=1, row=1, padx=20, sticky=tk.E + tk.W)
+    file_frame.grid_columnconfigure(0, weight=0)
     file_frame.grid_rowconfigure(1, weight=1)
 
     # select button
     select_button = ttk.Button(
         file_frame,
         text=gui_text("btn_select"),
-        width=7,
         command=lambda: set_file_path_command(
             file_frame.edit_box, settings, label_text, file_type_list
         ),
     )
-    select_button.grid(column=2, row=1, padx=5)
+    # select_button.grid(column=2, row=1, padx=5)
+    select_button.grid(column=2, row=1, padx=5, pady=5)
 
     # import button
     import_button = ttk.Button(
         file_frame,
         text=gui_text("btn_load"),
-        width=12,
         command=lambda: import_application_file(
             file_frame.edit_box, settings, file_type_list
         ),
     )
-    import_button.grid(column=3, row=1, padx=5)
+    # import_button.grid(column=3, row=1, padx=5)
+    import_button.grid(column=3, row=1, padx=5, pady=5)
+
+    file_frame.columnconfigure(1, weight=1)  # Entryを伸縮可能に
 
     return file_frame
 
@@ -620,8 +638,11 @@ def set_main_frame(root_frame):
         os.environ["OPENAI_KEY"] = settings.get_gptkey()
 
     # App file Label 作成
+    # application_frame = ttk.Labelframe(
+    #     root_frame, text=gui_text("main_title_1"), padding=(10), style="My.TLabelframe"
+    # )
     application_frame = ttk.Labelframe(
-        root_frame, text=gui_text("main_title_1"), padding=(10), style="My.TLabelframe"
+        root_frame, text=gui_text("main_title_1"), padding=10
     )
 
     # ファイル選択エリア作成（ファイルの拡張子を指定）
@@ -631,34 +652,40 @@ def set_main_frame(root_frame):
         gui_text("msg_appfile_select"),
         [("zip File", "*.zip")],
     )
-    file_frame.pack(fill=tk.BOTH)
+    # file_frame.pack(fill=tk.BOTH)
+    file_frame.grid(row=0, column=0, columnspan=3, sticky="ew")
 
     # createボタン:アプリファイルの新規作成
     create_btn = ttk.Button(
         application_frame,
         text=gui_text("btn_create"),
-        width=10,
         command=lambda: create_app_files(application_frame, settings),
     )
-    create_btn.pack(side=tk.LEFT, padx=10, pady=10)
+    # create_btn.pack(side=tk.LEFT, padx=10, pady=10)
+    create_btn.grid(row=1, column=0, padx=5, pady=10)
 
     # editボタンの作成:GUIエディタ起動
     edit_button = ttk.Button(
         application_frame,
         text=gui_text("btn_edit"),
-        width=7,
         command=lambda: select_edit_file(file_frame, settings),
     )
-    edit_button.pack(side=tk.LEFT, padx=10, pady=10)
+    # edit_button.pack(side=tk.LEFT, padx=10, pady=10)
+    edit_button.grid(row=1, column=1, padx=5, pady=10)
 
     # export ボタン:アプリファイルのzip保存
     export_btn = ttk.Button(
         application_frame,
         text=gui_text("btn_export"),
-        width=10,
         command=lambda: export_app_file(file_frame.edit_box.get(), settings),
     )
-    export_btn.pack(side=tk.LEFT, padx=10, pady=10)
+    # export_btn.pack(side=tk.LEFT, padx=10, pady=10)
+    export_btn.grid(row=1, column=2, padx=5, pady=10)
+
+    application_frame.columnconfigure(0, weight=1)
+    application_frame.columnconfigure(1, weight=1)
+    application_frame.columnconfigure(2, weight=1)
+    application_frame.pack(fill="x", padx=10, pady=10)
 
     # DialBB Label 作成
     dialbb_label = ttk.Labelframe(
@@ -672,49 +699,51 @@ def set_main_frame(root_frame):
     setting_btn = ttk.Button(
         dialbb_label,
         text=gui_text("btn_setting"),
-        width=7,
         command=lambda: setting_json(file_frame, settings),
     )
-    setting_btn.pack(side=tk.LEFT, padx=10)
+    # setting_btn.pack(side=tk.LEFT, padx=10)
+    setting_btn.grid(row=0, column=0, padx=5, pady=5)
 
     # startボタン:DialBBサーバ起動
     start_btn = ttk.Button(
         dialbb_label,
         text=gui_text("btn_exec"),
-        width=7,
         command=lambda: exec_dialbb(
             os.path.join(APP_FILE_DIR, APP_FILES["config"]), start_btn
         ),
     )
-    start_btn.pack(side=tk.LEFT, padx=10)
+    # start_btn.pack(side=tk.LEFT, padx=10)
+    start_btn.grid(row=0, column=1, padx=5, pady=5)
 
     # stopボタン:DialBBサーバ停止
     stop_btn = ttk.Button(
-        dialbb_label,
-        text=gui_text("btn_stop"),
-        width=7,
-        command=lambda: stop_dialbb(start_btn),
+        dialbb_label, text=gui_text("btn_stop"), command=lambda: stop_dialbb(start_btn)
     )
-    stop_btn.pack(side=tk.LEFT, padx=10)
+    # stop_btn.pack(side=tk.LEFT, padx=10)
+    stop_btn.grid(row=0, column=2, padx=5, pady=5)
 
     # show log button
     show_log_btn = ttk.Button(
-        dialbb_label, text=gui_text("btn_view_log"), width=10, command=show_log
+        dialbb_label, text=gui_text("btn_view_log"), command=show_log
     )
-    show_log_btn.pack(side=tk.LEFT, padx=10)
+    # show_log_btn.pack(side=tk.LEFT, padx=10)
+    show_log_btn.grid(row=0, column=3, padx=5, pady=5)
+
+    dialbb_label.columnconfigure((0, 1, 2, 3), weight=1)
+    dialbb_label.pack(fill="x", padx=10, pady=10)
+
+    # フレームの配置
+    application_frame.pack(fill=tk.BOTH, padx=10, pady=20)
+    dialbb_label.pack(fill=tk.BOTH, padx=10)
 
     # closeボタン
     close_btn = ttk.Button(
         root_frame,
         text=gui_text("btn_exit"),
-        width=7,
         command=lambda: close_dialbb_nc(root_frame),
     )
-    close_btn.pack(side=tk.BOTTOM, anchor=tk.NE, padx=10, pady=10)
-
-    # フレームの配置
-    application_frame.pack(fill=tk.BOTH, padx=10, pady=20)
-    dialbb_label.pack(fill=tk.BOTH, padx=10)
+    # close_btn.pack(side=tk.BOTTOM, anchor=tk.NE, padx=10, pady=10)
+    close_btn.pack(side=tk.BOTTOM, anchor=tk.E, padx=10, pady=10)
 
 
 def main():
@@ -734,8 +763,10 @@ def main():
     # create root widget
     # Rootウジェットの生成
     root = tk.Tk()
-    if os.name != "nt":
-        root.tk.call("tk", "scaling", 1.0)  # スケーリングを1.0に設定
+    if os.name == "nt":
+        root.minsize(600, 340)  # 最小サイズを設定
+    else:
+        root.tk.call("tk", "scaling", 1.2)  # スケーリングを1.0に設定
         root.minsize(600, 400)  # 最小サイズを設定
     # root.resizable(True, True)  # サイズ変更を許可
 
