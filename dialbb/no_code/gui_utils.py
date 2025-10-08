@@ -48,7 +48,7 @@ class ProcessManager:
     def start(self) -> bool:
         # プロセス起動コマンド
 
-        if self.is_dialbb:
+        if self.is_dialbb:  # for dialbb server process
             # debug mode
             os.environ["DIALBB_DEBUG"] = "yes"
 
@@ -75,7 +75,7 @@ class ProcessManager:
                 self.process = subprocess.Popen(
                     cmd, stdout=fp, stderr=subprocess.STDOUT, shell=True
                 )
-        else:
+        else:  # for scenario editor server process
             if os.name == "nt":
                 # windows
                 # Pythonの実行可能ファイルのパスを取得
@@ -103,7 +103,7 @@ class ProcessManager:
             # windows
             os.system(f"taskkill /F /T /PID {self.process.pid}")
         else:
-            # Linux
+            # macOSLinux
             self.process.terminate()
         self.process.wait()
         print(f"# Terminated process of {self.cmd}.")
@@ -259,9 +259,10 @@ def central_position(frame, width: int, height: int):
     sw = frame.winfo_screenwidth()
     sh = frame.winfo_screenheight()
     # ウィンドウサイズと表示位置を指定する
-    frame.geometry(
-        f"{width}x{height}+{int(sw / 2 - width / 2)}+{int(sh / 2 - height / 2)}"
-    )
+    # frame.geometry(
+    #     f"{width}x{height}+{int(sw / 2 - width / 2)}+{int(sh / 2 - height / 2)}"
+    # )
+    frame.geometry(f"{width}x{height}+{(sw - width) // 2}+{(sh - height) // 2}")
 
 
 # 親ウジェットに重ねて子ウジェットを表示
