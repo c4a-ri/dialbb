@@ -5,8 +5,11 @@
 - ChatGPT Dialogue組み込みブロック
 
   - dialogue_historyプレイスホルダを廃止
+  - `_generate_with_prompt_template()`、 `_check_with_prompt_template()`とそのシンタクスシュガーの実装 
+  - シンタクスシュガー `$"..."`の代わりに`$...$`も使えるように
 
 - シミュレーションベーステスタを導入
+- シナリオの文字列の正規化
 
 ## 1.0.3 (2025.4.27)
 

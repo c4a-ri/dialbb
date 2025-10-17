@@ -647,7 +647,7 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
 
     例：`_num_turns_in_state_exceeds("5")`
 
-  - `_check_with_llm(task)`
+  - `_check_with_llm(task)`, `_check_with_prompt_template(prompt_template)`
 
     大規模言語モデル（現在はOpenAIのChatGPTのみ）を用いて判定をします．後述します．
 
@@ -671,15 +671,19 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
 
 - システム発話内で用いる関数
 
-  - `_generate_with_llm(task)`
+  - `_generate_with_llm(task)`, `_generate_with_prompt_template(task)`
 
     大規模言語モデル（現在はOpenAIのChatGPTのみ）を用いて文字列を生成します．後述します．
+
 
 (llm_functinos)=
 
 #### 大規模言語モデルを用いた組み込み関数
 
-`_check_with_llm(task)`および`_generate_with_llm(task)`は，大規模言語モデル（現在はOpenAIのChatGPTのみ）と，対話履歴を用いて，条件の判定および文字列の生成を行います．以下が例です．
+`_check_with_llm(task)`および`_generate_with_llm(task)`は，大規模言語モデル（現在はOpenAIのChatGPTのみ）と，対話履歴を用いて，条件の判定および文字列の生成を行います．
+
+
+以下が例です．
 
 - 条件判定の例
 
@@ -703,7 +707,7 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
 
   - `gpt_model` （文字列） 
 
-    GPTのモデル名です．`gpt-4o-mini`, `gpt-4o`等を指定できます．デフォルト値は`gpt-4o-mini`です．
+    GPTのモデル名です．`gpt-4o-mini`, `gpt-4o`等を指定できます．デフォルト値は`gpt-4o-mini`です．`gpt-5`は利用できません。
 
   - `temperature` (float)
 
@@ -743,6 +747,83 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
       - 非常にフレンドリーに話す
       - 外交的で陽気
   ```
+
+`_check_with_prompt_template(prompt_template)`および`_generate_with_llm(prompt_template)`は，大規模言語モデルにプロンプトを与えて条件の判定および文字列の生成を行います．プロンプトは、引数に指定したプロンプトテンプレートのプレースホルダを値に置き換えることで作られます。
+
+これらの関数を使うには上記の環境変数`OPENAI_API_KEY`の設定と、ブロックコンフィギュレーションの`chatgpt`要素の設定が必要です。
+
+以下が例です．
+
+- 条件判定の例
+
+  ```python
+  _check_with_promtp_template("ユーザが理由を言ったかどうか判断してください．")
+  ```
+
+- 条件判定の例
+
+  ```python
+  _generate_with_prompt_template("
+
+  # 状況
+
+  {situation}
+
+  # あなたのペルソナ
+
+  {persona}
+
+  # 現在までの対話
+
+  {dialogue_history}
+
+  # タスク
+
+  ユーザが理由を言ったかどうか判断し、yesかnoで答えてください。")
+  ```
+
+- 文字列生成の例
+
+  ```python
+  _generate_with_prompt_template("
+
+  # 状況
+
+  {situation}
+
+  # あなたのペルソナ
+
+  {persona}
+
+  # 現在までの対話
+
+  {dialogue_history}
+
+  # タスク
+
+  それまでの会話につづけて、対話を終わらせる発話を50文字以内で生成してください。")
+  ```
+
+  `{`と`}`で囲まれている部分はプレースホルダです。
+
+- 利用できるプレースホルダ
+
+  - `{dialogue_history}`
+
+    その時点までの対話（最新のユーザ発話を含む）で置き換えられる
+
+  - `{situation}`
+
+    ブロックコンフィギュレーションの`chatgpt`要素の`situation`の値で置き換えられる
+  
+  - `{persona}`
+
+    ブロックコンフィギュレーション`chatgpt`要素の`persona`の値で置き換えられる
+
+  - `{current_time}`
+
+    対話の行われている時点の年月日、曜日、時分秒を表す文字列で置き換えられる
+
 
 #### 組み込み関数の簡略記法
 

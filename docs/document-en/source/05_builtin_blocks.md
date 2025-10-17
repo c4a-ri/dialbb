@@ -592,7 +592,7 @@ The built-in functions are as follows:
 	
     e.g.: `_num_turns_in_state_exceeds("5")`
 
-  - `_check_with_llm(task)`
+  - `_check_with_llm(task)` and `_check_with_prompt_template(prompt_template)`
   
      Makes the judgment using a large language model. More details follow.
 
@@ -618,7 +618,7 @@ The built-in functions are as follows:
 
 - Functions used in system utterances
 
-  - `_generate_with_llm(task)`
+  - `_generate_with_llm(task)` and `_generate_with_prompt_template(prompt_template)`
   
      Generates a string using a large language model (currently only OpenAI's ChatGPT). More details follow.
 
@@ -651,7 +651,7 @@ To use these functions, the following settings are required:
 
   - `gpt_model` (string)
 
-    This specifies the model name of GPT, such as `gpt-4o`, `gpt-4o-mini`, etc. The default value is `gpt-4o-mini`. `gpt-4` cannot be used.
+    This specifies the model name of GPT, such as `gpt-4o`, `gpt-4o-mini`, etc. The default value is `gpt-4o-mini`. `gpt-5` cannot be used.
 
   - `temperature` (float)
 
@@ -691,6 +691,83 @@ To use these functions, the following settings are required:
         - You talk very friendly
         - Diplomatic and cheerful
   ```
+
+`_check_with_prompt_template(prompt_template)`および`_generate_with_llm(prompt_template)`は，大規模言語モデルにプロンプトを与えて条件の判定および文字列の生成を行います．プロンプトは、引数に指定したプロンプトテンプレートのプレースホルダを値に置き換えることで作られます。
+
+これらの関数を使うには上記の環境変数`OPENAI_API_KEY`の設定と、ブロックコンフィギュレーションの`chatgpt`要素の設定が必要です。
+
+以下が例です．
+
+- 条件判定の例
+
+  ```python
+  _check_with_promtp_template("ユーザが理由を言ったかどうか判断してください．")
+  ```
+
+- 条件判定の例
+
+  ```python
+  _generate_with_prompt_template("
+
+  # 状況
+
+  {situation}
+
+  # あなたのペルソナ
+
+  {persona}
+
+  # 現在までの対話
+
+  {dialogue_history}
+
+  # タスク
+
+  ユーザが理由を言ったかどうか判断し、yesかnoで答えてください。")
+  ```
+
+- 文字列生成の例
+
+  ```python
+  _generate_with_prompt_template("
+
+  # 状況
+
+  {situation}
+
+  # あなたのペルソナ
+
+  {persona}
+
+  # 現在までの対話
+
+  {dialogue_history}
+
+  # タスク
+
+  それまでの会話につづけて、対話を終わらせる発話を50文字以内で生成してください。")
+  ```
+
+  `{`と`}`で囲まれている部分はプレースホルダです。
+
+- 利用できるプレースホルダ
+
+  - `{dialogue_history}`
+
+    その時点までの対話（最新のユーザ発話を含む）で置き換えられる
+
+  - `{situation}`
+
+    ブロックコンフィギュレーションの`chatgpt`要素の`situation`の値で置き換えられる
+  
+  - `{persona}`
+
+    ブロックコンフィギュレーション`chatgpt`要素の`persona`の値で置き換えられる
+
+  - `{current_time}`
+
+    対話の行われている時点の年月日、曜日、時分秒を表す文字列で置き換えられる
+
 
 #### Syntax sugars for built-in functions
 
