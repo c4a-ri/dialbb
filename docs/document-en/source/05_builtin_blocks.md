@@ -804,25 +804,33 @@ Syntax sugars are provided to simplify the description of built-in functions.
   user_name=#NE_Person
   ```
 
-- `$<task string>`
+- `$<task string>$`
 
-  When used as a condition, it means `_check_with_llm(<task string>)`, and when used in a system utterance enclosed in `{}`, it means `_generate_with_llm(<task string>)`.
+  When used as a condition, it means `_check_with_llm("<task string>")`, and when used in a system utterance, it means `{_generate_with_llm("<task string>")}`.
 
   Example of a condition:
 
   ```
-  $"Please determine if the user said the reason."
+  $Please determine if the user said the reason$
   ```
 
-  Example of a text generation function call in a system utterance
+  Example of a text generation function call in a system utterance:
 
   ```
+  I understand. $Generate a sentence to say it's time to end the talk by continuing the conversation in 50 words$  Thank you for your time.
+
+  ```
+
   I understand. {$"Generate a sentence to say it's time to end the talk by continuing the conversation in 50 words" }  Thank you for your time.
-  ```
 
+  This used to be `$"<task string>"` but it is deprecated.
 
+- `$$$<プロンプトテンプレート>$$$`
+
+  条件として使われた時は，`_check_with_prompt_template("<プロンプトテンプレート>")`の意味で，システム発話中で使われた時は，`{_generate_with_prompt_template("<プロンプトテンプレート>")}`の意味です．
+
+(custom_functions)=
 #### Function definitions by the developers
-
 
 When the developer defines functions, he/she edits a file specified in `function_definition` element in the block configuration.
 
