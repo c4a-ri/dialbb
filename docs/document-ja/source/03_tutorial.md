@@ -93,8 +93,6 @@ blocks:
       system_utterance: system_utterance
       aux_data: aux_data
       final: final
-    user_name: ユーザ
-    system_name: システム
     first_system_utterance: "こんにちは．私の名前は由衣です．少しお話させてください．スイーツって好きですか？"
     prompt_template: prompt_template_ja.txt
     gpt_model: gpt-4o-mini
@@ -140,22 +138,9 @@ blocks:
 - スイーツが好きかどうか聞く
 - ユーザがスイーツが好きな場合，どんなスイーツが好きか聞く
 - ユーザがスイーツが好きでない場合，なんで好きじゃないのか聞く
-
-# 現在までの対話
-
-@dialogue_history
 ```
 
-最後の`@dialogue_history`のところに，それまでの対話の履歴が以下のような形式で挿入されます．
-
-```
-システム：こんにちは．私の名前は由衣です．少しお話させてください．スイーツって好きですか？
-ユーザ：まあまあ好きです
-システム：そうなんですね！私も大好きです．どんなスイーツが好きですか？
-ユーザ：どっちかというと和菓子が好きなんですよね
-```
-
-ここで，「システム」「ユーザ」はコンフィギュレーションの`user_name`, `system_name`で指定したものが使われます．
+このプロンプトテンプレートと対話の履歴を用いて次のシステム発話を生成します。
 
 (app_development_with_chatgpt_app)=
 

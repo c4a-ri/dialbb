@@ -92,8 +92,6 @@ blocks:
       system_utterance: system_utterance
       aux_data: aux_data
       final: final
-    user_name: User
-    system_name: System
     first_system_utterance: "Hello! Let's talk about food. What kind of cuisine do you like?"
     prompt_template: prompt_template_en.txt
     gpt_model: gpt-4o-mini
@@ -135,22 +133,9 @@ The contents of the prompt template `sample_apps/chatgpt/prompt_template_en.txt`
 - Ask the user if se/he likes Italian food
 - If the user likes Italian, ask the user which kind of Italian food she/he likes
 - If the user doesn't like Italian, ask her/him why.
-
-# Dialogue up to now
-
-@dialogue_history
 ```
 
-The dialogue history up to that point is inserted at the end of `@dialogue_history` in the following format.
-
-```
-System: Hello! Let's talk about food. What kind of cuisine do you like?
-User: I like Italian food.
-System: That's awesome! Italian food is so delicious. What's your favorite dish? Pasta, pizza, or maybe something else?
-User: I like pasta.
-```
-
-Here, "System" and "User" use the names specified in the configuration as `user_name` and `system_name`.
+このプロンプトテンプレートと対話の履歴を用いて次のシステム発話を生成します。
 
 (app_development_with_chatgpt_app)=
 ### Creating an Application Using the ChatGPT Application

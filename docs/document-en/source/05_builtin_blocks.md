@@ -657,6 +657,10 @@ To use these functions, the following settings are required:
 
     This specifies the temperature parameter for GPT. The default value is `0.7`.
 
+  - `temperature_for_checking` (float)
+
+    This is the temperature parameter of the GPT used during conditional evaluation. If this is not specified, the value of `temperature` will be used instead.
+
   - `situation` (list of strings)
 
     A list that enumerates the scenarios to be written in the GPT prompt. If this element is absent, no specific situation is specified.
@@ -692,81 +696,80 @@ To use these functions, the following settings are required:
         - Diplomatic and cheerful
   ```
 
-`_check_with_prompt_template(prompt_template)`および`_generate_with_llm(prompt_template)`は，大規模言語モデルにプロンプトを与えて条件の判定および文字列の生成を行います．プロンプトは、引数に指定したプロンプトテンプレートのプレースホルダを値に置き換えることで作られます。
+`_check_with_prompt_template(prompt_template)` and `_generate_with_llm(prompt_template)` perform condition checking and text generation by providing prompts to a large language model.
+The prompts are created by replacing the placeholders in the specified prompt template with actual values.
 
-これらの関数を使うには上記の環境変数`OPENAI_API_KEY`の設定と、ブロックコンフィギュレーションの`chatgpt`要素の設定が必要です。
+To use these functions, you must set the environment variable `OPENAI_API_KEY` and configure the `chatgpt` element in the block configuration.
 
-以下が例です．
+Here are some examples:
 
-- 条件判定の例
+- Example of condition checking:
 
   ```python
-  _check_with_promtp_template("ユーザが理由を言ったかどうか判断してください．")
+  _check_with_promtp_template("Please determine whether the user has given a reason.")
   ```
 
-- 条件判定の例
+- Another example of condition checking:
 
   ```python
-  _generate_with_prompt_template("
+  _generate_with_prompt_template("""
 
-  # 状況
+  # Situation
 
   {situation}
 
-  # あなたのペルソナ
+  # Your persona
 
   {persona}
 
-  # 現在までの対話
+  # Dialogue history up to now
 
   {dialogue_history}
 
-  # タスク
+  # Task
 
-  ユーザが理由を言ったかどうか判断し、yesかnoで答えてください。")
+  Determine whether the user has given a reason, and answer with either 'yes' or 'no'.
+  """)
   ```
 
-- 文字列生成の例
+- Example of string generation:
 
   ```python
-  _generate_with_prompt_template("
+  _generate_with_prompt_template("""
 
-  # 状況
+  # Situation
 
   {situation}
 
-  # あなたのペルソナ
+  # Your persona
 
   {persona}
 
-  # 現在までの対話
+  # Dialogue history up to now
 
   {dialogue_history}
 
-  # タスク
+  # Task
 
-  それまでの会話につづけて、対話を終わらせる発話を50文字以内で生成してください。")
+  Based on the dialogue so far, generate a closing utterance within 50 characters.
+  """)
   ```
 
-  `{`と`}`で囲まれている部分はプレースホルダです。
+  Parts enclosed in `{` and `}` are placeholders.
 
-- 利用できるプレースホルダ
+- Available placeholders:
 
   - `{dialogue_history}`
-
-    その時点までの対話（最新のユーザ発話を含む）で置き換えられる
+    Replaced with the dialogue up to that point, including the latest user utterance.
 
   - `{situation}`
+    Replaced with the value of `situation` from the `chatgpt` element in the block configuration.
 
-    ブロックコンフィギュレーションの`chatgpt`要素の`situation`の値で置き換えられる
-  
   - `{persona}`
-
-    ブロックコンフィギュレーション`chatgpt`要素の`persona`の値で置き換えられる
+    Replaced with the value of `persona` from the `chatgpt` element in the block configuration.
 
   - `{current_time}`
-
-    対話の行われている時点の年月日、曜日、時分秒を表す文字列で置き換えられる
+    Replaced with a string representing the current date, day of the week, and time (hour, minute, second) at which the dialogue is taking place.
 
 
 #### Syntax sugars for built-in functions
@@ -1018,13 +1021,9 @@ When using these blocks, you need to set the OpenAI license key in the environme
 
    This is the first system utterance of the dialog.
 
-- `user_name` (string, default value is `"User"`)
+- `user_name`, `system_name`
 
-   This is used for the ChatGPT prompt. It is explained below.
-
-- `system_name` (string, default value is `"System"`)
-
-   This is used for the ChatGPT prompt. It is explained below.
+   These were deprecated in ver. 1.1.
 
 - `prompt_template` (string)
 
@@ -1032,7 +1031,7 @@ When using these blocks, you need to set the OpenAI license key in the environme
 
 - `gpt_model` (string, default value is `gpt-4o-mini`)
 
-   Open AI GPT model. You can specify `gpt-4o`, `gpt-4o-mini` and so on.
+   Open AI GPT model. You can specify `gpt-4o`, `gpt-4o-mini` and so on. 
 
 ### Process Details
 

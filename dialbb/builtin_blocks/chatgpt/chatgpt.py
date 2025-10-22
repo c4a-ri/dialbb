@@ -50,9 +50,6 @@ class ChatGPT(AbstractBlock):
         self._openai_client = openai.OpenAI(api_key=openai_api_key)
         self._gpt_model = self.block_config.get("gpt_model", DEFAULT_GPT_MODEL)
 
-        self.user_name: str = self.block_config.get("user_name", "User")
-        self.system_name: str = self.block_config.get("system_name", "System")
-
         # reading prompt template file
         prompt_template_file: str = self.block_config.get("prompt_template", "")
         if not prompt_template_file:
@@ -114,17 +111,18 @@ class ChatGPT(AbstractBlock):
         chat_completion = None
         while True:
             try:
+                temperature = 1 if self._gpt_model == 'gpt-5' else self._temperature
                 chat_completion = self._openai_client.with_options(timeout=10).chat.completions.create(
                     model=self._gpt_model,
                     messages=messages,
-                    temperature=self._temperature,
+                    temperature=temperature
                     )
             except openai.APITimeoutError:
                 continue
             except Exception as e:
                 self.log_error("OpenAI Error: " + traceback.format_exc())
                 sys.exit(1)
-            finally:
+            else:
                 if not chat_completion:
                     continue
                 else:
@@ -156,10 +154,8 @@ class ChatGPT(AbstractBlock):
                 messages.append({'role': "assistant", "content": turn['utterance']})
 
         self.log_debug("messages: " + str(messages), session_id=session_id)
-        generated_utterance: str = self._generate_with_openai_gpt(messages)
-        self.log_debug("generated system utterance: " + generated_utterance, session_id=session_id)
-        system_utterance: str = generated_utterance.replace(f'{self.system_name}:', '').strip()
-        self.log_debug("final system utterance: " + system_utterance, session_id=session_id)
+        system_utterance: str = self._generate_with_openai_gpt(messages)
+        self.log_debug("generated system utterance: " + system_utterance, session_id=session_id)
 
         return system_utterance, aux_data, False
 

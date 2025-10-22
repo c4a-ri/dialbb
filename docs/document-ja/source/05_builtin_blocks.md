@@ -713,6 +713,10 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
 
     GPTの温度パラメータです．デフォルト値は`0.7`です．
 
+  - `temperature_for_checking` (float)
+
+    条件判定の際に用いるGPTの温度パラメータです．これが指定されていない場合は、`temperature`の値が用いられます。
+
   - `situation` （文字列のリスト）
 
     GPTのプロンプトに書く状況を列挙したものです．
@@ -1078,13 +1082,9 @@ OpenAI社のChatGPTを用いて対話を行います．
 
   対話の最初のシステム発話です．
 
-- `user_name` （文字列，デフォルト値は`"User"`）
+- `user_name`, `system_name`
 
-  ChatGPTのプロンプトに使う文字列です．以下で説明します．
-
-- `system_name` （文字列，デフォルト値は`"System"`）
-
-  ChatGPTのプロンプトに使う文字列です．以下で説明します．
+   ver 1.1 で廃止されました。
 
 - `prompt_template` （文字列）
 

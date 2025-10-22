@@ -5,8 +5,12 @@
 - ChatGPT Dialogue組み込みブロック
 
   - dialogue_historyプレイスホルダを廃止
+
+- STN Manager Builtin Block
+
   - `_generate_with_prompt_template()`、 `_check_with_prompt_template()`とそのシンタクスシュガーの実装 
-  - シンタクスシュガー `$"..."`の代わりに`$...$`も使えるように
+	- シンタクスシュガー `$"..."`の代わりに`$...$`も使えるように
+  - `chatgpt/temperature_for_checking`パラメータの導入
 
 
 - シミュレーションベーステスタを導入
@@ -15,7 +19,7 @@
 - シナリオの文字列の正規化
 
 	
-	## 1.0.3 (2025.4.27)
+## 1.0.3 (2025.4.27)
 
 - STN Manager Builtin Block
 
