@@ -592,7 +592,7 @@ The built-in functions are as follows:
 	
     e.g.: `_num_turns_in_state_exceeds("5")`
 
-  - `_check_with_llm(task)`
+  - `_check_with_llm(task)` and `_check_with_prompt_template(prompt_template)`
   
      Makes the judgment using a large language model. More details follow.
 
@@ -618,7 +618,7 @@ The built-in functions are as follows:
 
 - Functions used in system utterances
 
-  - `_generate_with_llm(task)`
+  - `_generate_with_llm(task)` and `_generate_with_prompt_template(prompt_template)`
   
      Generates a string using a large language model (currently only OpenAI's ChatGPT). More details follow.
 
@@ -651,11 +651,15 @@ To use these functions, the following settings are required:
 
   - `gpt_model` (string)
 
-    This specifies the model name of GPT, such as `gpt-4o`, `gpt-4o-mini`, etc. The default value is `gpt-4o-mini`. `gpt-4` cannot be used.
+    This specifies the model name of GPT, such as `gpt-4o`, `gpt-4o-mini`, etc. The default value is `gpt-4o-mini`. `gpt-5` cannot be used.
 
   - `temperature` (float)
 
     This specifies the temperature parameter for GPT. The default value is `0.7`.
+
+  - `temperature_for_checking` (float)
+
+    This is the temperature parameter of the GPT used during conditional evaluation. If this is not specified, the value of `temperature` will be used instead.
 
   - `situation` (list of strings)
 
@@ -692,6 +696,82 @@ To use these functions, the following settings are required:
         - Diplomatic and cheerful
   ```
 
+`_check_with_prompt_template(prompt_template)` and `_generate_with_llm(prompt_template)` perform condition checking and text generation by providing prompts to a large language model.
+The prompts are created by replacing the placeholders in the specified prompt template with actual values.
+
+To use these functions, you must set the environment variable `OPENAI_API_KEY` and configure the `chatgpt` element in the block configuration.
+
+Here are some examples:
+
+- Example of condition checking:
+
+  ```python
+  _check_with_promtp_template("Please determine whether the user has given a reason.")
+  ```
+
+- Another example of condition checking:
+
+  ```python
+  _generate_with_prompt_template("""
+
+  # Situation
+
+  {situation}
+
+  # Your persona
+
+  {persona}
+
+  # Dialogue history up to now
+
+  {dialogue_history}
+
+  # Task
+
+  Determine whether the user has given a reason, and answer with either 'yes' or 'no'.
+  """)
+  ```
+
+- Example of string generation:
+
+  ```python
+  _generate_with_prompt_template("""
+
+  # Situation
+
+  {situation}
+
+  # Your persona
+
+  {persona}
+
+  # Dialogue history up to now
+
+  {dialogue_history}
+
+  # Task
+
+  Based on the dialogue so far, generate a closing utterance within 50 characters.
+  """)
+  ```
+
+  Parts enclosed in `{` and `}` are placeholders.
+
+- Available placeholders:
+
+  - `{dialogue_history}`
+    Replaced with the dialogue up to that point, including the latest user utterance.
+
+  - `{situation}`
+    Replaced with the value of `situation` from the `chatgpt` element in the block configuration.
+
+  - `{persona}`
+    Replaced with the value of `persona` from the `chatgpt` element in the block configuration.
+
+  - `{current_time}`
+    Replaced with a string representing the current date, day of the week, and time (hour, minute, second) at which the dialogue is taking place.
+
+
 #### Syntax sugars for built-in functions
 
 Syntax sugars are provided to simplify the description of built-in functions.
@@ -727,25 +807,34 @@ Syntax sugars are provided to simplify the description of built-in functions.
   user_name=#NE_Person
   ```
 
-- `$<task string>`
+- `$<task string>$`
 
-  When used as a condition, it means `_check_with_llm(<task string>)`, and when used in a system utterance enclosed in `{}`, it means `_generate_with_llm(<task string>)`.
+  When used as a condition, it means `_check_with_llm("<task string>")`, and when used in a system utterance, it means `{_generate_with_llm("<task string>")}`.
 
   Example of a condition:
 
   ```
-  $"Please determine if the user said the reason."
+  $Please determine if the user said the reason$
   ```
 
-  Example of a text generation function call in a system utterance
+  Example of a text generation function call in a system utterance:
 
   ```
+  I understand. $Generate a sentence to say it's time to end the talk by continuing the conversation in 50 words$  Thank you for your time.
+
+  ```
+
   I understand. {$"Generate a sentence to say it's time to end the talk by continuing the conversation in 50 words" }  Thank you for your time.
-  ```
+
+  This used to be `$"<task string>"` but it is deprecated.
+
+- `$$$<prompt template>$$$`
+
+  When used as a condition, it means `_check_with_prompt_template("<prompt template>")`, and when used in system utterances, it means `{_generate_with_prompt_template("<prompt template>")}`.
 
 
+(custom_functions)=
 #### Function definitions by the developers
-
 
 When the developer defines functions, he/she edits a file specified in `function_definition` element in the block configuration.
 
@@ -933,13 +1022,9 @@ When using these blocks, you need to set the OpenAI license key in the environme
 
    This is the first system utterance of the dialog.
 
-- `user_name` (string, default value is `"User"`)
+- `user_name`, `system_name`
 
-   This is used for the ChatGPT prompt. It is explained below.
-
-- `system_name` (string, default value is `"System"`)
-
-   This is used for the ChatGPT prompt. It is explained below.
+   These were deprecated in ver. 1.1.
 
 - `prompt_template` (string)
 
@@ -947,7 +1032,7 @@ When using these blocks, you need to set the OpenAI license key in the environme
 
 - `gpt_model` (string, default value is `gpt-4o-mini`)
 
-   Open AI GPT model. You can specify `gpt-4o`, `gpt-4o-mini` and so on.
+   Open AI GPT model. You can specify `gpt-4o`, `gpt-4o-mini` and so on. 
 
 ### Process Details
 

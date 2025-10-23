@@ -42,6 +42,9 @@ EXIT: str = "#exit"
 SKIP: str = "$skip"
 COMMA: str = "&&&comma&&&"
 SEMICOLON: str = "&&&semicolon&&&"
+LEFTPAREN: str = "&&&leftparen&&&"
+RIGHTPAREN: str = "&&&rightparen&&&"
+DOUBLEQUOTE: str = "&&&doublequote&&&"
 
 function_call_pattern = re.compile(r"([^(]+)\(([^)]*)\)", re.DOTALL)  # matches function patter such as "func(..)"
 ne_condition_pattern = re.compile("([^=]+)!=(.+)")  # matches <variable>!=<value>
@@ -67,7 +70,11 @@ class Argument:
             self._name = argument_string[1:]
         elif argument_string[0] in ('"', '”', '“') and argument_string[-1] in ('"', '”', '“'):  # constant string 定数文字列
             self._type = CONSTANT
-            self._name = argument_string[1:-1].replace(SEMICOLON, ';').replace(COMMA, ",")  # revert semicolon and comma
+            self._name = (argument_string[1:-1].replace(SEMICOLON, ';')
+                          .replace(COMMA, ",")
+                          .replace(LEFTPAREN, "(")
+                          .replace(RIGHTPAREN, ")")
+                          .replace(DOUBLEQUOTE, '"')) # revert semicolon, comma, etc
         elif argument_string[0] in ('&', '＆'):  # variable name 変数名
             self._type = ADDRESS
             self._name = argument_string[1:]  # remove '&'
@@ -328,6 +335,12 @@ class Transition:
                 result += COMMA
             elif char in (';', '；') and in_constant:
                 result += SEMICOLON
+            elif char == '(' and in_constant:
+                result += LEFTPAREN
+            elif char == ')' and in_constant:
+                result += RIGHTPAREN
+            elif char == '"' and in_constant:
+                result += DOUBLEQUOTE
             else:
                 result += char
         return result

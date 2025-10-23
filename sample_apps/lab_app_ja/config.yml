@@ -67,6 +67,7 @@ blocks:  # ブロックのリスト
     chatgpt:
       gpt_model: gpt-4o-mini
       temperature: 0.7
+      temperature_for_checking: 0.0
       situation:
         - あなたは対話システムで、ユーザと食べ物に関して雑談をしています。
         - ユーザとは初対面です

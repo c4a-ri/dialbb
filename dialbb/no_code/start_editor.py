@@ -22,6 +22,8 @@ app = Flask(
 
 
 llm_pattern = re.compile(r"\$\".*?\"")
+llm_pattern2 = re.compile(r"\$.*?\$")
+prompt_template_pattern = re.compile(r"\$\$\$.*?\$\$\$", re.DOTALL)
 str_eq_pattern = re.compile(r"(.+?)\s*==\s*(.+)")
 str_ne_pattern = re.compile(r"(.+?)\s*!=\s*(.+)")
 num_turns_exceeds_pattern = re.compile(r'TT\s*>\s*\d+')  # matches TT><n> such as "TT>3"
@@ -38,6 +40,8 @@ def illegal_condition(condition: str) -> bool:
     """
     if (
         llm_pattern.fullmatch(condition)
+        or llm_pattern2.fullmatch(condition)
+        or prompt_template_pattern.fullmatch(condition)
         or str_eq_pattern.fullmatch(condition)
         or str_ne_pattern.fullmatch(condition)
         or num_turns_exceeds_pattern.fullmatch(condition)
