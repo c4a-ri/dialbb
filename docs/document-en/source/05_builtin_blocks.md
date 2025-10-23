@@ -828,9 +828,10 @@ Syntax sugars are provided to simplify the description of built-in functions.
 
   This used to be `$"<task string>"` but it is deprecated.
 
-- `$$$<プロンプトテンプレート>$$$`
+- `$$$<prompt template>$$$`
 
-  条件として使われた時は，`_check_with_prompt_template("<プロンプトテンプレート>")`の意味で，システム発話中で使われた時は，`{_generate_with_prompt_template("<プロンプトテンプレート>")}`の意味です．
+  When used as a condition, it means `_check_with_prompt_template("<prompt template>")`, and when used in system utterances, it means `{_generate_with_prompt_template("<prompt template>")}`.
+
 
 (custom_functions)=
 #### Function definitions by the developers

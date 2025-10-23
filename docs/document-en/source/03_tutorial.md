@@ -135,7 +135,7 @@ The contents of the prompt template `sample_apps/chatgpt/prompt_template_en.txt`
 - If the user doesn't like Italian, ask her/him why.
 ```
 
-このプロンプトテンプレートと対話の履歴を用いて次のシステム発話を生成します。
+Using this prompt template and the conversation history, the next system utterance will be generated.
 
 (app_development_with_chatgpt_app)=
 ### Creating an Application Using the ChatGPT Application
