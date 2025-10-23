@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.4 (2025.7.31)
+
+- ChatGPT NER組み込みブロックのバグフィックス
+
 ## 1.1.0 (2025.x.x)
 
 - ChatGPT Dialogue組み込みブロック
