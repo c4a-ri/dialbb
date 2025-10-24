@@ -107,33 +107,17 @@ LLM (ChatGPT) を用いたユーザシミュレータを用いたテスタが付
 
   以下のキーをもつYAML
   
-  - `model`: （文字列．必須）OpenAIのGPTモデル名
-
+  - `model`: （文字列．必須）OpenAIのGPTモデル名．`gpt-4o`，`gpt-4o-mini`など．`gpt-5`は不可．
   - `user_name`: （文字列．任意）プロンプト内の対話履歴でユーザを指す文字列．デフォルト値 "User"
-
   - `system_name`: （文字列．任意）プロンプト内の対話履歴でシステムを指す文字列．デフォルト値 "System"
-
   - `settings`（オブジェクトのリスト．必須）設定のリスト．以下の要素を持つことができる
-
-    - `prompt_templates`: （文字列のリスト．必須）プロンプトテンプレートを記述したテキストファイルのパスのリスト．ファイルパスはコンフィギュレーションファイルからの相対パス．プロンプトテンプレートには以下のタグを含めることができる
   
-      - `{dialogue_history}` 必須．対話履歴に置き換えられます．
-  
-       ```
-       <ブロックコンフィギュレーションのsystem_nameの値>: <システム発話>
-       <ブロックコンフィギュレーションのuser_nameの値>: <ユーザ発話>
-       <ブロックコンフィギュレーションのsystem_nameの値>: <システム発話>
-       ...
-       <ブロックコンフィギュレーションのuser_nameの値>: <ユーザ発話>
-       <ブロックコンフィギュレーションのsystem_nameの値>: <システム発話>
-       ```
+    - `prompt_templates`: （文字列のリスト．必須）プロンプトテンプレートを記述したテキストファイルのパスのリスト．ファイルパスはコンフィギュレーションファイルからの相対パス．
   
     - `initial_aux_data`（文字列．任意）対話の最初にDialBBアプリケーションにアクセスする際に，`aux_data`に入れる内容を書いたJSONファイルのパス．パスはコンフィギュレーションファイルからの相対パス．
-  
   - `temperatures`: （浮動小数点数のリスト．任意）GPTの温度パラメータのリスト．デフォルト値は0.7の一要素のみのリスト．`prompt_templates`のリストの長さ×このリストの長さのセッションが行われます．
-  
   - `max_turns`: (整数．任意）セッションあたりの最大ターン数．デフォルト値15．
-
+  
 - 関数仕様
 
   - `dialbb.sim_test.main.test_by_simulation(test_config_file: str, app_config_file: str, output_file: str=None, json_output: bool=False, prompt_params: Dict[str, str])`
