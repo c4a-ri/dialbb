@@ -116,9 +116,7 @@ def edit_scenario_functions(parent, file_path: str):
 
         # 画面を閉じる
         toplevel.destroy()
-        parent.destroy()
 
     def cancel_btn_click():
         # 画面を閉じる
         toplevel.destroy()
-        parent.destroy()

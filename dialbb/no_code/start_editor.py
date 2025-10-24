@@ -8,26 +8,30 @@ from tools.knowledgeConverter2excel import convert2excel
 import argparse
 import re
 from dialbb.no_code.gui_utils import read_gui_text_data, gui_text
-from dialbb.builtin_blocks.stn_management.stn_creator import normalize
 
 
-DOC_ROOT: str = os.path.join(os.path.dirname(os.path.abspath(__file__)))
-print(f"template_folder={DOC_ROOT}")
+DOC_ROOT: str = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
+template_folder = os.path.join(DOC_ROOT, "server/static/new")
 NC_PATH: str = os.path.dirname(os.path.abspath(__file__))
+APP_FILE_PATH: str = os.path.join(NC_PATH, "app", "scenario.xlsx")
+print(f"template_folder={template_folder}\n{NC_PATH=}")
+
 startup_mode = ""
 
 app = Flask(
-    __name__, template_folder=DOC_ROOT, static_folder=os.path.join(DOC_ROOT, "static")
+    __name__,
+    template_folder=os.path.join(DOC_ROOT, "server/static/new"),
+    static_folder=os.path.join(DOC_ROOT, "server/static/new/assets"),
 )
 
 
 llm_pattern = re.compile(r"\$\".*?\"")
 str_eq_pattern = re.compile(r"(.+?)\s*==\s*(.+)")
 str_ne_pattern = re.compile(r"(.+?)\s*!=\s*(.+)")
-num_turns_exceeds_pattern = re.compile(r'TT\s*>\s*\d+')  # matches TT><n> such as "TT>3"
-num_turns_in_state_exceeds_pattern = re.compile(r'TS\s*>\s*\d+')   #  matches TS><n> e.g. "TS > 4"
-num_turns_exceeds_pattern_old = re.compile(r"_num_turns_exceeds\(\s*\"\d+\"\s*\)")
-num_turns_in_state_exceeds_pattern_old = re.compile(r"_num_turns_in_state_exceeds\(\s*\"\d+\"\s*\)")
+num_turns_exceeds_pattern = re.compile(r"_num_turns_exceeds\(\s*\"\d+\"\s*\)")
+num_turns_in_state_exceeds_pattern = re.compile(
+    r"_num_turns_in_state_exceeds\(\s*\"\d+\"\s*\)"
+)
 
 
 def illegal_condition(condition: str) -> bool:
@@ -42,12 +46,9 @@ def illegal_condition(condition: str) -> bool:
         or str_ne_pattern.fullmatch(condition)
         or num_turns_exceeds_pattern.fullmatch(condition)
         or num_turns_in_state_exceeds_pattern.fullmatch(condition)
-        or num_turns_exceeds_pattern_old.fullmatch(condition)
-        or num_turns_in_state_exceeds_pattern_old.fullmatch(condition)
     ):
         return False
     else:
-        print("illegal condition: " + condition)
         return True
 
 
@@ -73,7 +74,6 @@ def check_and_warn(scenario_json_file: str) -> str:
         node_id: str = node["id"]
         if node.get("label") == "userNode":
             conditions: str = node["controls"]["conditions"]["value"].strip()
-            conditions = normalize(conditions)  # zenkaku -> hankaku
             if conditions != "":
                 for condition in [x.strip() for x in re.split("[;；]", conditions)]:
                     if illegal_condition(condition):
@@ -83,7 +83,6 @@ def check_and_warn(scenario_json_file: str) -> str:
                             + "\n"
                         )
             actions = node["controls"]["actions"]["value"].strip()
-            actions = normalize(actions)  # zenkaku -> hankaku
             if actions != "":
                 warning += (
                     gui_text("msg_warn_user_node_action_note") % (node_id, actions)
@@ -151,26 +150,30 @@ def save_excel():
         return "No selected file"
     if file:
         # 受信データをjsonファイルに保存
-        json_file = os.path.join(DOC_ROOT, "data", secure_filename(file.filename))
-        print(f"{json_file=}")
+        json_file = os.path.join(NC_PATH, "data", secure_filename(file.filename))
         file.save(json_file)
         warning: str = check_and_warn(json_file)
-        if startup_mode != "nc":
-            # soleの場合はここでExcelへセーブする
-            root = tk.Tk()
-            root.attributes("-topmost", True)
-            root.withdraw()
-            # 保存ダイアログ表示
-            xlsx_file = filedialog.asksaveasfilename(
-                parent=root,
-                filetypes=[("Excelファイル", "*.xlsx")],
-                defaultextension="xlsx",
-            )
+
+        if warning == "":
+            # jsonファイルをExcelに変換して保存
+            if startup_mode == "nc":
+                xlsx_file = APP_FILE_PATH
+            else:
+                # soleの場合はここで保存ファイルを入力させる
+                root = tk.Tk()
+                root.attributes("-topmost", True)
+                root.withdraw()
+                # 保存ダイアログ表示
+                xlsx_file = filedialog.asksaveasfilename(
+                    parent=root,
+                    filetypes=[("Excelファイル", "*.xlsx")],
+                    defaultextension="xlsx",
+                )
+                root.destroy()
             if xlsx_file:
                 print(f"file={xlsx_file}")
-                # excel変換
+                # Excelへセーブする
                 convert2excel(json_file, xlsx_file)
-            root.destroy()
 
         return jsonify({"message": warning})
 
