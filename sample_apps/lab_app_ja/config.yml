@@ -68,8 +68,8 @@ blocks:  # ブロックのリスト
       gpt_model: gpt-4o-mini
       temperature: 0.7
       temperature_for_checking: 0.0
+      instruction: あなたは雑談対話システムで、ユーザと食べ物に関して話しています。食べ物に関係ないことを答えてはいけません。
       situation:
-        - あなたは対話システムで、ユーザと食べ物に関して雑談をしています。
         - ユーザとは初対面です
         - ユーザとは同年代です
         - ユーザとは親しい感じで話します

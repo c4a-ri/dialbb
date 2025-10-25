@@ -269,18 +269,27 @@ def call_chatgpt(prompt: str, context: Dict[str, Any], checking: bool = False) -
                                                           chatgpt_settings.get("temperature", 0.7))
         else:  # generation
             gpt_temperature: float = chatgpt_settings.get("temperature", 0.7)
+        instruction: str = chatgpt_settings.get("instruction", "")
 
     else:
         gpt_model: str = DEFAULT_GPT_MODEL
         gpt_temperature: float = 0.7
+        instruction: str = ""
 
     chat_completion = None
+    if instruction and not checking:  # only for generation
+        messages: List[Dict[str, str]] = [{"role": "system", "content": instruction},
+                                          {"role": "user", "content": prompt}]
+    else:
+        messages: List[Dict[str, str]] = [{"role": "user", "content": prompt}]
     while True:
         try:
             temperature = 1 if gpt_model == 'gpt-5' else gpt_temperature
+            if DEBUG:
+                print(f"calling chatgpt: model: {gpt_model}, temperature: {str(temperature)}, messages: {str(messages)}")
             chat_completion = openai_client.with_options(timeout=10).chat.completions.create(
                 model=gpt_model,
-                messages=[{"role": "user", "content": prompt}],
+                messages=messages,
                 temperature=temperature,
             )
         except openai.APITimeoutError:

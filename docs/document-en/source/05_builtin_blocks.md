@@ -653,6 +653,10 @@ To use these functions, the following settings are required:
 
     This specifies the model name of GPT, such as `gpt-4o`, `gpt-4o-mini`, etc. The default value is `gpt-4o-mini`. `gpt-5` cannot be used.
 
+  - `instruction` (文字列)
+
+    This is used as the system role message when calling the ChatGPT API. It is only used during text generation.
+
   - `temperature` (float)
 
     This specifies the temperature parameter for GPT. The default value is `0.7`.
