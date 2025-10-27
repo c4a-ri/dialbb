@@ -89,6 +89,9 @@ APP_FILES: Dict[str, str] = {
 
 # define application files  アプリファイルの定義
 
+# Scenario Editor process information  シナリオエディタのプロセス情報
+editor_server: Optional[ProcessManager] = None
+editor_apl: Optional[subprocess.Popen] = None
 
 # dialbb process information  DialBBサーバのプロセス情報
 dialbb_proc: Optional[ProcessManager] = None
@@ -100,7 +103,9 @@ app_file_timestamp: float = FileTimestamp(APP_FILE_DIR, APP_FILES.values())
 
 # -------- GUI Editor -------------------------------------
 # Start GUI Editor GUIエディタ起動
-def exec_editor(file_path, parent):
+def exec_editor(file_path, parent, button):
+    global editor_server, editor_apl
+
     # convert knowledge excel to JSON 知識記述Excel-json変換
     ret = convert_excel_to_json(
         file_path, os.path.join(EDITOR_APPDATA_DIR, "init.json")
@@ -114,8 +119,8 @@ def exec_editor(file_path, parent):
     )
     # invoke server サーバ起動
     cmd = os.path.join(NC_PATH, r"start_editor.py")
-    editor_proc = ProcessManager(cmd, ["--mode=nc", arg_lang])
-    ret = editor_proc.start()
+    editor_server = ProcessManager(cmd, ["--mode=nc", arg_lang])
+    ret = editor_server.start()
     if ret:
         try:
             # シナリオエディタアプリの実行
@@ -129,41 +134,13 @@ def exec_editor(file_path, parent):
             editor_apl = subprocess.Popen(cmd)
 
             # waiting for an order to quit   終了の指示待ち
-            messagebox.showinfo(
-                gui_text("msg_editor_st_title"),
-                gui_text("msg_editor_st_msg"),
-                detail=gui_text("msg_editor_st_detail"),
-                parent=parent,
-            )
-            # finish editing   終了処理
-            json_file = os.path.join(DATA_DIR, "save.json")
-            # エディタ保存データをチェック
-            if not os.path.isfile(json_file):
-                messagebox.showwarning(
-                    "Warning",
-                    gui_text("msg_warn_no_saved"),
-                    detail=gui_text("msg_warn_no_saved_detail"),
-                    parent=parent,
-                )
-            # recheck   WarningでSaveした場合を考慮して再チェックしてから変換
-            if os.path.isfile(json_file):
-                # convert JSON to Excel   json-知識記述Excel変換
-                convert_json_to_excel(json_file, file_path)
-                # remove temp file    tempファイル削除
-                os.remove(json_file)
-
-            # エディタアプリ停止
-            import signal
-
-            if sys.platform.startswith("win"):
-                os.system(f"taskkill /F /T /PID {editor_apl.pid}")
-            else:
-                applescript_command = f'tell application "{EDITOR_APL_NAME}" to quit'
-                try:
-                    subprocess.run(["osascript", "-e", applescript_command], check=True)
-                    print(f"{EDITOR_APL_NAME} を正常に終了しました。")
-                except subprocess.CalledProcessError as e:
-                    print(f"{EDITOR_APL_NAME} の終了に失敗しました: {e}")
+            # messagebox.showinfo(
+            #     gui_text("msg_editor_st_title"),
+            #     gui_text("msg_editor_st_msg"),
+            #     detail=gui_text("msg_editor_st_detail"),
+            #     parent=parent,
+            # )
+            button["state"] = "disabled"
 
         except Exception as e:
             print(f"アプリ起動失敗: {e}")
@@ -174,9 +151,6 @@ def exec_editor(file_path, parent):
                 parent=parent,
             )
 
-        finally:
-            # stop server   サーバ停止
-            editor_proc.stop()
     else:
         messagebox.showerror(
             gui_text("msg_editor_err_title"),
@@ -184,6 +158,46 @@ def exec_editor(file_path, parent):
             detail=gui_text("msg_editor_err_detail"),
             parent=parent,
         )
+
+
+# Stop GUI Editor GUIエディタ停止
+def stop_editor(parent, button):
+    global editor_server, editor_apl
+
+    if editor_server:
+        # finish editing   終了処理
+        json_file = os.path.join(DATA_DIR, "save.json")
+        # エディタ保存データをチェック
+        if not os.path.isfile(json_file):
+            messagebox.showwarning(
+                "Warning",
+                gui_text("msg_warn_no_saved"),
+                detail=gui_text("msg_warn_no_saved_detail"),
+                parent=parent,
+            )
+            os.remove(json_file)
+
+        # close editor application   エディタアプリ終了
+        if editor_apl:
+            if sys.platform.startswith("win"):
+                os.system(f"taskkill /F /T /PID {editor_apl.pid}")
+                editor_apl = None
+            else:
+                applescript_command = f'tell application "{EDITOR_APL_NAME}" to quit'
+                try:
+                    subprocess.run(["osascript", "-e", applescript_command], check=True)
+                    print(f"{EDITOR_APL_NAME} を正常に終了しました。")
+                    editor_apl = None
+                except subprocess.CalledProcessError as e:
+                    print(f"{EDITOR_APL_NAME} の終了に失敗しました: {e}")
+        else:
+            messagebox.showwarning("Warning", gui_text("msg_editor_warn_server_none"))
+
+        # stop server   サーバ停止
+        editor_server.stop()
+        button["state"] = "normal"
+    else:
+        messagebox.showwarning("Warning", gui_text("msg_editor_warn_server_none"))
 
 
 # Excel→JSON変換処理
@@ -225,7 +239,7 @@ def exec_dialbb(app_file, button):
     global dialbb_log_file
 
     if dialbb_proc:
-        messagebox.showwarning("Warning", gui_text("msg_editor_warn_server_already"))
+        messagebox.showwarning("Warning", gui_text("msg_dialbb_warn_server_already"))
     else:
         print(f"app_file:{app_file}")
         # サーバ起動
@@ -236,7 +250,7 @@ def exec_dialbb(app_file, button):
         if ret:
             button["state"] = "disabled"
         else:
-            messagebox.showerror("Error", gui_text("msg_editor_err_start"))
+            messagebox.showerror("Error", gui_text("msg_dialbb_err_start"))
             dialbb_proc = None
 
 
@@ -250,7 +264,7 @@ def stop_dialbb(button):
         dialbb_proc = None
         button["state"] = "normal"
     else:
-        messagebox.showwarning("Warning", gui_text("msg_editor_warn_server_none"))
+        messagebox.showwarning("Warning", gui_text("msg_dialbb_warn_server_none"))
 
 
 # Show log
@@ -264,7 +278,7 @@ def show_log():
         else:
             subprocess.run(["open", dialbb_log_file])
     else:
-        messagebox.showwarning("Warning", gui_text("msg_editor_warn_no_log"))
+        messagebox.showwarning("Warning", gui_text("msg_dialbb_warn_no_log"))
 
 
 # -------- GUI画面制御サブルーチン -------------------------------------
@@ -274,7 +288,7 @@ def set_file_frame(parent_frame, settings, label_text, file_type_list):
     # file_frame = ttk.Frame(parent_frame, style="My.TLabelframe")
     file_frame = ttk.Frame(parent_frame)
     file_frame.spec_app = tk.Label(file_frame)
-    file_frame.spec_app.grid(column=0, columnspan=2, row=0, sticky=tk.W, padx=5)
+    file_frame.spec_app.grid(column=1, columnspan=2, row=0, sticky=tk.W, padx=5)
     # アプリ名の表示エリアを登録して保存アプリ名を表示する
     settings.reg_disp_area(file_frame.spec_app)
 
@@ -341,7 +355,7 @@ def close_dialbb_nc(root):
         # dialbbサーバ停止
         dialbb_proc.stop()
 
-    # # アプリファイルの変更チェック
+    # アプリファイルの変更チェック
     # if not app_file_timestamp.check():
     #     ret = messagebox.askquestion("File changed", "アプリケーションファイルがエキスポートされていません。",
     #                                  detail="エキスポートせずに終了しますか？",
@@ -407,12 +421,6 @@ def select_edit_file(parent, settings):
         ],
     )
     btn_gui.pack(side=tk.TOP, pady=5)
-
-    # btn_sce = ttk.Button(sub_menu, text="Scenario(Excel)", width=20,
-    #                      command=lambda: [edit_excel(os.path.join(
-    #                          APP_FILE_DIR, APP_FILES["scenario"])),
-    #                          on_cancel(sub_menu)])
-    # btn_sce.pack(side=tk.TOP, pady=5)
 
     btn_nlu = ttk.Button(
         sub_menu,
@@ -638,9 +646,6 @@ def set_main_frame(root_frame):
         os.environ["OPENAI_KEY"] = settings.get_gptkey()
 
     # App file Label 作成
-    # application_frame = ttk.Labelframe(
-    #     root_frame, text=gui_text("main_title_1"), padding=(10), style="My.TLabelframe"
-    # )
     application_frame = ttk.Labelframe(
         root_frame, text=gui_text("main_title_1"), padding=10
     )
@@ -655,6 +660,75 @@ def set_main_frame(root_frame):
     # file_frame.pack(fill=tk.BOTH)
     file_frame.grid(row=0, column=0, columnspan=3, sticky="ew")
 
+    # ---(2025/10)Added Edit frame buttons ---
+    edit_frame = ttk.Labelframe(
+        application_frame, text=gui_text("main_title_3"), padding=5
+    )
+    edit_frame.grid(row=2, column=0, columnspan=3, sticky="ew")
+    application_frame.rowconfigure(2, weight=1)
+    # edit_scenario button
+    edit_scenario_btn = ttk.Button(
+        edit_frame,
+        text=gui_text("btn_scenario_start"),
+        command=lambda: exec_editor(
+            os.path.join(APP_FILE_DIR, APP_FILES["scenario"]),
+            application_frame,
+            edit_scenario_btn,
+        ),
+    )
+    edit_scenario_btn.grid(row=0, column=0, padx=5, pady=5)
+    edit_scenario_stop_btn = ttk.Button(
+        edit_frame,
+        text=gui_text("btn_scenario_stop"),
+        command=lambda: stop_editor(
+            os.path.join(APP_FILE_DIR, APP_FILES["scenario"]),
+            edit_scenario_btn,
+        ),
+    )
+    edit_scenario_stop_btn.grid(row=0, column=1, padx=5, pady=5)
+    # edit_nlu_knowledge button
+    edit_nlu_knowledge_btn = ttk.Button(
+        edit_frame,
+        text=gui_text("btn_lang_knowledge"),
+        command=lambda: edit_excel(
+            os.path.join(APP_FILE_DIR, APP_FILES["nlu-knowledge"])
+        ),
+    )
+    edit_nlu_knowledge_btn.grid(row=0, column=2, padx=5, pady=5)
+    # edit_ner_knowledge button
+    edit_ner_knowledge_btn = ttk.Button(
+        edit_frame,
+        text=gui_text("btn_named_entity"),
+        command=lambda: edit_excel(
+            os.path.join(APP_FILE_DIR, APP_FILES["ner-knowledge"])
+        ),
+    )
+    edit_ner_knowledge_btn.grid(row=0, column=3, padx=5, pady=5)
+    # edit_scenario_functions button
+    edit_scenario_functions_btn = ttk.Button(
+        edit_frame,
+        text=gui_text("btn_scenario_func"),
+        command=lambda: edit_scenario_functions(
+            application_frame,
+            os.path.join(APP_FILE_DIR, APP_FILES["scenario-functions"]),
+        ),
+    )
+    edit_scenario_functions_btn.grid(row=1, column=0, padx=5, pady=5)
+    # edit_config button
+    edit_config_btn = ttk.Button(
+        edit_frame,
+        text=gui_text("btn_configuration"),
+        command=lambda: edit_config(
+            application_frame,
+            os.path.join(APP_FILE_DIR, APP_FILES["config"]),
+            TEMPLATE_DIR,
+            settings,
+        ),
+    )
+    edit_config_btn.grid(row=1, column=1, padx=5, pady=5)
+    edit_frame.columnconfigure((0, 1, 2, 3, 4), weight=1)
+    # End of added edit frame buttons
+
     # createボタン:アプリファイルの新規作成
     create_btn = ttk.Button(
         application_frame,
@@ -665,13 +739,13 @@ def set_main_frame(root_frame):
     create_btn.grid(row=1, column=0, padx=5, pady=10)
 
     # editボタンの作成:GUIエディタ起動
-    edit_button = ttk.Button(
-        application_frame,
-        text=gui_text("btn_edit"),
-        command=lambda: select_edit_file(file_frame, settings),
-    )
-    # edit_button.pack(side=tk.LEFT, padx=10, pady=10)
-    edit_button.grid(row=1, column=1, padx=5, pady=10)
+    # edit_button = ttk.Button(
+    #     application_frame,
+    #     text=gui_text("btn_edit"),
+    #     command=lambda: select_edit_file(file_frame, settings),
+    # )
+    # # edit_button.pack(side=tk.LEFT, padx=10, pady=10)
+    # edit_button.grid(row=1, column=1, padx=5, pady=10)
 
     # export ボタン:アプリファイルのzip保存
     export_btn = ttk.Button(
@@ -680,7 +754,7 @@ def set_main_frame(root_frame):
         command=lambda: export_app_file(file_frame.edit_box.get(), settings),
     )
     # export_btn.pack(side=tk.LEFT, padx=10, pady=10)
-    export_btn.grid(row=1, column=2, padx=5, pady=10)
+    export_btn.grid(row=1, column=1, padx=5, pady=10)
 
     application_frame.columnconfigure(0, weight=1)
     application_frame.columnconfigure(1, weight=1)
@@ -743,7 +817,7 @@ def set_main_frame(root_frame):
         command=lambda: close_dialbb_nc(root_frame),
     )
     # close_btn.pack(side=tk.BOTTOM, anchor=tk.NE, padx=10, pady=10)
-    close_btn.pack(side=tk.BOTTOM, anchor=tk.E, padx=10, pady=10)
+    close_btn.pack(side=tk.BOTTOM, anchor=tk.E, padx=10, pady=5)
 
 
 def main():
@@ -764,7 +838,7 @@ def main():
     # Rootウジェットの生成
     root = tk.Tk()
     if os.name == "nt":
-        root.minsize(600, 340)  # 最小サイズを設定
+        root.minsize(600, 440)  # 最小サイズを設定
     else:
         root.tk.call("tk", "scaling", 1.2)  # スケーリングを1.0に設定
         root.minsize(600, 400)  # 最小サイズを設定

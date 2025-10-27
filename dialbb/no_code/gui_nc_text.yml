@@ -61,9 +61,13 @@ btn_no:
   ja: "いいえ"
   en: "No"
 
-btn_scenario:
-  ja: "シナリオ"
-  en: "Scenario"
+btn_scenario_start:
+  ja: "シナリオ編集"
+  en: "Scenario Edit"
+
+btn_scenario_stop:
+  ja: "シナリオ編集終了"
+  en: "Stop Scenario Edit"
 
 btn_lang_knowledge:
   ja: "言語理解知識"
@@ -115,15 +119,23 @@ msg_editor_err_notfound:
   ja: "シナリオエディタアプリが存在しません"
   en: "Scenario Editor app not found"
 
-msg_editor_warn_server_already:
+msg_editor_warn_server_none:
+  ja: "シナリオエディタは動いていません。"
+  en: "The Scenario Editor is not running."
+
+msg_dialbb_warn_server_already:
   ja: "DialBBサーバはすでに動作しています。"
   en: "The DialBB server is already running."
 
-msg_editor_warn_server_none:
+msg_dialbb_warn_server_none:
   ja: "DialBBサーバは動いていません。"
   en: "The DialBB server is not running."
 
-msg_editor_warn_no_log:
+msg_dialbb_err_start:
+  ja: "DialBBサーバの起動に失敗しました。"
+  en: "Failed to start the DialBB server."
+
+msg_dialbb_warn_no_log:
   ja: "ログファイルが見つかりません。"
   en: "Log file not found."
 
@@ -205,6 +217,10 @@ main_title_1:
 main_title_2:
   ja: "サーバ起動"
   en: "Start server"
+
+main_title_3:
+  ja: "編集"
+  en: "Edit"
 
 main_import:
   ja: "読み込むファイル: "
