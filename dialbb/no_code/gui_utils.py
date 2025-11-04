@@ -30,6 +30,7 @@ import json
 from cryptography.fernet import Fernet
 from datetime import datetime
 import yaml
+import requests
 
 
 # -------- Process manager class プロセス管理クラス -------------------------------------
@@ -259,9 +260,6 @@ def central_position(frame, width: int, height: int):
     sw = frame.winfo_screenwidth()
     sh = frame.winfo_screenheight()
     # ウィンドウサイズと表示位置を指定する
-    # frame.geometry(
-    #     f"{width}x{height}+{int(sw / 2 - width / 2)}+{int(sh / 2 - height / 2)}"
-    # )
     frame.geometry(f"{width}x{height}+{(sw - width) // 2}+{(sh - height) // 2}")
 
 
@@ -307,3 +305,40 @@ def gui_text(key: str):
         return "Key is empty."
 
     return GUI_TEXT_DATA.get(key, f'No data found for "{key}"')
+
+
+# dialbbサーバへのリクエストデータ作成
+def set_chat_message(
+    user_id: str = "", session_id: str = "", user_utterance: str = ""
+) -> Dict[str, Any]:
+    data = {
+        "user_id": user_id,
+        "session_id": session_id,
+        "user_utterance": user_utterance,
+        "aux_data": {},
+    }
+
+    return data
+
+
+# メッセージをdialbbサーバに送信
+def request_dialbb(
+    endpoint: str = "", data: Dict = {}, port: int = 8080
+) -> Dict[str, Any]:
+    if not data:
+        return {}
+
+    # ユーザ発話をREST APIでサーバに送信する
+    url = f"http://localhost:{port}/{endpoint}"
+    headers = {"Content-Type": "application/json"}
+
+    try:
+        response = requests.post(url, headers=headers, json=data)
+        response.raise_for_status()
+        result = response.json()
+        print(f"Response from server: {result}")
+    except requests.RequestException as e:
+        print(f"Error sending chat message: {e}")
+        result = {"error_message": str(e)}
+
+    return result
