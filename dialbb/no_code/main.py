@@ -42,6 +42,8 @@ from dialbb.no_code.gui_utils import (
     child_position,
     read_gui_text_data,
     gui_text,
+    set_chat_message,
+    request_dialbb,
 )
 from typing import Dict, Optional
 
@@ -102,70 +104,68 @@ app_file_timestamp: float = FileTimestamp(APP_FILE_DIR, APP_FILES.values())
 
 
 # -------- GUI Editor -------------------------------------
-# Start GUI Editor GUIエディタ起動
+# Start GUI Editor GUIエディタ起動/停止
 def exec_editor(file_path, parent, button):
     global editor_server, editor_apl
 
-    # convert knowledge excel to JSON 知識記述Excel-json変換
-    ret = convert_excel_to_json(
-        file_path, os.path.join(EDITOR_APPDATA_DIR, "init.json")
-    )
-    if not ret:
-        return
+    if not editor_server:
+        # エディタ終了処理
+        # convert knowledge excel to JSON 知識記述Excel-json変換
+        ret = convert_excel_to_json(
+            file_path, os.path.join(EDITOR_APPDATA_DIR, "init.json")
+        )
+        if not ret:
+            return
 
-    arg_lang = f"--lang={gui_text('language type')}"
-    print(
-        f"Starting editor. OS: {sys.platform}, Editor exec: {EDITOR_APL_EXE}, Language: {arg_lang}"
-    )
-    # invoke server サーバ起動
-    cmd = os.path.join(NC_PATH, r"start_editor.py")
-    editor_server = ProcessManager(cmd, ["--mode=nc", arg_lang])
-    ret = editor_server.start()
-    if ret:
-        try:
-            # シナリオエディタアプリの実行
-            if not os.path.exists(EDITOR_APL_EXE):
-                raise FileNotFoundError(
-                    gui_text("msg_editor_err_notfound") + f": {EDITOR_APL_EXE}"
+        arg_lang = f"--lang={gui_text('language type')}"
+        print(
+            f"Starting editor. OS: {sys.platform}, Editor exec: {EDITOR_APL_EXE}, Language: {arg_lang}"
+        )
+        # エディタ用サーバ起動
+        cmd = os.path.join(NC_PATH, r"start_editor.py")
+        editor_server = ProcessManager(cmd, ["--mode=nc", arg_lang])
+        ret = editor_server.start()
+        if ret:
+            try:
+                # シナリオエディタアプリの実行
+                if not os.path.exists(EDITOR_APL_EXE):
+                    raise FileNotFoundError(
+                        gui_text("msg_editor_err_notfound") + f": {EDITOR_APL_EXE}"
+                    )
+                # アプリ起動 （言語種別引数あり）
+                cmd = [
+                    s.replace("LANG", gui_text("language type")) for s in EDITOR_EXE_CMD
+                ]
+                print(f"Editor command: {cmd}")
+                editor_apl = subprocess.Popen(cmd)
+
+                # waiting for an order to quit   終了の指示待ち
+                # messagebox.showinfo(
+                #     gui_text("msg_editor_st_title"),
+                #     gui_text("msg_editor_st_msg"),
+                #     detail=gui_text("msg_editor_st_detail"),
+                #     parent=parent,
+                # )
+                button.configure(text=gui_text("btn_scenario_stop"))
+
+            except Exception as e:
+                print(f"アプリ起動失敗: {e}")
+                messagebox.showerror(
+                    gui_text("msg_editor_err_title"),
+                    gui_text("msg_editor_err_msg"),
+                    detail=f"{e}",
+                    parent=parent,
                 )
-            # アプリ起動 （言語種別引数あり）
-            cmd = [s.replace("LANG", gui_text("language type")) for s in EDITOR_EXE_CMD]
-            print(f"Editor command: {cmd}")
-            editor_apl = subprocess.Popen(cmd)
 
-            # waiting for an order to quit   終了の指示待ち
-            # messagebox.showinfo(
-            #     gui_text("msg_editor_st_title"),
-            #     gui_text("msg_editor_st_msg"),
-            #     detail=gui_text("msg_editor_st_detail"),
-            #     parent=parent,
-            # )
-            button["state"] = "disabled"
-
-        except Exception as e:
-            print(f"アプリ起動失敗: {e}")
+        else:
             messagebox.showerror(
                 gui_text("msg_editor_err_title"),
                 gui_text("msg_editor_err_msg"),
-                detail=f"{e}",
+                detail=gui_text("msg_editor_err_detail"),
                 parent=parent,
             )
-
     else:
-        messagebox.showerror(
-            gui_text("msg_editor_err_title"),
-            gui_text("msg_editor_err_msg"),
-            detail=gui_text("msg_editor_err_detail"),
-            parent=parent,
-        )
-
-
-# Stop GUI Editor GUIエディタ停止
-def stop_editor(parent, button):
-    global editor_server, editor_apl
-
-    if editor_server:
-        # finish editing   終了処理
+        # エディタ終了処理
         json_file = os.path.join(DATA_DIR, "save.json")
         # エディタ保存データをチェック
         if not os.path.isfile(json_file):
@@ -177,7 +177,7 @@ def stop_editor(parent, button):
             )
             os.remove(json_file)
 
-        # close editor application   エディタアプリ終了
+        # エディタアプリ終了
         if editor_apl:
             if sys.platform.startswith("win"):
                 os.system(f"taskkill /F /T /PID {editor_apl.pid}")
@@ -193,11 +193,9 @@ def stop_editor(parent, button):
         else:
             messagebox.showwarning("Warning", gui_text("msg_editor_warn_server_none"))
 
-        # stop server   サーバ停止
+        # エディタ用サーバ停止
         editor_server.stop()
-        button["state"] = "normal"
-    else:
-        messagebox.showwarning("Warning", gui_text("msg_editor_warn_server_none"))
+        button.configure(text=gui_text("btn_scenario_start"))
 
 
 # Excel→JSON変換処理
@@ -233,13 +231,17 @@ def convert_json_to_excel(json: str, xlsx: str) -> None:
 
 
 # -------- DialBBサーバ関連 -------------------------------------
-# DialBBサーバ起動
+# DialBBサーバ起動/停止
 def exec_dialbb(app_file, button):
     global dialbb_proc
     global dialbb_log_file
 
     if dialbb_proc:
-        messagebox.showwarning("Warning", gui_text("msg_dialbb_warn_server_already"))
+        # DialBBサーバ停止
+        dialbb_proc.stop()
+        dialbb_proc = None
+        # ボタン表示切替
+        button.config(text=gui_text("btn_dialbb_start"))
     else:
         print(f"app_file:{app_file}")
         # サーバ起動
@@ -248,23 +250,11 @@ def exec_dialbb(app_file, button):
         ret = dialbb_proc.start()
         dialbb_log_file = dialbb_proc.get_log_file()
         if ret:
-            button["state"] = "disabled"
+            # ボタン表示切替
+            button.config(text=gui_text("btn_dialbb_stop"))
         else:
             messagebox.showerror("Error", gui_text("msg_dialbb_err_start"))
             dialbb_proc = None
-
-
-# DialBBサーバ停止
-def stop_dialbb(button):
-    global dialbb_proc
-
-    if dialbb_proc:
-        # サーバ停止
-        dialbb_proc.stop()
-        dialbb_proc = None
-        button["state"] = "normal"
-    else:
-        messagebox.showwarning("Warning", gui_text("msg_dialbb_warn_server_none"))
 
 
 # Show log
@@ -395,83 +385,6 @@ def import_application_file(edit_box, settings, file_type_list):
         settings.set_appname(file_name)
 
         messagebox.showinfo("Import", f"{file_name}" + gui_text("msg_info_appload"))
-
-
-# [edit]ボタン：編集するファイルを選択
-def select_edit_file(parent, settings):
-    global APP_FILES
-
-    # 選択画面を表示
-    sub_menu = tk.Toplevel(parent)
-    sub_menu.title(gui_text("edt_list_title"))
-    sub_menu.grab_set()  # モーダルにする
-    sub_menu.focus_set()  # フォーカスを新しいウィンドウをへ移す
-    sub_menu.transient(parent)
-    # サイズ＆表示位置の指定
-    child_position(parent, sub_menu, width=300, height=250)
-
-    # ボタンの作成
-    btn_gui = ttk.Button(
-        sub_menu,
-        text=gui_text("btn_scenario"),
-        width=20,
-        command=lambda: [
-            exec_editor(os.path.join(APP_FILE_DIR, APP_FILES["scenario"]), sub_menu),
-            on_cancel(sub_menu),
-        ],
-    )
-    btn_gui.pack(side=tk.TOP, pady=5)
-
-    btn_nlu = ttk.Button(
-        sub_menu,
-        text=gui_text("btn_lang_knowledge"),
-        width=20,
-        command=lambda: [
-            edit_excel(os.path.join(APP_FILE_DIR, APP_FILES["nlu-knowledge"])),
-            on_cancel(sub_menu),
-        ],
-    )
-    btn_nlu.pack(side=tk.TOP, pady=5)
-
-    btn_ner = ttk.Button(
-        sub_menu,
-        text=gui_text("btn_named_entity"),
-        width=20,
-        command=lambda: [
-            edit_excel(os.path.join(APP_FILE_DIR, APP_FILES["ner-knowledge"])),
-            on_cancel(sub_menu),
-        ],
-    )
-    btn_ner.pack(side=tk.TOP, pady=5)
-
-    btn_conf = ttk.Button(
-        sub_menu,
-        text=gui_text("btn_scenario_func"),
-        width=20,
-        command=lambda: edit_scenario_functions(
-            sub_menu, os.path.join(APP_FILE_DIR, APP_FILES["scenario-functions"])
-        ),
-    )
-    btn_conf.pack(side=tk.TOP, pady=5)
-
-    btn_conf = ttk.Button(
-        sub_menu,
-        text=gui_text("btn_configuration"),
-        width=20,
-        command=lambda: edit_config(
-            sub_menu,
-            os.path.join(APP_FILE_DIR, APP_FILES["config"]),
-            TEMPLATE_DIR,
-            settings,
-        ),
-    )
-    btn_conf.pack(side=tk.TOP, pady=5)
-
-    # Cancelボタン
-    cancel_btn = ttk.Button(
-        sub_menu, text=gui_text("btn_exit"), command=lambda: on_cancel(sub_menu)
-    )
-    cancel_btn.pack(side="right", padx=5, pady=5)
 
 
 # [create]ボタンの処理。templateファイルをコピーする。
@@ -635,6 +548,21 @@ def setting_json(parent, settings):
         sub_menu.destroy()
 
 
+def chat_dialbb(app_file, button):
+    global dialbb_proc
+    global dialbb_log_file
+
+    if dialbb_proc:
+        # チャット画面起動
+        cmd = os.path.join(LIB_DIR, r"tools/chat_interface.py")
+        chat_proc = ProcessManager(cmd, [app_file], dialbb=False)
+        ret = chat_proc.start()
+        if not ret:
+            messagebox.showerror("Error", gui_text("msg_chat_err_start"))
+    else:
+        messagebox.showwarning("Warning", gui_text("msg_chat_warn_server_none"))
+
+
 # create main frame
 # Mainフレームを作成する関数
 def set_main_frame(root_frame):
@@ -666,6 +594,7 @@ def set_main_frame(root_frame):
     )
     edit_frame.grid(row=2, column=0, columnspan=3, sticky="ew")
     application_frame.rowconfigure(2, weight=1)
+
     # edit_scenario button
     edit_scenario_btn = ttk.Button(
         edit_frame,
@@ -677,15 +606,7 @@ def set_main_frame(root_frame):
         ),
     )
     edit_scenario_btn.grid(row=0, column=0, padx=5, pady=5)
-    edit_scenario_stop_btn = ttk.Button(
-        edit_frame,
-        text=gui_text("btn_scenario_stop"),
-        command=lambda: stop_editor(
-            os.path.join(APP_FILE_DIR, APP_FILES["scenario"]),
-            edit_scenario_btn,
-        ),
-    )
-    edit_scenario_stop_btn.grid(row=0, column=1, padx=5, pady=5)
+
     # edit_nlu_knowledge button
     edit_nlu_knowledge_btn = ttk.Button(
         edit_frame,
@@ -694,7 +615,7 @@ def set_main_frame(root_frame):
             os.path.join(APP_FILE_DIR, APP_FILES["nlu-knowledge"])
         ),
     )
-    edit_nlu_knowledge_btn.grid(row=0, column=2, padx=5, pady=5)
+    edit_nlu_knowledge_btn.grid(row=0, column=1, padx=5, pady=5)
     # edit_ner_knowledge button
     edit_ner_knowledge_btn = ttk.Button(
         edit_frame,
@@ -703,7 +624,7 @@ def set_main_frame(root_frame):
             os.path.join(APP_FILE_DIR, APP_FILES["ner-knowledge"])
         ),
     )
-    edit_ner_knowledge_btn.grid(row=0, column=3, padx=5, pady=5)
+    edit_ner_knowledge_btn.grid(row=0, column=2, padx=5, pady=5)
     # edit_scenario_functions button
     edit_scenario_functions_btn = ttk.Button(
         edit_frame,
@@ -713,7 +634,7 @@ def set_main_frame(root_frame):
             os.path.join(APP_FILE_DIR, APP_FILES["scenario-functions"]),
         ),
     )
-    edit_scenario_functions_btn.grid(row=1, column=0, padx=5, pady=5)
+    edit_scenario_functions_btn.grid(row=0, column=3, padx=5, pady=5)
     # edit_config button
     edit_config_btn = ttk.Button(
         edit_frame,
@@ -725,8 +646,8 @@ def set_main_frame(root_frame):
             settings,
         ),
     )
-    edit_config_btn.grid(row=1, column=1, padx=5, pady=5)
-    edit_frame.columnconfigure((0, 1, 2, 3, 4), weight=1)
+    edit_config_btn.grid(row=1, column=0, padx=5, pady=5)
+    edit_frame.columnconfigure((0, 1, 2, 3), weight=1)
     # End of added edit frame buttons
 
     # createボタン:アプリファイルの新規作成
@@ -737,15 +658,6 @@ def set_main_frame(root_frame):
     )
     # create_btn.pack(side=tk.LEFT, padx=10, pady=10)
     create_btn.grid(row=1, column=0, padx=5, pady=10)
-
-    # editボタンの作成:GUIエディタ起動
-    # edit_button = ttk.Button(
-    #     application_frame,
-    #     text=gui_text("btn_edit"),
-    #     command=lambda: select_edit_file(file_frame, settings),
-    # )
-    # # edit_button.pack(side=tk.LEFT, padx=10, pady=10)
-    # edit_button.grid(row=1, column=1, padx=5, pady=10)
 
     # export ボタン:アプリファイルのzip保存
     export_btn = ttk.Button(
@@ -779,22 +691,21 @@ def set_main_frame(root_frame):
     setting_btn.grid(row=0, column=0, padx=5, pady=5)
 
     # startボタン:DialBBサーバ起動
-    start_btn = ttk.Button(
+    dialbb_btn = ttk.Button(
         dialbb_label,
-        text=gui_text("btn_exec"),
+        text=gui_text("btn_dialbb_start"),
         command=lambda: exec_dialbb(
-            os.path.join(APP_FILE_DIR, APP_FILES["config"]), start_btn
+            os.path.join(APP_FILE_DIR, APP_FILES["config"]), dialbb_btn
         ),
     )
     # start_btn.pack(side=tk.LEFT, padx=10)
-    start_btn.grid(row=0, column=1, padx=5, pady=5)
+    dialbb_btn.grid(row=0, column=1, padx=5, pady=5)
 
-    # stopボタン:DialBBサーバ停止
-    stop_btn = ttk.Button(
-        dialbb_label, text=gui_text("btn_stop"), command=lambda: stop_dialbb(start_btn)
+    # chatボタン:チャット開始/停止
+    chat_btn = ttk.Button(
+        dialbb_label, text=gui_text("btn_chat_start"), command=lambda: toggle_chat()
     )
-    # stop_btn.pack(side=tk.LEFT, padx=10)
-    stop_btn.grid(row=0, column=2, padx=5, pady=5)
+    chat_btn.grid(row=0, column=2, padx=5, pady=5)
 
     # show log button
     show_log_btn = ttk.Button(
@@ -810,13 +721,99 @@ def set_main_frame(root_frame):
     application_frame.pack(fill=tk.BOTH, padx=10, pady=20)
     dialbb_label.pack(fill=tk.BOTH, padx=10)
 
+    # ---(2025/10)Added area for chat ---
+    # TextとScrollbarをまとめるフレームを用意
+    chat_frame = ttk.Frame(root_frame)
+    chat_frame.pack(fill=tk.BOTH, padx=10, pady=5, expand=True)
+    # チャット表示TextArea
+    chat_area = tk.Text(
+        chat_frame,
+        height=8,
+        wrap=tk.CHAR,
+        state=tk.NORMAL,
+        bg="white",
+    )
+    chat_area.pack(side=tk.LEFT, fill=tk.BOTH, padx=10, pady=5, expand=True)
+    # スクロールバー
+    scrollbar = ttk.Scrollbar(chat_frame, orient=tk.VERTICAL, command=chat_area.yview)
+    scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+    # TextとScrollbarの連携
+    chat_area.config(yscrollcommand=scrollbar.set)
+
+    # ユーザ入力枠
+    u_input_frame = tk.Frame(root_frame)
+    u_input_frame.pack(pady=(2, 10))
+    u_input_label = tk.Label(u_input_frame, text="ユーザ入力:")
+    u_input_label.pack(side=tk.LEFT)
+    u_input = tk.Entry(u_input_frame, width=60, state=tk.DISABLED)
+    u_input.pack(side=tk.LEFT)
+    # リターンで送信
+    u_input.bind("<Return>", lambda event: send_chat_message(u_input.get()))
+
+    # dialbbメッセージ送信用ユーザIDとセッションID
+    user_id = "test_user"
+    session_id = ""
+
+    # レスポンス表示処理
+    def display_response(resp: Dict[str, str]) -> str:
+        error = resp.get("error_message", "")
+        if error != "":
+            chat_area.insert(tk.END, f"{error}\n")
+        else:
+            output_msg = resp.get("system_utterance", gui_text("msg_chat_no_response"))
+            chat_area.insert(tk.END, f"System: {output_msg}\n")
+        chat_area.see(tk.END)
+
+        return error
+
+    # チャット開始/終了切替処理
+    def toggle_chat():
+        nonlocal session_id
+
+        if u_input["state"] == tk.NORMAL:
+            # チャット終了
+            u_input.config(state=tk.DISABLED)
+            chat_btn.config(text=gui_text("btn_chat_start"))
+            session_id = ""
+        else:
+            chat_area.delete("1.0", tk.END)
+            # 開始リクエスト送信
+            data = set_chat_message(user_id=user_id)
+            resp = request_dialbb("init", data)
+            # システムメッセージ表示
+            if display_response(resp) == "":  # エラー発生時はチャット開始しない
+                # チャット開始
+                u_input.config(state=tk.NORMAL)
+                u_input.focus_set()
+                chat_btn.config(text=gui_text("btn_chat_stop"))
+                session_id = resp.get("session_id", "")
+
+    # ユーザ入力メッセージ送信処理
+    def send_chat_message(message: str):
+        if message.strip() == "":
+            return
+
+        # ユーザメッセージ表示
+        chat_area.insert(tk.END, f"User: {message}\n")
+        chat_area.update_idletasks()
+        chat_area.see(tk.END)
+        # 入力欄クリア
+        u_input.delete(0, tk.END)
+
+        # DialBBサーバにメッセージを送信する
+        # 送信データ設定
+        data = set_chat_message(
+            user_id=user_id, session_id=session_id, user_utterance=message
+        )
+        # リクエスト送信 システムメッセージ表示
+        display_response(request_dialbb("dialogue", data))
+
     # closeボタン
     close_btn = ttk.Button(
         root_frame,
         text=gui_text("btn_exit"),
         command=lambda: close_dialbb_nc(root_frame),
     )
-    # close_btn.pack(side=tk.BOTTOM, anchor=tk.NE, padx=10, pady=10)
     close_btn.pack(side=tk.BOTTOM, anchor=tk.E, padx=10, pady=5)
 
 
@@ -838,7 +835,7 @@ def main():
     # Rootウジェットの生成
     root = tk.Tk()
     if os.name == "nt":
-        root.minsize(600, 440)  # 最小サイズを設定
+        root.minsize(600, 540)  # 最小サイズを設定
     else:
         root.tk.call("tk", "scaling", 1.2)  # スケーリングを1.0に設定
         root.minsize(600, 400)  # 最小サイズを設定
@@ -851,7 +848,7 @@ def main():
     # root.iconphoto(True, tk.PhotoImage(file=photo))
 
     # ウィンドウサイズと表示位置を指定
-    central_position(root, width=500, height=280)
+    # central_position(root, width=500, height=280)
 
     # GUIの画面構築
     set_main_frame(root)
