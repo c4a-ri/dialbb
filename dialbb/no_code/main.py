@@ -30,6 +30,7 @@ from tkinter import filedialog
 import subprocess
 import shutil
 import zipfile
+from typing import Dict, Optional, Any
 from dialbb.no_code.tools.knowledgeConverter2json import convert2json
 from dialbb.no_code.tools.knowledgeConverter2excel import convert2excel
 from dialbb.no_code.config_editor import edit_config
@@ -42,10 +43,9 @@ from dialbb.no_code.gui_utils import (
     child_position,
     read_gui_text_data,
     gui_text,
-    set_chat_message,
-    request_dialbb,
 )
-from typing import Dict, Optional
+from dialbb.main import DialogueProcessor
+
 
 # paths  実行環境パス
 SCRIPT_ROOT: str = os.path.dirname(os.path.abspath(__file__))
@@ -98,6 +98,9 @@ editor_apl: Optional[subprocess.Popen] = None
 # dialbb process information  DialBBサーバのプロセス情報
 dialbb_proc: Optional[ProcessManager] = None
 dialbb_log_file: str = ""
+
+# dialogue processor instance ダイアログプロセッサインスタンス
+dialogue_processor: Optional[DialogueProcessor] = None
 
 # application file timestamp アプリファイルのタイムスタンプ
 app_file_timestamp: float = FileTimestamp(APP_FILE_DIR, APP_FILES.values())
@@ -701,9 +704,9 @@ def set_main_frame(root_frame):
     # start_btn.pack(side=tk.LEFT, padx=10)
     dialbb_btn.grid(row=0, column=1, padx=5, pady=5)
 
-    # chatボタン:チャット開始/停止
+    # chatボタン:チャット開始
     chat_btn = ttk.Button(
-        dialbb_label, text=gui_text("btn_chat_start"), command=lambda: toggle_chat()
+        dialbb_label, text=gui_text("btn_chat_start"), command=lambda: start_chat()
     )
     chat_btn.grid(row=0, column=2, padx=5, pady=5)
 
@@ -754,59 +757,75 @@ def set_main_frame(root_frame):
     user_id = "test_user"
     session_id = ""
 
+    # リクエストデータ作成
+    def set_chat_message(
+        user_id: str = "", session_id: str = "", user_utterance: str = ""
+    ) -> Dict[str, Any]:
+        data = {
+            "user_id": user_id,
+            "session_id": session_id,
+            "user_utterance": user_utterance,
+            "aux_data": {},
+        }
+
+        return data
+
     # レスポンス表示処理
     def display_response(resp: Dict[str, str]) -> str:
-        error = resp.get("error_message", "")
-        if error != "":
-            chat_area.insert(tk.END, f"{error}\n")
+        session_id = resp.get("session_id", "")
+        if session_id == "":
+            chat_area.insert(tk.END, f"{gui_text('msg_chat_no_sessionid')}\n")
         else:
             output_msg = resp.get("system_utterance", gui_text("msg_chat_no_response"))
             chat_area.insert(tk.END, f"System: {output_msg}\n")
         chat_area.see(tk.END)
 
-        return error
+        return session_id
 
-    # チャット開始/終了切替処理
-    def toggle_chat():
+    # チャット開始処理
+    def start_chat():
+        global dialogue_processor
         nonlocal session_id
 
-        if u_input["state"] == tk.NORMAL:
-            # チャット終了
-            u_input.config(state=tk.DISABLED)
-            chat_btn.config(text=gui_text("btn_chat_start"))
-            session_id = ""
-        else:
-            chat_area.delete("1.0", tk.END)
-            # 開始リクエスト送信
-            data = set_chat_message(user_id=user_id)
-            resp = request_dialbb("init", data)
-            # システムメッセージ表示
-            if display_response(resp) == "":  # エラー発生時はチャット開始しない
-                # チャット開始
-                u_input.config(state=tk.NORMAL)
-                u_input.focus_set()
-                chat_btn.config(text=gui_text("btn_chat_stop"))
-                session_id = resp.get("session_id", "")
+        chat_area.delete("1.0", tk.END)
+        if u_input["state"] != tk.NORMAL:
+            u_input.config(state=tk.NORMAL)
+            u_input.focus_set()
+
+        # dialbbをインスタンス化
+        config = os.path.join(APP_FILE_DIR, APP_FILES["config"])
+        dialogue_processor = DialogueProcessor(config)
+
+        # 開始リクエスト送信
+        request_json = {"user_id": user_id}
+        resp = dialogue_processor.process(request_json, initial=True)
+        # システムメッセージ表示
+        session_id = display_response(resp)
 
     # ユーザ入力メッセージ送信処理
     def send_chat_message(message: str):
-        if message.strip() == "":
+        nonlocal session_id
+
+        if message.strip() == "" or not dialogue_processor:
             return
+
+        # 入力欄クリア
+        u_input.delete(0, tk.END)
 
         # ユーザメッセージ表示
         chat_area.insert(tk.END, f"User: {message}\n")
         chat_area.update_idletasks()
         chat_area.see(tk.END)
-        # 入力欄クリア
-        u_input.delete(0, tk.END)
 
         # DialBBサーバにメッセージを送信する
         # 送信データ設定
-        data = set_chat_message(
+        req = set_chat_message(
             user_id=user_id, session_id=session_id, user_utterance=message
         )
-        # リクエスト送信 システムメッセージ表示
-        display_response(request_dialbb("dialogue", data))
+        # リクエスト送信
+        resp = dialogue_processor.process(req)
+        # システムメッセージ表示
+        session_id = display_response(resp)
 
     # closeボタン
     close_btn = ttk.Button(

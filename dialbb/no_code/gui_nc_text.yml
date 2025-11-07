@@ -41,10 +41,6 @@ btn_chat_start:
   ja: "対話開始"
   en: "Start dialogue"
 
-btn_chat_stop:
-  ja: "対話終了"
-  en: "Stop dialogue"
-
 btn_exit:
   ja: "終了"
   en: "Exit"
@@ -214,6 +210,10 @@ msg_warn_error_node_exists:
 msg_chat_no_response:
   ja: "システム発話がありません。"
   en: "No system utterances."
+
+msg_chat_no_session:
+  ja: "セッションが開始されていません。"
+  en: "No session started."
 
 
 # ----- ダイアログ関連 -----
