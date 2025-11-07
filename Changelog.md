@@ -1,28 +1,30 @@
 # Changelog
 
+## 1.1.0 (2025.11.6)
+
+- The no-code tool improved
+
+- Embedded block for ChatGPT Dialogue:
+
+  - The `dialogue_history` placeholder removed 
+
+- STN Manager Built-in Block:
+
+  - `_generate_with_prompt_template()` and `_check_with_prompt_template()` along with their syntactic sugar implemented 
+
+    - In addition to the syntax sugar `$"..."`, `$...$` can now also be used
+
+  - Introduced the `chatgpt/temperature_for_checking` parameter
+
+- Simulation-based tester introduced
+
+- Normalization of scenario strings
+
 ## 1.0.4 (2025.7.31)
 
 - Bugs in ChatGPT NER builtin block added fixed
 
-## 1.1.0 (2025.x.x)
 
-- ChatGPT Dialogue組み込みブロック
-
-  - dialogue_historyプレイスホルダを廃止
-
-- STN Manager Builtin Block
-
-  - `_generate_with_prompt_template()`、 `_check_with_prompt_template()`とそのシンタクスシュガーの実装 
-	- シンタクスシュガー `$"..."`の代わりに`$...$`も使えるように
-  - `chatgpt/temperature_for_checking`パラメータの導入
-
-
-- シミュレーションベーステスタを導入
-
-
-- シナリオの文字列の正規化
-
-	
 ## 1.0.3 (2025.4.27)
 
 - STN Manager Builtin Block
@@ -36,7 +38,7 @@
 ## 1.0.1 (2025.3.19)
 
 - uninstall batch file added
-	
+
 ## 1.0.0 (2025.3.17)
 
 - Installation via pip enabled
