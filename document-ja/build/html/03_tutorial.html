@@ -208,8 +208,6 @@
 <span class="w">      </span><span class="nt">system_utterance</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">system_utterance</span>
 <span class="w">      </span><span class="nt">aux_data</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aux_data</span>
 <span class="w">      </span><span class="nt">final</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">final</span>
-<span class="w">    </span><span class="nt">user_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ユーザ</span>
-<span class="w">    </span><span class="nt">system_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">システム</span>
 <span class="w">    </span><span class="nt">first_system_utterance</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;こんにちは．私の名前は由衣です．少しお話させてください．スイーツって好きですか？&quot;</span>
 <span class="w">    </span><span class="nt">prompt_template</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prompt_template_ja.txt</span>
 <span class="w">    </span><span class="nt">gpt_model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpt-4o-mini</span>
@@ -249,20 +247,9 @@
 - スイーツが好きかどうか聞く
 - ユーザがスイーツが好きな場合，どんなスイーツが好きか聞く
 - ユーザがスイーツが好きでない場合，なんで好きじゃないのか聞く
-
-# 現在までの対話
-
-@dialogue_history
 </pre></div>
 </div>
-<p>最後の<code class="docutils literal notranslate"><span class="pre">&#64;dialogue_history</span></code>のところに，それまでの対話の履歴が以下のような形式で挿入されます．</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>システム：こんにちは．私の名前は由衣です．少しお話させてください．スイーツって好きですか？
-ユーザ：まあまあ好きです
-システム：そうなんですね！私も大好きです．どんなスイーツが好きですか？
-ユーザ：どっちかというと和菓子が好きなんですよね
-</pre></div>
-</div>
-<p>ここで，「システム」「ユーザ」はコンフィギュレーションの<code class="docutils literal notranslate"><span class="pre">user_name</span></code>, <code class="docutils literal notranslate"><span class="pre">system_name</span></code>で指定したものが使われます．</p>
+<p>このプロンプトテンプレートと対話の履歴を用いて次のシステム発話を生成します。</p>
 </section>
 <section id="app-development-with-chatgpt-app">
 <span id="id7"></span><h3><span class="section-number">3.3.2. </span>ChatGPTアプリケーションを利用したアプリケーション作成<a class="headerlink" href="#app-development-with-chatgpt-app" title="この見出しへのパーマリンク"></a></h3>
@@ -760,8 +747,29 @@
 </section>
 <section id="id34">
 <h4><span class="section-number">3.5.5.4. </span>ChatGPTを用いた発話生成・条件判定<a class="headerlink" href="#id34" title="この見出しへのパーマリンク"></a></h4>
-<p>システム発話中にある，<code class="docutils literal notranslate"><span class="pre">$&quot;それまでの会話につづけて，対話を終わらせる発話を50文字以内で生成してください．&quot;</span></code>は，組み込み関数呼び出し<code class="docutils literal notranslate"><span class="pre">_check_with_llm(&quot;それまでの会話につづけて，対話を終わらせる発話を50文字以内で生成してください．&quot;}</span></code>のシンタクスシュガーで，ChatGPTを用いて発話を生成します．</p>
-<p>また，conditions欄にある<code class="docutils literal notranslate"><span class="pre">$&quot;ユーザが理由を言ったかどうか判断してください．&quot;</span></code>は，組み込み関数呼び出し<code class="docutils literal notranslate"><span class="pre">_check_with_llm(&quot;ユーザが理由を言ったかどうか判断してください．&quot;)</span></code>のシンタクスシュガーで，これまでの対話からChatGPTを用いて判定を行い，bool値で返します．</p>
+<p>システム発話中にある，<code class="docutils literal notranslate"><span class="pre">$ユーザ発話に対する感想を言って対話を終わらせる短い発話を生成してください．$&quot;</span></code>は，組み込み関数呼び出し<code class="docutils literal notranslate"><span class="pre">{_generate_with_llm(&quot;それまでの会話につづけて，対話を終わらせる発話を50文字以内で生成してください．&quot;}</span></code>のシンタクスシュガーで，ChatGPTを用いて発話を生成します．</p>
+<p>また，conditions欄にある<code class="docutils literal notranslate"><span class="pre">$ユーザが理由を言ったかどうか判断してください．$</span></code>は，組み込み関数呼び出し<code class="docutils literal notranslate"><span class="pre">_check_with_llm(&quot;ユーザが理由を言ったかどうか判断してください．&quot;)</span></code>のシンタクスシュガーで，これまでの対話からChatGPTを用いて判定を行い，bool値で返します．</p>
+<p>また，システム発話中にある以下の，<code class="docutils literal notranslate"><span class="pre">$$$...$$$</span></code>の囲まれた部分は，組み込み関数呼び出し<code class="docutils literal notranslate"><span class="pre">{_generate_with_prompt_template(...)}のシンタクスシュガーで，囲まれた部分をプロンプトテンプレートとし，</span></code>{..}`のプレースホルダを置き換えた上でChatGPTに発話生成をさせます．</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$$$
+
+# 状況
+
+{situation}
+
+# あなたのペルソナ
+
+{persona}
+
+# 現在までの対話
+
+{dialogue_history}
+
+# タスク
+
+それまでの会話につづけて，対話を終わらせる発話を50文字以内で生成してください．
+$$$
+</pre></div>
+</div>
 <p>発話を生成する際のChatGPTのモデルや温度パラメータ，状況設定，ペルソナはブロックコンフィギュレーションで以下のように指定されています．</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">chatgpt</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">gpt_model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpt-4o-mini</span>

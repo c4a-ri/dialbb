@@ -54,10 +54,15 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#dialbbpip">6.2. DialBBをpipでインストールせずに利用する方法</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id4">6.3. 廃止された機能</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#snips-understander">6.3.1. Snips Understander組み込みブロック</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#whitespace-tokenizersudachi-tokenizer">6.3.2. Whitespace Tokenizer組み込みブロックおよびSudachi Tokenizer組み込みブロック</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#snips-stn">6.3.3. Snips+STNサンプルアプリケーション</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id4">6.3. ユーザシミュレータを用いたテスタ</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id5">6.3.1. サンプルの動かし方</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id6">6.3.2. 仕様</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id7">6.4. 廃止された機能</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#snips-understander">6.4.1. Snips Understander組み込みブロック</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#whitespace-tokenizersudachi-tokenizer">6.4.2. Whitespace Tokenizer組み込みブロックおよびSudachi Tokenizer組み込みブロック</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#snips-stn">6.4.3. Snips+STNサンプルアプリケーション</a></li>
 </ul>
 </li>
 </ul>
@@ -133,17 +138,87 @@
 <p><code class="docutils literal notranslate"><span class="pre">port</span></code>（ポート番号）のデフォルトは8080です．</p>
 </section>
 <section id="id4">
-<h2><span class="section-number">6.3. </span>廃止された機能<a class="headerlink" href="#id4" title="この見出しへのパーマリンク"></a></h2>
+<h2><span class="section-number">6.3. </span>ユーザシミュレータを用いたテスタ<a class="headerlink" href="#id4" title="この見出しへのパーマリンク"></a></h2>
+<p>LLM (ChatGPT) を用いたユーザシミュレータを用いたテスタが付属しています。</p>
+<section id="id5">
+<h3><span class="section-number">6.3.1. </span>サンプルの動かし方<a class="headerlink" href="#id5" title="この見出しへのパーマリンク"></a></h3>
+<p>以下bashの例で説明します．Windows コマンドプロンプトの場合は適宜読み替えてください。</p>
+<ul>
+<li><p>DialBBをインストールし、サンプルアプリケーションをダウンロードして展開します．</p></li>
+<li><p>環境変数<code class="docutils literal notranslate"><span class="pre">OPENAI_API_KEY</span></code>にOpenAI APIのキーを設定します．</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">OPENAI_KEY</span><span class="o">=</span>&lt;OPENAIのAPIキー&gt;
+</pre></div>
+</div>
+</li>
+<li><p>サンプルアプリケーションを展開したディレクトリ（<code class="docutils literal notranslate"><span class="pre">sample_apps</span></code>）で以下のコマンドを実行します．</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>dialbb-sim-tester<span class="w"> </span>--app_config<span class="w"> </span>lab_app_ja/config.yml<span class="w"> </span>--test_config<span class="w"> </span>lab_app_ja/simulation/config.yml<span class="w"> </span>--output<span class="w"> </span>_output.txt
+</pre></div>
+</div>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">_output.txt</span></code>に結果が記述されます．</p></li>
+<li><p>プログラムの中でテスタを起動するには以下のようにします</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">dialbb.sim_tester.main</span> <span class="kn">import</span> <span class="n">test_by_simulation</span>
+
+<span class="n">test_by_simulation</span><span class="p">(</span><span class="s2">&quot;lab_app_ja/config.yml&quot;</span><span class="p">,</span> 
+                   <span class="s2">&quot;lab_app_ja/simulation/config.yml&quot;</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s2">&quot;_output.txt&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</section>
+<section id="id6">
+<h3><span class="section-number">6.3.2. </span>仕様<a class="headerlink" href="#id6" title="この見出しへのパーマリンク"></a></h3>
+<ul>
+<li><p>起動オプション</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>dialbb-sim-tester<span class="w"> </span>--app_config<span class="w"> </span>&lt;DialBBアプリケーションのコンフィギュレーションファイル&gt;<span class="w"> </span>--test_config<span class="w"> </span>&lt;テストコンフィギュレーションファイル&gt;<span class="w"> </span>--output<span class="w"> </span>&lt;出力ファイル&gt;
+</pre></div>
+</div>
+</li>
+<li><p>テストコンフィギュレーションファイル</p>
+<p>以下のキーをもつYAML</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">model</span></code>: （文字列．必須）OpenAIのGPTモデル名．<code class="docutils literal notranslate"><span class="pre">gpt-4o</span></code>，<code class="docutils literal notranslate"><span class="pre">gpt-4o-mini</span></code>など．<code class="docutils literal notranslate"><span class="pre">gpt-5</span></code>は不可．</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">user_name</span></code>: （文字列．任意）プロンプト内の対話履歴でユーザを指す文字列．デフォルト値 &quot;User&quot;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">system_name</span></code>: （文字列．任意）プロンプト内の対話履歴でシステムを指す文字列．デフォルト値 &quot;System&quot;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">settings</span></code>（オブジェクトのリスト．必須）設定のリスト．以下の要素を持つことができる</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">prompt_templates</span></code>: （文字列のリスト．必須）プロンプトテンプレートを記述したテキストファイルのパスのリスト．ファイルパスはコンフィギュレーションファイルからの相対パス．</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">initial_aux_data</span></code>（文字列．任意）対話の最初にDialBBアプリケーションにアクセスする際に，<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>に入れる内容を書いたJSONファイルのパス．パスはコンフィギュレーションファイルからの相対パス．</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">temperatures</span></code>: （浮動小数点数のリスト．任意）GPTの温度パラメータのリスト．デフォルト値は0.7の一要素のみのリスト．<code class="docutils literal notranslate"><span class="pre">prompt_templates</span></code>のリストの長さ×このリストの長さのセッションが行われます．</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_turns</span></code>: (整数．任意）セッションあたりの最大ターン数．デフォルト値15．</p></li>
+</ul>
+</li>
+<li><p>関数仕様</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">dialbb.sim_test.main.test_by_simulation(test_config_file:</span> <span class="pre">str,</span> <span class="pre">app_config_file:</span> <span class="pre">str,</span> <span class="pre">output_file:</span> <span class="pre">str=None,</span> <span class="pre">json_output:</span> <span class="pre">bool=False,</span> <span class="pre">prompt_params:</span> <span class="pre">Dict[str,</span> <span class="pre">str])</span></code></p>
+<p>パラメータ</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">test_config_file</span></code>: テストコンフィギュレーション</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">app_config_file</span></code>: DialBBアプリケーションファイル</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">output_file</span></code>: 対話ログ出力ファイル</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">json_output</span></code>: 出力ファイルのフォーマットがJSONかどうか。Falseならテキストファイル。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">prompt_params</span></code>: プロンプトに埋め込む情報を辞書型で記述したもの。プロンプトテンプレートに<code class="docutils literal notranslate"><span class="pre">{&lt;key&gt;}</span></code>があれば、<code class="docutils literal notranslate"><span class="pre">&lt;value&gt;</span></code>で置き換えられる。</p></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</section>
+</section>
+<section id="id7">
+<h2><span class="section-number">6.4. </span>廃止された機能<a class="headerlink" href="#id7" title="この見出しへのパーマリンク"></a></h2>
 <section id="snips-understander">
-<h3><span class="section-number">6.3.1. </span>Snips Understander組み込みブロック<a class="headerlink" href="#snips-understander" title="この見出しへのパーマリンク"></a></h3>
+<h3><span class="section-number">6.4.1. </span>Snips Understander組み込みブロック<a class="headerlink" href="#snips-understander" title="この見出しへのパーマリンク"></a></h3>
 <p>SnipsがPython3.9以上ではインストールが困難なため，ver. 0.9で廃止されました．代わりにLR-CRF Understander組み込みブロックを用いてください．</p>
 </section>
 <section id="whitespace-tokenizersudachi-tokenizer">
-<h3><span class="section-number">6.3.2. </span>Whitespace Tokenizer組み込みブロックおよびSudachi Tokenizer組み込みブロック<a class="headerlink" href="#whitespace-tokenizersudachi-tokenizer" title="この見出しへのパーマリンク"></a></h3>
+<h3><span class="section-number">6.4.2. </span>Whitespace Tokenizer組み込みブロックおよびSudachi Tokenizer組み込みブロック<a class="headerlink" href="#whitespace-tokenizersudachi-tokenizer" title="この見出しへのパーマリンク"></a></h3>
 <p>ver. 0.9で廃止されました．LR-CRF UnderstanderやChatGPT Understanderを使えばTokenizerブロックを使う必要はありません．</p>
 </section>
 <section id="snips-stn">
-<h3><span class="section-number">6.3.3. </span>Snips+STNサンプルアプリケーション<a class="headerlink" href="#snips-stn" title="この見出しへのパーマリンク"></a></h3>
+<h3><span class="section-number">6.4.3. </span>Snips+STNサンプルアプリケーション<a class="headerlink" href="#snips-stn" title="この見出しへのパーマリンク"></a></h3>
 <p>ver. 0.9で廃止されました．</p>
 </section>
 </section>

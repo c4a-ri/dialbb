@@ -207,8 +207,6 @@
 <span class="w">      </span><span class="nt">system_utterance</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">system_utterance</span>
 <span class="w">      </span><span class="nt">aux_data</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aux_data</span>
 <span class="w">      </span><span class="nt">final</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">final</span>
-<span class="w">    </span><span class="nt">user_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">User</span>
-<span class="w">    </span><span class="nt">system_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">System</span>
 <span class="w">    </span><span class="nt">first_system_utterance</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Hello!</span><span class="nv"> </span><span class="s">Let&#39;s</span><span class="nv"> </span><span class="s">talk</span><span class="nv"> </span><span class="s">about</span><span class="nv"> </span><span class="s">food.</span><span class="nv"> </span><span class="s">What</span><span class="nv"> </span><span class="s">kind</span><span class="nv"> </span><span class="s">of</span><span class="nv"> </span><span class="s">cuisine</span><span class="nv"> </span><span class="s">do</span><span class="nv"> </span><span class="s">you</span><span class="nv"> </span><span class="s">like?&quot;</span>
 <span class="w">    </span><span class="nt">prompt_template</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prompt_template_en.txt</span>
 <span class="w">    </span><span class="nt">gpt_model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpt-4o-mini</span>
@@ -244,20 +242,9 @@
 <span class="k">-</span><span class="w"> </span>Ask the user if se/he likes Italian food
 <span class="k">-</span><span class="w"> </span>If the user likes Italian, ask the user which kind of Italian food she/he likes
 <span class="k">-</span><span class="w"> </span>If the user doesn&#39;t like Italian, ask her/him why.
-
-<span class="gh"># Dialogue up to now</span>
-
-<span class="ni">@dialogue_history</span>
 </pre></div>
 </div>
-<p>The dialogue history up to that point is inserted at the end of <code class="docutils literal notranslate"><span class="pre">&#64;dialogue_history</span></code> in the following format.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>System: Hello! Let&#39;s talk about food. What kind of cuisine do you like?
-User: I like Italian food.
-System: That&#39;s awesome! Italian food is so delicious. What&#39;s your favorite dish? Pasta, pizza, or maybe something else?
-User: I like pasta.
-</pre></div>
-</div>
-<p>Here, “System” and “User” use the names specified in the configuration as <code class="docutils literal notranslate"><span class="pre">user_name</span></code> and <code class="docutils literal notranslate"><span class="pre">system_name</span></code>.</p>
+<p>Using this prompt template and the conversation history, the next system utterance will be generated.</p>
 </section>
 <section id="creating-an-application-using-the-chatgpt-application">
 <span id="app-development-with-chatgpt-app"></span><h3><span class="section-number">3.3.2. </span>Creating an Application Using the ChatGPT Application<a class="headerlink" href="#creating-an-application-using-the-chatgpt-application" title="Permalink to this heading"></a></h3>
@@ -589,7 +576,7 @@ Start the application with the following command:</p>
 <p>Modify this file to update the scenario.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">scenario_functions.py</span></code></p>
-<p>Define the functions (conditional functions and action functions) that are added to the scenario in this file (see <code class="xref std std-numref docutils literal notranslate"><span class="pre">custom_functions</span></code>).</p>
+<p>Define the functions (conditional functions and action functions) that are added to the scenario in this file (see <a class="reference internal" href="05_builtin_blocks.html#custom-functions"><span class="std std-numref">Section 5.4.6.4</span></a>).</p>
 <p>In each function definition, include an additional argument representing context information, typically defined as <code class="docutils literal notranslate"><span class="pre">context:</span> <span class="pre">Dict[str,</span> <span class="pre">Any]</span></code>. Context information encompasses both pre-registered data and data added during interaction by action functions. For further details, refer to <a class="reference internal" href="05_builtin_blocks.html#context-information"><span class="std std-numref">Section 5.4.4.1</span></a>.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">config.yml</span></code></p>
@@ -757,7 +744,7 @@ Start the application with the following command:</p>
 </section>
 <section id="utterance-generation-and-condition-evaluation-using-chatgpt">
 <h4><span class="section-number">3.5.5.4. </span>Utterance Generation and Condition Evaluation Using ChatGPT<a class="headerlink" href="#utterance-generation-and-condition-evaluation-using-chatgpt" title="Permalink to this heading"></a></h4>
-<p>In a system utterance, the notation <code class="docutils literal notranslate"><span class="pre">$&quot;Generate</span> <span class="pre">a</span> <span class="pre">sentence</span> <span class="pre">to</span> <span class="pre">say</span> <span class="pre">it's</span> <span class="pre">time</span> <span class="pre">to</span> <span class="pre">end</span> <span class="pre">the</span> <span class="pre">talk</span> <span class="pre">by</span> <span class="pre">continuing</span> <span class="pre">the</span> <span class="pre">conversation</span> <span class="pre">in</span> <span class="pre">50</span> <span class="pre">words&quot;</span></code> is syntax sugar for the built-in function call <code class="docutils literal notranslate"><span class="pre">_check_with_llm(&quot;Generate</span> <span class="pre">a</span> <span class="pre">sentence</span> <span class="pre">to</span> <span class="pre">say</span> <span class="pre">it's</span> <span class="pre">time</span> <span class="pre">to</span> <span class="pre">end</span> <span class="pre">the</span> <span class="pre">talk</span> <span class="pre">by</span> <span class="pre">continuing</span> <span class="pre">the</span> <span class="pre">conversation</span> <span class="pre">in</span> <span class="pre">50</span> <span class="pre">words&quot;)</span></code>, which uses ChatGPT to generate an utterance.</p>
+<p>In a system utterance, the notation <code class="docutils literal notranslate"><span class="pre">$&quot;Generate</span> <span class="pre">a</span> <span class="pre">sentence</span> <span class="pre">to</span> <span class="pre">say</span> <span class="pre">it's</span> <span class="pre">time</span> <span class="pre">to</span> <span class="pre">end</span> <span class="pre">the</span> <span class="pre">talk</span> <span class="pre">by</span> <span class="pre">continuing</span> <span class="pre">the</span> <span class="pre">conversation</span> <span class="pre">in</span> <span class="pre">50</span> <span class="pre">words&quot;</span></code> is syntax sugar for the built-in function call <code class="docutils literal notranslate"><span class="pre">_generate_with_llm(&quot;Generate</span> <span class="pre">a</span> <span class="pre">sentence</span> <span class="pre">to</span> <span class="pre">say</span> <span class="pre">it's</span> <span class="pre">time</span> <span class="pre">to</span> <span class="pre">end</span> <span class="pre">the</span> <span class="pre">talk</span> <span class="pre">by</span> <span class="pre">continuing</span> <span class="pre">the</span> <span class="pre">conversation</span> <span class="pre">in</span> <span class="pre">50</span> <span class="pre">words&quot;)</span></code>, which uses ChatGPT to generate an utterance.</p>
 <p>Similarly, in the <code class="docutils literal notranslate"><span class="pre">conditions</span></code> section, the notation <code class="docutils literal notranslate"><span class="pre">$&quot;Please</span> <span class="pre">determine</span> <span class="pre">if</span> <span class="pre">the</span> <span class="pre">user</span> <span class="pre">said</span> <span class="pre">the</span> <span class="pre">reason&quot;</span></code> is syntax sugar for the built-in function call <code class="docutils literal notranslate"><span class="pre">_check_with_llm(&quot;Please</span> <span class="pre">determine</span> <span class="pre">if</span> <span class="pre">the</span> <span class="pre">user</span> <span class="pre">said</span> <span class="pre">the</span> <span class="pre">reason&quot;)</span></code>. This uses ChatGPT to evaluate the conversation history and returns a Boolean value indicating whether the user provided a reason.</p>
 <p>The specific ChatGPT model, temperature parameter, context setting, and persona for utterance generation are specified in the block configuration as follows:</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">chatgpt</span><span class="p">:</span>

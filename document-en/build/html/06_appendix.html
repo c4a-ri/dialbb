@@ -57,10 +57,15 @@
 <li class="toctree-l3"><a class="reference internal" href="#using-the-web-api">6.2.2. Using the Web API</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#discontinued-features">6.3. Discontinued Features</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#snips-understander-built-in-block">6.3.1. Snips Understander Built-in Block</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#whitespace-tokenizer-and-sudachi-tokenizer-built-in-blocks">6.3.2. Whitespace Tokenizer and Sudachi Tokenizer Built-in Blocks</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#snips-stn-sample-application">6.3.3. Snips+STN Sample Application</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#tester-using-a-user-simulator">6.3. Tester Using a User Simulator</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#how-to-run-the-sample">6.3.1. How to Run the Sample</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#specifications">6.3.2. Specifications</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#discontinued-features">6.4. Discontinued Features</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#snips-understander-built-in-block">6.4.1. Snips Understander Built-in Block</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#whitespace-tokenizer-and-sudachi-tokenizer-built-in-blocks">6.4.2. Whitespace Tokenizer and Sudachi Tokenizer Built-in Blocks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#snips-stn-sample-application">6.4.3. Snips+STN Sample Application</a></li>
 </ul>
 </li>
 </ul>
@@ -143,18 +148,88 @@
 <p>The default <code class="docutils literal notranslate"><span class="pre">port</span></code> (port number) is 8080.</p>
 </section>
 </section>
+<section id="tester-using-a-user-simulator">
+<h2><span class="section-number">6.3. </span>Tester Using a User Simulator<a class="headerlink" href="#tester-using-a-user-simulator" title="Permalink to this heading"></a></h2>
+<p>A tester using a user simulator that uses an LLM (ChatGPT) is included.</p>
+<section id="how-to-run-the-sample">
+<h3><span class="section-number">6.3.1. </span>How to Run the Sample<a class="headerlink" href="#how-to-run-the-sample" title="Permalink to this heading"></a></h3>
+<p>The following explains how to run it using Bash. If you are using Windows Command Prompt, please adjust accordingly.</p>
+<ul>
+<li><p>Install DialBB and download and extract the sample application.</p></li>
+<li><p>Set the OpenAI API key to the environment variable  <code class="docutils literal notranslate"><span class="pre">OPENAI_API_KEY</span></code>.</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">OPENAI_KEY</span><span class="o">=</span>&lt;Your<span class="w"> </span>OpenAI<span class="w"> </span>API<span class="w"> </span>Key&gt;
+</pre></div>
+</div>
+</li>
+<li><p>In the directory where the sample application is extracted (<code class="docutils literal notranslate"><span class="pre">sample_apps</span></code>), run the following command:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>dialbb-sim-tester<span class="w"> </span>--app_config<span class="w"> </span>lab_app_en/config.yml<span class="w"> </span>--test_config<span class="w"> </span>lab_app_en/simulation/config.yml<span class="w"> </span>--output<span class="w"> </span>_output.txt
+</pre></div>
+</div>
+</li>
+<li><p>The result will be written to <code class="docutils literal notranslate"><span class="pre">_output.txt</span></code>.</p></li>
+<li><p>To launch the tester from within a program, use the following code:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">dialbb.sim_tester.main</span> <span class="kn">import</span> <span class="n">test_by_simulation</span>
+
+<span class="n">test_by_simulation</span><span class="p">(</span><span class="s2">&quot;lab_app_en/config.yml&quot;</span><span class="p">,</span> 
+                   <span class="s2">&quot;lab_app_en/simulation/config.yml&quot;</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s2">&quot;_output.txt&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</section>
+<section id="specifications">
+<h3><span class="section-number">6.3.2. </span>Specifications<a class="headerlink" href="#specifications" title="Permalink to this heading"></a></h3>
+<ul>
+<li><p>Startup options</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>dialbb-sim-tester<span class="w"> </span>--app_config<span class="w"> </span>&lt;DialBB<span class="w"> </span>application<span class="w"> </span>config<span class="w"> </span>file&gt;<span class="w"> </span>--test_config<span class="w"> </span>&lt;<span class="nb">test</span><span class="w"> </span>config<span class="w"> </span>file&gt;<span class="w"> </span>--output<span class="w"> </span>&lt;output<span class="w"> </span>file&gt;
+</pre></div>
+</div>
+</li>
+<li><p>Test configuration file</p>
+<p>A YAML file containing the following keys:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">model</span></code>: (string, required) Name of the OpenAI GPT model, such as <code class="docutils literal notranslate"><span class="pre">gpt-4o</span></code> and <code class="docutils literal notranslate"><span class="pre">gpt-4o-mini</span></code>. <code class="docutils literal notranslate"><span class="pre">gpt-5</span></code> cannot be used.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">user_name</span></code>: (string, optional) The name representing the user in the dialogue history. Default is <code class="docutils literal notranslate"><span class="pre">&quot;User&quot;</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">system_name</span></code>: (string, optional) The name representing the system in the dialogue history. Default is <code class="docutils literal notranslate"><span class="pre">&quot;System&quot;</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">settings</span></code>: (list of objects, required) A list of settings. Each can contain the following:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">prompt_templates</span></code>: (list of strings, required) Paths to text files containing prompt templates. The paths are relative to the configuration file.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">initial_aux_data</span></code>: (string, optional) Path to a JSON file containing content to be included in <code class="docutils literal notranslate"><span class="pre">aux_data</span></code> at the beginning of the dialogue when accessing the DialBB application. Path is relative to the configuration file.</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">temperatures</span></code>: (list of floats, optional) A list of temperature parameters for GPT. Default is a single-element list <code class="docutils literal notranslate"><span class="pre">[0.7]</span></code>. Sessions will be conducted for all combinations of the length of <code class="docutils literal notranslate"><span class="pre">prompt_templates</span></code> × this list.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_turns</span></code>: (integer, optional) Maximum number of turns per session. Default is <code class="docutils literal notranslate"><span class="pre">15</span></code>.</p></li>
+</ul>
+</li>
+<li><p>Function Specification</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">dialbb.sim_test.main.test_by_simulation(test_config_file:</span> <span class="pre">str,</span> <span class="pre">app_config_file:</span> <span class="pre">str,</span> <span class="pre">output_file:</span> <span class="pre">str=None,</span> <span class="pre">json_output:</span> <span class="pre">bool=False,</span> <span class="pre">prompt_params:</span> <span class="pre">Dict[str,</span> <span class="pre">str])</span></code></p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">test_config_file</span></code>: Path to the test configuration file.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">app_config_file</span></code>: Path to the DialBB application configuration file.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">output_file</span></code>: File to write the dialogue logs to.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">json_output</span></code>: Whether the output file should be in JSON format. If <code class="docutils literal notranslate"><span class="pre">False</span></code>, it will be a text file.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">prompt_params</span></code>: Dictionary of parameters to embed into the prompt. If the prompt template contains <code class="docutils literal notranslate"><span class="pre">{&lt;key&gt;}</span></code>, it will be replaced with <code class="docutils literal notranslate"><span class="pre">&lt;value&gt;</span></code>.</p></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</section>
+</section>
 <section id="discontinued-features">
-<h2><span class="section-number">6.3. </span>Discontinued Features<a class="headerlink" href="#discontinued-features" title="Permalink to this heading"></a></h2>
+<h2><span class="section-number">6.4. </span>Discontinued Features<a class="headerlink" href="#discontinued-features" title="Permalink to this heading"></a></h2>
 <section id="snips-understander-built-in-block">
-<h3><span class="section-number">6.3.1. </span>Snips Understander Built-in Block<a class="headerlink" href="#snips-understander-built-in-block" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">6.4.1. </span>Snips Understander Built-in Block<a class="headerlink" href="#snips-understander-built-in-block" title="Permalink to this heading"></a></h3>
 <p>As Snips has become challenging to install with Python 3.9 and above, it was discontinued in version 0.9. Please use the LR-CRF Understander built-in block as an alternative.</p>
 </section>
 <section id="whitespace-tokenizer-and-sudachi-tokenizer-built-in-blocks">
-<h3><span class="section-number">6.3.2. </span>Whitespace Tokenizer and Sudachi Tokenizer Built-in Blocks<a class="headerlink" href="#whitespace-tokenizer-and-sudachi-tokenizer-built-in-blocks" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">6.4.2. </span>Whitespace Tokenizer and Sudachi Tokenizer Built-in Blocks<a class="headerlink" href="#whitespace-tokenizer-and-sudachi-tokenizer-built-in-blocks" title="Permalink to this heading"></a></h3>
 <p>These blocks were discontinued in version 0.9. If you use LR-CRF Understander or ChatGPT Understander, there is no need for the Tokenizer blocks.</p>
 </section>
 <section id="snips-stn-sample-application">
-<h3><span class="section-number">6.3.3. </span>Snips+STN Sample Application<a class="headerlink" href="#snips-stn-sample-application" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">6.4.3. </span>Snips+STN Sample Application<a class="headerlink" href="#snips-stn-sample-application" title="Permalink to this heading"></a></h3>
 <p>This sample application was discontinued in version 0.9.</p>
 </section>
 </section>

@@ -768,7 +768,7 @@
 <p>文字列<code class="docutils literal notranslate"><span class="pre">n</span></code>が表す整数よりもその状態でのターン数（ユーザの発話回数）が多いとき，<code class="docutils literal notranslate"><span class="pre">True</span></code>を返します．</p>
 <p>例：<code class="docutils literal notranslate"><span class="pre">_num_turns_in_state_exceeds(&quot;5&quot;)</span></code></p>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">_check_with_llm(task)</span></code></p>
+<li><p><code class="docutils literal notranslate"><span class="pre">_check_with_llm(task)</span></code>, <code class="docutils literal notranslate"><span class="pre">_check_with_prompt_template(prompt_template)</span></code></p>
 <p>大規模言語モデル（現在はOpenAIのChatGPTのみ）を用いて判定をします．後述します．</p>
 </li>
 </ul>
@@ -789,7 +789,7 @@
 </li>
 <li><p>システム発話内で用いる関数</p>
 <ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">_generate_with_llm(task)</span></code></p>
+<li><p><code class="docutils literal notranslate"><span class="pre">_generate_with_llm(task)</span></code>, <code class="docutils literal notranslate"><span class="pre">_generate_with_prompt_template(task)</span></code></p>
 <p>大規模言語モデル（現在はOpenAIのChatGPTのみ）を用いて文字列を生成します．後述します．</p>
 </li>
 </ul>
@@ -798,7 +798,8 @@
 </section>
 <section id="llm-functinos">
 <span id="id25"></span><h4><span class="section-number">5.5.6.2. </span>大規模言語モデルを用いた組み込み関数<a class="headerlink" href="#llm-functinos" title="この見出しへのパーマリンク"></a></h4>
-<p><code class="docutils literal notranslate"><span class="pre">_check_with_llm(task)</span></code>および<code class="docutils literal notranslate"><span class="pre">_generate_with_llm(task)</span></code>は，大規模言語モデル（現在はOpenAIのChatGPTのみ）と，対話履歴を用いて，条件の判定および文字列の生成を行います．以下が例です．</p>
+<p><code class="docutils literal notranslate"><span class="pre">_check_with_llm(task)</span></code>および<code class="docutils literal notranslate"><span class="pre">_generate_with_llm(task)</span></code>は，大規模言語モデル（現在はOpenAIのChatGPTのみ）と，対話履歴を用いて，条件の判定および文字列の生成を行います．</p>
+<p>以下が例です．</p>
 <ul>
 <li><p>条件判定の例</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">_check_with_llm</span><span class="p">(</span><span class="s2">&quot;ユーザが理由を言ったかどうか判断してください．&quot;</span><span class="p">)</span>
@@ -819,10 +820,16 @@
 <li><p>ブロックコンフィギュレーションの<code class="docutils literal notranslate"><span class="pre">chatgpt</span></code>要素に以下の要素を加える</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">gpt_model</span></code> （文字列）</p>
-<p>GPTのモデル名です．<code class="docutils literal notranslate"><span class="pre">gpt-4o-mini</span></code>, <code class="docutils literal notranslate"><span class="pre">gpt-4o</span></code>等を指定できます．デフォルト値は<code class="docutils literal notranslate"><span class="pre">gpt-4o-mini</span></code>です．</p>
+<p>GPTのモデル名です．<code class="docutils literal notranslate"><span class="pre">gpt-4o-mini</span></code>, <code class="docutils literal notranslate"><span class="pre">gpt-4o</span></code>等を指定できます．デフォルト値は<code class="docutils literal notranslate"><span class="pre">gpt-4o-mini</span></code>です．<code class="docutils literal notranslate"><span class="pre">gpt-5</span></code>は利用できません．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">instruction</span></code> (文字列)</p>
+<p>ChatGPT APIを呼び出す際に，システムロールのメッセージとして用いられます．文字列生成の時だけ用いられます．</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">temperature</span></code> (float)</p>
 <p>GPTの温度パラメータです．デフォルト値は<code class="docutils literal notranslate"><span class="pre">0.7</span></code>です．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">temperature_for_checking</span></code> (float)</p>
+<p>条件判定の際に用いるGPTの温度パラメータです．これが指定されていない場合は，<code class="docutils literal notranslate"><span class="pre">temperature</span></code>の値が用いられます．</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">situation</span></code> （文字列のリスト）</p>
 <p>GPTのプロンプトに書く状況を列挙したものです．</p>
@@ -856,6 +863,75 @@
 </div>
 </li>
 </ul>
+<p><code class="docutils literal notranslate"><span class="pre">_check_with_prompt_template(prompt_template)</span></code>および<code class="docutils literal notranslate"><span class="pre">_generate_with_llm(prompt_template)</span></code>は，大規模言語モデルにプロンプトを与えて条件の判定および文字列の生成を行います．プロンプトは，引数に指定したプロンプトテンプレートのプレースホルダを値に置き換えることで作られます．</p>
+<p>これらの関数を使うには上記の環境変数<code class="docutils literal notranslate"><span class="pre">OPENAI_API_KEY</span></code>の設定と，ブロックコンフィギュレーションの<code class="docutils literal notranslate"><span class="pre">chatgpt</span></code>要素の設定が必要です．</p>
+<p>以下が例です．</p>
+<ul>
+<li><p>条件判定の例</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">_check_with_llm</span><span class="p">(</span><span class="s2">&quot;ユーザが理由を言ったかどうか判断してください．&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p>条件判定の例</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>_generate_with_prompt_template(&quot;
+
+# 状況
+
+{situation}
+
+# あなたのペルソナ
+
+{persona}
+
+# 現在までの対話
+
+{dialogue_history}
+
+# タスク
+
+ユーザが理由を言ったかどうか判断し，yesかnoで答えてください．&quot;)
+</pre></div>
+</div>
+</li>
+<li><p>文字列生成の例</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>_generate_with_prompt_template(&quot;
+
+# 状況
+
+{situation}
+
+# あなたのペルソナ
+
+{persona}
+
+# 現在までの対話
+
+{dialogue_history}
+
+# タスク
+
+それまでの会話につづけて，対話を終わらせる発話を50文字以内で生成してください．&quot;)
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">{</span></code>と<code class="docutils literal notranslate"><span class="pre">}</span></code>で囲まれている部分はプレースホルダです．</p>
+</li>
+<li><p>利用できるプレースホルダ</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">{dialogue_history}</span></code></p>
+<p>その時点までの対話（最新のユーザ発話を含む）で置き換えられる</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">{situation}</span></code></p>
+<p>ブロックコンフィギュレーションの<code class="docutils literal notranslate"><span class="pre">chatgpt</span></code>要素の<code class="docutils literal notranslate"><span class="pre">situation</span></code>の値で置き換えられる</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">{persona}</span></code></p>
+<p>ブロックコンフィギュレーション<code class="docutils literal notranslate"><span class="pre">chatgpt</span></code>要素の<code class="docutils literal notranslate"><span class="pre">persona</span></code>の値で置き換えられる</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">{current_time}</span></code></p>
+<p>対話の行われている時点の年月日，曜日，時分秒を表す文字列で置き換えられる</p>
+</li>
+</ul>
+</li>
+</ul>
 </section>
 <section id="id26">
 <h4><span class="section-number">5.5.6.3. </span>組み込み関数の簡略記法<a class="headerlink" href="#id26" title="この見出しへのパーマリンク"></a></h4>
@@ -882,8 +958,22 @@
 </pre></div>
 </div>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">$&lt;タスク文字列&gt;</span></code></p>
-<p>条件として使われた時は，<code class="docutils literal notranslate"><span class="pre">_check_with_llm(&lt;タスク文字列&gt;)</span></code>の意味で，システム発話中に<code class="docutils literal notranslate"><span class="pre">{}</span></code>で囲まれて文字列生成として使われた時は，<code class="docutils literal notranslate"><span class="pre">_generate_with_llm(&lt;タスク文字列&gt;)</span></code>の意味です．</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">TT</span> <span class="pre">&gt;</span> <span class="pre">&lt;整数&gt;</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">_num_turns_exceeds(&quot;&lt;整数&gt;&quot;)</span></code>の意味です．</p>
+<p>例：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">TT</span><span class="o">&gt;</span><span class="mi">10</span>
+</pre></div>
+</div>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TS</span> <span class="pre">&gt;</span> <span class="pre">&lt;整数&gt;</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">_num_turns_in_state_exceeds(&quot;&lt;整数&gt;&quot;)</span></code>の意味です．</p>
+<p>例：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">TS</span><span class="o">&gt;</span><span class="mi">5</span>
+</pre></div>
+</div>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">$&lt;タスク文字列&gt;$</span></code></p>
+<p>条件として使われた時は，<code class="docutils literal notranslate"><span class="pre">_check_with_llm(&quot;&lt;タスク文字列&gt;&quot;)</span></code>の意味で，システム発話中で使われた時は，<code class="docutils literal notranslate"><span class="pre">{_generate_with_llm(&quot;&lt;タスク文字列&gt;&quot;)}</span></code>の意味です．</p>
 <p>条件の例：</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$&quot;ユーザが理由を言ったかどうか判断してください．&quot;
 </pre></div>
@@ -892,6 +982,10 @@
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>わかりました．{$&quot;それまでの会話につづけて，対話を終わらせる発話を50文字以内で生成してください．&quot;}今日はお時間ありがとうございました．
 </pre></div>
 </div>
+<p>以前は<code class="docutils literal notranslate"><span class="pre">$&quot;&lt;タスク文字列&gt;&quot;</span></code>の形でしたが推奨されません．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">$$$&lt;プロンプトテンプレート&gt;$$$</span></code></p>
+<p>条件として使われた時は，<code class="docutils literal notranslate"><span class="pre">_check_with_prompt_template(&quot;&lt;プロンプトテンプレート&gt;&quot;)</span></code>の意味で，システム発話中で使われた時は，<code class="docutils literal notranslate"><span class="pre">{_generate_with_prompt_template(&quot;&lt;プロンプトテンプレート&gt;&quot;)}</span></code>の意味です．</p>
 </li>
 </ul>
 </section>
@@ -1056,31 +1150,17 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">first_system_utterance</span></code> （文字列，デフォルト値は<code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code>）</p>
 <p>対話の最初のシステム発話です．</p>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">user_name</span></code> （文字列，デフォルト値は<code class="docutils literal notranslate"><span class="pre">&quot;User&quot;</span></code>）</p>
-<p>ChatGPTのプロンプトに使う文字列です．以下で説明します．</p>
-</li>
-<li><p><code class="docutils literal notranslate"><span class="pre">system_name</span></code> （文字列，デフォルト値は<code class="docutils literal notranslate"><span class="pre">&quot;System&quot;</span></code>）</p>
-<p>ChatGPTのプロンプトに使う文字列です．以下で説明します．</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">user_name</span></code>, <code class="docutils literal notranslate"><span class="pre">system_name</span></code></p>
+<p>ver 1.1 で廃止されました．</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">prompt_template</span></code> （文字列）</p>
-<p>ChatGPTのプロンプトのテンプレートを記述したファイル名です．アプリケーションディレクトリからの相対で記述します．</p>
-<p>プロンプトテンプレートは，システム発話の生成をChatGPTに行わせるプロンプトのテンプレートで，<code class="docutils literal notranslate"><span class="pre">&#64;</span></code>で始まる以下の変数を含みます．</p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">&#64;dialogue_history</span></code> 対話の履歴です．実行時に以下のような形の値が代入されます．</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">ブロックコンフィギュレーションのsystem_nameの値</span><span class="o">&gt;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">システム発話</span><span class="o">&gt;</span>
-<span class="o">&lt;</span><span class="n">ブロックコンフィギュレーションのuser_nameの値</span><span class="o">&gt;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">ユーザ発話</span><span class="o">&gt;</span>
-<span class="o">&lt;</span><span class="n">ブロックコンフィギュレーションのsystem_nameの値</span><span class="o">&gt;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">システム発話</span><span class="o">&gt;</span>
-<span class="o">&lt;</span><span class="n">ブロックコンフィギュレーションのuser_nameの値</span><span class="o">&gt;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">ユーザ発話</span><span class="o">&gt;</span>
-<span class="o">...</span>
-<span class="o">&lt;</span><span class="n">ブロックコンフィギュレーションのsystem_nameの値</span><span class="o">&gt;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">システム発話</span><span class="o">&gt;</span>
-<span class="o">&lt;</span><span class="n">ブロックコンフィギュレーションのuser_nameの値</span><span class="o">&gt;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">ユーザ発話</span><span class="o">&gt;</span>
-</pre></div>
-</div>
-</li>
-</ul>
+<p>システム発話の生成をChatGPTに行わせるプロンプトを記述したファイル名です．アプリケーションディレクトリからの相対で記述します．</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">gpt_model</span></code> （文字列，デフォルト値は<code class="docutils literal notranslate"><span class="pre">gpt-4o-mii</span></code>）</p>
 <p>Open AI GPTのモデルです．<code class="docutils literal notranslate"><span class="pre">gpt-4o</span></code>, <code class="docutils literal notranslate"><span class="pre">gpt-4o-mini</span></code>などが指定できます．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">temperature</span></code> （float，デフォルト値は<code class="docutils literal notranslate"><span class="pre">0.7</span></code>）</p>
+<p>ChatGPT呼び出しの際の温度パラメータです．</p>
 </li>
 </ul>
 </section>
@@ -1088,7 +1168,7 @@
 <h3><span class="section-number">5.6.3. </span>処理内容<a class="headerlink" href="#id38" title="この見出しへのパーマリンク"></a></h3>
 <ul class="simple">
 <li><p>対話の最初はブロックコンフィギュレーションの<code class="docutils literal notranslate"><span class="pre">first_system_utterance</span></code>の値をシステム発話として返します．</p></li>
-<li><p>2回目以降のターンでは，プロンプトテンプレートの<code class="docutils literal notranslate"><span class="pre">&#64;dialogue_history</span></code>に対話履歴を代入したものを与えてChatGPTに発話を生成させ，返ってきた文字列をシステム発話として返します．</p></li>
+<li><p>2回目以降のターンでは，プロンプトテンプレートを与えてChatGPTに発話を生成させ，返ってきた文字列をシステム発話として返します．</p></li>
 </ul>
 </section>
 </section>

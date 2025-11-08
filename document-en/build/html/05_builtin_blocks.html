@@ -695,7 +695,7 @@ In a final state, the system generates a system utterance and terminates the dia
 <p>Returns <code class="docutils literal notranslate"><span class="pre">True</span></code> when the number of user turns in the current state exceeds the integer represented by the string <code class="docutils literal notranslate"><span class="pre">n</span></code>.</p>
 <p>e.g.: <code class="docutils literal notranslate"><span class="pre">_num_turns_in_state_exceeds(&quot;5&quot;)</span></code></p>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">_check_with_llm(task)</span></code></p>
+<li><p><code class="docutils literal notranslate"><span class="pre">_check_with_llm(task)</span></code> and <code class="docutils literal notranslate"><span class="pre">_check_with_prompt_template(prompt_template)</span></code></p>
 <p>Makes the judgment using a large language model. More details follow.</p>
 </li>
 </ul>
@@ -716,7 +716,7 @@ In a final state, the system generates a system utterance and terminates the dia
 </li>
 <li><p>Functions used in system utterances</p>
 <ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">_generate_with_llm(task)</span></code></p>
+<li><p><code class="docutils literal notranslate"><span class="pre">_generate_with_llm(task)</span></code> and <code class="docutils literal notranslate"><span class="pre">_generate_with_prompt_template(prompt_template)</span></code></p>
 <p>Generates a string using a large language model (currently only OpenAI’s ChatGPT). More details follow.</p>
 </li>
 </ul>
@@ -746,10 +746,16 @@ In a final state, the system generates a system utterance and terminates the dia
 <li><p>Add the following elements to the chatgpt block configuration:</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">gpt_model</span></code> (string)</p>
-<p>This specifies the model name of GPT, such as <code class="docutils literal notranslate"><span class="pre">gpt-4o</span></code>, <code class="docutils literal notranslate"><span class="pre">gpt-4o-mini</span></code>, etc. The default value is <code class="docutils literal notranslate"><span class="pre">gpt-4o-mini</span></code>. <code class="docutils literal notranslate"><span class="pre">gpt-4</span></code> cannot be used.</p>
+<p>This specifies the model name of GPT, such as <code class="docutils literal notranslate"><span class="pre">gpt-4o</span></code>, <code class="docutils literal notranslate"><span class="pre">gpt-4o-mini</span></code>, etc. The default value is <code class="docutils literal notranslate"><span class="pre">gpt-4o-mini</span></code>. <code class="docutils literal notranslate"><span class="pre">gpt-5</span></code> cannot be used.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">instruction</span></code> (string)</p>
+<p>This is used as the system role message when calling the ChatGPT API. It is only used during text generation.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">temperature</span></code> (float)</p>
 <p>This specifies the temperature parameter for GPT. The default value is <code class="docutils literal notranslate"><span class="pre">0.7</span></code>.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">temperature_for_checking</span></code> (float)</p>
+<p>This is the temperature parameter of the GPT used during conditional evaluation. If this is not specified, the value of <code class="docutils literal notranslate"><span class="pre">temperature</span></code> will be used instead.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">situation</span></code> (list of strings)</p>
 <p>A list that enumerates the scenarios to be written in the GPT prompt. If this element is absent, no specific situation is specified.</p>
@@ -782,6 +788,74 @@ In a final state, the system generates a system utterance and terminates the dia
 </div>
 </li>
 </ul>
+<p><code class="docutils literal notranslate"><span class="pre">_check_with_prompt_template(prompt_template)</span></code> and <code class="docutils literal notranslate"><span class="pre">_generate_with_llm(prompt_template)</span></code> perform condition checking and text generation by providing prompts to a large language model.
+The prompts are created by replacing the placeholders in the specified prompt template with actual values.</p>
+<p>To use these functions, you must set the environment variable <code class="docutils literal notranslate"><span class="pre">OPENAI_API_KEY</span></code> and configure the <code class="docutils literal notranslate"><span class="pre">chatgpt</span></code> element in the block configuration.</p>
+<p>Here are some examples:</p>
+<ul>
+<li><p>Example of condition checking:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">_check_with_llm</span><span class="p">(</span><span class="s2">&quot;Please determine whether the user has given a reason.&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p>Another example of condition checking:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">_generate_with_prompt_template</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+
+<span class="s2"># Situation</span>
+
+<span class="si">{situation}</span>
+
+<span class="s2"># Your persona</span>
+
+<span class="si">{persona}</span>
+
+<span class="s2"># Dialogue history up to now</span>
+
+<span class="si">{dialogue_history}</span>
+
+<span class="s2"># Task</span>
+
+<span class="s2">Determine whether the user has given a reason, and answer with either &#39;yes&#39; or &#39;no&#39;.</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p>Example of string generation:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">_generate_with_prompt_template</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+
+<span class="s2"># Situation</span>
+
+<span class="si">{situation}</span>
+
+<span class="s2"># Your persona</span>
+
+<span class="si">{persona}</span>
+
+<span class="s2"># Dialogue history up to now</span>
+
+<span class="si">{dialogue_history}</span>
+
+<span class="s2"># Task</span>
+
+<span class="s2">Based on the dialogue so far, generate a closing utterance within 50 characters.</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Parts enclosed in <code class="docutils literal notranslate"><span class="pre">{</span></code> and <code class="docutils literal notranslate"><span class="pre">}</span></code> are placeholders.</p>
+</li>
+<li><p>Available placeholders:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">{dialogue_history}</span></code>
+Replaced with the dialogue up to that point, including the latest user utterance.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">{situation}</span></code>
+Replaced with the value of <code class="docutils literal notranslate"><span class="pre">situation</span></code> from the <code class="docutils literal notranslate"><span class="pre">chatgpt</span></code> element in the block configuration.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">{persona}</span></code>
+Replaced with the value of <code class="docutils literal notranslate"><span class="pre">persona</span></code> from the <code class="docutils literal notranslate"><span class="pre">chatgpt</span></code> element in the block configuration.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">{current_time}</span></code>
+Replaced with a string representing the current date, day of the week, and time (hour, minute, second) at which the dialogue is taking place.</p></li>
+</ul>
+</li>
+</ul>
 </section>
 <section id="syntax-sugars-for-built-in-functions">
 <h4><span class="section-number">5.4.6.3. </span>Syntax sugars for built-in functions<a class="headerlink" href="#syntax-sugars-for-built-in-functions" title="Permalink to this heading"></a></h4>
@@ -803,26 +877,46 @@ In a final state, the system generates a system utterance and terminates the dia
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">&lt;variable</span> <span class="pre">name&gt;=&lt;value&gt;</span></code></p>
 <p>This means <code class="docutils literal notranslate"><span class="pre">_set(&amp;&lt;variable</span> <span class="pre">name&gt;,</span> <span class="pre">&lt;value&gt;)</span></code>.</p>
-<p>e.g.:,</p>
+<p>e.g.:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">user_name</span><span class="o">=</span><span class="c1">#NE_Person</span>
 </pre></div>
 </div>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">$&lt;task</span> <span class="pre">string&gt;</span></code></p>
-<p>When used as a condition, it means <code class="docutils literal notranslate"><span class="pre">_check_with_llm(&lt;task</span> <span class="pre">string&gt;)</span></code>, and when used in a system utterance enclosed in <code class="docutils literal notranslate"><span class="pre">{}</span></code>, it means <code class="docutils literal notranslate"><span class="pre">_generate_with_llm(&lt;task</span> <span class="pre">string&gt;)</span></code>.</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">TT</span> <span class="pre">&gt;</span> <span class="pre">&lt;integer&gt;</span></code></p>
+<p>This means <code class="docutils literal notranslate"><span class="pre">_num_turns_exceeds(&quot;&lt;integer&gt;&quot;)</span></code>.</p>
+<p>e.g.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">TT</span><span class="o">&gt;</span><span class="mi">10</span>
+</pre></div>
+</div>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TS</span> <span class="pre">&gt;</span> <span class="pre">&lt;integer&gt;</span></code></p>
+<p>This means <code class="docutils literal notranslate"><span class="pre">_num_turns_in_state_exceeds(&quot;&lt;integer&gt;&quot;)</span></code>.</p>
+<p>e.g.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">TS</span><span class="o">&gt;</span><span class="mi">5</span>
+</pre></div>
+</div>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">$&lt;task</span> <span class="pre">string&gt;$</span></code></p>
+<p>When used as a condition, it means <code class="docutils literal notranslate"><span class="pre">_check_with_llm(&quot;&lt;task</span> <span class="pre">string&gt;&quot;)</span></code>, and when used in a system utterance, it means <code class="docutils literal notranslate"><span class="pre">{_generate_with_llm(&quot;&lt;task</span> <span class="pre">string&gt;&quot;)}</span></code>.</p>
 <p>Example of a condition:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$&quot;Please determine if the user said the reason.&quot;
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$Please determine if the user said the reason$
 </pre></div>
 </div>
-<p>Example of a text generation function call in a system utterance</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>I understand. {$&quot;Generate a sentence to say it&#39;s time to end the talk by continuing the conversation in 50 words&quot; }  Thank you for your time.
+<p>Example of a text generation function call in a system utterance:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>I understand. $Generate a sentence to say it&#39;s time to end the talk by continuing the conversation in 50 words$  Thank you for your time.
+
 </pre></div>
 </div>
+<p>I understand. {$”Generate a sentence to say it’s time to end the talk by continuing the conversation in 50 words” }  Thank you for your time.</p>
+<p>This used to be <code class="docutils literal notranslate"><span class="pre">$&quot;&lt;task</span> <span class="pre">string&gt;&quot;</span></code> but it is deprecated.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">$$$&lt;prompt</span> <span class="pre">template&gt;$$$</span></code></p>
+<p>When used as a condition, it means <code class="docutils literal notranslate"><span class="pre">_check_with_prompt_template(&quot;&lt;prompt</span> <span class="pre">template&gt;&quot;)</span></code>, and when used in system utterances, it means <code class="docutils literal notranslate"><span class="pre">{_generate_with_prompt_template(&quot;&lt;prompt</span> <span class="pre">template&gt;&quot;)}</span></code>.</p>
 </li>
 </ul>
 </section>
 <section id="function-definitions-by-the-developers">
-<h4><span class="section-number">5.4.6.4. </span>Function definitions by the developers<a class="headerlink" href="#function-definitions-by-the-developers" title="Permalink to this heading"></a></h4>
+<span id="custom-functions"></span><h4><span class="section-number">5.4.6.4. </span>Function definitions by the developers<a class="headerlink" href="#function-definitions-by-the-developers" title="Permalink to this heading"></a></h4>
 <p>When the developer defines functions, he/she edits a file specified in <code class="docutils literal notranslate"><span class="pre">function_definition</span></code> element in the block configuration.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">get_ramen_location</span><span class="p">(</span><span class="n">ramen</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">variable</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> 
     <span class="n">location</span><span class="p">:</span><span class="nb">str</span> <span class="o">=</span> <span class="n">ramen_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ramen</span><span class="p">,</span> <span class="s2">&quot;Japan&quot;</span><span class="p">)</span>
@@ -980,28 +1074,11 @@ The output <code class="docutils literal notranslate"><span class="pre">aux_data
 <li><p><code class="docutils literal notranslate"><span class="pre">first_system_utterance</span></code> (string, default value is <code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code>)</p>
 <p>This is the first system utterance of the dialog.</p>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">user_name</span></code> (string, default value is <code class="docutils literal notranslate"><span class="pre">&quot;User&quot;</span></code>)</p>
-<p>This is used for the ChatGPT prompt. It is explained below.</p>
-</li>
-<li><p><code class="docutils literal notranslate"><span class="pre">system_name</span></code> (string, default value is <code class="docutils literal notranslate"><span class="pre">&quot;System&quot;</span></code>)</p>
-<p>This is used for the ChatGPT prompt. It is explained below.</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">user_name</span></code>, <code class="docutils literal notranslate"><span class="pre">system_name</span></code></p>
+<p>These were deprecated in ver. 1.1.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">prompt_template</span></code> (string)</p>
-<p>This specifies the prompt template file as a relative path from the configuration file directory.</p>
-<p>A prompt template is a template of prompts for making ChatGPT generate a system utterance, and it can contain the following variables starting with <code class="docutils literal notranslate"><span class="pre">&#64;</span></code>.</p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">&#64;dialogue_history</span></code> Dialogue history. This is replaced by a string in the following form:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">The</span> <span class="n">value</span> <span class="n">of</span> <span class="n">system_name</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">block</span> <span class="n">configuration</span><span class="o">&gt;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">system</span> <span class="n">utterance</span><span class="o">&gt;</span>
-<span class="o">&lt;</span><span class="n">The</span> <span class="n">value</span> <span class="n">of</span> <span class="n">user_name</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">block</span> <span class="n">configuration</span><span class="o">&gt;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">user</span> <span class="n">utterance</span><span class="o">&gt;</span>
-<span class="o">&lt;</span><span class="n">The</span> <span class="n">value</span> <span class="n">of</span> <span class="n">system_name</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">block</span> <span class="n">configuration</span><span class="o">&gt;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">system</span> <span class="n">utterance</span><span class="o">&gt;</span>
-<span class="o">&lt;</span><span class="n">The</span> <span class="n">value</span> <span class="n">of</span> <span class="n">user_name</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">block</span> <span class="n">configuration</span><span class="o">&gt;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">user</span> <span class="n">utterance</span><span class="o">&gt;</span>
-<span class="o">...</span>
-<span class="o">&lt;</span><span class="n">The</span> <span class="n">value</span> <span class="n">of</span> <span class="n">system_name</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">block</span> <span class="n">configuration</span><span class="o">&gt;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">system</span> <span class="n">utterance</span><span class="o">&gt;</span>
-<span class="o">&lt;</span><span class="n">The</span> <span class="n">value</span> <span class="n">of</span> <span class="n">user_name</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">block</span> <span class="n">configuration</span><span class="o">&gt;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">user</span> <span class="n">utterance</span><span class="o">&gt;</span>
-</pre></div>
-</div>
-</li>
-</ul>
+<p>This specifies the file of the prompt for making ChatGPT generate a system utterance as a relative path from the configuration file directory.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">gpt_model</span></code> (string, default value is <code class="docutils literal notranslate"><span class="pre">gpt-4o-mini</span></code>)</p>
 <p>Open AI GPT model. You can specify <code class="docutils literal notranslate"><span class="pre">gpt-4o</span></code>, <code class="docutils literal notranslate"><span class="pre">gpt-4o-mini</span></code> and so on.</p>
@@ -1012,7 +1089,7 @@ The output <code class="docutils literal notranslate"><span class="pre">aux_data
 <h3><span class="section-number">5.5.3. </span>Process Details<a class="headerlink" href="#id9" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>At the beginning of the dialog, the value of <code class="docutils literal notranslate"><span class="pre">first_system_utterance</span></code> in the block configuration is returned as system utterance.</p></li>
-<li><p>In the second and subsequent turns, the prompt template in which <code class="docutils literal notranslate"><span class="pre">&#64;dialogue_history</span></code> is replace by the dialogue histor is given to ChatGPT and the returned string is returned as the system utterance.</p></li>
+<li><p>In the second and subsequent turns, the prompt template is given to ChatGPT and the returned string is returned as the system utterance.</p></li>
 </ul>
 </section>
 </section>
