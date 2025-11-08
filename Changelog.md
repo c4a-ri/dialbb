@@ -1,8 +1,8 @@
 # Changelog
 
-## 1.1.0 (2025.11.6)
+## 1.1.0 (2025.11.8)
 
-- The no-code tool improved
+- The no-code tool considerably improved
 
 - Embedded block for ChatGPT Dialogue:
 
@@ -14,11 +14,12 @@
 
     - In addition to the syntax sugar `$"..."`, `$...$` can now also be used
 
-  - Introduced the `chatgpt/temperature_for_checking` parameter
+    - Introduced the `chatgpt/temperature_for_checking` parameter
+
+    - Normalization of scenario strings
 
 - Simulation-based tester introduced
 
-- Normalization of scenario strings
 
 ## 1.0.4 (2025.7.31)
 
