@@ -24,9 +24,6 @@
 - If the user likes Italian, ask the user which kind of Italian food she/he likes
 - If the user doesn't like Italian, ask her/him why.
 
-# Dialogue up to now
-
-@dialogue_history
 
 
 

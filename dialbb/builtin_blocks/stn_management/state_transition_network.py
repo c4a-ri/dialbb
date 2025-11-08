@@ -42,11 +42,16 @@ EXIT: str = "#exit"
 SKIP: str = "$skip"
 COMMA: str = "&&&comma&&&"
 SEMICOLON: str = "&&&semicolon&&&"
+LEFTPAREN: str = "&&&leftparen&&&"
+RIGHTPAREN: str = "&&&rightparen&&&"
+DOUBLEQUOTE: str = "&&&doublequote&&&"
 
-function_call_pattern = re.compile(r"([^(]+)\(([^)]*)\)")  # matches function patter such as "func(..)"
+function_call_pattern = re.compile(r"([^(]+)\(([^)]*)\)", re.DOTALL)  # matches function patter such as "func(..)"
 ne_condition_pattern = re.compile("([^=]+)!=(.+)")  # matches <variable>!=<value>
 eq_condition_pattern = re.compile("([^=]+)==(.+)")  # matches <variable>==<value>
 set_action_pattern = re.compile("([^=]+)=(.+)")  # matches <variable>=<value>
+num_turns_exceeds_pattern = re.compile(r'TT\s*>\s*(\d+)')  # matches TT><n> such as "TT>3"
+num_turns_in_state_exceeds_pattern = re.compile(r'TS\s*>\s*(\d+)')   #  matches TS><n> e.g. "TS > 4"
 
 
 class Argument:
@@ -65,7 +70,11 @@ class Argument:
             self._name = argument_string[1:]
         elif argument_string[0] in ('"', '”', '“') and argument_string[-1] in ('"', '”', '“'):  # constant string 定数文字列
             self._type = CONSTANT
-            self._name = argument_string[1:-1].replace(SEMICOLON, ';').replace(COMMA, ",")  # revert semicolon and comma
+            self._name = (argument_string[1:-1].replace(SEMICOLON, ';')
+                          .replace(COMMA, ",")
+                          .replace(LEFTPAREN, "(")
+                          .replace(RIGHTPAREN, ")")
+                          .replace(DOUBLEQUOTE, '"')) # revert semicolon, comma, etc
         elif argument_string[0] in ('&', '＆'):  # variable name 変数名
             self._type = ADDRESS
             self._name = argument_string[1:]  # remove '&'
@@ -198,10 +207,18 @@ class Transition:
             condition_str = condition_str.strip()
             if condition_str == '':
                 continue
-            if condition_str.startswith('$"') and condition_str[-1] == '"':   # $" .... "
+            if condition_str.startswith('$$$') and condition_str.endswith("$$$"):   # $$$$ .... $$$ "
+                prompt_template: str = condition_str[3:-3]
+                prompt_template = prompt_template.replace('{', '@').replace('}', '@')
+                condition_str = f'_check_with_prompt_template("{prompt_template}")'
+            elif condition_str.startswith('$') and condition_str.endswith("$"):   # $$$$ .... $$$ "
+                task: str = condition_str[1:-1]
+                condition_str = f'_check_with_llm("{task}")'
+            elif condition_str.startswith('$"') and condition_str[-1] == '"':   # $" .... "
                 task: str = condition_str[1:]
                 condition_str = f'_check_with_llm({task})'
             else:
+                condition_str = self._replace_turn_condition_pattern(condition_str)
                 condition_str = self._replace_eq_ne_pattern(condition_str)
             m = function_call_pattern.match(condition_str)  # function pattern match
             if m:
@@ -234,6 +251,29 @@ class Transition:
             else:
                 warn_during_building(f"{action_str} is not a valid action.")
         self._destination: str = destination
+
+    @staticmethod
+    def _replace_turn_condition_pattern(condition_str: str) -> str:
+        """
+        replace num_turns_exceeds syntax sugar (TS>n, TT>n) in condition
+        :param condition_str: condition string
+        :return: replaced string
+        """
+
+        result = condition_str
+        m = num_turns_in_state_exceeds_pattern.match(condition_str)
+        if m:
+            n_str: str = m.group(1)
+            n_str = str(int(n_str))  # e.g. "003" -> 3 -> "3"
+            result = f'_num_turns_in_state_exceeds("{n_str}")'
+        else:
+            m = num_turns_exceeds_pattern.match(condition_str)
+            if m:
+                n_str: str = m.group(1)
+                n_str = str(int(n_str))
+                result = f'_num_turns_exceeds("{n_str}")'
+        return result
+
 
     @staticmethod
     def _replace_eq_ne_pattern(condition_str: str) -> str:
@@ -295,6 +335,12 @@ class Transition:
                 result += COMMA
             elif char in (';', '；') and in_constant:
                 result += SEMICOLON
+            elif char == '(' and in_constant:
+                result += LEFTPAREN
+            elif char == ')' and in_constant:
+                result += RIGHTPAREN
+            elif char == '"' and in_constant:
+                result += DOUBLEQUOTE
             else:
                 result += char
         return result

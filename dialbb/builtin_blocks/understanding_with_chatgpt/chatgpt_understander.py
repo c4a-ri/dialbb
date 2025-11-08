@@ -224,10 +224,11 @@ class Understander(AbstractBlock):
         chat_completion = None
         while True:
             try:
+                temperature = 1 if self._gpt_model == 'gpt-5' else 0.0
                 chat_completion = self._openai_client.with_options(timeout=10).chat.completions.create(
                     model=self._gpt_model,
                     messages=[{"role": "user", "content": prompt}],
-                    temperature=0.0,
+                    temperature=temperature,
                     response_format={"type": "json_object"}
                     )
             except openai.APITimeoutError:
