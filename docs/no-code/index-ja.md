@@ -41,7 +41,7 @@ Windows11，MacOSで動作します．
 
 ### DialBBのインストール
 
-- 必要なファイルを以下の要領でダウンロードします．
+- 必要なファイルを以下の手順でダウンロードします．
 
   - ブラウザから https://c4a-ri.github.io/dialbb/files/dialbb-setup.zip にアクセスします．
 
@@ -63,7 +63,7 @@ Windows11，MacOSで動作します．
 
 必要なファイルを以下の要領でダウンロードします．
 
-  - ブラウザでのアドレスバーに https://github.com/c4a-ri/dialbb-scenario-editor/blob/main/docs/files/DialBB_Scenario_Editor-installer-1.0.0-win.exe を打ち込んでEnterキーを押します．
+  - ブラウザでのアドレスバーに https://github.com/c4a-ri/dialbb-scenario-editor/blob/main/docs/files/DialBB_Scenario_Editor-installer-1.1.0-win.exe を打ち込んでEnterキーを押します．
 - 遷移したページの右側の下向き矢印をクリックします．
   
 - `ダウンロード`フォルダに`DialBB_Scenario_Editor-installer-1.0.0-win.exe`という名前のアプリのインストーラーがダウンロードされます．
@@ -437,5 +437,4 @@ Edit Application画面で`シナリオ`ボタンを押すと，シナリオエ�
 日本語／英語を定義したyamlファイル
 
 - `dialbb/no_code/gui_nc_text.yml`
-
 
