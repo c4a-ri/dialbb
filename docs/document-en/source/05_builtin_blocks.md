@@ -653,7 +653,7 @@ To use these functions, the following settings are required:
 
     This specifies the model name of GPT, such as `gpt-4o`, `gpt-4o-mini`, etc. The default value is `gpt-4o-mini`. `gpt-5` cannot be used.
 
-  - `instruction` (文字列)
+  - `instruction` (string)
 
     This is used as the system role message when calling the ChatGPT API. It is only used during text generation.
 
@@ -710,7 +710,7 @@ Here are some examples:
 - Example of condition checking:
 
   ```python
-  _check_with_promtp_template("Please determine whether the user has given a reason.")
+  _check_with_llm("Please determine whether the user has given a reason.")
   ```
 
 - Another example of condition checking:
@@ -805,10 +805,30 @@ Syntax sugars are provided to simplify the description of built-in functions.
 
   This means `_set(&<variable name>, <value>)`.
 
-  e.g.:, 
+  e.g.:
 
   ```
   user_name=#NE_Person
+  ```
+
+- `TT > <integer>`
+
+  This means `_num_turns_exceeds("<integer>")`.
+
+  e.g.:
+
+  ```
+  TT>10
+  ```
+
+- `TS > <integer>`
+
+  This means `_num_turns_in_state_exceeds("<integer>")`.
+
+  e.g.:
+
+  ```
+  TS>5
   ```
 
 - `$<task string>$`

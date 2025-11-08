@@ -29,13 +29,17 @@ btn_load:
   ja: "読み込み"
   en: "Import"
 
-btn_exec:
-  ja: "起動"
-  en: "Start"
+btn_dialbb_start:
+  ja: "サーバ起動"
+  en: "Start Server"
 
-btn_stop:
-  ja: "停止"
-  en: "Stop"
+btn_dialbb_stop:
+  ja: "サーバ停止"
+  en: "Stop Server"
+
+btn_chat_start:
+  ja: "対話開始"
+  en: "Start dialogue"
 
 btn_exit:
   ja: "終了"
@@ -203,6 +207,14 @@ msg_warn_error_node_exists:
   ja: "Warning: typeがerrorのシステムノードがありません。"
   en: "Warning: Error system node has no type."
 
+msg_chat_no_response:
+  ja: "システム発話がありません。"
+  en: "No system utterances."
+
+msg_chat_no_session:
+  ja: "セッションが開始されていません。"
+  en: "No session started."
+
 
 # ----- ダイアログ関連 -----
 # mainダイアログ
@@ -215,8 +227,8 @@ main_title_1:
   en: "Application"
 
 main_title_2:
-  ja: "サーバ起動"
-  en: "Start server"
+  ja: "起動"
+  en: "Start"
 
 main_title_3:
   ja: "編集"

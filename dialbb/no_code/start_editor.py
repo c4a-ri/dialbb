@@ -34,6 +34,8 @@ num_turns_exceeds_pattern = re.compile(r"_num_turns_exceeds\(\s*\"\d+\"\s*\)")
 num_turns_in_state_exceeds_pattern = re.compile(
     r"_num_turns_in_state_exceeds\(\s*\"\d+\"\s*\)"
 )
+num_turns_exceeds_pattern2 = re.compile(r"TT\s*[>]\s*(\d+)")
+num_turns_in_state_exceeds_pattern2 = re.compile(r"TS\s*[>＞]\s*(\d+)")
 
 
 def illegal_condition(condition: str) -> bool:
@@ -49,7 +51,9 @@ def illegal_condition(condition: str) -> bool:
         or str_eq_pattern.fullmatch(condition)
         or str_ne_pattern.fullmatch(condition)
         or num_turns_exceeds_pattern.fullmatch(condition)
+        or num_turns_exceeds_pattern2.fullmatch(condition)
         or num_turns_in_state_exceeds_pattern.fullmatch(condition)
+        or num_turns_in_state_exceeds_pattern2.fullmatch(condition)
     ):
         return False
     else:

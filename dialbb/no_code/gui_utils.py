@@ -25,7 +25,7 @@ import sys
 import os
 from tkinter import messagebox
 import subprocess
-from typing import List, Dict, Any
+from typing import List
 import json
 from cryptography.fernet import Fernet
 from datetime import datetime
@@ -259,9 +259,6 @@ def central_position(frame, width: int, height: int):
     sw = frame.winfo_screenwidth()
     sh = frame.winfo_screenheight()
     # ウィンドウサイズと表示位置を指定する
-    # frame.geometry(
-    #     f"{width}x{height}+{int(sw / 2 - width / 2)}+{int(sh / 2 - height / 2)}"
-    # )
     frame.geometry(f"{width}x{height}+{(sw - width) // 2}+{(sh - height) // 2}")
 
 
