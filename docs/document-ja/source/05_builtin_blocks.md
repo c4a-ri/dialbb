@@ -765,7 +765,7 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
 - 条件判定の例
 
   ```python
-  _check_with_promtp_template("ユーザが理由を言ったかどうか判断してください．")
+  _check_with_llm("ユーザが理由を言ったかどうか判断してください．")
   ```
 
 - 条件判定の例
@@ -865,6 +865,26 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
 
   ```
   user_name=#NE_Person
+  ```
+
+- `TT > <整数>`
+
+  `_num_turns_exceeds("<整数>")`の意味です．
+
+  例：
+
+  ```
+  TT>10
+  ```
+
+- `TS > <整数>`
+
+  `_num_turns_in_state_exceeds("<整数>")`の意味です．
+
+  例：
+
+  ```
+  TS>5
   ```
 
 - `$<タスク文字列>$`

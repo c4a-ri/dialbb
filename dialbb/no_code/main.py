@@ -198,6 +198,7 @@ def exec_editor(file_path, parent, button):
 
         # エディタ用サーバ停止
         editor_server.stop()
+        editor_server = None
         button.configure(text=gui_text("btn_scenario_start"))
 
 
@@ -693,6 +694,12 @@ def set_main_frame(root_frame):
     # setting_btn.pack(side=tk.LEFT, padx=10)
     setting_btn.grid(row=0, column=0, padx=5, pady=5)
 
+    # chatボタン:チャット開始
+    chat_btn = ttk.Button(
+        dialbb_label, text=gui_text("btn_chat_start"), command=lambda: start_chat()
+    )
+    chat_btn.grid(row=0, column=1, padx=5, pady=5)
+
     # startボタン:DialBBサーバ起動
     dialbb_btn = ttk.Button(
         dialbb_label,
@@ -702,13 +709,7 @@ def set_main_frame(root_frame):
         ),
     )
     # start_btn.pack(side=tk.LEFT, padx=10)
-    dialbb_btn.grid(row=0, column=1, padx=5, pady=5)
-
-    # chatボタン:チャット開始
-    chat_btn = ttk.Button(
-        dialbb_label, text=gui_text("btn_chat_start"), command=lambda: start_chat()
-    )
-    chat_btn.grid(row=0, column=2, padx=5, pady=5)
+    dialbb_btn.grid(row=0, column=2, padx=5, pady=5)
 
     # show log button
     show_log_btn = ttk.Button(
