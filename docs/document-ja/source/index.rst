@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-DialBB ver. 1.0 ドキュメント
+DialBB ver. 1.1 ドキュメント
 ================================================
 
 .. toctree::
