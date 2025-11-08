@@ -2,7 +2,7 @@
 
 ## 1.1.0 (2025.11.8)
 
-- The no-code tool improved
+- The no-code tool considerably improved
 
 - Embedded block for ChatGPT Dialogue:
 
