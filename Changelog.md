@@ -2,7 +2,15 @@
 
 ## 1.1.0 (2025.11.8)
 
-- The no-code tool considerably improved
+- No-code tool
+
+  - The installation procedure imporved
+
+ - The appearance of the scenario editor enhanced
+
+ - The default applications changed
+	
+ - The chat window implemented	
 
 - Embedded block for ChatGPT Dialogue:
 
@@ -10,13 +18,13 @@
 
 - STN Manager Built-in Block:
 
-  - `_generate_with_prompt_template()` and `_check_with_prompt_template()` along with their syntactic sugar implemented 
+  - Modified to allow specifying a prompt template when using ChatGPT for utterance generation and conditional judgment
 
-    - In addition to the syntax sugar `$"..."`, `$...$` can now also be used
+  - In addition to the syntax sugar `$"..."`, `$...$` can now also be used
 
-    - Introduced the `chatgpt/temperature_for_checking` parameter
+  - Introduced the `chatgpt/temperature_for_checking` parameter
 
-    - Normalization of scenario strings
+  - Normalization of scenario strings
 
 - Simulation-based tester introduced
 
