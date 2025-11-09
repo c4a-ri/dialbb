@@ -80,7 +80,7 @@ LLM (ChatGPT) を用いたユーザシミュレータを用いたテスタが付
 - サンプルアプリケーションを展開したディレクトリ（`sample_apps`）で以下のコマンドを実行します．
 
   ```sh
-  dialbb-tester --app_config lab_app_ja/config.yml --test_config lab_app_ja/simulation/config.yml --output _output.txt
+  dialbb-sim-tester --app_config lab_app_ja/config.yml --test_config lab_app_ja/simulation/config.yml --output _output.txt
   ```
   
 - `_output.txt`に結果が記述されます．
@@ -100,7 +100,7 @@ LLM (ChatGPT) を用いたユーザシミュレータを用いたテスタが付
 - 起動オプション
 
   ```sh
-  dialbb-tester --app_config <DialBBアプリケーションのコンフィギュレーションファイル> --test_config <テストコンフィギュレーションファイル> --output <出力ファイル>
+  dialbb-sim-tester --app_config <DialBBアプリケーションのコンフィギュレーションファイル> --test_config <テストコンフィギュレーションファイル> --output <出力ファイル>
   ```
   
 - テストコンフィギュレーションファイル

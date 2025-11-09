@@ -84,7 +84,7 @@ The following explains how to run it using Bash. If you are using Windows Comman
 - In the directory where the sample application is extracted (`sample_apps`), run the following command:
 
   ```sh
-  dialbb-tester --app_config lab_app_en/config.yml --test_config lab_app_en/simulation/config.yml --output _output.txt
+  dialbb-sim-tester --app_config lab_app_en/config.yml --test_config lab_app_en/simulation/config.yml --output _output.txt
   ```
 
 - The result will be written to `_output.txt`.
@@ -103,7 +103,7 @@ The following explains how to run it using Bash. If you are using Windows Comman
 - Startup options
 
   ```sh
-  dialbb-tester --app_config <DialBB application config file> --test_config <test config file> --output <output file>
+  dialbb-sim-tester --app_config <DialBB application config file> --test_config <test config file> --output <output file>
   ```
 
 - Test configuration file
