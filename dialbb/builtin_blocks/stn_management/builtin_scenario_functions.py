@@ -23,12 +23,15 @@ __version__ = '0.1'
 __author__ = 'Mikio Nakano' 
 __copyright__ = 'C4A Research Institute, Inc.'
 
-import sys
 import traceback
 from typing import Dict, Any, List
 import os
 import datetime
+import re
 
+#  [[[....{<tag1>}....{<tag2>}....]]]
+REMAINING_TAGS_PATTERN = re.compile( r"\[\[\[(?s)(?=.*\{[A-Za-z0-9_]+\})(?:[^\{\]]|\{[A-Za-z0-9_]+\})*\]\]\]",
+                                     re.DOTALL)
 
 DEFAULT_GPT_MODEL = 'gpt-4o-mini'
 
@@ -307,29 +310,29 @@ def call_chatgpt(prompt: str, context: Dict[str, Any], checking: bool = False) -
 
 
 def get_current_time_string(language: str) -> str:
-    
+
     now = datetime.datetime.now()
     if language == 'ja':
         weekdays = ["月", "火", "水", "木", "金", "土", "日"]
         date_str = now.strftime("%Y年%m月%d日")
         time_str = now.strftime("%H時%M分%S秒")
         weekday_str = weekdays[now.weekday()]
+        result: str = f"{date_str}（{weekday_str}） {time_str}"
     else:
-        weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-        date_str = now.strftime("%Y-%m-%d")
-        time_str = now.strftime("%H:%M:%S")
-        weekday_str = weekdays[now.weekday()]
-    result: str = f"{date_str}（{weekday_str}） {time_str}"
+        result = now.strftime("%A, %B %d, %Y %I:%M:%S %p")
     return result
 
 
 def create_prompt_from_template(prompt_template: str, dialogue_history_string: str,
-                                situation: str, persona: str, language: str) -> str:
+                                situation: str, persona: str, language: str, aux_data: Dict[str, Any]) -> str:
     """
     create prompt from prompt template
-    :param prompt_template:
-    :param dialogue_history_string:
+    :param prompt_template: prompt template
+    :param dialogue_history_string: stringified dialouge history
+    :param situation: stringified situation for chatgpt
+    :param persona: stringified persona for chatgpt
     :param language: 'ja', 'en', ...
+    :param aux_data: aux_data from main module
     :return: prompt
     """
 
@@ -338,10 +341,15 @@ def create_prompt_from_template(prompt_template: str, dialogue_history_string: s
     prompt = prompt.replace("{current_time}", get_current_time_string(language))
     prompt = prompt.replace("{persona}", persona)
     prompt = prompt.replace("{situation}", situation)
-    prompt = prompt.replace("@dialogue_history@", dialogue_history_string)
-    prompt = prompt.replace("@current_time@", get_current_time_string(language))
-    prompt = prompt.replace("@persona@", persona)
-    prompt = prompt.replace("@situation@", situation)
+    prompt = prompt.replace("@dialogue_history@", dialogue_history_string)  # deprecated
+    prompt = prompt.replace("@current_time@", get_current_time_string(language))  # deprecated
+    prompt = prompt.replace("@persona@", persona)  # deprecated
+    prompt = prompt.replace("@situation@", situation)  # deprecated
+    for aux_data_key, aux_data_value in aux_data.items():
+        prompt = prompt.replace("{" + aux_data_key + "}", str(aux_data_value))  # aux_data values replace their place holders
+    prompt = REMAINING_TAGS_PATTERN.sub("", prompt)  # remove remaining tags enclosed by [[[ .... ]]]
+    prompt = prompt.replace('[[[', "")  # remove remaining brackets
+    prompt = prompt.replace(']]]', "")
     return prompt
 
 
@@ -435,8 +443,10 @@ def builtin_check_with_prompt_template(prompt_template: str, context: Dict[str, 
     language: str = context['_config'].get("language")
     dialogue_history: List[Dict[str, str]] = context['_dialogue_history']
     dialogue_history_string: str = create_dialogue_history_string(dialogue_history, language)
+    aux_data = context['_aux_data']
     situation, persona = get_situation_and_persona_from_config(context)
-    prompt: str = create_prompt_from_template(prompt_template, situation, persona, dialogue_history_string, language)
+    prompt: str = create_prompt_from_template(prompt_template, situation, persona,
+                                              dialogue_history_string, language, aux_data)
     response = call_chatgpt(prompt, context, checking=True)
 
     if DEBUG:
