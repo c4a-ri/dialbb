@@ -3,29 +3,12 @@ language: ja   # 言語を指定
 blocks:  # ブロックのリスト
   - name: canonicalizer  # ブロック名
     # ブロックのクラス
-    block_class: dialbb.builtin_blocks.preprocess.japanese_canonicalizer.JapaneseCanonicalizer
+    block_class: 
+      dialbb.builtin_blocks.preprocess.japanese_canonicalizer.JapaneseCanonicalizer
     input: # ブロックへの入力
       input_text: user_utterance
     output: # ブロックからの出力
       output_text: canonicalized_user_utterance
-  - name: understander
-    block_class: dialbb.builtin_blocks.understanding_with_chatgpt.chatgpt_understander.Understander
-    input:
-      input_text: canonicalized_user_utterance
-    output:
-      nlu_result: nlu_result
-    knowledge_file: nlu-knowledge.xlsx  # 知識記述ファイル
-    canonicalizer:
-      class: dialbb.builtin_blocks.preprocess.japanese_canonicalizer.JapaneseCanonicalizer
-    model: gpt-4o-mini
-  - name: ner
-    block_class: dialbb.builtin_blocks.ner_with_chatgpt.chatgpt_ner.NER
-    input:
-      input_text: user_utterance
-      aux_data: aux_data
-    output:
-      aux_data: aux_data
-    knowledge_file: ner-knowledge.xlsx  # 知識記述ファイル
   - name: manager
     block_class: dialbb.builtin_blocks.stn_management.stn_manager.Manager
     knowledge_file: scenario.xlsx # 知識記述ファイル
@@ -59,9 +42,3 @@ blocks:  # ブロックのリスト
         - 独身
         - 非常にフレンドリーに話す
         - 外交的で陽気
-
-        
-        
-
-    
-    

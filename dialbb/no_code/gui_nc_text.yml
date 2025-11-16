@@ -1,0 +1,340 @@
+# ノーコードGUIの表示テキスト多言語ファイル
+
+language type:
+  ja: "ja"
+  en: "en"
+
+# ----- ボタン表記 -----
+btn_create:
+  ja: "新規作成"
+  en: "Create"
+
+btn_edit:
+  ja: "編集"
+  en: "Edit"
+
+btn_export:
+  ja: "書き出し"
+  en: "Export"
+
+btn_setting:
+  ja: "設定"
+  en: "Settings"
+
+btn_select:
+  ja: "選択"
+  en: "Select"
+
+btn_load:
+  ja: "読み込み"
+  en: "Import"
+
+btn_dialbb_start:
+  ja: "サーバ起動"
+  en: "Start Server"
+
+btn_dialbb_stop:
+  ja: "サーバ停止"
+  en: "Stop Server"
+
+btn_chat_start:
+  ja: "対話開始"
+  en: "Start dialogue"
+
+btn_exit:
+  ja: "終了"
+  en: "Exit"
+
+btn_view_log:
+  ja: "ログ表示"
+  en: "Show log"
+
+btn_ok:
+  ja: "OK"
+  en: "OK"
+
+btn_cancel:
+  ja: "キャンセル"
+  en: "Cancel"
+
+btn_yes:
+  ja: "はい"
+  en: "Yes"
+
+btn_no:
+  ja: "いいえ"
+  en: "No"
+
+btn_scenario_start:
+  ja: "シナリオ編集"
+  en: "Scenario Edit"
+
+btn_scenario_stop:
+  ja: "シナリオ編集終了"
+  en: "Stop Scenario Edit"
+
+btn_lang_knowledge:
+  ja: "言語理解知識"
+  en: "NLU Knowledge"
+
+btn_named_entity:
+  ja: "固有表現抽出知識"
+  en: "NER Knowledge"
+
+btn_scenario_func:
+  ja: "シナリオ関数（上級用）"
+  en: "Scenario Functions (Advanced)"
+
+btn_configuration:
+  ja: "コンフィギュレーション"
+  en: "Configuration"
+
+
+# ----- 表示メッセージ -----
+msg_saved:
+  ja: "保存しました。"
+  en: "Saved."
+
+msg_editor_st_title:
+  ja: "シナリオエディタ"
+  en: "Scenario Editor"
+
+msg_editor_st_msg:
+  ja: "シナリオエディタが起動されました。"
+  en: "The scenario editor has been launched."
+
+msg_editor_st_detail:
+  ja: "OKボタンを押すと終了します。"
+  en: "Click the OK button to finish."
+
+msg_editor_err_title:
+  ja: "シナリオエディタ"
+  en: "Scenario Editor"
+
+msg_editor_err_msg:
+  ja: "シナリオエディタアプリの起動に失敗しました。"
+  en: "Failed to start the scenario editor app."
+
+msg_editor_err_detail:
+  ja: "動作環境を確認してください。"
+  en: "Please check the operating environment."
+
+msg_editor_err_notfound:
+  ja: "シナリオエディタアプリが存在しません"
+  en: "Scenario Editor app not found"
+
+msg_editor_warn_server_none:
+  ja: "シナリオエディタは動いていません。"
+  en: "The Scenario Editor is not running."
+
+msg_dialbb_warn_server_already:
+  ja: "DialBBサーバはすでに動作しています。"
+  en: "The DialBB server is already running."
+
+msg_dialbb_warn_server_none:
+  ja: "DialBBサーバは動いていません。"
+  en: "The DialBB server is not running."
+
+msg_dialbb_err_start:
+  ja: "DialBBサーバの起動に失敗しました。"
+  en: "Failed to start the DialBB server."
+
+msg_dialbb_warn_no_log:
+  ja: "ログファイルが見つかりません。"
+  en: "Log file not found."
+
+msg_convfile_nothing:
+  ja: "ExcelファイルまたはJSONファイルが指定されていません。"
+  en: "Excel file or Json file is not specified."
+
+msg_convfile_saved:
+  ja: " が保存されました。"
+  en: " has been saved."
+
+msg_warn_no_file:
+  ja: "ファイルが存在しません。"
+  en: "File does not exist."
+
+msg_warn_no_saved:
+  ja: "シナリオデータが保存されていません。"
+  en: "Scenario data not saved."
+
+msg_warn_no_saved_detail:
+  ja: "必要ならエディターの[保存]ボタンを押してから、[OK]を押します。"
+  en: "Press the editor's Save button if necessary, then press OK."
+
+msg_info_new_app:
+  ja: "新規アプリケーションが作成されました。"
+  en: "A new application has been created."
+
+msg_info_appload:
+  ja: " が読み込まれました。"
+  en: " imported."
+
+msg_cre_nolang:
+  ja: "言語が指定されていません。"
+  en: "No language specified."
+
+msg_warn_user_node_bad_condition:
+  ja: "Warning: ユーザノード%sの遷移の条件\"%s\"は正しい条件ではありません。"
+  en: "Warning: The transition condition for user node %s is not valid as \"%s\"."
+
+msg_warn_user_node_action_note:
+  ja: "Warning: ユーザノード%sの遷移時のアクションに\"%s\"が書かれています。遷移時のアクションは上級者向けのものであることに注意して下さい。"
+  en: "Warning: The action at the transition of user node %s contains \"%s\". Transition actions are for advanced users only. Please be careful."
+
+msg_warn_user_node_no_transition_dest:
+  ja: "Warning: ユーザノード%sの遷移先がありません。"
+  en: "Warning: User node %s has no transition destination."
+
+msg_warn_sys_node_no_type:
+  ja: "Warning: システムノード%sのタイプが未定です。"
+  en: "Warning: System node %s is of unknown type."
+
+msg_warn_sys_node_no_transition_dest:
+  ja: "Warning: システムノード%sの遷移先がありません。"
+  en: "Warning: System node %s has no transition destination."
+
+msg_warn_sys_node_utter_empty:
+  ja: "Warning: システムノード%sの発話が空です。"
+  en: "Warning: The utterance for system node %s is empty."
+
+msg_warn_initial_node_exists:
+  ja: "Warning: typeがinitialのシステムノードがありません。"
+  en: "Warning: Initial system node has no type."
+
+msg_warn_error_node_exists:
+  ja: "Warning: typeがerrorのシステムノードがありません。"
+  en: "Warning: Error system node has no type."
+
+msg_chat_no_response:
+  ja: "システム発話がありません。"
+  en: "No system utterances."
+
+msg_chat_no_session:
+  ja: "セッションが開始されていません。"
+  en: "No session started."
+
+
+# ----- ダイアログ関連 -----
+# mainダイアログ
+main_title_top:
+  ja: "DialBB-ノーコード"
+  en: "DialBB-NC"
+
+main_title_1:
+  ja: "アプリケーション"
+  en: "Application"
+
+main_title_2:
+  ja: "起動"
+  en: "Start"
+
+main_title_3:
+  ja: "編集"
+  en: "Edit"
+
+main_import:
+  ja: "読み込むファイル: "
+  en: "File to import: "
+
+main_app_name:
+  ja: "現在のアプリケーション"
+  en: "Current application"
+
+# アプリケーションの選択ダイアログ
+msg_appfile_select:
+  ja: "アプリケーションファイルの指定 (Zip file)"
+  en: "Select the application file (Zip file)"
+
+# アプリケーションの書き込みダイアログ
+msg_appfile_export:
+  ja: "アプリケーションファイルのエクスポート"
+  en: "Export the application file"
+
+# 新規作成ダイアログ
+cre_title:
+  ja: "新規作成"
+  en: "Create new"
+
+cre_language:
+  ja: "言語"
+  en: "Language"
+
+cre_japanese:
+  ja: "日本語"
+  en: "Japanese"
+
+cre_english:
+  ja: "英語"
+  en: "English"
+
+# 設定ダイアログ
+set_title_top:
+  ja: "設定"
+  en: "Settings"
+
+set_japanese:
+  ja: "日本語"
+  en: "Japanese"
+
+# 編集ダイアログ
+edt_list_title:
+  ja: "アプリケーション編集"
+  en: "Edit Application"
+
+# Config編集ダイアログ
+conf_edt_title:
+  ja: "コンフィグレーション"
+  en: "Edit Application"
+
+conf_edt_named_entity:
+  ja: "固有表現抽出を行いますか？"
+  en: "Use named entity extraction?"
+
+conf_edt_lang_understanding:
+  ja: "言語理解を行いますか？"
+  en: "Use language understanding?"
+
+conf_edt_chatgpt:
+  ja: "ChatGPTの設定"
+  en: "ChatGPT settings"
+
+conf_edt_gptmodel:
+  ja: "モデル:"
+  en: "Model:"
+
+conf_edt_other:
+  ja: "その他"
+  en: "Other"
+
+conf_edt_situation:
+  ja: "状況:"
+  en: "Situation:"
+
+conf_edt_persona:
+  ja: "ペルソナ:"
+  en: "Persona:"
+
+# 関数編集ダイアログ
+func_edt_title:
+  ja: "シナリオ関数"
+  en: "Scenario Functions"
+
+func_edt_funcs:
+  ja: "シナリオ関数"
+  en: "Scenario Functions"
+
+# エディタ起動通知
+editor_st_title:
+  ja: "DialBB GUI Scenario Editor"
+  en: "DialBB GUI Scenario Editor"
+
+editor_st_msg:
+  ja: "DialBB シナリオ エディターが実行中です..."
+  en: "DialBB Scenario Editor is running..."
+
+editor_st_detail:
+  ja: ""
+  en: "Please access http://localhost:5000/\nPress \"Stop\" to stop the server."
+

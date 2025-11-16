@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright 2024 C4A Research Institute, Inc.
+# Copyright 2024-2025 C4A Research Institute, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@
 #   performs dialogue using ChatGPT
 #   ChatGPTを用いた対話
 
-__version__ = '0.1'
 __author__ = 'Mikio Nakano'
 __copyright__ = 'C4A Research Institute, Inc.'
 
@@ -31,7 +30,8 @@ import openai
 from dialbb.abstract_block import AbstractBlock
 from dialbb.util.error_handlers import abort_during_building
 
-DIALOGUE_HISTORY_TAG: str = '@dialogue_history'
+DIALOGUE_HISTORY_OLD_TAG: str = '@dialogue_history'
+DIALOGUE_HISTORY_TAG: str = '{dialogue_history}'
 DEFAULT_GPT_MODEL: str = "gpt-4o-mini"
 
 
@@ -50,15 +50,20 @@ class ChatGPT(AbstractBlock):
         self._openai_client = openai.OpenAI(api_key=openai_api_key)
         self._gpt_model = self.block_config.get("gpt_model", DEFAULT_GPT_MODEL)
 
-        self.user_name: str = self.block_config.get("user_name", "User")
-        self.system_name: str = self.block_config.get("system_name", "System")
-
+        # reading prompt template file
         prompt_template_file: str = self.block_config.get("prompt_template", "")
         if not prompt_template_file:
             abort_during_building("prompt template file is not specified")
         filepath: str = os.path.join(self.config_dir, prompt_template_file)
         with open(filepath, encoding='utf-8') as fp:
-             self._prompt_template = fp.read()
+            self._prompt_template = fp.read()
+        if self._prompt_template.find(DIALOGUE_HISTORY_TAG) >= 0 \
+           or self._prompt_template.find(DIALOGUE_HISTORY_OLD_TAG) >= 0:
+            abort_during_building("The format of the prompt template is obsolete. " +
+                                  "The 'dialogue_history' tag is no longer necessary.")
+
+        # temperature
+        self._temperature = self.block_config.get("temperature", 0.7)
 
         # {"session1" : [{"speaker": "user", "utterance": <user utterance>},
         #                {"speaker": "system", "utterance": <system utterance>},
@@ -93,30 +98,31 @@ class ChatGPT(AbstractBlock):
                 "aux_data": aux_data,
                 "final": final}
 
-    def _generate_with_openai_gpt(self, prompt: str) -> str:
+    def _generate_with_openai_gpt(self, messages: List[Dict[str, str]]) -> str:
 
         """
         Generates system utterance using openai GPT. Does not use "assistant" role.
         This is to be used in the "generate_system_utterance" method.
 
-        :param prompt: prompt string
+        :param messages: dialogue history
         :return: generated string
         """
 
         chat_completion = None
         while True:
             try:
+                temperature = 1 if self._gpt_model == 'gpt-5' else self._temperature
                 chat_completion = self._openai_client.with_options(timeout=10).chat.completions.create(
                     model=self._gpt_model,
-                    messages=[{"role": "user", "content": prompt}],
-                    temperature=0.0,
+                    messages=messages,
+                    temperature=temperature
                     )
             except openai.APITimeoutError:
                 continue
             except Exception as e:
                 self.log_error("OpenAI Error: " + traceback.format_exc())
                 sys.exit(1)
-            finally:
+            else:
                 if not chat_completion:
                     continue
                 else:
@@ -138,20 +144,18 @@ class ChatGPT(AbstractBlock):
         :return: a tuple of system utterance string, aux_data as is, and final flag (always False)
         """
 
-        dialogue_history_string: str = ""
+        messages = []
+        messages.append({'role': "system", "content": self._prompt_template})
 
         for turn in dialogue_history:
             if turn["speaker"] == 'user':
-                dialogue_history_string += f"{self.user_name}: {turn['utterance']}\n"
+                messages.append({'role': "user", "content": turn['utterance']})
             else:
-                dialogue_history_string += f"{self.system_name}: {turn['utterance']}\n"
+                messages.append({'role': "assistant", "content": turn['utterance']})
 
-        prompt: str = self._prompt_template.replace(DIALOGUE_HISTORY_TAG, dialogue_history_string)
-        self.log_debug("prompt: " + prompt, session_id=session_id)
-        generated_utterance: str = self._generate_with_openai_gpt(prompt)
-        self.log_debug("generated system utterance: " + generated_utterance, session_id=session_id)
-        system_utterance: str = generated_utterance.replace(f'{self.system_name}:', '').strip()
-        self.log_debug("final system utterance: " + system_utterance, session_id=session_id)
+        self.log_debug("messages: " + str(messages), session_id=session_id)
+        system_utterance: str = self._generate_with_openai_gpt(messages)
+        self.log_debug("generated system utterance: " + system_utterance, session_id=session_id)
 
         return system_utterance, aux_data, False
 

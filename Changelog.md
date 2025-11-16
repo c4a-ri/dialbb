@@ -1,8 +1,38 @@
 # Changelog
 
+## 1.1.0 (2025.11.8)
+
+- No-code tool
+
+  - The installation procedure imporved
+
+ - The appearance of the scenario editor enhanced
+
+ - The default applications changed
+	
+ - The chat window implemented	
+
+- Embedded block for ChatGPT Dialogue:
+
+  - The `dialogue_history` placeholder removed 
+
+- STN Manager Built-in Block:
+
+  - Modified to allow specifying a prompt template when using ChatGPT for utterance generation and conditional judgment
+
+  - In addition to the syntax sugar `$"..."`, `$...$` can now also be used
+
+  - Introduced the `chatgpt/temperature_for_checking` parameter
+
+  - Normalization of scenario strings
+
+- Simulation-based tester introduced
+
+
 ## 1.0.4 (2025.7.31)
 
 - Bugs in ChatGPT NER builtin block added fixed
+
 
 ## 1.0.3 (2025.4.27)
 
@@ -17,7 +47,7 @@
 ## 1.0.1 (2025.3.19)
 
 - uninstall batch file added
-	
+
 ## 1.0.0 (2025.3.17)
 
 - Installation via pip enabled

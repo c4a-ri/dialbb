@@ -27,6 +27,10 @@ import sys
 import traceback
 from typing import Dict, Any, List
 import os
+import datetime
+
+
+DEFAULT_GPT_MODEL = 'gpt-4o-mini'
 
 use_openai: bool = False
 
@@ -39,7 +43,7 @@ if openai_api_key:
     openai.api_key = openai_api_key
     openai_client = openai.OpenAI(api_key=openai_api_key)
 
-debug: bool = (os.environ.get('DIALBB_DEBUG', 'no').lower() == "yes")
+DEBUG: bool = (os.environ.get('DIALBB_DEBUG', 'no').lower() == "yes")
 
 def builtin_set(variable: str, value: str, context: Dict[str, Any]) -> None:
     """
@@ -178,6 +182,14 @@ def builtin_num_turns_exceeds(threshold_str: str, context: Dict[str, Any]) -> bo
         return False
 
 
+def get_bullet_pointed_string(situation: List[str]) -> str:
+
+    result = ""
+    for situation_element in situation:
+        result += f"- {situation_element}\n"
+    return result
+
+
 def builtin_num_turns_in_state_exceeds(threshold_str: str, context: Dict[str, Any]) -> bool:
     """
     Checks number of turns in the state exceeds the threshold
@@ -194,11 +206,17 @@ def builtin_num_turns_in_state_exceeds(threshold_str: str, context: Dict[str, An
 
     return True if context.get("_turns_in_state", 0) > threshold else False
 
-def create_prompt_for_chatgpt(task: str, language: str, system_persona: str, situation: str,
-                              dialogue_history: List[Dict[str, str]]) -> str:
 
+def create_prompt_in_default_format(task: str, language: str, persona: str, situation: str,
+                                    dialogue_history: List[Dict[str, Any]]) -> str:
     """
-    create prompt for chatgpt-based generation/condition check
+    create prompt for chatgpt-based generation/condition check in default format
+    :param task: task specified in the scenario
+    :param language:  'en', 'ja', ...
+    :param system_persona: persona specified in the configuration
+    :param situation: situation specified in the configuration
+    :param dialogue_history: dialogue history string
+    :return: generated utterance or check result
     """
 
     prompt: str = ""
@@ -208,27 +226,143 @@ def create_prompt_for_chatgpt(task: str, language: str, system_persona: str, sit
         word_your_persona: str = "あなたのペルソナ"
         word_task: str = "タスク"
         word_dialogue_history: str = "今までの対話"
-        word_user: str = "ユーザ"
-        word_system: str = "システム"
     else:
         word_situation: str = "Situation"
         word_your_persona: str = "Your persona"
         word_task: str = "Task"
         word_dialogue_history: str = "Dialogue up to now"
-        word_user: str = "User"
-        word_system: str = "System"
 
     if situation:
         prompt += f"# {word_situation}\n\n"
-        for situation_element in situation:
-            prompt += f"- {situation_element}\n"
+        prompt += situation
         prompt += '\n'
 
-    if system_persona:
+    if persona:
         prompt += f"# {word_your_persona}\n\n"
-        for persona_element in system_persona:
-            prompt += f"- {persona_element}\n"
+        prompt += persona
         prompt += '\n'
+
+    dialogue_history_string: str = create_dialogue_history_string(dialogue_history, language)
+
+    prompt += f"# {word_dialogue_history}\n\n" + dialogue_history_string
+
+    prompt += f"# {word_task}\n\n" + task + "\n\n"
+
+    return prompt
+
+
+def call_chatgpt(prompt: str, context: Dict[str, Any], checking: bool = False) -> str:
+    """
+    call chatgpt and return the result
+    :param prompt: prompt
+    :param context: dialogue context
+    :param checking: True if checking, False if generation
+    :return: chatgpt response
+    """
+
+    # read chatgpt settings in the block config
+    chatgpt_settings: Dict[str, Any] = context['_block_config'].get("chatgpt")
+    if chatgpt_settings:
+        gpt_model: str = chatgpt_settings.get("gpt_model", DEFAULT_GPT_MODEL)
+        if checking:
+            gpt_temperature: float = chatgpt_settings.get("temperature_for_checking",
+                                                          chatgpt_settings.get("temperature", 0.7))
+        else:  # generation
+            gpt_temperature: float = chatgpt_settings.get("temperature", 0.7)
+        instruction: str = chatgpt_settings.get("instruction", "")
+
+    else:
+        gpt_model: str = DEFAULT_GPT_MODEL
+        gpt_temperature: float = 0.7
+        instruction: str = ""
+
+    chat_completion = None
+    if instruction and not checking:  # only for generation
+        messages: List[Dict[str, str]] = [{"role": "system", "content": instruction},
+                                          {"role": "user", "content": prompt}]
+    else:
+        messages: List[Dict[str, str]] = [{"role": "user", "content": prompt}]
+    while True:
+        try:
+            temperature = 1 if gpt_model == 'gpt-5' else gpt_temperature
+            if DEBUG:
+                print(f"calling chatgpt: model: {gpt_model}, temperature: {str(temperature)}, messages: {str(messages)}")
+            chat_completion = openai_client.with_options(timeout=10).chat.completions.create(
+                model=gpt_model,
+                messages=messages,
+                temperature=temperature,
+            )
+        except openai.APITimeoutError:
+            continue
+        except Exception as e:
+            print("OpenAI Error: " + traceback.format_exc())
+        finally:
+            if not chat_completion:
+                continue
+            else:
+                break
+
+    result: str = chat_completion.choices[0].message.content
+    return result
+
+
+def get_current_time_string(language: str) -> str:
+    
+    now = datetime.datetime.now()
+    if language == 'ja':
+        weekdays = ["月", "火", "水", "木", "金", "土", "日"]
+        date_str = now.strftime("%Y年%m月%d日")
+        time_str = now.strftime("%H時%M分%S秒")
+        weekday_str = weekdays[now.weekday()]
+    else:
+        weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+        date_str = now.strftime("%Y-%m-%d")
+        time_str = now.strftime("%H:%M:%S")
+        weekday_str = weekdays[now.weekday()]
+    result: str = f"{date_str}（{weekday_str}） {time_str}"
+    return result
+
+
+def create_prompt_from_template(prompt_template: str, dialogue_history_string: str,
+                                situation: str, persona: str, language: str) -> str:
+    """
+    create prompt from prompt template
+    :param prompt_template:
+    :param dialogue_history_string:
+    :param language: 'ja', 'en', ...
+    :return: prompt
+    """
+
+    prompt: str = prompt_template
+    prompt = prompt.replace("{dialogue_history}", dialogue_history_string)
+    prompt = prompt.replace("{current_time}", get_current_time_string(language))
+    prompt = prompt.replace("{persona}", persona)
+    prompt = prompt.replace("{situation}", situation)
+    prompt = prompt.replace("@dialogue_history@", dialogue_history_string)
+    prompt = prompt.replace("@current_time@", get_current_time_string(language))
+    prompt = prompt.replace("@persona@", persona)
+    prompt = prompt.replace("@situation@", situation)
+    return prompt
+
+
+def create_dialogue_history_string(dialogue_history: List[Dict[str, str]], language: str) -> str:
+    """
+    Create dialogue history string to embed in a prompt
+    e.g.
+       User: Hello
+       System: Hello
+       ...
+    :param dialogue_history: list of utterance information
+    :param language: "en" or "ja"
+    :return: dialogue history string
+    """
+
+    if language == 'ja':
+        word_user: str = "ユーザ"
+        word_system: str = "システム"
+    else:
+        word_user: str = "User"
+        word_system: str = "System"
 
     dialogue_history_string: str = ""
     for turn in dialogue_history:
@@ -239,11 +373,79 @@ def create_prompt_for_chatgpt(task: str, language: str, system_persona: str, sit
         else:  # multi party. use user_id.
             dialogue_history_string += f"{turn['speaker']}: {turn['utterance']}\n"
 
-    prompt += f"# {word_dialogue_history}\n\n" + dialogue_history_string
+    return dialogue_history_string
 
-    prompt += f"# {word_task}\n\n" + task + "\n\n"
 
-    return prompt
+def builtin_generate_with_prompt_template(prompt_template: str, context: Dict[str, Any]) -> str:
+    """
+    Judge if the condition is satisfied using ChatGPT
+    :param prompt_template: instruction
+    :param context: dialogue context
+    :return: generated system utterance
+    """
+
+    if not use_openai:
+        print("Error: can't use openai")
+        return "..."
+
+    language: str = context['_config'].get("language")
+    system_name: str = "システム" if language == 'ja' else "System"
+
+    dialogue_history: List[Dict[str, str]] = context['_dialogue_history']
+    dialogue_history_string: str = create_dialogue_history_string(dialogue_history, language)
+    situation, persona = get_situation_and_persona_from_config(context)
+    prompt: str = create_prompt_from_template(prompt_template, situation, persona, dialogue_history_string, language)
+    generated_utterance = call_chatgpt(prompt, context, checking=False)
+
+    if DEBUG:
+        print("utterance generated by chatgpt: " + generated_utterance, flush=True)
+    generated_utterance = generated_utterance.replace(f'{system_name}:', '').strip()  # remove 'System: '
+
+    return generated_utterance
+
+
+def get_situation_and_persona_from_config(context: Dict[str, Any]) :
+
+    # read chatgpt settings in the block config
+    chatgpt_settings: Dict[str, Any] = context['_block_config'].get("chatgpt")
+    if chatgpt_settings:
+        persona_list: List[str] = chatgpt_settings.get("persona")
+        persona = get_bullet_pointed_string(persona_list)
+        situation_list: List[str] = chatgpt_settings.get("situation")
+        situation = get_bullet_pointed_string(situation_list)
+    else:
+        persona: str = ""
+        situation: str = ""
+
+    return situation, persona
+
+
+def builtin_check_with_prompt_template(prompt_template: str, context: Dict[str, Any]) -> bool:
+    """
+    Judge if the condition is satisfied using ChatGPT
+    :param prompt_template: instruction
+    :param context: dialogue context
+    :return: generated system utterance
+    """
+
+    if not use_openai:
+        print("Error: can't use openai")
+        return "..."
+
+    language: str = context['_config'].get("language")
+    dialogue_history: List[Dict[str, str]] = context['_dialogue_history']
+    dialogue_history_string: str = create_dialogue_history_string(dialogue_history, language)
+    situation, persona = get_situation_and_persona_from_config(context)
+    prompt: str = create_prompt_from_template(prompt_template, situation, persona, dialogue_history_string, language)
+    response = call_chatgpt(prompt, context, checking=True)
+
+    if DEBUG:
+        print("check result: " + response, flush=True)
+    response = response.lower()
+    if response.find("yes") == -1:  # yes was not found
+        return False
+    else:
+        return True
 
 
 def builtin_generate_with_llm(task: str, context: Dict[str, Any]) -> str:
@@ -251,66 +453,37 @@ def builtin_generate_with_llm(task: str, context: Dict[str, Any]) -> str:
     Judge if the condition is satisfied using ChatGPT
     :param task: instruction
     :param context: dialogue context
-    :return: true if satisfied and false otherwise
+    :return: generated system utterance
     """
 
-    if use_openai:
-
-        language: str = context['_config'].get("language")
-        if language == 'ja':
-            system_name: str = "システム"
-        else:
-            system_name: str = "System"
-
-        # read chatgpt settings in the block config
-        chatgpt_settings: Dict[str, Any] = context['_block_config'].get("chatgpt")
-        if chatgpt_settings:
-            gpt_model: str = chatgpt_settings.get("gpt_model", "gpt-4o-mini")
-            gpt_temperature: float = chatgpt_settings.get("temperature", 0.7)
-            system_persona: List[str] = chatgpt_settings.get("persona")
-            situation: List[str] = chatgpt_settings.get("situation")
-        else:
-            gpt_model: str = "gpt-4o-mini"
-            gpt_temperature: float = 0.7
-            system_persona: str = ""
-            situation: str = ""
-
-        dialogue_history: List[Dict[str, str]] = context['_dialogue_history']
-
-        if language == 'ja':
-            task = task + "あなたの名前は含めないでください。"
-        else:
-            task = task + "Please don't include your name."
-
-        prompt: str = create_prompt_for_chatgpt(task, language, system_persona, situation, dialogue_history)
-        if debug:
-            print("prompt: \n" + prompt)
-
-        chat_completion = None
-        while True:
-            try:
-                chat_completion = openai_client.with_options(timeout=10).chat.completions.create(
-                    model=gpt_model,
-                    messages=[{"role": "user", "content": prompt}],
-                    temperature=gpt_temperature,
-                )
-            except openai.APITimeoutError:
-                continue
-            except Exception as e:
-                print("OpenAI Error: " + traceback.format_exc())
-            finally:
-                if not chat_completion:
-                    continue
-                else:
-                    break
-
-        generated_utterance: str = chat_completion.choices[0].message.content
-        if debug:
-            print("utterance generated by chatgpt: " + generated_utterance, flush=True)
-        generated_utterance = generated_utterance.replace(f'{system_name}:', '').strip()  # remove 'System: '
-        return generated_utterance
-    else:
+    if not use_openai:
+        print("Error: can't use openai")
         return "..."
+
+    language: str = context['_config'].get("language", 'en')
+
+    if language == 'ja':
+        task = task + "あなたの名前は含めないでください。"
+    else:
+        task = task + "Please don't include your name."
+
+    situation, persona = get_situation_and_persona_from_config(context)
+    dialogue_history: List[Dict[str, str]] = context['_dialogue_history']
+
+    prompt: str = create_prompt_in_default_format(task, language, persona, situation, dialogue_history)
+    if DEBUG:
+        print("prompt: \n" + prompt)
+
+    generated_utterance: str = call_chatgpt(prompt, context, checking=False)
+
+    if DEBUG:
+        print("utterance generated by chatgpt: " + generated_utterance, flush=True)
+
+    system_name: str = "システム" if language == 'ja' else "System"
+
+    generated_utterance = generated_utterance.replace(f'{system_name}:', '').strip()  # remove 'System: '
+
+    return generated_utterance
 
 
 def builtin_check_with_llm(task: str, context: Dict[str, Any]) -> bool:
@@ -321,62 +494,32 @@ def builtin_check_with_llm(task: str, context: Dict[str, Any]) -> bool:
     :return: true if the condition is satisfied
     """
 
-    if use_openai:
-
-        language: str = context['_config'].get("language")
-
-        # read chatgpt settings in the block config
-        chatgpt_settings: Dict[str, Any] = context['_block_config'].get("chatgpt")
-        if chatgpt_settings:
-            gpt_model: str = chatgpt_settings.get("gpt_model", "gpt-4o-mini")
-            gpt_temperature: float = chatgpt_settings.get("temperature_for_checking", 0.7)
-            system_persona: List[str] = chatgpt_settings.get("persona")
-            situation: List[str] = chatgpt_settings.get("situation")
-        else:
-            gpt_model: str = "gpt-4o-mini"
-            gpt_temperature: float = 0.7
-            system_persona: str = ""
-            situation: str = ""
-
-        dialogue_history: List[Dict[str, str]] = context['_dialogue_history']
-
-        if language == 'ja':
-            task = task + "YesかNoのどちらかで答えてください。"
-        else:
-            task = task + "Please answer with yes or no."
-
-        prompt: str = create_prompt_for_chatgpt(task, language, system_persona, situation, dialogue_history)
-
-        if debug:
-            print("prompt: \n" + prompt)
-
-        chat_completion = None
-        while True:
-            try:
-                chat_completion = openai_client.with_options(timeout=10).chat.completions.create(
-                    model=gpt_model,
-                    messages=[{"role": "user", "content": prompt}],
-                    temperature=gpt_temperature,
-                )
-            except openai.APITimeoutError:
-                continue
-            except Exception as e:
-                print("OpenAI Error: " + traceback.format_exc())
-            finally:
-                if not chat_completion:
-                    continue
-                else:
-                    break
-        response: str = chat_completion.choices[0].message.content
-        if debug:
-            print("response from chatgpt: " + response, flush=True)
-        response = response.lower()
-        if response.find("yes") == -1:  # yes was not found
-            return False
-        else:
-            return True
-    else:
-        print ("Error: can't use openai")
+    if not use_openai:
+        print("Error: can't use openai")
         return False
 
+    language: str = context['_config'].get("language")
 
+    situation, persona = get_situation_and_persona_from_config(context)
+
+    dialogue_history: List[Dict[str, str]] = context['_dialogue_history']
+
+    if language == 'ja':
+        task = task + "YesかNoのどちらかで答えてください。"
+    else:
+        task = task + "Please answer with yes or no."
+
+    prompt: str = create_prompt_in_default_format(task, language, persona, situation, dialogue_history)
+
+    if DEBUG:
+        print("prompt: \n" + prompt)
+
+    response: str = call_chatgpt(prompt, context, checking=True)
+
+    if DEBUG:
+        print("response from chatgpt: " + response, flush=True)
+    response = response.lower()
+    if response.find("yes") == -1:  # yes was not found
+        return False
+    else:
+        return True

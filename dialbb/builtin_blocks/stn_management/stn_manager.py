@@ -104,7 +104,9 @@ BUILTIN_FUNCTION_MODULE: str = "dialbb.builtin_blocks.stn_management.builtin_sce
 SCOPES = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
 
 # {<variable name>||<function call>|<LLM instruction>}
-EMBEDDING_PATTERN = re.compile(r'{([^}]+)}')
+EMBEDDING_PATTERN = re.compile(r'{(.*?)}', re.DOTALL)
+PROMPT_TEMPLATE_PATTERN = re.compile(r"\$\$\$(.*?)\$\$\$", re.DOTALL)
+LLM_INSTRUCTION_PATTERN = re.compile(r"\$(.*?)\$")
 
 
 class STNError(Exception):
@@ -214,7 +216,7 @@ class Manager(AbstractBlock):
         flags_to_use = self.block_config.get(CONFIG_KEY_FLAGS_TO_USE, [ANY_FLAG])
         self._network: StateTransitionNetwork = create_stn(scenario_df, flags_to_use)
         if self.block_config.get(CONFIG_KEY_SCENARIO_GRAPH, False):
-            create_scenario_graph(scenario_df, CONFIG_DIR) # create graph for scenario writers
+            create_scenario_graph(scenario_df, CONFIG_DIR)  # create graph for scenario writers
 
         # check network 状態遷移ネットワークのチェックを行う
         if DEBUG:
@@ -578,7 +580,18 @@ class Manager(AbstractBlock):
         :return: system utterance in which expressions are realized
         """
 
-        result = Transition.replace_special_characters_in_constant(text)  # replace commas and semicolons in constant
+        result = text
+
+        for m in PROMPT_TEMPLATE_PATTERN.finditer(result):  # $$$ ... $$$
+            prompt_template: str = m.group(1)
+            prompt_template = prompt_template.replace('{', '@').replace('}', '@')
+            result = result.replace(m.group(0), f'{{_generate_with_prompt_template("{prompt_template}")}}')
+
+        result = LLM_INSTRUCTION_PATTERN.sub(r'{_generate_with_llm("\1")}', result)   # $ ... $
+
+        # replace commas and semicolons in constant
+        result = Transition.replace_special_characters_in_constant(result)
+
 
         # variable in context, special variable (starting with '#'), function call,
         # or LLM instruction (starting with !)
@@ -586,7 +599,7 @@ class Manager(AbstractBlock):
             to_be_replaced: str = match.group(0)
             expression = match.group(1)
             expression = expression.strip()
-            if expression.startswith('$'):
+            if expression.startswith('$'):  # $"...."
                 expression = f'_generate_with_llm({expression[1:]})'
             m = function_call_pattern.match(expression)  # matches the function call pattern
             if m:
@@ -759,11 +772,11 @@ class Manager(AbstractBlock):
         if function_name[0] == '_':  # when builtin
             function_name = BUILTIN_FUNCTION_PREFIX + function_name
 
-        argument_names: List[str] = []
+        raw_argument_values: List[str] = []
         if argument_list_string:
             # replace commas and semicolons in constant strings
-            argument_names= [argument_str.strip().replace(COMMA, ',').replace(SEMICOLON,"")
-                             for argument_str in re.split("[,，、]", argument_list_string)]
+            raw_argument_values = [argument_str.strip().replace(COMMA, ',').replace(SEMICOLON,"")
+                                   for argument_str in re.split("[,，、]", argument_list_string)]
 
         self.log_debug(f"calling function in system utterance: {function_name}({argument_list_string})",
                        session_id=session_id)
@@ -777,9 +790,9 @@ class Manager(AbstractBlock):
         # realize variables 変数の具体化
         try:
             argument_values: List[Any] \
-                = [self._realize_argument(Argument(argument), nlu_result, aux_data, context,
+                = [self._realize_argument(Argument(raw_argument), nlu_result, aux_data, context,
                                           user_id, session_id, sentence)
-                   for argument in argument_names]
+                   for raw_argument in raw_argument_values]
         except Exception as e:  # failure in realization
             self.log_warning(f"Exception occurred during realizing arguments in system utterance: {str(argument_names)}",
                              session_id=session_id)
@@ -790,6 +803,7 @@ class Manager(AbstractBlock):
             argument_value_strings: List[str] = [str(x) for x in argument_values]
             self.log_debug(f"function call in system utterance is realized: {function_name}({','.join(argument_value_strings)})",
                            session_id=session_id)
+        argument_names: List[str] = [f"arg{str(i+1)}" for i in range(len(argument_values))]  #  ['arg1', 'arg2', ...]
         argument_names.append("context")  # add context to the arguments 対話文脈を引数に加える
         argument_values.append(context)
         args: Dict[str, str] = dict(zip(argument_names, argument_values))
