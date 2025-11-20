@@ -40,7 +40,7 @@ from dialbb.builtin_blocks.stn_management.context_db import ContextDB
 from dialbb.builtin_blocks.stn_management.state_transition_network \
     import StateTransitionNetwork, State, Transition, Argument, Condition, Action, \
     INITIAL_STATE_NAME, ERROR_STATE_NAME, FINAL_ABORT_STATE_NAME, GOSUB, EXIT, function_call_pattern, \
-    BUILTIN_FUNCTION_PREFIX, COMMA, SEMICOLON
+    BUILTIN_FUNCTION_PREFIX, COMMA, SEMICOLON, LEFTBRACE, RIGHTBRACE
 from dialbb.builtin_blocks.stn_management.stn_creator import create_stn
 from dialbb.abstract_block import AbstractBlock
 from dialbb.main import ANY_FLAG, DEBUG, CONFIG_KEY_FLAGS_TO_USE, CONFIG_DIR
@@ -585,7 +585,7 @@ class Manager(AbstractBlock):
 
         for m in PROMPT_TEMPLATE_PATTERN.finditer(result):  # $$$ ... $$$
             prompt_template: str = m.group(1)
-            prompt_template = prompt_template.replace('{', '@').replace('}', '@')
+            prompt_template = prompt_template.replace('{', LEFTBRACE).replace('}', RIGHTBRACE)
             result = result.replace(m.group(0), f'{{_generate_with_prompt_template("{prompt_template}")}}')
 
         result = LLM_INSTRUCTION_PATTERN.sub(r'{_generate_with_llm("\1")}', result)   # $ ... $

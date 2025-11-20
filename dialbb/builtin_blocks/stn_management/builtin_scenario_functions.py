@@ -323,8 +323,10 @@ def get_current_time_string(language: str) -> str:
     return result
 
 
-def create_prompt_from_template(prompt_template: str, dialogue_history_string: str,
-                                situation: str, persona: str, language: str, aux_data: Dict[str, Any]) -> str:
+def create_prompt_from_template(prompt_template: str,
+                                situation: str, persona: str,
+                                dialogue_history_string: str,
+                                language: str, aux_data: Dict[str, Any]) -> str:
     """
     create prompt from prompt template
     :param prompt_template: prompt template
@@ -341,10 +343,10 @@ def create_prompt_from_template(prompt_template: str, dialogue_history_string: s
     prompt = prompt.replace("{current_time}", get_current_time_string(language))
     prompt = prompt.replace("{persona}", persona)
     prompt = prompt.replace("{situation}", situation)
-    prompt = prompt.replace("@dialogue_history@", dialogue_history_string)  # deprecated
-    prompt = prompt.replace("@current_time@", get_current_time_string(language))  # deprecated
-    prompt = prompt.replace("@persona@", persona)  # deprecated
-    prompt = prompt.replace("@situation@", situation)  # deprecated
+    prompt = prompt.replace("@dialogue_history@", dialogue_history_string)
+    prompt = prompt.replace("@current_time@", get_current_time_string(language))
+    prompt = prompt.replace("@persona@", persona)
+    prompt = prompt.replace("@situation@", situation)
     for aux_data_key, aux_data_value in aux_data.items():
         prompt = prompt.replace("{" + aux_data_key + "}", str(aux_data_value))  # aux_data values replace their place holders
     prompt = REMAINING_TAGS_PATTERN.sub("", prompt)  # remove remaining tags enclosed by [[[ .... ]]]
@@ -401,8 +403,13 @@ def builtin_generate_with_prompt_template(prompt_template: str, context: Dict[st
 
     dialogue_history: List[Dict[str, str]] = context['_dialogue_history']
     dialogue_history_string: str = create_dialogue_history_string(dialogue_history, language)
+    aux_data = context['_aux_data']
     situation, persona = get_situation_and_persona_from_config(context)
-    prompt: str = create_prompt_from_template(prompt_template, situation, persona, dialogue_history_string, language)
+    prompt: str = create_prompt_from_template(prompt_template, situation, persona,
+                                              dialogue_history_string, language, aux_data)
+
+    if DEBUG:
+        print("prompt for chatgpt: " + prompt, flush=True)
     generated_utterance = call_chatgpt(prompt, context, checking=False)
 
     if DEBUG:
