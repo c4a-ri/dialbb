@@ -110,12 +110,12 @@ def check_and_warn(scenario_json_file: str) -> str:
                 elif system_node_type == "error":
                     error_node_exists = True
 
-                if system_node_type not in ("final", "error"):
-                    if node["id"] not in connect_sources:
-                        warning += (
-                            gui_text("msg_warn_sys_node_no_transition_dest") % node_id
-                            + "\n"
-                        )
+                # if system_node_type not in ("final", "error"):
+                #     if node["id"] not in connect_sources:
+                #         warning += (
+                #             gui_text("msg_warn_sys_node_no_transition_dest") % node_id
+                #             + "\n"
+                #         )
 
             utterance: str = node["controls"]["utterance"]["value"].strip()
             if utterance == "":
