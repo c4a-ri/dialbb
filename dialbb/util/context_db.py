@@ -36,10 +36,10 @@ CONFIG_KEY_CONTEXT_DB_PORT: str = "port"
 CONFIG_KEY_CONTEXT_DB_USER: str = "user"
 CONFIG_KEY_CONTEXT_DB_PASSWORD: str = "password"
 KEY_SESSION_ID: str = "session_id"
-KEY_CONTEXT: str = "context"
-KEY_PREVIOUS_CONTEXT: str = "previous_context"
+# KEY_CONTEXT: str = "context"
+# KEY_PREVIOUS_CONTEXT: str = "previous_context"
 TEN_MINUTES: int = 10*60*1000
-CONTEXT_KEY_CURRENT_STATE_NAME = '_current_state_name'
+# CONTEXT_KEY_CURRENT_STATE_NAME = '_current_state_name'
 
 # context db (to be used when mongo is not used)
 context_db = None
@@ -74,69 +74,63 @@ class ContextDB:
             abort_during_building(f"failed to connect the context db.")
 
     @staticmethod
-    def _serialize_context(context: Dict[str, Any]) -> bytes:
+    def _serialize_data(data: Any) -> bytes:
 
-        result: bytes = pickle.dumps(context)
+        result: bytes = pickle.dumps(data)
         return result
 
     @staticmethod
-    def _deserialize_context(serialized_context: bytes) -> Dict[str, Any]:
+    def _deserialize_data(serialized_data: bytes) -> Any:
 
-        result: Dict[str, Any] = pickle.loads(serialized_context)
+        result: Dict[str, Any] = pickle.loads(serialized_data)
         return result
 
-    def add_context(self, session_id: str, context: Dict[str, Any]) -> None:
+    def add_data(self, session_id: str, key: str, data: Dict[str, Any]) -> None:
 
-        if self._debug:
-            state: str = context.get(CONTEXT_KEY_CURRENT_STATE_NAME, "")
-            print(f"adding context to db (state: {state}): " + str(context))
-        serialized_context = self._serialize_context(context)
+        serialized_data = self._serialize_data(data)
         if self._context_collection.find_one({KEY_SESSION_ID: session_id}):
             self._context_collection.find_one_and_update({KEY_SESSION_ID: session_id},
-                                                         {"$set": {KEY_CONTEXT: serialized_context}})
+                                                         {"$set": {key: serialized_data}})
         else:
-            self._context_collection.insert_one({KEY_SESSION_ID: session_id, KEY_CONTEXT: serialized_context})
+            self._context_collection.insert_one({KEY_SESSION_ID: session_id, key: serialized_data})
 
-    def get_context(self, session_id: str) -> Optional[Dict[str, Any]]:
+    def get_data(self, session_id: str, key: str) -> Optional[Any]:
 
         document: Dict[str, Any] = self._context_collection.find_one({KEY_SESSION_ID: session_id})
         if document:
-            serialized_context: bytes = document.get(KEY_CONTEXT)
-            context: Dict[str, Any] = self._deserialize_context(serialized_context)
-            if self._debug:
-                state: str = context.get(CONTEXT_KEY_CURRENT_STATE_NAME, "")
-                print(f"got context from db  (state: {state}): " + str(context))
+            serialized_data: bytes = document.get(key)
+            context: Dict[str, Any] = self._deserialize_data(serialized_data)
             return context
         else:
             if self._debug:
                 print("no context found in the db.")
             return None
 
-
-    def add_previous_context(self, session_id: str, context: Dict[str, Any]) -> None:
-
-        if self._debug:
-            state: str = context.get(CONTEXT_KEY_CURRENT_STATE_NAME, "")
-            print(f"adding previous context db  (state: {state}): " + str(context))
-        serialized_context = self._serialize_context(context)
-        if self._context_collection.find_one({KEY_SESSION_ID: session_id}):
-            self._context_collection.find_one_and_update({KEY_SESSION_ID: session_id},
-                                                         {"$set": {KEY_PREVIOUS_CONTEXT: serialized_context}})
-        else:
-            self._context_collection.insert_one({KEY_SESSION_ID: session_id, KEY_PREVIOUS_CONTEXT: serialized_context})
-
-    def get_previous_context(self, session_id: str) -> Optional[Dict[str, Any]]:
-
-        document: Dict[str, Any] = self._context_collection.find_one({KEY_SESSION_ID: session_id})
-        if document:
-            serialized_context: bytes = document.get(KEY_PREVIOUS_CONTEXT)
-            context: Dict[str, Any] = self._deserialize_context(serialized_context)
-            if self._debug:
-                state: str = context.get(CONTEXT_KEY_CURRENT_STATE_NAME, "")
-                print(f"got previous context from db  (state: {state}): " + str(context))
-            return context
-        else:
-            if self._debug:
-                print("no previous context found in the db.")
-            return None
+    #
+    # def add_previous_context(self, session_id: str, context: Dict[str, Any]) -> None:
+    #
+    #     if self._debug:
+    #         state: str = context.get(CONTEXT_KEY_CURRENT_STATE_NAME, "")
+    #         print(f"adding previous context db  (state: {state}): " + str(context))
+    #     serialized_context = self._serialize_context(context)
+    #     if self._context_collection.find_one({KEY_SESSION_ID: session_id}):
+    #         self._context_collection.find_one_and_update({KEY_SESSION_ID: session_id},
+    #                                                      {"$set": {KEY_PREVIOUS_CONTEXT: serialized_context}})
+    #     else:
+    #         self._context_collection.insert_one({KEY_SESSION_ID: session_id, KEY_PREVIOUS_CONTEXT: serialized_context})
+    #
+    # def get_previous_context(self, session_id: str) -> Optional[Dict[str, Any]]:
+    #
+    #     document: Dict[str, Any] = self._context_collection.find_one({KEY_SESSION_ID: session_id})
+    #     if document:
+    #         serialized_context: bytes = document.get(KEY_PREVIOUS_CONTEXT)
+    #         context: Dict[str, Any] = self._deserialize_context(serialized_context)
+    #         if self._debug:
+    #             state: str = context.get(CONTEXT_KEY_CURRENT_STATE_NAME, "")
+    #             print(f"got previous context from db  (state: {state}): " + str(context))
+    #         return context
+    #     else:
+    #         if self._debug:
+    #             print("no previous context found in the db.")
+    #         return None
 

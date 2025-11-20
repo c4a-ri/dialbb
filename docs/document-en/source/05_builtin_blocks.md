@@ -717,21 +717,21 @@ Here are some examples:
 
   ```python
   _generate_with_prompt_template("""
-
+  
   # Situation
-
+  
   {situation}
-
+  
   # Your persona
-
+  
   {persona}
-
+  
   # Dialogue history up to now
-
+  
   {dialogue_history}
-
+  
   # Task
-
+  
   Determine whether the user has given a reason, and answer with either 'yes' or 'no'.
   """)
   ```
@@ -740,21 +740,21 @@ Here are some examples:
 
   ```python
   _generate_with_prompt_template("""
-
+  
   # Situation
-
+  
   {situation}
-
+  
   # Your persona
-
+  
   {persona}
-
+  
   # Dialogue history up to now
-
+  
   {dialogue_history}
-
+  
   # Task
-
+  
   Based on the dialogue so far, generate a closing utterance within 50 characters.
   """)
   ```
@@ -774,6 +774,26 @@ Here are some examples:
 
   - `{current_time}`
     Replaced with a string representing the current date, day of the week, and time (hour, minute, second) at which the dialogue is taking place.
+
+  - {aux_dataのキー}
+
+    The value of the auxiliary data key (if it is not a string, convert it to a string) is used as a replacement.
+
+- Removing the placeholders that could not be replaced:
+
+  Sections enclosed by `[[[` and `]]]` are deleted from the prompt if they contain placeholders that remain unreplaced. For example:
+
+  ```txt
+  [[[ 
+  
+  # Caution
+  
+  {caution}
+  
+  ]]]
+  ```
+
+  If `aux_data` does not contain the key `caution`, this section will be removed. Note that in this case, the keys in `aux_data` must consist only of letters, numbers, and underscores.
 
 
 #### Syntax sugars for built-in functions
@@ -891,7 +911,7 @@ If the input `nlu_result` is a list that contains multiple language understandin
 
 Starting from the top of the list, check whether the `type` value of a candidate language understanding result is equal to the `user utterance type` value of one of the possible transitions from the current state, and use the candidate language understanding result if there is an equal transition. If none of the candidate language comprehension results meet the above conditions, the first language comprehension result in the list is used.
 
-### Subdialogue
+### Subdialogue (Deprecated)
 
 If the destination state name is of the form `#gosub:<state name1>:<state name2>`, it transitions to the state `<state name1>` and executes a subdialogue starting there. If the destination state is `:exit`, it moves to the state `<state name2>`.
 For example, if the destination state name is of the form `#gosub:request_confirmation:confirmed`, a subdialogue starting with `request_confirmatin` is executed, and when the destination state becomes `:exit`, it returns to `confirmed`. When the destination becomes `:exit`, it returns to `confirmed`.
@@ -1061,8 +1081,35 @@ When using these blocks, you need to set the OpenAI license key in the environme
 ### Process Details
 
 - At the beginning of the dialog, the value of `first_system_utterance` in the block configuration is returned as system utterance.
-
 - In the second and subsequent turns, the prompt template is given to ChatGPT and the returned string is returned as the system utterance.
+
+#### Placeholders in Prompt Templates
+
+- `{current_time}` is replaced with the current date and time. If the `language` value in the configuration file is set to `ja`, the string will be in Japanese; otherwise, it will be in English. 
+
+  Example usage:
+
+  ```
+  Please generate an utterance taking into account that the current time is {current_time}.
+  ```
+
+  のような形で使えます。
+
+- `{key_from_aux_data}` is replaced with the value from auxiliary data. If the value is not a string, it will be converted to one.
+
+- Sections enclosed in `[[[` and `]]]` will be removed from the prompt if they contain unreplaced placeholders. For example:
+
+  ```
+  [[[ 
+  
+  # Caution
+  
+  {caution}
+  
+  ]]]
+  ```
+
+  If `caution` is not included in `aux_data`, this entire block will be deleted. Please note that keys in `aux_data` must consist only of letters, numbers, and underscores.
 
 
 (chatgpt_ner)=

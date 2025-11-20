@@ -113,6 +113,13 @@ class DialogueProcessor:
             self._blocks.append(block)
         # todo check the formats of input of the first block and output of the last block
 
+        context_db_config = config.get("context_db")
+        self._use_context_db: bool = True if context_db_config else False
+
+
+
+
+
         self._logger = get_logger("main")
 
     @classmethod
