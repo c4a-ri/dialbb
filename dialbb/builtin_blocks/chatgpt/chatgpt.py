@@ -32,10 +32,14 @@ from dialbb.abstract_block import AbstractBlock
 from dialbb.util.error_handlers import abort_during_building
 import re
 
+from dialbb.util.globals import CHATGPT_INSTRUCTIONS
+
 DIALOGUE_HISTORY_OLD_TAG: str = '@dialogue_history'
 DIALOGUE_HISTORY_TAG: str = '{dialogue_history}'
 CURRENT_TIME_TAG: str = '{current_time}'
 DEFAULT_GPT_MODEL: str = "gpt-4o-mini"
+DIALOGUE_HISTORY_STRING = {"ja": "現在までの対話", "en": "Dialogue up to now"}
+
 
 #  [[[....{tag1}....{tag2}....]]]
 REMAINING_TAGS_PATTERN = re.compile( r"\[\[\[(?s)(?=.*\{[A-Za-z0-9_]+\})(?:[^\{\]]|\{[A-Za-z0-9_]+\})*\]\]\]",
@@ -57,6 +61,10 @@ class ChatGPT(AbstractBlock):
         self._openai_client = openai.OpenAI(api_key=openai_api_key)
         self._gpt_model = self.block_config.get("gpt_model", DEFAULT_GPT_MODEL)
 
+        self.user_name: str = self.block_config.get("user_name", "User")
+        self.system_name: str = self.block_config.get("system_name", "System")
+
+
         # reading prompt template file
         prompt_template_file: str = self.block_config.get("prompt_template", "")
         if not prompt_template_file:
@@ -71,6 +79,8 @@ class ChatGPT(AbstractBlock):
 
         # temperature
         self._temperature = self.block_config.get("temperature", 0.7)
+
+
 
         # {"session1" : [{"speaker": "user", "utterance": <user utterance>},
         #                {"speaker": "system", "utterance": <system utterance>},
@@ -180,18 +190,32 @@ class ChatGPT(AbstractBlock):
         prompt = prompt.replace('[[[', "")  # remove remaining brackets
         prompt = prompt.replace(']]]', "")
 
-        messages = []
-        messages.append({'role': "system", "content": prompt})
 
+        # add dialogue history to string
+        dialogue_history_string: str = ""
         for turn in dialogue_history:
             if turn["speaker"] == 'user':
-                messages.append({'role': "user", "content": turn['utterance']})
+                dialogue_history_string += f"{self.user_name}: {turn['utterance']}\n"
             else:
-                messages.append({'role': "assistant", "content": turn['utterance']})
+                dialogue_history_string += f"{self.system_name}: {turn['utterance']}\n"
 
+        if prompt.find(DIALOGUE_HISTORY_TAG) >= 0:
+            prompt: str = self._prompt_template.replace(DIALOGUE_HISTORY_TAG, dialogue_history_string)
+        elif prompt.find(DIALOGUE_HISTORY_OLD_TAG) >= 0:
+            prompt: str = prompt.replace(DIALOGUE_HISTORY_OLD_TAG, dialogue_history_string)
+        else:
+            prompt += f"\n#{DIALOGUE_HISTORY_STRING[language]}\n\n{dialogue_history_string}"
+
+        # create messages
+        messages = []
+        messages.append({'role': "system", "content": CHATGPT_INSTRUCTIONS[language]})
+        messages.append({'role': "user", "content": prompt})
         self.log_debug("messages: " + str(messages), session_id=session_id)
-        system_utterance: str = self._generate_with_openai_gpt(messages)
-        self.log_debug("generated system utterance: " + system_utterance, session_id=session_id)
+
+        generated_utterance: str = self._generate_with_openai_gpt(messages)
+        self.log_debug("generated system utterance: " + generated_utterance, session_id=session_id)
+        system_utterance: str = generated_utterance.replace(f'{self.system_name}:', '').strip()
+        self.log_debug("final system utterance: " + system_utterance, session_id=session_id)
 
         return system_utterance, aux_data, False
 

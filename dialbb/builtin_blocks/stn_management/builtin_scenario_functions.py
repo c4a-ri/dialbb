@@ -29,6 +29,8 @@ import os
 import datetime
 import re
 
+from dialbb.util.globals import CHATGPT_INSTRUCTIONS
+
 #  [[[....{<tag1>}....{<tag2>}....]]]
 REMAINING_TAGS_PATTERN = re.compile( r"\[\[\[(?s)(?=.*\{[A-Za-z0-9_]+\})(?:[^\{\]]|\{[A-Za-z0-9_]+\})*\]\]\]",
                                      re.DOTALL)
@@ -272,7 +274,8 @@ def call_chatgpt(prompt: str, context: Dict[str, Any], checking: bool = False) -
                                                           chatgpt_settings.get("temperature", 0.7))
         else:  # generation
             gpt_temperature: float = chatgpt_settings.get("temperature", 0.7)
-        instruction: str = chatgpt_settings.get("instruction", "")
+        language = context['_config'].get('language', 'en')
+        instruction: str = chatgpt_settings.get("instruction", CHATGPT_INSTRUCTIONS[language])
 
     else:
         gpt_model: str = DEFAULT_GPT_MODEL
