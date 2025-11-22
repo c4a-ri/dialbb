@@ -247,9 +247,24 @@
 - スイーツが好きかどうか聞く
 - ユーザがスイーツが好きな場合，どんなスイーツが好きか聞く
 - ユーザがスイーツが好きでない場合，なんで好きじゃないのか聞く
+
+# 注意事項
+
+- あなたの名前や「ユーザ」を発話の先頭に入れないでください。
+- 「」はつけないでください。
+[[[
+{notes}
+]]]
+
 </pre></div>
 </div>
-<p>このプロンプトテンプレートと対話の履歴を用いて次のシステム発話を生成します。</p>
+<p>このプロンプトテンプレートにそれまでの対話の履歴をつけたものがChatGPTに送られてシステム発話が生成されます。</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[[[</span>
+<span class="p">{</span><span class="n">notes</span><span class="p">}</span>
+<span class="p">]]]</span>
+</pre></div>
+</div>
+<p>の部分は通常使われずに削除されます。詳細な説明は省略します。</p>
 </section>
 <section id="app-development-with-chatgpt-app">
 <span id="id7"></span><h3><span class="section-number">3.3.2. </span>ChatGPTアプリケーションを利用したアプリケーション作成<a class="headerlink" href="#app-development-with-chatgpt-app" title="この見出しへのパーマリンク"></a></h3>

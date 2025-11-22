@@ -107,23 +107,24 @@
 <li class="toctree-l2"><a class="reference internal" href="#chatgpt-dialogue-chatgpt">5.6. ChatGPT Dialogue （ChatGPTベースの対話ブロック）</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#id36">5.6.1. 入出力</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#id37">5.6.2. ブロックコンフィギュレーションのパラメータ</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id38">5.6.3. 処理内容</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id38">5.6.3. プロンプトテンプレート内のプレースホルダ</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id39">5.6.4. 処理内容</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#chatgpt-ner-chatgpt">5.7. ChatGPT NER （ChatGPTを用いた固有表現抽出ブロック）</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id39">5.7.1. 入出力</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id40">5.7.2. ブロックコンフィギュレーションのパラメータ</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id40">5.7.1. 入出力</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id41">5.7.2. ブロックコンフィギュレーションのパラメータ</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#chatgpt-ner-knowledge">5.7.3. 固有表現抽出知識</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#id43">5.7.3.1. utterancesシート</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id44">5.7.3.1. utterancesシート</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#classes">5.7.3.2. classesシート</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#spacy-based-named-entity-recognizer-spacy">5.8. spaCy-Based Named Entity Recognizer （spaCyを用いた固有表現抽出ブロック）</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id44">5.8.1. 入出力</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id45">5.8.2. ブロックコンフィギュレーションのパラメータ</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id46">5.8.3. 処理内容</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id45">5.8.1. 入出力</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id46">5.8.2. ブロックコンフィギュレーションのパラメータ</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id47">5.8.3. 処理内容</a></li>
 </ul>
 </li>
 </ul>
@@ -823,7 +824,7 @@
 <p>GPTのモデル名です．<code class="docutils literal notranslate"><span class="pre">gpt-4o-mini</span></code>, <code class="docutils literal notranslate"><span class="pre">gpt-4o</span></code>等を指定できます．デフォルト値は<code class="docutils literal notranslate"><span class="pre">gpt-4o-mini</span></code>です．<code class="docutils literal notranslate"><span class="pre">gpt-5</span></code>は利用できません．</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">instruction</span></code> (文字列)</p>
-<p>ChatGPT APIを呼び出す際に，システムロールのメッセージとして用いられます．文字列生成の時だけ用いられます．</p>
+<p>ChatGPT APIを呼び出す際に，システムロールのメッセージとして用いられます．文字列生成の時だけ用いられます．デフォルト値は<a class="reference external" href="https://github.com/c4a-ri/dialbb/blob/main/dialbb/util/globals.py">このファイル</a>を参照．</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">temperature</span></code> (float)</p>
 <p>GPTの温度パラメータです．デフォルト値は<code class="docutils literal notranslate"><span class="pre">0.7</span></code>です．</p>
@@ -929,7 +930,13 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">{current_time}</span></code></p>
 <p>対話の行われている時点の年月日，曜日，時分秒を表す文字列で置き換えられる</p>
 </li>
+<li><p><code class="docutils literal notranslate"><span class="pre">{&lt;アルファベット，数字，アンダースコアのみからなる任意の文字列&gt;}</span></code></p>
+<p>文字列が<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>のキーにあれば，その値を文字列に変換したもので置き換えらる．この文字列は，</p>
+</li>
 </ul>
+</li>
+<li><p>プレースホルダの削除</p>
+<p>もし置き換えられないプレースホルダが残っていて，それが<code class="docutils literal notranslate"><span class="pre">[[[</span></code>と<code class="docutils literal notranslate"><span class="pre">]]]</span></code>で囲まれていれば，その部分は消去されます．</p>
 </li>
 </ul>
 </section>
@@ -1141,7 +1148,7 @@
 </ul>
 </li>
 </ul>
-<p>入力の<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>, <code class="docutils literal notranslate"><span class="pre">user_id</span></code>利用せず，出力の<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>は入力の<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>と同じもので，<code class="docutils literal notranslate"><span class="pre">final</span></code>は常に<code class="docutils literal notranslate"><span class="pre">False</span></code>です．</p>
+<p>入力の<code class="docutils literal notranslate"><span class="pre">user_id</span></code>は利用せしません．出力の<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>は入力の<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>と同じもので，<code class="docutils literal notranslate"><span class="pre">final</span></code>は常に<code class="docutils literal notranslate"><span class="pre">False</span></code>です．</p>
 <p>これらのブロックを使う時には，環境変数<code class="docutils literal notranslate"><span class="pre">OPENAI_API_KEY</span></code>にOpenAIのライセンスキーを設定する必要があります．</p>
 </section>
 <section id="id37">
@@ -1150,8 +1157,13 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">first_system_utterance</span></code> （文字列，デフォルト値は<code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code>）</p>
 <p>対話の最初のシステム発話です．</p>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">user_name</span></code>, <code class="docutils literal notranslate"><span class="pre">system_name</span></code></p>
-<p>ver 1.1 で廃止されました．</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">user_name</span></code> （文字列，デフォルト値は日本語の場合<code class="docutils literal notranslate"><span class="pre">&quot;ユーザ&quot;</span></code>, その他は<code class="docutils literal notranslate"><span class="pre">&quot;User&quot;</span></code>）</p>
+<p>ChatGPTのプロンプトに対話履歴を与えるときに使う文字列です．</p>
+<p>ver 1.1.0 で廃止されましたが，ver.1.1.1で復活しました．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">system_name</span></code> （文字列，デフォルト値は日本語の場合<code class="docutils literal notranslate"><span class="pre">&quot;システム&quot;</span></code>, その他は<code class="docutils literal notranslate"><span class="pre">&quot;System&quot;</span></code>）</p>
+<p>ChatGPTのプロンプトに対話履歴を与えるときに使う文字列です．</p>
+<p>ver 1.1.0 で廃止されましたが，ver.1.1.1で復活しました．</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">prompt_template</span></code> （文字列）</p>
 <p>システム発話の生成をChatGPTに行わせるプロンプトを記述したファイル名です．アプリケーションディレクトリからの相対で記述します．</p>
@@ -1162,10 +1174,31 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">temperature</span></code> （float，デフォルト値は<code class="docutils literal notranslate"><span class="pre">0.7</span></code>）</p>
 <p>ChatGPT呼び出しの際の温度パラメータです．</p>
 </li>
+<li><p><code class="docutils literal notranslate"><span class="pre">instruction</span></code> (文字列, デフォルト値は<a class="reference external" href="https://github.com/c4a-ri/dialbb/blob/main/dialbb/util/globals.py">このファイル</a>を参照．)</p>
+<p>システムロールのメッセージとしてChatGPTに送られる指示です．</p>
+</li>
 </ul>
 </section>
 <section id="id38">
-<h3><span class="section-number">5.6.3. </span>処理内容<a class="headerlink" href="#id38" title="この見出しへのパーマリンク"></a></h3>
+<h3><span class="section-number">5.6.3. </span>プロンプトテンプレート内のプレースホルダ<a class="headerlink" href="#id38" title="この見出しへのパーマリンク"></a></h3>
+<ul>
+<li><p>プロンプトテンプレート内では，以下のプレースホルダが利用できます．</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">{current_time}</span></code></p>
+<p>対話の行われている時点の年月日，曜日，時分秒を表す文字列で置き換えられる</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">{&lt;アルファベット，数字，アンダースコアのみからなる任意の文字列&gt;}</span></code></p>
+<p>文字列が<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>のキーにあれば，その値を文字列に変換したもので置き換えらる．この文字列は，</p>
+</li>
+</ul>
+</li>
+<li><p>プレースホルダの削除</p>
+<p>もし置き換えられないプレースホルダが残っていて，それが<code class="docutils literal notranslate"><span class="pre">[[[</span></code>と<code class="docutils literal notranslate"><span class="pre">]]]</span></code>で囲まれていれば，その部分は消去されます．</p>
+</li>
+</ul>
+</section>
+<section id="id39">
+<h3><span class="section-number">5.6.4. </span>処理内容<a class="headerlink" href="#id39" title="この見出しへのパーマリンク"></a></h3>
 <ul class="simple">
 <li><p>対話の最初はブロックコンフィギュレーションの<code class="docutils literal notranslate"><span class="pre">first_system_utterance</span></code>の値をシステム発話として返します．</p></li>
 <li><p>2回目以降のターンでは，プロンプトテンプレートを与えてChatGPTに発話を生成させ，返ってきた文字列をシステム発話として返します．</p></li>
@@ -1179,8 +1212,8 @@
 <p>コンフィギュレーションの<code class="docutils literal notranslate"><span class="pre">language</span></code>要素が<code class="docutils literal notranslate"><span class="pre">ja</span></code>の場合は日本語，<code class="docutils literal notranslate"><span class="pre">en</span></code>の場合は英語の固有表現抽出を行います．</p>
 <p>本ブロックは，起動時にExcelで記述した固有表現用知識を読み込み，固有表現のクラスのリスト，各固有表現クラスの説明，各クラスの固有表現の例，抽出例（Few shot example）に変換し，プロンプトに埋め込みます．</p>
 <p>実行時は，プロンプトに入力発話を付加してChatGPTに固有表現抽出を行わせます．</p>
-<section id="id39">
-<h3><span class="section-number">5.7.1. </span>入出力<a class="headerlink" href="#id39" title="この見出しへのパーマリンク"></a></h3>
+<section id="id40">
+<h3><span class="section-number">5.7.1. </span>入出力<a class="headerlink" href="#id40" title="この見出しへのパーマリンク"></a></h3>
 <ul>
 <li><p>入力</p>
 <ul class="simple">
@@ -1206,8 +1239,8 @@
 </li>
 </ul>
 </section>
-<section id="id40">
-<span id="id41"></span><h3><span class="section-number">5.7.2. </span>ブロックコンフィギュレーションのパラメータ<a class="headerlink" href="#id40" title="この見出しへのパーマリンク"></a></h3>
+<section id="id41">
+<span id="id42"></span><h3><span class="section-number">5.7.2. </span>ブロックコンフィギュレーションのパラメータ<a class="headerlink" href="#id41" title="この見出しへのパーマリンク"></a></h3>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">knowledge_file</span></code>（文字列）</p>
 <p>固有表現知識を記述したExcelファイルを指定します．コンフィギュレーションファイルのあるディレクトリからの相対パスで記述します．</p>
@@ -1248,7 +1281,7 @@
 </ul>
 </section>
 <section id="chatgpt-ner-knowledge">
-<span id="id42"></span><h3><span class="section-number">5.7.3. </span>固有表現抽出知識<a class="headerlink" href="#chatgpt-ner-knowledge" title="この見出しへのパーマリンク"></a></h3>
+<span id="id43"></span><h3><span class="section-number">5.7.3. </span>固有表現抽出知識<a class="headerlink" href="#chatgpt-ner-knowledge" title="この見出しへのパーマリンク"></a></h3>
 <p>固有表現抽出知識は，以下の2つのシートからなります．</p>
 <table class="docutils align-default">
 <thead>
@@ -1266,8 +1299,8 @@
 </tbody>
 </table>
 <p>シート名はブロックコンフィギュレーションで変更可能ですが，変更することはほとんどないと思いますので，詳細な説明は割愛します．</p>
-<section id="id43">
-<h4><span class="section-number">5.7.3.1. </span>utterancesシート<a class="headerlink" href="#id43" title="この見出しへのパーマリンク"></a></h4>
+<section id="id44">
+<h4><span class="section-number">5.7.3.1. </span>utterancesシート<a class="headerlink" href="#id44" title="この見出しへのパーマリンク"></a></h4>
 <p>各行は次のカラムからなります．</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">flag</span></code></p>
@@ -1314,8 +1347,8 @@
 <p>(<code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.ner_with_spacy.ne_recognizer.SpaCyNER</span></code>)</p>
 <p>(ver0.6で追加）</p>
 <p><a class="reference external" href="https://spacy.io">spaCy</a>および<a class="reference external" href="https://megagonlabs.github.io/ginza/">GiNZA</a>を用いて固有表現抽出を行います．</p>
-<section id="id44">
-<h3><span class="section-number">5.8.1. </span>入出力<a class="headerlink" href="#id44" title="この見出しへのパーマリンク"></a></h3>
+<section id="id45">
+<h3><span class="section-number">5.8.1. </span>入出力<a class="headerlink" href="#id45" title="この見出しへのパーマリンク"></a></h3>
 <ul>
 <li><p>入力</p>
 <ul class="simple">
@@ -1346,8 +1379,8 @@
 </li>
 </ul>
 </section>
-<section id="id45">
-<h3><span class="section-number">5.8.2. </span>ブロックコンフィギュレーションのパラメータ<a class="headerlink" href="#id45" title="この見出しへのパーマリンク"></a></h3>
+<section id="id46">
+<h3><span class="section-number">5.8.2. </span>ブロックコンフィギュレーションのパラメータ<a class="headerlink" href="#id46" title="この見出しへのパーマリンク"></a></h3>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">model</span></code> (文字列．必須）</p>
 <p>spaCy/GiNZAのモデルの名前です．<code class="docutils literal notranslate"><span class="pre">ja_ginza_electra</span></code> (日本語），<code class="docutils literal notranslate"><span class="pre">en_core_web_trf</span></code> (英語）などを指定できます．</p>
@@ -1365,8 +1398,8 @@
 </li>
 </ul>
 </section>
-<section id="id46">
-<h3><span class="section-number">5.8.3. </span>処理内容<a class="headerlink" href="#id46" title="この見出しへのパーマリンク"></a></h3>
+<section id="id47">
+<h3><span class="section-number">5.8.3. </span>処理内容<a class="headerlink" href="#id47" title="この見出しへのパーマリンク"></a></h3>
 <p>spaCy/GiNZAを用いて<code class="docutils literal notranslate"><span class="pre">input_text</span></code>中の固有表現を抽出し，<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>にその結果を入力して返します．</p>
 </section>
 </section>

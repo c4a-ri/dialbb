@@ -101,7 +101,8 @@
 <li class="toctree-l2"><a class="reference internal" href="#chatgpt-dialogue-chatgpt-based-dialogue-block">5.5. ChatGPT Dialogue (ChatGPT-based Dialogue Block)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#id7">5.5.1. Input/Output</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#id8">5.5.2. Block Configuration Parameters</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id9">5.5.3. Process Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#place-holders-in-prompt-templates">5.5.3. Place Holders in Prompt Templates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id9">5.5.4. Process Details</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#chatgpt-ner-named-entity-recognition-block-using-chatgpt">5.6. ChatGPT NER (Named Entity Recognition Block Using ChatGPT)</a><ul>
@@ -749,7 +750,7 @@ In a final state, the system generates a system utterance and terminates the dia
 <p>This specifies the model name of GPT, such as <code class="docutils literal notranslate"><span class="pre">gpt-4o</span></code>, <code class="docutils literal notranslate"><span class="pre">gpt-4o-mini</span></code>, etc. The default value is <code class="docutils literal notranslate"><span class="pre">gpt-4o-mini</span></code>. <code class="docutils literal notranslate"><span class="pre">gpt-5</span></code> cannot be used.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">instruction</span></code> (string)</p>
-<p>This is used as the system role message when calling the ChatGPT API. It is only used during text generation.</p>
+<p>This is used as the system role message when calling the ChatGPT API. It is only used during text generation. See <a class="reference external" href="https://github.com/c4a-ri/dialbb/blob/main/dialbb/util/globals.py">this</a>default for the default value.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">temperature</span></code> (float)</p>
 <p>This specifies the temperature parameter for GPT. The default value is <code class="docutils literal notranslate"><span class="pre">0.7</span></code>.</p>
@@ -844,7 +845,7 @@ The prompts are created by replacing the placeholders in the specified prompt te
 <p>Parts enclosed in <code class="docutils literal notranslate"><span class="pre">{</span></code> and <code class="docutils literal notranslate"><span class="pre">}</span></code> are placeholders.</p>
 </li>
 <li><p>Available placeholders:</p>
-<ul class="simple">
+<ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">{dialogue_history}</span></code>
 Replaced with the dialogue up to that point, including the latest user utterance.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">{situation}</span></code>
@@ -853,7 +854,13 @@ Replaced with the value of <code class="docutils literal notranslate"><span clas
 Replaced with the value of <code class="docutils literal notranslate"><span class="pre">persona</span></code> from the <code class="docutils literal notranslate"><span class="pre">chatgpt</span></code> element in the block configuration.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">{current_time}</span></code>
 Replaced with a string representing the current date, day of the week, and time (hour, minute, second) at which the dialogue is taking place.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">{&lt;a</span> <span class="pre">string</span> <span class="pre">consisting</span> <span class="pre">only</span> <span class="pre">of</span> <span class="pre">alphabets,</span> <span class="pre">digits,</span> <span class="pre">and</span> <span class="pre">underscores&gt;}</span></code></p>
+<p>If the string exists as a key in aux_data, it is replaced with the corresponding value converted to a string.</p>
+</li>
 </ul>
+</li>
+<li><p>Placeholder removal</p>
+<p>If an unreplaced placeholder remains and is enclosed in <code class="docutils literal notranslate"><span class="pre">[[[</span></code> and <code class="docutils literal notranslate"><span class="pre">]]]</span></code>, that portion will be removed.</p>
 </li>
 </ul>
 </section>
@@ -1064,8 +1071,7 @@ This function is used when a user utterance is accidentally split in the middle 
 </ul>
 </li>
 </ul>
-<p>The inputs <code class="docutils literal notranslate"><span class="pre">aux_data</span></code> and <code class="docutils literal notranslate"><span class="pre">user_id</span></code> are not used.
-The output <code class="docutils literal notranslate"><span class="pre">aux_data</span></code> is the same as the input <code class="docutils literal notranslate"><span class="pre">aux_data</span></code> and <code class="docutils literal notranslate"><span class="pre">final</span></code> is always <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+<p>The input <code class="docutils literal notranslate"><span class="pre">user_id</span></code> is not used. The output <code class="docutils literal notranslate"><span class="pre">aux_data</span></code> is the same as the input <code class="docutils literal notranslate"><span class="pre">aux_data</span></code> and <code class="docutils literal notranslate"><span class="pre">final</span></code> is always <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
 <p>When using these blocks, you need to set the OpenAI license key in the environment variable <code class="docutils literal notranslate"><span class="pre">OPENAI_API_KEY</span></code>.</p>
 </section>
 <section id="id8">
@@ -1074,19 +1080,33 @@ The output <code class="docutils literal notranslate"><span class="pre">aux_data
 <li><p><code class="docutils literal notranslate"><span class="pre">first_system_utterance</span></code> (string, default value is <code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code>)</p>
 <p>This is the first system utterance of the dialog.</p>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">user_name</span></code>, <code class="docutils literal notranslate"><span class="pre">system_name</span></code></p>
-<p>These were deprecated in ver. 1.1.</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">user_name</span></code> (string, default value is <code class="docutils literal notranslate"><span class="pre">&quot;User&quot;</span></code>.)</p>
+<p>This string is used when providing conversation history to the ChatGPT prompt.
+Deprecated in version 1.1.0, but reinstated in version 1.1.1.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">system_name</span></code> (string, default value is “System”)</p>
+<p>This string is used when providing conversation history to the ChatGPT prompt.
+Deprecated in version 1.1.0, but reinstated in version 1.1.1.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">prompt_template</span></code> (string)</p>
 <p>This specifies the file of the prompt for making ChatGPT generate a system utterance as a relative path from the configuration file directory.</p>
 </li>
+<li><p><code class="docutils literal notranslate"><span class="pre">temperature</span></code> （float，default value is <code class="docutils literal notranslate"><span class="pre">0.7</span></code>）</p>
+<p>THe temperature parameter when calling ChatGPT.</p>
+</li>
 <li><p><code class="docutils literal notranslate"><span class="pre">gpt_model</span></code> (string, default value is <code class="docutils literal notranslate"><span class="pre">gpt-4o-mini</span></code>)</p>
 <p>Open AI GPT model. You can specify <code class="docutils literal notranslate"><span class="pre">gpt-4o</span></code>, <code class="docutils literal notranslate"><span class="pre">gpt-4o-mini</span></code> and so on.</p>
 </li>
+<li><p><code class="docutils literal notranslate"><span class="pre">instruction</span></code> (string, see <a class="reference external" href="https://github.com/c4a-ri/dialbb/blob/main/dialbb/util/globals.py">this</a>default for the default value.)</p>
+<p>The instruction to ChatGPT as system role message.</p>
+</li>
 </ul>
 </section>
+<section id="place-holders-in-prompt-templates">
+<h3><span class="section-number">5.5.3. </span>Place Holders in Prompt Templates<a class="headerlink" href="#place-holders-in-prompt-templates" title="Permalink to this heading"></a></h3>
+</section>
 <section id="id9">
-<h3><span class="section-number">5.5.3. </span>Process Details<a class="headerlink" href="#id9" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">5.5.4. </span>Process Details<a class="headerlink" href="#id9" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>At the beginning of the dialog, the value of <code class="docutils literal notranslate"><span class="pre">first_system_utterance</span></code> in the block configuration is returned as system utterance.</p></li>
 <li><p>In the second and subsequent turns, the prompt template is given to ChatGPT and the returned string is returned as the system utterance.</p></li>
