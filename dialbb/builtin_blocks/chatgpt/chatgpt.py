@@ -38,7 +38,7 @@ DIALOGUE_HISTORY_OLD_TAG: str = '@dialogue_history'
 DIALOGUE_HISTORY_TAG: str = '{dialogue_history}'
 CURRENT_TIME_TAG: str = '{current_time}'
 DEFAULT_GPT_MODEL: str = "gpt-4o-mini"
-DIALOGUE_HISTORY_STRING = {"ja": "現在までの対話", "en": "Dialogue up to now"}
+DIALOGUE_UP_TO_NOW = {"ja": "現在までの対話", "en": "Dialogue up to now"}
 
 
 #  [[[....{tag1}....{tag2}....]]]
@@ -61,9 +61,11 @@ class ChatGPT(AbstractBlock):
         self._openai_client = openai.OpenAI(api_key=openai_api_key)
         self._gpt_model = self.block_config.get("gpt_model", DEFAULT_GPT_MODEL)
 
-        self.user_name: str = self.block_config.get("user_name", "User")
-        self.system_name: str = self.block_config.get("system_name", "System")
+        self._language = self.config.get("language", 'en')
+        self._instruction = self.block_config.get("instruction", CHATGPT_INSTRUCTIONS[self._language])
 
+        self.user_name: str = self.block_config.get("user_name", 'ユーザ' if self._language == 'ja' else "User")
+        self.system_name: str = self.block_config.get("system_name", 'システム' if self._language == 'ja' else "System")
 
         # reading prompt template file
         prompt_template_file: str = self.block_config.get("prompt_template", "")
@@ -204,11 +206,11 @@ class ChatGPT(AbstractBlock):
         elif prompt.find(DIALOGUE_HISTORY_OLD_TAG) >= 0:
             prompt: str = prompt.replace(DIALOGUE_HISTORY_OLD_TAG, dialogue_history_string)
         else:
-            prompt += f"\n#{DIALOGUE_HISTORY_STRING[language]}\n\n{dialogue_history_string}"
+            prompt += f"\n#{DIALOGUE_UP_TO_NOW[language]}\n\n{dialogue_history_string}"
 
         # create messages
         messages = []
-        messages.append({'role': "system", "content": CHATGPT_INSTRUCTIONS[language]})
+        messages.append({'role': "system", "content": self._instruction})
         messages.append({'role': "user", "content": prompt})
         self.log_debug("messages: " + str(messages), session_id=session_id)
 

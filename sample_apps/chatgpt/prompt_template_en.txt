@@ -29,7 +29,6 @@
 
 - Do not begin your responses with your name or "User".
 - Do not use quotation marks.
-
 [[[
 {notes}
 ]]]
