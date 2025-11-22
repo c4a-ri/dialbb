@@ -1091,7 +1091,7 @@ Deprecated in version 1.1.0, but reinstated in version 1.1.1.</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">prompt_template</span></code> (string)</p>
 <p>This specifies the file of the prompt for making ChatGPT generate a system utterance as a relative path from the configuration file directory.</p>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">temperature</span></code> （float，default value is <code class="docutils literal notranslate"><span class="pre">0.7</span></code>）</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">temperature</span></code> (float, default value is <code class="docutils literal notranslate"><span class="pre">0.7</span></code>)</p>
 <p>THe temperature parameter when calling ChatGPT.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">gpt_model</span></code> (string, default value is <code class="docutils literal notranslate"><span class="pre">gpt-4o-mini</span></code>)</p>
@@ -1104,6 +1104,20 @@ Deprecated in version 1.1.0, but reinstated in version 1.1.1.</p>
 </section>
 <section id="place-holders-in-prompt-templates">
 <h3><span class="section-number">5.5.3. </span>Place Holders in Prompt Templates<a class="headerlink" href="#place-holders-in-prompt-templates" title="Permalink to this heading"></a></h3>
+<ul>
+<li><p>The following place holders can be used in prompt templates.</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">{current_time}</span></code>
+Replaced with a string representing the current date, day of the week, and time (hour, minute, second) at which the dialogue is taking place.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">{&lt;a</span> <span class="pre">string</span> <span class="pre">consisting</span> <span class="pre">only</span> <span class="pre">of</span> <span class="pre">alphabets,</span> <span class="pre">digits,</span> <span class="pre">and</span> <span class="pre">underscores&gt;}</span></code></p>
+<p>If the string exists as a key in aux_data, it is replaced with the corresponding value converted to a string.</p>
+</li>
+</ul>
+</li>
+<li><p>Placeholder removal</p>
+<p>If an unreplaced placeholder remains and is enclosed in <code class="docutils literal notranslate"><span class="pre">[[[</span></code> and <code class="docutils literal notranslate"><span class="pre">]]]</span></code>, that portion will be removed.</p>
+</li>
+</ul>
 </section>
 <section id="id9">
 <h3><span class="section-number">5.5.4. </span>Process Details<a class="headerlink" href="#id9" title="Permalink to this heading"></a></h3>

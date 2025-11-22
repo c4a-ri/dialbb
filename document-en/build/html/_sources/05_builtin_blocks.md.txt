@@ -1070,7 +1070,7 @@ When using these blocks, you need to set the OpenAI license key in the environme
 
   This specifies the file of the prompt for making ChatGPT generate a system utterance as a relative path from the configuration file directory.
 
-- `temperature` （float，default value is `0.7`）
+- `temperature` (float, default value is `0.7`)
 
   THe temperature parameter when calling ChatGPT.
 
@@ -1084,6 +1084,20 @@ When using these blocks, you need to set the OpenAI license key in the environme
 
 
 ### Place Holders in Prompt Templates
+
+- The following place holders can be used in prompt templates.
+
+  - `{current_time}`
+    Replaced with a string representing the current date, day of the week, and time (hour, minute, second) at which the dialogue is taking place.
+
+  - `{<a string consisting only of alphabets, digits, and underscores>}`
+
+     If the string exists as a key in aux_data, it is replaced with the corresponding value converted to a string.
+	
+
+- Placeholder removal
+
+  If an unreplaced placeholder remains and is enclosed in `[[[` and `]]]`, that portion will be removed.
 
 
 ### Process Details
