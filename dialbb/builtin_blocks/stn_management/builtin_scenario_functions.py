@@ -290,14 +290,21 @@ def call_chatgpt(prompt: str, context: Dict[str, Any], checking: bool = False) -
         messages: List[Dict[str, str]] = [{"role": "user", "content": prompt}]
     while True:
         try:
-            temperature = 1 if gpt_model == 'gpt-5' else gpt_temperature
-            if DEBUG:
-                print(f"calling chatgpt: model: {gpt_model}, temperature: {str(temperature)}, messages: {str(messages)}")
-            chat_completion = openai_client.with_options(timeout=10).chat.completions.create(
-                model=gpt_model,
-                messages=messages,
-                temperature=temperature,
-            )
+            if gpt_model.startswith("gpt-4") or gpt_model.startswith("gpt-3"):
+                if DEBUG:
+                    print(f"calling chatgpt: model: {gpt_model}, temperature: {str(gpt_temperature)}, messages: {str(messages)}")
+                chat_completion = openai_client.with_options(timeout=10).chat.completions.create(
+                    model=gpt_model,
+                    messages=messages,
+                    temperature=gpt_temperature,
+                )
+            else:
+                if DEBUG:
+                    print(f"calling chatgpt: model: {gpt_model}, messages: {str(messages)}")
+                chat_completion = openai_client.with_options(timeout=10).chat.completions.create(
+                    model=gpt_model,
+                    messages=messages
+                )
         except openai.APITimeoutError:
             continue
         except Exception as e:
