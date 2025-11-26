@@ -32,7 +32,7 @@ import re
 from dialbb.util.globals import CHATGPT_INSTRUCTIONS
 
 #  [[[....{<tag1>}....{<tag2>}....]]]
-REMAINING_TAGS_PATTERN = re.compile( r"\[\[\[(?s)(?=.*\{[A-Za-z0-9_]+\})(?:[^\{\]]|\{[A-Za-z0-9_]+\})*\]\]\]",
+REMAINING_TAGS_PATTERN = re.compile( r"\[\[\[(?=.*\{[A-Za-z0-9_]+\})(?:[^\{\]]|\{[A-Za-z0-9_]+\})*\]\]\]",
                                      re.DOTALL)
 
 DEFAULT_GPT_MODEL = 'gpt-4o-mini'
