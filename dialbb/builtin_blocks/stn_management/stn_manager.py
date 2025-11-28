@@ -795,7 +795,7 @@ class Manager(AbstractBlock):
                                           user_id, session_id, sentence)
                    for raw_argument in raw_argument_values]
         except Exception as e:  # failure in realization
-            self.log_warning(f"Exception occurred during realizing arguments in system utterance: {str(argument_names)}",
+            self.log_warning(f"Exception occurred during realizing arguments in system utterance: {str(raw_argument_values)}",
                              session_id=session_id)
             if DEBUG:
                 raise Exception(e)
