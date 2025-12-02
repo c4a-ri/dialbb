@@ -36,6 +36,7 @@ blocks:  # ブロックのリスト
     flags_to_use:
       - 'Y'
       - 'T'
+    gpt_model: gpt-4o-mini
   - name: manager
     block_class: dialbb.builtin_blocks.stn_management.stn_manager.Manager
     knowledge_file: lab_app_scenario_ja.xlsx # 知識記述ファイル

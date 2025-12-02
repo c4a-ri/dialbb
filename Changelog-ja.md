@@ -1,5 +1,19 @@
 # Changelog
 
+## next version
+
+- Conforms to Python 3.12
+
+- ChatGPT Dialogue Builtin Block
+
+  - Allows to use gpt-5* other than gpt-5
+
+- STN Manager Embedded Block
+
+  - Allows to use gpt-5* other than gpt-5
+
+  - Allows to log in scenario functions
+
 ## 1.1.1 (2025.11.22)
 
 - ChatGPT Dialogue組み込みブロック

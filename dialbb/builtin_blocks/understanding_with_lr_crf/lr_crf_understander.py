@@ -226,7 +226,7 @@ class Understander(AbstractBlock):
             slots_with_ids: Dict[str, str] = self._slot_extractor.extract_slots(tokens_with_pos)
             # change to slot names
             slots = {self._slot_ids2slot_names[slot_id]: value for slot_id, value in slots_with_ids.items()}
-            self.log_debug("estracted slots: " + str(slots))
+            self.log_debug("extracted slots: " + str(slots))
         else:
             slots: Dict[str, str] = {}
         utterance_types, prob_distribution = self._type_estimator.estimate_type(tokens_with_pos)
