@@ -268,6 +268,8 @@ blocks:
 
 ### 利用できるメソッド
 
+#### ロギング
+
 以下のロギングメソッドが利用できます．
 
 - `log_debug(self, message: str, session_id: str = "unknown")`
@@ -286,6 +288,8 @@ blocks:
 - `log_error(self, message: str, session_id: str = "unknown")`
 
   標準エラー出力にerrorレベルのログを出力します．
+
+Python起動時の環境変数 `DIALBB_DEBUG`の値が`yes` （大文字小文字は問わない）の時，ログレベルはdebugになり、その他の場合はinfoになっています。
 
 
 ## デバッグモード
