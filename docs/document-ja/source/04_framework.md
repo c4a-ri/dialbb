@@ -287,9 +287,9 @@ blocks:
 
 - `log_error(self, message: str, session_id: str = "unknown")`
 
-  標準エラー出力にerrorレベルのログを出力します．
+  標準エラー出力にerrorレベルのログを出力します．後述のデバッグモードの時は、Exceptionを投げます。
 
-Python起動時の環境変数 `DIALBB_DEBUG`の値が`yes` （大文字小文字は問わない）の時，ログレベルはdebugになり、その他の場合はinfoになっています。
+後述のデバッグモードの時，ログレベルはdebugになり、その他の場合はinfoになっています。
 
 
 ## デバッグモード
