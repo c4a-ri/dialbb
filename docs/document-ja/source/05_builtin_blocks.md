@@ -509,6 +509,8 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
 | _previous_system_utterance | 直前のシステム発話（文字列）                                 |
 | _dialogue_history          | 対話履歴（リスト）                                           |
 | _turns_in_state            | 今の状態でのターン数（ユーザの発話回数）（整数）             |
+| _session_id                | 現在の対話のセッションID（文字列）                           |
+| _user_id                   | 直前のユーザ発話のユーザID（文字列）                         |
 
 
 対話履歴は，以下の形です．
@@ -591,7 +593,7 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
 
 ### 関数定義
 
-条件やアクションで用いる関数は，DialBB組み込みのものと，開発者が定義するものがあります．条件で使う関数はbool値を返し，アクションで使う関数は何も返しません．
+条件やアクションで用いる関数（まとめてシナリオ関数と呼びます）は，DialBB組み込みのものと，開発者が定義するものがあります．条件で使う関数はbool値を返し，アクションで使う関数は何も返しません．
 
 #### 組み込み関数
 
@@ -711,7 +713,7 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
 
   - `instruction` (文字列)
 
-    ChatGPT APIを呼び出す際に，システムロールのメッセージとして用いられます．文字列生成の時だけ用いられます．
+    ChatGPT APIを呼び出す際に，システムロールのメッセージとして用いられます．文字列生成の時だけ用いられます．デフォルト値は[このファイル](https://github.com/c4a-ri/dialbb/blob/main/dialbb/util/globals.py)を参照．
 
   - `temperature` (float)
 
@@ -832,6 +834,13 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
 
     対話の行われている時点の年月日，曜日，時分秒を表す文字列で置き換えられる
 
+  - `{<アルファベット，数字，アンダースコアのみからなる任意の文字列>}`
+
+    文字列が`aux_data`のキーにあれば，その値を文字列に変換したもので置き換えらる．この文字列は，
+	
+- プレースホルダの削除
+
+  もし置き換えられないプレースホルダが残っていて，それが`[[[`と`]]]`で囲まれていれば，その部分は消去されます．
 
 #### 組み込み関数の簡略記法
 
@@ -928,6 +937,22 @@ def get_ramen_location(ramen: str, variable: str, context: Dict[str, Any]) -> No
 
 また，変数参照の場合は`'&'`を除いた変数名が，定数の場合は，`""`の中の文字列が渡されます．
 
+#### 関数中のロギング
+
+シナリオ関数の中で、以下の関数を用いてロギングができます。セッションIDつきで標準出力に書き出されます。
+
+- `dialbb.builtin_blocks.stn_management.util.scenario_function_log_debug(message: str)`
+  debugレベルのログが書き出されます。
+
+- `dialbb.builtin_blocks.stn_management.util.scenario_function_log_info(message: str)`
+  infoレベルのログが書き出されます。
+
+- `dialbb.builtin_blocks.stn_management.util.scenario_function_log_warning(message: str)`
+
+  warningレベルのログが書き出されます。
+
+- `dialbb.builtin_blocks.stn_management.util.scenario_function_log_error(message: str)`
+  errorレベルのログが書き出されます。デバッグモードの時にはExceptionを投げます。
 
 ### 連続遷移
 
@@ -1096,7 +1121,7 @@ OpenAI社のChatGPTを用いて対話を行います．
   - `final`: 対話終了かどうかのフラグ（ブール値）
 
 
-入力の`aux_data`, `user_id`利用せず，出力の`aux_data`は入力の`aux_data`と同じもので，`final`は常に`False`です．
+入力の`user_id`は利用せしません．出力の`aux_data`は入力の`aux_data`と同じもので，`final`は常に`False`です．
 
 これらのブロックを使う時には，環境変数`OPENAI_API_KEY`にOpenAIのライセンスキーを設定する必要があります．
 
@@ -1106,9 +1131,17 @@ OpenAI社のChatGPTを用いて対話を行います．
 
   対話の最初のシステム発話です．
 
-- `user_name`, `system_name`
+- `user_name` （文字列，デフォルト値は日本語の場合`"ユーザ"`, その他は`"User"`）
 
-   ver 1.1 で廃止されました．
+   ChatGPTのプロンプトに対話履歴を与えるときに使う文字列です．
+
+   ver 1.1.0 で廃止されましたが，ver.1.1.1で復活しました．
+
+- `system_name` （文字列，デフォルト値は日本語の場合`"システム"`, その他は`"System"`）
+
+   ChatGPTのプロンプトに対話履歴を与えるときに使う文字列です．
+
+   ver 1.1.0 で廃止されましたが，ver.1.1.1で復活しました．
 
 - `prompt_template` （文字列）
 
@@ -1121,6 +1154,28 @@ OpenAI社のChatGPTを用いて対話を行います．
 - `temperature` （float，デフォルト値は`0.7`）
 
   ChatGPT呼び出しの際の温度パラメータです．
+
+- `instruction` (文字列, デフォルト値は[このファイル](https://github.com/c4a-ri/dialbb/blob/main/dialbb/util/globals.py)を参照．)
+
+   システムロールのメッセージとしてChatGPTに送られる指示です．
+
+### プロンプトテンプレート内のプレースホルダ
+
+- プロンプトテンプレート内では，以下のプレースホルダが利用できます．
+
+  - `{current_time}`
+
+    対話の行われている時点の年月日，曜日，時分秒を表す文字列で置き換えられる
+
+  - `{<アルファベット，数字，アンダースコアのみからなる任意の文字列>}`
+
+    文字列が`aux_data`のキーにあれば，その値を文字列に変換したもので置き換えらる．
+	
+- プレースホルダの削除
+
+  もし置き換えられないプレースホルダが残っていて，それが`[[[`と`]]]`で囲まれていれば，その部分は消去されます．
+
+
 
 ### 処理内容
 

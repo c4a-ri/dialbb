@@ -133,9 +133,25 @@ The contents of the prompt template `sample_apps/chatgpt/prompt_template_en.txt`
 - Ask the user if se/he likes Italian food
 - If the user likes Italian, ask the user which kind of Italian food she/he likes
 - If the user doesn't like Italian, ask her/him why.
+
+# Notes
+
+- Do not begin your responses with your name or "User".
+- Do not use quotation marks.
+
+[[[
+{notes}
+]]]
+```
+The conversation history up to that point is attached to this prompt template and sent to ChatGPT, which then generates the system response.
+
+The following sectionis usually not used and is deleted. A detailed explanation is omitted.
+```
+[[[
+{notes}
+]]]
 ```
 
-Using this prompt template and the conversation history, the next system utterance will be generated.
 
 (app_development_with_chatgpt_app)=
 ### Creating an Application Using the ChatGPT Application

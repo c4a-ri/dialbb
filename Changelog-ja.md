@@ -1,5 +1,40 @@
 # Changelog
 
+## next version
+
+- Conforms to Python 3.12
+
+- ChatGPT Dialogue Builtin Block
+
+  - Allows to use gpt-5* other than gpt-5
+
+- STN Manager Embedded Block
+
+  - Allows to use gpt-5* other than gpt-5
+
+  - Allows to log in scenario functions
+
+## 1.1.1 (2025.11.22)
+
+- ChatGPT Dialogue組み込みブロック
+
+  - プロンプト中のプレースホルダ置き換えに関するバグfix
+
+  - aux_dataのキーと現在の日付・時刻をプロンプトテンプレートのプレイスホルダに書けるように変更
+  
+  - ChatGPT使用時の安全性向上のためのインストラクションをデフォルト指定
+
+- STN Manager組み込みブロック
+
+  - プロンプト中のプレースホルダ置き換えに関するバグfix
+
+  - aux_dataのキーをプロンプトテンプレートのプレイスホルダに書けるように変更
+
+  - ChatGPT使用時の安全性向上のためのインストラクションをデフォルト指定
+
+  - skip遷移後にサブダイアローグに行かない問題をfix
+
+
 ## 1.1.0 (2025.11.8)
 
 - ノーコードツール

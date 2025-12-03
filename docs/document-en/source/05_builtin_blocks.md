@@ -458,8 +458,8 @@ The context information is pre-set with the following key-value pairs.
 | _previous_system_utterance | previous system utterance (string)|
 | _dialogue_history | Dialogue history (list)|
 | _turns_in_state | The number of user turns in the current state (integer)|
-
-
+| _session_id | The session ID of the current conversation (string) |
+| _user_id | The user ID of the most recent user utterance (string) |
 
 The dialog history is in the following form.
 
@@ -535,7 +535,7 @@ For function calls, the functions can take arguments explained above as function
 
 ### Function Definitions
 
-Functions used in conditions and actions are either built-in to DialBB or defined by the developers.The function used in a condition returns a boolean value, while the function used in an action returns nothing.
+Functions used in conditions and actions (called "scenario functions" altogether)are either built-in to DialBB or defined by the developers. The function used in a condition returns a Boolean value, while the function used in an action returns nothing.
 
 
 #### Built-in functions
@@ -655,7 +655,7 @@ To use these functions, the following settings are required:
 
   - `instruction` (string)
 
-    This is used as the system role message when calling the ChatGPT API. It is only used during text generation.
+    This is used as the system role message when calling the ChatGPT API. It is only used during text generation. See [this](https://github.com/c4a-ri/dialbb/blob/main/dialbb/util/globals.py)default for the default value.
 
   - `temperature` (float)
 
@@ -675,6 +675,7 @@ To use these functions, the following settings are required:
     A list that enumerates the system persona to be written in the GPT prompt.
 
     If this element is absent, no specific persona is specified.
+
 
 
   e.g.:
@@ -776,6 +777,15 @@ Here are some examples:
     Replaced with a string representing the current date, day of the week, and time (hour, minute, second) at which the dialogue is taking place.
 
 
+  - `{<a string consisting only of alphabets, digits, and underscores>}`
+
+     If the string exists as a key in aux_data, it is replaced with the corresponding value converted to a string.
+	
+- Placeholder removal
+
+  If an unreplaced placeholder remains and is enclosed in `[[[` and `]]]`, that portion will be removed.
+
+
 #### Syntax sugars for built-in functions
 
 Syntax sugars are provided to simplify the description of built-in functions.
@@ -873,6 +883,19 @@ In addition to the arguments used in the scenario, variable of dictionary type m
 All arguments used in the scenario must be strings.
 In the case of a special variable or variables, the value of the variable is passed as an argument.
 In the case of a variable reference, the variable name without the `&`' is passed, and in the case of a constant, the string in `""` is passed.
+
+#### Logging in functions
+
+In scenario functions, logging can be performed using the following functions. The logs are written to standard output along with the session ID.
+
+- `dialbb.builtin_blocks.stn_management.util.scenario_function_log_debug(message: str)`
+   Writes a log at the debug level.
+- `dialbb.builtin_blocks.stn_management.util.scenario_function_log_info(message: str)`
+   Writes a log at the info level.
+- `dialbb.builtin_blocks.stn_management.util.scenario_function_log_warning(message: str)`
+   Writes a log at the warning level.
+- `dialbb.builtin_blocks.stn_management.util.scenario_function_log_error(message: str)`
+   Writes a log at the error level. In debug mode, this function also raises an Exception.
 
 ### Reaction
 
@@ -1035,8 +1058,7 @@ Engages in dialogue using OpenAI's ChatGPT.
   - `aux_data`: auxiliary data (dictionary type)
   - `final`: boolean flag indicating whether the dialog is finished or not.
 
-The inputs `aux_data` and `user_id` are not used.
-The output `aux_data` is the same as the input `aux_data` and `final` is always `False`.
+The input `user_id` is not used. The output `aux_data` is the same as the input `aux_data` and `final` is always `False`.
 
 When using these blocks, you need to set the OpenAI license key in the environment variable `OPENAI_API_KEY`.
 
@@ -1046,17 +1068,48 @@ When using these blocks, you need to set the OpenAI license key in the environme
 
    This is the first system utterance of the dialog.
 
-- `user_name`, `system_name`
+- `user_name` (string, default value is `"User"`.)
 
-   These were deprecated in ver. 1.1.
+   This string is used when providing conversation history to the ChatGPT prompt.
+   Deprecated in version 1.1.0, but reinstated in version 1.1.1.
+
+- `system_name` (string, default value is "System")
+
+   This string is used when providing conversation history to the ChatGPT prompt.
+   Deprecated in version 1.1.0, but reinstated in version 1.1.1.
 
 - `prompt_template` (string)
 
   This specifies the file of the prompt for making ChatGPT generate a system utterance as a relative path from the configuration file directory.
 
+- `temperature` (float, default value is `0.7`)
+
+  THe temperature parameter when calling ChatGPT.
+
 - `gpt_model` (string, default value is `gpt-4o-mini`)
 
    Open AI GPT model. You can specify `gpt-4o`, `gpt-4o-mini` and so on. 
+
+- `instruction` (string, see [this](https://github.com/c4a-ri/dialbb/blob/main/dialbb/util/globals.py)default for the default value.)
+
+   The instruction to ChatGPT as system role message.
+
+
+### Place Holders in Prompt Templates
+
+- The following place holders can be used in prompt templates.
+
+  - `{current_time}`
+    Replaced with a string representing the current date, day of the week, and time (hour, minute, second) at which the dialogue is taking place.
+
+  - `{<a string consisting only of alphabets, digits, and underscores>}`
+
+     If the string exists as a key in aux_data, it is replaced with the corresponding value converted to a string.
+	
+- Placeholder removal
+
+  If an unreplaced placeholder remains and is enclosed in `[[[` and `]]]`, that portion will be removed.
+
 
 ### Process Details
 

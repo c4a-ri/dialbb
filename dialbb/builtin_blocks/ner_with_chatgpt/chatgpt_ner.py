@@ -213,13 +213,19 @@ class NER(AbstractBlock):
         chat_completion = None
         while True:
             try:
-                temperature = 1 if self._gpt_model == 'gpt-5' else 0.0
-                chat_completion = self._openai_client.with_options(timeout=10).chat.completions.create(
-                    model=self._gpt_model,
-                    messages=[{"role": "user", "content": prompt}],
-                    temperature=temperature,
-                    response_format={"type": "json_object"}
-                    )
+                if self._gpt_model.startswith("gpt-4") or self._gpt_model.startswith("gpt-3"):
+                    chat_completion = self._openai_client.with_options(timeout=10).chat.completions.create(
+                        model=self._gpt_model,
+                        messages=[{"role": "user", "content": prompt}],
+                        temperature=0.0,
+                        response_format={"type": "json_object"}
+                        )
+                else:
+                    chat_completion = self._openai_client.with_options(timeout=10).chat.completions.create(
+                        model=self._gpt_model,
+                        messages=[{"role": "user", "content": prompt}],
+                        response_format={"type": "json_object"}
+                        )
             except openai.APITimeoutError:
                 continue
             except Exception as e:

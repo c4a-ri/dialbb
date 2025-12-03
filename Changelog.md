@@ -1,5 +1,40 @@
 # Changelog
 
+
+## next version
+
+- Conforms to Python 3.12
+
+- ChatGPT Dialogue Builtin Block
+
+  - Allows to use gpt-5* other than gpt-5
+
+- STN Manager Embedded Block
+
+  - Allows to use gpt-5* other than gpt-5
+
+  - Allows to log in scenario functions
+
+## 1.1.1 (2025.11.22)
+
+- ChatGPT Dialogue Builtin Block
+
+  - Bug fix related to placeholder replacement in prompts
+
+  - Allows writing aux_data keys and the current date/time into prompt template placeholders
+
+  - Default safety instructions added for improved safety when using ChatGPT
+
+- STN Manager Embedded Block
+
+  - Bug fix related to placeholder replacement in prompts
+
+  - Modified to allow writing aux_data keys into prompt template placeholders
+
+  - Default safety instructions added for improved safety when using ChatGPT
+
+  - Fixed an issue where it would not proceed to a sub-dialogue after a skip transition
+
 ## 1.1.0 (2025.11.8)
 
 - No-code tool
@@ -9,8 +44,8 @@
  - The appearance of the scenario editor enhanced
 
  - The default applications changed
-	
- - The chat window implemented	
+
+ - The chat window implemented 
 
 - Embedded block for ChatGPT Dialogue:
 
@@ -183,14 +218,23 @@
 ## 0.2.0 (2022.12.1)
 
 - Interface changes in AbstractBlock (not backward compatible)
+
   - Changes to the arguments of the process method
-- Set default language to Japanese
+	
+  - Set default language to Japanese
+
 - Changes to the STN Manager block
+
   - Exporting scenario graphs
+
   - Introduction of preparation state
+
 - Enabled the use of Google Sheets
+
 - Changed the test scenario format (not backward compatible)
+
 - Column name changes for knowledge description for SNIPS Understander (not backward compatible)
+
 - Support for n-best outputs in SNIPS Understander
 
 ## 0.1 (2022.8.9)
