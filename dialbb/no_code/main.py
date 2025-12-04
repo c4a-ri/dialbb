@@ -284,7 +284,7 @@ def set_file_frame(parent_frame, settings, label_text, file_type_list) -> ttk.Fr
     # file_frame = ttk.Frame(parent_frame, style="My.TLabelframe")
     file_frame = ttk.Frame(parent_frame)
     file_frame.spec_app = tk.Label(file_frame)
-    file_frame.grid(column=1, columnspan=2, row=0, sticky=tk.W, padx=5)
+    file_frame.spec_app.grid(column=1, columnspan=2, row=0, sticky=tk.W, padx=5)
     # アプリ名の表示エリアを登録して保存アプリ名を表示する
     settings.reg_disp_area(file_frame.spec_app)
 
