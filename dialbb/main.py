@@ -19,7 +19,7 @@
 #   main dialogue processor
 #   メイン対話処理
 
-__version__ = '0.1'
+__version__ = '1.2.0'
 __author__ = 'Mikio Nakano'
 __copyright__ = 'C4A Research Institute, Inc.'
 
@@ -37,6 +37,7 @@ from dialbb.util.globals import DEBUG
 from dialbb.abstract_block import AbstractBlock
 from dialbb.util.error_handlers import abort_during_building
 from dialbb.util.logger import get_logger
+
 
 
 session_count = 0  # used in generating session id's
@@ -77,8 +78,9 @@ class DialogueProcessor:
         :param additional_config: additional configuration
         """
 
+        print(f"Starting an application with DialBB {__version__}.")
         # read config file configファイルの読み込み
-        print(f"reading application config file.")
+        print("Reading application config file.")
         try:
             with open(config_file, encoding='utf-8') as file:
                 config: Dict[str, Any] = yaml.safe_load(file)
