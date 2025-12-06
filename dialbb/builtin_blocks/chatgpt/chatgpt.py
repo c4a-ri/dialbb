@@ -29,6 +29,7 @@ import datetime
 from typing import Dict, Any, List, Union, Tuple
 import openai
 from dialbb.abstract_block import AbstractBlock
+from dialbb.builtin_blocks.util import extract_aux_data
 from dialbb.util.error_handlers import abort_during_building
 import re
 
@@ -218,6 +219,10 @@ class ChatGPT(AbstractBlock):
         self.log_debug("generated system utterance: " + generated_utterance, session_id=session_id)
         system_utterance: str = generated_utterance.replace(f'{self.system_name}:', '').strip()
         self.log_debug("final system utterance: " + system_utterance, session_id=session_id)
+
+        # update aux data using (key:value, key:value, ...) at the end of system utterance
+        system_utterance, aux_data_to_update = extract_aux_data(system_utterance)
+        aux_data.update(aux_data_to_update)
 
         return system_utterance, aux_data, False
 

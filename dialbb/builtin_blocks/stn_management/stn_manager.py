@@ -43,6 +43,7 @@ from dialbb.builtin_blocks.stn_management.state_transition_network \
     BUILTIN_FUNCTION_PREFIX, COMMA, SEMICOLON, LEFTBRACE, RIGHTBRACE
 from dialbb.builtin_blocks.stn_management.stn_creator import create_stn
 from dialbb.abstract_block import AbstractBlock
+from dialbb.builtin_blocks.util import extract_aux_data
 from dialbb.main import ANY_FLAG, DEBUG, CONFIG_KEY_FLAGS_TO_USE, CONFIG_DIR
 from dialbb.util.error_handlers import abort_during_building
 
@@ -547,6 +548,10 @@ class Manager(AbstractBlock):
                 final = True
 
             aux_data['state'] = new_state_name  # add new state to aux_data
+
+            # update aux_data using (key:value, key:value, ..) in output sentence
+            output_text, aux_data_to_update = extract_aux_data(output_text)
+            aux_data.update(aux_data_to_update)
 
             # create output data
             output = {"output_text": output_text, "final": final, "aux_data": aux_data}
