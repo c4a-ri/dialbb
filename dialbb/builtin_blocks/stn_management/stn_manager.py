@@ -80,6 +80,8 @@ CONTEXT_KEY_SUB_DIALOGUE_STACK: str = '_sub_dialogue_stack'
 CONTEXT_KEY_REACTION: str = '_reaction'
 CONTEXT_KEY_REQUESTING_CONFIRMATION: str = '_requesting_confirmation'
 CONTEXT_KEY_TURNS_IN_STATE: str = '_turns_in_state'
+CONTEXT_KEY_SESSION_ID: str = '_session_id'
+CONTEXT_KEY_USER_ID: str = '_user_id'
 
 INPUT_KEY_AUX_DATA: str = "aux_data"
 INPUT_KEY_SENTENCE: str = "sentence"
@@ -358,6 +360,8 @@ class Manager(AbstractBlock):
                            CONTEXT_KEY_SUB_DIALOGUE_STACK: [],
                            CONTEXT_KEY_REACTION: "",
                            CONTEXT_KEY_TURNS_IN_STATE: 1,
+                           CONTEXT_KEY_SESSION_ID: session_id,
+                           CONTEXT_KEY_USER_ID: user_id,
                            CONTEXT_KEY_REQUESTING_CONFIRMATION: False}
 
                 self._add_context(session_id, context)
@@ -795,7 +799,7 @@ class Manager(AbstractBlock):
                                           user_id, session_id, sentence)
                    for raw_argument in raw_argument_values]
         except Exception as e:  # failure in realization
-            self.log_warning(f"Exception occurred during realizing arguments in system utterance: {str(argument_names)}",
+            self.log_warning(f"Exception occurred during realizing arguments in system utterance: {str(raw_argument_values)}",
                              session_id=session_id)
             if DEBUG:
                 raise Exception(e)
