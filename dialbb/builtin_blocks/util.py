@@ -15,15 +15,49 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# builtin_block_utils
+# util.py
 #   functions used in builtin blocks
 #
 import importlib
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Tuple
 from dialbb.abstract_block import AbstractBlock
+import re
 
 KEY_CLASS: str = 'class'
 
+OUTPUT_TEXT_PATTERN = re.compile(r'^(?P<utterance>.*?)\s*\((?P<kv_part>.*)\)$')
+PAIR_PATTERN = re.compile(r'^\s*(?P<key>[^:]+?)\s*:\s*(?P<value>.+?)\s*$')
+
+
+def extract_aux_data(output_text: str) -> Tuple[str, Dict[str, Any]]:
+    """
+    'sentence(key1: value1, key2: value2, key_3:value_3)'
+        ↓
+    ('sentence', {'key1': 'value1', 'key2': 'value2', 'key_3': 'value_3'})
+    """
+    output_text = output_text.strip()
+    m = OUTPUT_TEXT_PATTERN.match(output_text)
+    if not m:
+        return output_text, {}
+
+    utterance: str = m.group("utterance").strip()
+    kv_part = m.group("kv_part")
+
+    result_dict: Dict[str, Any] = {}
+    # separate by commas
+    for pair_str in kv_part.split(","):
+        pair_str = pair_str.strip()
+        if not pair_str:
+            continue
+        m2 = PAIR_PATTERN.match(pair_str)
+        if not m2:
+            raise ValueError(f"illegal key:value format: {pair_str!r}")
+
+        key = m2.group("key").strip()
+        value = m2.group("value").strip()
+        result_dict[key] = value
+
+    return utterance, result_dict
 
 def create_block_object(block_config: Dict[str, Any]) -> AbstractBlock:
     """
@@ -40,4 +74,3 @@ def create_block_object(block_config: Dict[str, Any]) -> AbstractBlock:
     if not isinstance(block_object, AbstractBlock):
         raise Exception(f"{block_config[KEY_CLASS]} is not a subclass of AbstractBlock.")
     return block_object
-

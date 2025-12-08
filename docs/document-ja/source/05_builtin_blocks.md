@@ -954,6 +954,17 @@ def get_ramen_location(ramen: str, variable: str, context: Dict[str, Any]) -> No
 - `dialbb.builtin_blocks.stn_management.util.scenario_function_log_error(message: str)`
   errorレベルのログが書き出されます。デバッグモードの時にはExceptionを投げます。
 
+(extract_aux_data)=
+
+### システム発話からの出力aux_dataの抽出
+
+出力のシステム発話文字列の最後に `(<key_1>: <value_1>,  <key_2>: <value_2>, ... <key_n>: <value_n>)`の形の文字列があるとき、この部分は発話文字列から削除され、出力の`aux_data`に`{”<key_1>”: ”<value_1>”,  ”<key_2>”: ”<value_2>”, ... ”<key_n>”: ”<value_n>”}`が付け加わります。（実際にはupdateされるので、同じキーがあれば値が上書きされます。）クライアントの制御に用いることができます。
+
+例：
+
+- システム発話文字列 ：`"こんにちは (emotion:happy)"`
+- 最終的なシステム発話：`"こんにちは"`， `aux_data`のアップデート：`{"emotion": "happy"}`
+
 ### 連続遷移
 
 システム発話（の1番目）が`$skip`である状態に遷移した場合，システム応答を返さず，即座に次の遷移を行います．これは，最初の遷移のアクションの結果に応じて二つ目の遷移を選択するような場合に用います．
@@ -1180,8 +1191,11 @@ OpenAI社のChatGPTを用いて対話を行います．
 ### 処理内容
 
 - 対話の最初はブロックコンフィギュレーションの`first_system_utterance`の値をシステム発話として返します．
-
 - 2回目以降のターンでは，プロンプトテンプレートを与えてChatGPTに発話を生成させ，返ってきた文字列をシステム発話として返します．
+
+### システム発話からの出力aux_dataの抽出
+
+{numref}`extract_aux_data`と同じです。
 
 
 (chatgpt_ner)=

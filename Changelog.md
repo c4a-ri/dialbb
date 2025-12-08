@@ -3,17 +3,21 @@
 
 ## next version
 
-- Conforms to Python 3.12
+- Conforms to Python 3.12 and 3.13
 
 - ChatGPT Dialogue Builtin Block
 
-  - Allows to use gpt-5* other than gpt-5
+  - Using gpt-5* other than gpt-5
 
+  - Writing output aux_data in output sentence
+  
 - STN Manager Embedded Block
 
-  - Allows to use gpt-5* other than gpt-5
+  - Using gpt-5* other than gpt-5
 
-  - Allows to log in scenario functions
+  - Logging in scenario functions
+
+  - Writing output aux_data in output sentence
 
 ## 1.1.1 (2025.11.22)
 
