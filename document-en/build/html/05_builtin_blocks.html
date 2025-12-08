@@ -83,6 +83,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#built-in-functions-using-large-language-models">5.4.6.2. Built-in functions using large language models</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#syntax-sugars-for-built-in-functions">5.4.6.3. Syntax sugars for built-in functions</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#function-definitions-by-the-developers">5.4.6.4. Function definitions by the developers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#logging-in-functions">5.4.6.5. Logging in functions</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#reaction">5.4.7. Reaction</a></li>
@@ -594,6 +595,12 @@ In a final state, the system generates a system utterance and terminates the dia
 <tr class="row-even"><td><p>_turns_in_state</p></td>
 <td><p>The number of user turns in the current state (integer)</p></td>
 </tr>
+<tr class="row-odd"><td><p>_session_id</p></td>
+<td><p>The session ID of the current conversation (string)</p></td>
+</tr>
+<tr class="row-even"><td><p>_user_id</p></td>
+<td><p>The user ID of the most recent user utterance (string)</p></td>
+</tr>
 </tbody>
 </table>
 <p>The dialog history is in the following form.</p>
@@ -657,7 +664,7 @@ In a final state, the system generates a system utterance and terminates the dia
 </section>
 <section id="function-definitions">
 <h3><span class="section-number">5.4.6. </span>Function Definitions<a class="headerlink" href="#function-definitions" title="Permalink to this heading"></a></h3>
-<p>Functions used in conditions and actions are either built-in to DialBB or defined by the developers.The function used in a condition returns a boolean value, while the function used in an action returns nothing.</p>
+<p>Functions used in conditions and actions (called “scenario functions” altogether)are either built-in to DialBB or defined by the developers. The function used in a condition returns a Boolean value, while the function used in an action returns nothing.</p>
 <section id="built-in-functions">
 <h4><span class="section-number">5.4.6.1. </span>Built-in functions<a class="headerlink" href="#built-in-functions" title="Permalink to this heading"></a></h4>
 <p>The built-in functions are as follows:</p>
@@ -934,6 +941,20 @@ Replaced with a string representing the current date, day of the week, and time 
 <p>All arguments used in the scenario must be strings.
 In the case of a special variable or variables, the value of the variable is passed as an argument.
 In the case of a variable reference, the variable name without the <code class="docutils literal notranslate"><span class="pre">&amp;</span></code>’ is passed, and in the case of a constant, the string in <code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code> is passed.</p>
+</section>
+<section id="logging-in-functions">
+<h4><span class="section-number">5.4.6.5. </span>Logging in functions<a class="headerlink" href="#logging-in-functions" title="Permalink to this heading"></a></h4>
+<p>In scenario functions, logging can be performed using the following functions. The logs are written to standard output along with the session ID.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.stn_management.util.scenario_function_log_debug(message:</span> <span class="pre">str)</span></code>
+Writes a log at the debug level.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.stn_management.util.scenario_function_log_info(message:</span> <span class="pre">str)</span></code>
+Writes a log at the info level.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.stn_management.util.scenario_function_log_warning(message:</span> <span class="pre">str)</span></code>
+Writes a log at the warning level.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.stn_management.util.scenario_function_log_error(message:</span> <span class="pre">str)</span></code>
+Writes a log at the error level. In debug mode, this function also raises an Exception.</p></li>
+</ul>
 </section>
 </section>
 <section id="reaction">

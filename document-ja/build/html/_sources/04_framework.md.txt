@@ -268,6 +268,8 @@ blocks:
 
 ### 利用できるメソッド
 
+#### ロギング
+
 以下のロギングメソッドが利用できます．
 
 - `log_debug(self, message: str, session_id: str = "unknown")`
@@ -285,7 +287,9 @@ blocks:
 
 - `log_error(self, message: str, session_id: str = "unknown")`
 
-  標準エラー出力にerrorレベルのログを出力します．
+  標準エラー出力にerrorレベルのログを出力します．後述のデバッグモードの時は、Exceptionを投げます。
+
+後述のデバッグモードの時，ログレベルはdebugになり、その他の場合はinfoになっています。
 
 
 ## デバッグモード

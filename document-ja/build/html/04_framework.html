@@ -67,10 +67,13 @@
 <li class="toctree-l2"><a class="reference internal" href="#id12">4.4. ブロックの自作方法</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#id13">4.4.1. 実装すべきメソッド</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#id14">4.4.2. 利用できる変数</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id15">4.4.3. 利用できるメソッド</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id15">4.4.3. 利用できるメソッド</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id16">4.4.3.1. ロギング</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#id16">4.5. デバッグモード</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id17">4.5. デバッグモード</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#test-scenario">4.6. テストシナリオを用いたテスト</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#test-requests">4.7. テストリクエストを用いたテスト</a></li>
 </ul>
@@ -334,6 +337,8 @@
 </section>
 <section id="id15">
 <h3><span class="section-number">4.4.3. </span>利用できるメソッド<a class="headerlink" href="#id15" title="この見出しへのパーマリンク"></a></h3>
+<section id="id16">
+<h4><span class="section-number">4.4.3.1. </span>ロギング<a class="headerlink" href="#id16" title="この見出しへのパーマリンク"></a></h4>
 <p>以下のロギングメソッドが利用できます．</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">log_debug(self,</span> <span class="pre">message:</span> <span class="pre">str,</span> <span class="pre">session_id:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">&quot;unknown&quot;)</span></code></p>
@@ -347,18 +352,20 @@
 <p>標準エラー出力にwarningレベルのログを出力します．</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">log_error(self,</span> <span class="pre">message:</span> <span class="pre">str,</span> <span class="pre">session_id:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">&quot;unknown&quot;)</span></code></p>
-<p>標準エラー出力にerrorレベルのログを出力します．</p>
+<p>標準エラー出力にerrorレベルのログを出力します．後述のデバッグモードの時は、Exceptionを投げます。</p>
 </li>
 </ul>
+<p>後述のデバッグモードの時，ログレベルはdebugになり、その他の場合はinfoになっています。</p>
 </section>
 </section>
-<section id="id16">
-<h2><span class="section-number">4.5. </span>デバッグモード<a class="headerlink" href="#id16" title="この見出しへのパーマリンク"></a></h2>
+</section>
+<section id="id17">
+<h2><span class="section-number">4.5. </span>デバッグモード<a class="headerlink" href="#id17" title="この見出しへのパーマリンク"></a></h2>
 <p>Python起動時の環境変数 <code class="docutils literal notranslate"><span class="pre">DIALBB_DEBUG</span></code>の値が<code class="docutils literal notranslate"><span class="pre">yes</span></code> （大文字小文字は問わない）の時，デバッグモードで動作します．この時，<code class="docutils literal notranslate"><span class="pre">dialbb.main.DEBUG</span></code>の値が<code class="docutils literal notranslate"><span class="pre">True</span></code>になります．アプリ開発者が作成するブロックの中でもこの値を参照することができます．</p>
 <p><code class="docutils literal notranslate"><span class="pre">dialbb.main.DEBUG</span></code>が<code class="docutils literal notranslate"><span class="pre">True</span></code>の場合，ロギングレベルはdebugに設定され，その他の場合はinfoに設定されます．</p>
 </section>
 <section id="test-scenario">
-<span id="id17"></span><h2><span class="section-number">4.6. </span>テストシナリオを用いたテスト<a class="headerlink" href="#test-scenario" title="この見出しへのパーマリンク"></a></h2>
+<span id="id18"></span><h2><span class="section-number">4.6. </span>テストシナリオを用いたテスト<a class="headerlink" href="#test-scenario" title="この見出しへのパーマリンク"></a></h2>
 <p>以下のコマンドでテストシナリオを用いたテストができます．</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python<span class="w"> </span>dialbb/util/test.py<span class="w"> </span>&lt;アプリケーションコンフィギュレーションファイル&gt;<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>&lt;テストシナリオ&gt;<span class="w"> </span><span class="o">[</span>--output<span class="w"> </span>&lt;出力ファイル&gt;<span class="o">]</span>
@@ -392,7 +399,7 @@
 <p>テストスクリプトは，&lt;ユーザ発話&gt;を順番にアプリケーションに入力して，システム発話を受け取ります．システム発話がスクリプトのシステム発話と異なる場合はwarningを出します．テストが終了すると，出力されたシステム発話を含め，テストシナリオと同じ形式で対話を出力することができます．テストシナリオと出力ファイルを比較することで，応答の変化を調べることができます．</p>
 </section>
 <section id="test-requests">
-<span id="id18"></span><h2><span class="section-number">4.7. </span>テストリクエストを用いたテスト<a class="headerlink" href="#test-requests" title="この見出しへのパーマリンク"></a></h2>
+<span id="id19"></span><h2><span class="section-number">4.7. </span>テストリクエストを用いたテスト<a class="headerlink" href="#test-requests" title="この見出しへのパーマリンク"></a></h2>
 <p>テストシナリオを用いたテストでは<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>を入力できません．aux_dataを入力するテストを行うには，テストリクエストを用いたテストを行います．</p>
 <p>以下のコマンドで実行します．</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python<span class="w"> </span>dialbb/util/send_test_requests.py<span class="w"> </span>&lt;アプリケーションコンフィギュレーションファイル&gt;<span class="w"> </span><span class="se">\ </span><span class="w">            </span>＜テストリクエストファイル＞

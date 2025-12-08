@@ -66,7 +66,10 @@
 <li class="toctree-l2"><a class="reference internal" href="#how-to-make-your-own-blocks">4.4. How to make your own blocks</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#methods-to-be-implemented">4.4.1. Methods to be Implemented</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#available-variables">4.4.2. Available Variables</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#available-methods">4.4.3. Available Methods</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#available-methods">4.4.3. Available Methods</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#logging">4.4.3.1. Logging</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#debug-mode">4.5. Debug Mode</a></li>
@@ -337,21 +340,25 @@ blackboard is defined by the configuration (see “<a class="reference internal"
 </section>
 <section id="available-methods">
 <h3><span class="section-number">4.4.3. </span>Available Methods<a class="headerlink" href="#available-methods" title="Permalink to this heading"></a></h3>
-<p>The following logging methods are available</p>
+<section id="logging">
+<h4><span class="section-number">4.4.3.1. </span>Logging<a class="headerlink" href="#logging" title="Permalink to this heading"></a></h4>
+<p>The following logging methods are available:</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">log_debug(self,</span> <span class="pre">message:</span> <span class="pre">str,</span> <span class="pre">session_id:</span> <span class="pre">str=&quot;unknown&quot;)</span></code></p>
 <p>Outputs debug-level logs to standard error output. <code class="docutils literal notranslate"><span class="pre">session_id</span></code> can be specified as a session ID to be included in the log.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">log_info(self,</span> <span class="pre">message:</span> <span class="pre">str,</span> <span class="pre">session_id:</span> <span class="pre">str=&quot;unknown&quot;)</span></code></p>
-<p>Outputs info level logs to standard error output.</p>
+<p>Outputs info-level logs to standard error output.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">log_warning(self,</span> <span class="pre">message:</span> <span class="pre">str,</span> <span class="pre">session_id:</span> <span class="pre">str=&quot;unknown&quot;)</span></code></p>
 <p>Outputs warning-level logs to standard error output.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">log_error(self,</span> <span class="pre">message:</span> <span class="pre">str,</span> <span class="pre">session_id:</span> <span class="pre">str=&quot;unknown&quot;)</span></code></p>
-<p>Outputs error-level logs to standard error output.</p>
+<p>Outputs error-level logs to standard error output. In the debug mode mentioned below, an exception is raised.</p>
 </li>
 </ul>
+<p>In the debug mode mentioned below, the log level is set to <code class="docutils literal notranslate"><span class="pre">debug</span></code>; otherwise, it defaults to <code class="docutils literal notranslate"><span class="pre">info</span></code>.</p>
+</section>
 </section>
 </section>
 <section id="debug-mode">
