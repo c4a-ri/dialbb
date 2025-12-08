@@ -1,9 +1,9 @@
 # Changelog
 
 
-## next version
+## 1.1.3 (2025.12.08)
 
-- Conforms to Python 3.12
+- Conforms to Python 3.12 and 3.13
 
 - ChatGPT Dialogue Builtin Block
 
