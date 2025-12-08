@@ -458,8 +458,8 @@ The context information is pre-set with the following key-value pairs.
 | _previous_system_utterance | previous system utterance (string)|
 | _dialogue_history | Dialogue history (list)|
 | _turns_in_state | The number of user turns in the current state (integer)|
-
-
+| _session_id | The session ID of the current conversation (string) |
+| _user_id | The user ID of the most recent user utterance (string) |
 
 The dialog history is in the following form.
 
@@ -535,7 +535,7 @@ For function calls, the functions can take arguments explained above as function
 
 ### Function Definitions
 
-Functions used in conditions and actions are either built-in to DialBB or defined by the developers.The function used in a condition returns a boolean value, while the function used in an action returns nothing.
+Functions used in conditions and actions (called "scenario functions" altogether)are either built-in to DialBB or defined by the developers. The function used in a condition returns a Boolean value, while the function used in an action returns nothing.
 
 
 #### Built-in functions
@@ -781,7 +781,6 @@ Here are some examples:
 
      If the string exists as a key in aux_data, it is replaced with the corresponding value converted to a string.
 	
-
 - Placeholder removal
 
   If an unreplaced placeholder remains and is enclosed in `[[[` and `]]]`, that portion will be removed.
@@ -885,12 +884,35 @@ All arguments used in the scenario must be strings.
 In the case of a special variable or variables, the value of the variable is passed as an argument.
 In the case of a variable reference, the variable name without the `&`' is passed, and in the case of a constant, the string in `""` is passed.
 
+#### Logging in functions
+
+In scenario functions, logging can be performed using the following functions. The logs are written to standard output along with the session ID.
+
+- `dialbb.builtin_blocks.stn_management.util.scenario_function_log_debug(message: str)`
+   Writes a log at the debug level.
+- `dialbb.builtin_blocks.stn_management.util.scenario_function_log_info(message: str)`
+   Writes a log at the info level.
+- `dialbb.builtin_blocks.stn_management.util.scenario_function_log_warning(message: str)`
+   Writes a log at the warning level.
+- `dialbb.builtin_blocks.stn_management.util.scenario_function_log_error(message: str)`
+   Writes a log at the error level. In debug mode, this function also raises an Exception.
+
 ### Reaction
 
 In an action function, setting a string to `_reaction` in the context information will prepend that string to the system's response after the state transition.
 
 For example, if the action function `_set(&_reaction, "I agree.")` is executed and the system's response in the subsequent state is "How was the food?", then the system will return the response "I agree. How was the food?".
 
+(extract_aux_data)=
+
+### Extraction of aux_data from System Utterances
+
+When the output system utterance string ends with a segment in the format `(<key_1>: <value_1>,  <key_2>: <value_2>, ... <key_n>: <value_n>)`, this part is removed from the utterance string, and the corresponding data is added to the output’s `aux_data` as: `{"<key_1>": "<value_1>",  "<key_2>": "<value_2>", ... "<key_n>": "<value_n>"} (If a key already exists, the value is updated.) This mechanism can be used for client-side control.
+
+Example:
+
+- System utterance string: `"Hello! (emotion:happy)"`
+- Final system utterance: `"Hello"`,  Update to `aux_data`: `{"emotion": "happy"}`
 
 ### Continuous Transition
 
@@ -1094,7 +1116,6 @@ When using these blocks, you need to set the OpenAI license key in the environme
 
      If the string exists as a key in aux_data, it is replaced with the corresponding value converted to a string.
 	
-
 - Placeholder removal
 
   If an unreplaced placeholder remains and is enclosed in `[[[` and `]]]`, that portion will be removed.
@@ -1103,8 +1124,11 @@ When using these blocks, you need to set the OpenAI license key in the environme
 ### Process Details
 
 - At the beginning of the dialog, the value of `first_system_utterance` in the block configuration is returned as system utterance.
-
 - In the second and subsequent turns, the prompt template is given to ChatGPT and the returned string is returned as the system utterance.
+
+### Extraction of aux_data from System Utterances
+
+Same as {numref}`extract_aux_data`.
 
 
 (chatgpt_ner)=

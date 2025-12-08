@@ -1,6 +1,6 @@
 # [DialBB](https://c4a-ri.github.io/dialbb/): A Framework for Building Dialogue Systems
 
-ver. 1.1.1
+ver. 1.2
 
 [<img src="./docs/images/japan_national_flag.jpg" width="5%">日本語](README-ja.md)
 

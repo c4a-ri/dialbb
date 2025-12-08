@@ -8,6 +8,7 @@ from tools.knowledgeConverter2excel import convert2excel
 import argparse
 import re
 from dialbb.no_code.gui_utils import read_gui_text_data, gui_text
+from dialbb.util.logger import get_logger
 
 
 DOC_ROOT: str = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
@@ -24,6 +25,8 @@ app = Flask(
     static_folder=os.path.join(DOC_ROOT, "server/static/new/assets"),
 )
 
+logger = get_logger("scenarioeditor-server")
+logger.propagate = False
 
 llm_pattern = re.compile(r"\$\".*?\"")
 llm_pattern2 = re.compile(r"\$.*?\$")
@@ -161,6 +164,7 @@ def save_excel():
         json_file = os.path.join(NC_PATH, "data", secure_filename(file.filename))
         file.save(json_file)
         warning: str = check_and_warn(json_file)
+        logger.info(f"save_excel: warning=\n{warning}")
 
         if warning == "":
             # jsonファイルをExcelに変換して保存

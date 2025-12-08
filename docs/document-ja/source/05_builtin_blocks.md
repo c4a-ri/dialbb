@@ -509,6 +509,8 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
 | _previous_system_utterance | 直前のシステム発話（文字列）                                 |
 | _dialogue_history          | 対話履歴（リスト）                                           |
 | _turns_in_state            | 今の状態でのターン数（ユーザの発話回数）（整数）             |
+| _session_id                | 現在の対話のセッションID（文字列）                           |
+| _user_id                   | 直前のユーザ発話のユーザID（文字列）                         |
 
 
 対話履歴は，以下の形です．
@@ -591,7 +593,7 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
 
 ### 関数定義
 
-条件やアクションで用いる関数は，DialBB組み込みのものと，開発者が定義するものがあります．条件で使う関数はbool値を返し，アクションで使う関数は何も返しません．
+条件やアクションで用いる関数（まとめてシナリオ関数と呼びます）は，DialBB組み込みのものと，開発者が定義するものがあります．条件で使う関数はbool値を返し，アクションで使う関数は何も返しません．
 
 #### 組み込み関数
 
@@ -836,7 +838,6 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
 
     文字列が`aux_data`のキーにあれば，その値を文字列に変換したもので置き換えらる．この文字列は，
 	
-	
 - プレースホルダの削除
 
   もし置き換えられないプレースホルダが残っていて，それが`[[[`と`]]]`で囲まれていれば，その部分は消去されます．
@@ -936,6 +937,33 @@ def get_ramen_location(ramen: str, variable: str, context: Dict[str, Any]) -> No
 
 また，変数参照の場合は`'&'`を除いた変数名が，定数の場合は，`""`の中の文字列が渡されます．
 
+#### 関数中のロギング
+
+シナリオ関数の中で、以下の関数を用いてロギングができます。セッションIDつきで標準出力に書き出されます。
+
+- `dialbb.builtin_blocks.stn_management.util.scenario_function_log_debug(message: str)`
+  debugレベルのログが書き出されます。
+
+- `dialbb.builtin_blocks.stn_management.util.scenario_function_log_info(message: str)`
+  infoレベルのログが書き出されます。
+
+- `dialbb.builtin_blocks.stn_management.util.scenario_function_log_warning(message: str)`
+
+  warningレベルのログが書き出されます。
+
+- `dialbb.builtin_blocks.stn_management.util.scenario_function_log_error(message: str)`
+  errorレベルのログが書き出されます。デバッグモードの時にはExceptionを投げます。
+
+(extract_aux_data)=
+
+### システム発話からの出力aux_dataの抽出
+
+出力のシステム発話文字列の最後に `(<key_1>: <value_1>,  <key_2>: <value_2>, ... <key_n>: <value_n>)`の形の文字列があるとき、この部分は発話文字列から削除され、出力の`aux_data`に`{”<key_1>”: ”<value_1>”,  ”<key_2>”: ”<value_2>”, ... ”<key_n>”: ”<value_n>”}`が付け加わります。（実際にはupdateされるので、同じキーがあれば値が上書きされます。）クライアントの制御に用いることができます。
+
+例：
+
+- システム発話文字列 ：`"こんにちは (emotion:happy)"`
+- 最終的なシステム発話：`"こんにちは"`， `aux_data`のアップデート：`{"emotion": "happy"}`
 
 ### 連続遷移
 
@@ -1154,7 +1182,6 @@ OpenAI社のChatGPTを用いて対話を行います．
 
     文字列が`aux_data`のキーにあれば，その値を文字列に変換したもので置き換えらる．
 	
-	
 - プレースホルダの削除
 
   もし置き換えられないプレースホルダが残っていて，それが`[[[`と`]]]`で囲まれていれば，その部分は消去されます．
@@ -1164,8 +1191,11 @@ OpenAI社のChatGPTを用いて対話を行います．
 ### 処理内容
 
 - 対話の最初はブロックコンフィギュレーションの`first_system_utterance`の値をシステム発話として返します．
-
 - 2回目以降のターンでは，プロンプトテンプレートを与えてChatGPTに発話を生成させ，返ってきた文字列をシステム発話として返します．
+
+### システム発話からの出力aux_dataの抽出
+
+{numref}`extract_aux_data`と同じです。
 
 
 (chatgpt_ner)=

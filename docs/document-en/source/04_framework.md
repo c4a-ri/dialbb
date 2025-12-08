@@ -281,7 +281,9 @@ blackboard is defined by the configuration (see "{ref}`configuration`"). `sessio
 
 ### Available Methods
 
-The following logging methods are available
+#### Logging
+
+The following logging methods are available:
 
 - `log_debug(self, message: str, session_id: str="unknown")`
 
@@ -290,7 +292,7 @@ The following logging methods are available
 
 - `log_info(self, message: str, session_id: str="unknown")`
 
-  Outputs info level logs to standard error output.
+  Outputs info-level logs to standard error output.
   
 - `log_warning(self, message: str, session_id: str="unknown")`
 
@@ -298,7 +300,9 @@ The following logging methods are available
 
 - `log_error(self, message: str, session_id: str="unknown")`
 
-  Outputs error-level logs to standard error output.
+  Outputs error-level logs to standard error output. In the debug mode mentioned below, an exception is raised.
+
+In the debug mode mentioned below, the log level is set to `debug`; otherwise, it defaults to `info`.
 
 
 ## Debug Mode

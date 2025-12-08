@@ -1,5 +1,27 @@
 # Changelog
 
+## next version
+
+- Python 3.12 および 3.13 で動作可能
+
+- ChatGPT対話組み込みブロック
+
+  - gpt-5 以外の gpt-5* が使用可能
+
+  - 出力文に aux_data を記述可能
+
+- STN Manager組み込みブロック
+
+  - gpt-5 以外の gpt-5* が使用可能
+
+  - シナリオ関数内でのログ出力
+
+  - 出力文に aux_data が記述可能
+
+- ノーコードツール
+
+  - LLMベーステスタを含めた
+
 ## 1.1.1 (2025.11.22)
 
 - ChatGPT Dialogue組み込みブロック

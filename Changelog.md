@@ -1,6 +1,28 @@
 # Changelog
 
 
+## next version
+
+- Conforms to Python 3.12 and 3.13
+
+- ChatGPT Dialogue Builtin Block
+
+  - Using gpt-5* other than gpt-5
+
+  - Writing output aux_data in output sentence
+  
+- STN Manager Embedded Block
+
+  - Using gpt-5* other than gpt-5
+
+  - Logging in scenario functions
+
+  - Writing output aux_data in output sentence
+
+- No-code tool
+
+  - LLM-based tester included
+
 ## 1.1.1 (2025.11.22)
 
 - ChatGPT Dialogue Builtin Block

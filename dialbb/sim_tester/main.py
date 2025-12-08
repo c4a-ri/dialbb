@@ -28,7 +28,7 @@ __copyright__ = 'C4A Research Institute, Inc.'
 import argparse
 import json
 import traceback
-from typing import Dict, Any, List
+from typing import Dict, Any, Generator, List
 import yaml
 import os, sys
 
@@ -40,10 +40,14 @@ DEFAULT_TEMPERATURE: float = 0.7
 USER_ID: str = "user1"
 
 
-def test_one_setting(user_simulator, dialogue_processor,
-                     setting: Dict[str, Any], temperature: float,
-                     max_turns: int, out_fp) -> Dict[str, Any]:
-
+def test_one_setting(
+    user_simulator,
+    dialogue_processor,
+    setting: Dict[str, Any],
+    temperature: float,
+    max_turns: int,
+    out_fp,
+) -> Generator[str, None, Dict[str, Any]]:
     result = {}
 
     initial_aux_data: Dict[str, Any] = setting['initial_aux_data']
@@ -76,12 +80,14 @@ def test_one_setting(user_simulator, dialogue_processor,
     print("SYS> " + response['system_utterance'])
     result['dialogue'].append({"speaker": "system", "utterance": response['system_utterance']})
     log_text += f"System: {response['system_utterance']}\n"
+    yield log_text
     session_id = response['session_id']
     user_utterance = user_simulator.generate_next_user_utterance(response['system_utterance'])
 
     while True:
         result['dialogue'].append({"speaker": "user", "utterance": user_utterance})
         log_text += f"User: {user_utterance}\n"
+        yield f"User: {user_utterance}\n"
         num_turns += 1
         print("USR> " + user_utterance)
         request = {"user_id": USER_ID, "session_id": session_id,
@@ -92,6 +98,7 @@ def test_one_setting(user_simulator, dialogue_processor,
         print("SYS> " + response['system_utterance'])
         result['dialogue'].append({"speaker": "system", "utterance": response['system_utterance']})
         log_text += f"System: {response['system_utterance']}\n"
+        yield f"System: {response['system_utterance']}\n"
         if response['final'] or num_turns >= max_turns:
             break
 
@@ -108,7 +115,7 @@ def test_one_setting(user_simulator, dialogue_processor,
 
 def test_by_simulation(test_config_file: str, app_config_file: str, output_file: str = None,
                        json_output: bool = False,
-                       prompt_params: Dict[str, str] = None) -> List[Dict[str, Any]]:
+                       prompt_params: Dict[str, str] = None) -> Generator[str, None, None]:
     """
     test using LLM-based simulator
     :param test_config_file: config file for test
@@ -170,9 +177,22 @@ def test_by_simulation(test_config_file: str, app_config_file: str, output_file:
 
     for setting in settings:
         for temperature in temperatures:
-            result = test_one_setting(user_simulator, dialogue_processor,
-                                      setting, temperature, max_turns, out_fp)
-            results.append(result)
+            # run test
+            result = test_one_setting(
+                user_simulator,
+                dialogue_processor,
+                setting,
+                temperature,
+                max_turns,
+                out_fp,
+            )
+            try:
+                # Sequentially retrieve data from a generator
+                while True:
+                    yield next(result)
+            except StopIteration as e:
+                # Retrieve JSON results in bulk
+                results.append(e.value)
 
     if out_fp:
         out_fp.close()
@@ -181,11 +201,8 @@ def test_by_simulation(test_config_file: str, app_config_file: str, output_file:
         with open(output_file, mode='w', encoding='utf-8') as fp:
             json.dump(results, fp, indent=2, ensure_ascii=False)
 
-    return results
-
 
 def main():
-
     # read arguments
     parser = argparse.ArgumentParser()
     parser.add_argument("--app_config", help="dialbb app config yaml file", required=True)
@@ -199,9 +216,10 @@ def main():
     if args.output:
         test_by_simulation(test_config_file, app_config_file, output_file=args.output, json_output=args.json_output)
     else:
-        test_by_simulation(test_config_file, app_config_file)
+        for result in test_by_simulation(test_config_file, app_config_file):
+            # print(f"##>{result}", end="")
+            pass
 
 
 if __name__ == '__main__':
     main()
-

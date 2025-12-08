@@ -43,6 +43,7 @@ from dialbb.builtin_blocks.stn_management.state_transition_network \
     BUILTIN_FUNCTION_PREFIX, COMMA, SEMICOLON, LEFTBRACE, RIGHTBRACE
 from dialbb.builtin_blocks.stn_management.stn_creator import create_stn
 from dialbb.abstract_block import AbstractBlock
+from dialbb.builtin_blocks.util import extract_aux_data
 from dialbb.main import ANY_FLAG, DEBUG, CONFIG_KEY_FLAGS_TO_USE, CONFIG_DIR
 from dialbb.util.error_handlers import abort_during_building
 
@@ -80,6 +81,8 @@ CONTEXT_KEY_SUB_DIALOGUE_STACK: str = '_sub_dialogue_stack'
 CONTEXT_KEY_REACTION: str = '_reaction'
 CONTEXT_KEY_REQUESTING_CONFIRMATION: str = '_requesting_confirmation'
 CONTEXT_KEY_TURNS_IN_STATE: str = '_turns_in_state'
+CONTEXT_KEY_SESSION_ID: str = '_session_id'
+CONTEXT_KEY_USER_ID: str = '_user_id'
 
 INPUT_KEY_AUX_DATA: str = "aux_data"
 INPUT_KEY_SENTENCE: str = "sentence"
@@ -358,6 +361,8 @@ class Manager(AbstractBlock):
                            CONTEXT_KEY_SUB_DIALOGUE_STACK: [],
                            CONTEXT_KEY_REACTION: "",
                            CONTEXT_KEY_TURNS_IN_STATE: 1,
+                           CONTEXT_KEY_SESSION_ID: session_id,
+                           CONTEXT_KEY_USER_ID: user_id,
                            CONTEXT_KEY_REQUESTING_CONFIRMATION: False}
 
                 self._add_context(session_id, context)
@@ -543,6 +548,10 @@ class Manager(AbstractBlock):
                 final = True
 
             aux_data['state'] = new_state_name  # add new state to aux_data
+
+            # update aux_data using (key:value, key:value, ..) in output sentence
+            output_text, aux_data_to_update = extract_aux_data(output_text)
+            aux_data.update(aux_data_to_update)
 
             # create output data
             output = {"output_text": output_text, "final": final, "aux_data": aux_data}
@@ -795,7 +804,7 @@ class Manager(AbstractBlock):
                                           user_id, session_id, sentence)
                    for raw_argument in raw_argument_values]
         except Exception as e:  # failure in realization
-            self.log_warning(f"Exception occurred during realizing arguments in system utterance: {str(argument_names)}",
+            self.log_warning(f"Exception occurred during realizing arguments in system utterance: {str(raw_argument_values)}",
                              session_id=session_id)
             if DEBUG:
                 raise Exception(e)
