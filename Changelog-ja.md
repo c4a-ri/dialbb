@@ -2,17 +2,17 @@
 
 ## 1.1.3 (2025.12.08)
 
-- Conforms to Python 3.12 and 3.13
+- Python 3.12 and 3.13 対応
 
-- ChatGPT Dialogue Builtin Block
+- ChatGPT Dialogue組み込みブロック
 
-  - Allows to use gpt-5* other than gpt-5
+  - gpt-5以外のgpt-5*を利用可能に
 
 - STN Manager Embedded Block
 
-  - Allows to use gpt-5* other than gpt-5
+  - gpt-5以外のgpt-5*を利用可能に
 
-  - Allows to log in scenario functions
+  - シナリオ関数内でのロギングを可能に
 
 ## 1.1.1 (2025.11.22)
 
