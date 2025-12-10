@@ -914,6 +914,8 @@ Example:
 - System utterance string: `"Hello! (emotion:happy)"`
 - Final system utterance: `"Hello"`,  Update to `aux_data`: `{"emotion": "happy"}`
 
+Each key must consist of a combination of letters, numbers, and underscores.
+
 ### Continuous Transition
 
 If a transition is made to a state where the first system utterance is `$skip`, the next transition is made immediately without returning a system response. This is used in cases where the second transition is selected based on the result of the action of the first transition.

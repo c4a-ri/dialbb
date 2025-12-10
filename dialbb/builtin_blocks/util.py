@@ -26,7 +26,7 @@ import re
 KEY_CLASS: str = 'class'
 
 OUTPUT_TEXT_PATTERN = re.compile(r'^(?P<utterance>.*?)\s*\((?P<kv_part>.*)\)$')
-PAIR_PATTERN = re.compile(r'^\s*(?P<key>[^:]+?)\s*:\s*(?P<value>.+?)\s*$')
+PAIR_PATTERN = re.compile(r'^\s*(?P<key>[A-Za-z0-9_]+)\s*:\s*(?P<value>.+?)\s*$')
 
 
 def extract_aux_data(output_text: str) -> Tuple[str, Dict[str, Any]]:
@@ -50,14 +50,15 @@ def extract_aux_data(output_text: str) -> Tuple[str, Dict[str, Any]]:
         if not pair_str:
             continue
         m2 = PAIR_PATTERN.match(pair_str)
-        if not m2:
-            raise ValueError(f"illegal key:value format: {pair_str!r}")
+        if not m2: # does not match pattern
+            return output_text, {}
 
         key = m2.group("key").strip()
         value = m2.group("value").strip()
         result_dict[key] = value
 
     return utterance, result_dict
+
 
 def create_block_object(block_config: Dict[str, Any]) -> AbstractBlock:
     """
