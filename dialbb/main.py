@@ -19,7 +19,7 @@
 #   main dialogue processor
 #   メイン対話処理
 
-__version__ = '0.1'
+__version__ = '1.2.0'
 __author__ = 'Mikio Nakano'
 __copyright__ = 'C4A Research Institute, Inc.'
 
@@ -51,6 +51,7 @@ CONFIG_DIR: str = ""
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
+
 @dataclasses.dataclass
 class BlockInfo:
     """
@@ -77,8 +78,9 @@ class DialogueProcessor:
         :param additional_config: additional configuration
         """
 
+        print(f"Starting an application with DialBB {__version__}.")
         # read config file configファイルの読み込み
-        print(f"reading application config file.")
+        print("Reading application config file.")
         try:
             with open(config_file, encoding='utf-8') as file:
                 config: Dict[str, Any] = yaml.safe_load(file)
@@ -157,28 +159,30 @@ class DialogueProcessor:
             session_count += 1
             # create session id string
             session_id = self._generate_session_id()
+            self._log_info(f"new session started.", session_id=session_id)
             blackboard[KEY_SESSION_ID] = session_id
             blackboard['user_utterance'] = ""
         else:
             session_id = blackboard[KEY_SESSION_ID]  # session id received from the client
-        self._logger.debug(f"blackboard: " + str(blackboard))
+            self._log_info(f"existing session continues.", session_id=session_id)
+        self._log_debug(f"blackboard: " + str(blackboard), session_id=session_id)
 
         # each block process blackboard
         for block in self._blocks:
             input_to_block = {}
             for key_in_input, key_in_blackboard in block.block_config['input'].items():
                 if key_in_blackboard not in blackboard:
-                    self._logger.warning(f"key '{key_in_blackboard}' is not in the blackboard.")
+                    self._log_warning(f"key '{key_in_blackboard}' is not in the blackboard.", session_id=session_id)
                 input_to_block[key_in_input] = blackboard.get(key_in_blackboard, None)
             # call each block's process method
             output_from_block = block.block_object.process(input_to_block, session_id=session_id)
             for key_in_output, key_in_blackboard in block.block_config['output'].items():
                 # check if all keys are in the output
                 if key_in_output not in output_from_block:
-                    self._logger.error(f"key '{key_in_output}' is not in the output from the block.")
+                    self._log_error(f"key '{key_in_output}' is not in the output from the block.", session_id=session_id)
                     sys.exit(1)
                 blackboard[key_in_blackboard] = output_from_block[key_in_output]
-            self._logger.debug(f"blackboard: " + str(blackboard))
+            self._log_debug(f"blackboard: " + str(blackboard), session_id=session_id)
 
         # create response from the blackboard
         response = {"system_utterance": blackboard.get('system_utterance', ""),
@@ -188,3 +192,22 @@ class DialogueProcessor:
                     "aux_data": blackboard.get("aux_data", {})}
 
         return response
+
+    def _log_debug(self, message: str, session_id: str = "unknown") -> None:
+        self._logger.debug(f"session: {session_id}, {message}")
+
+    def _log_info(self, message: str, session_id: str = "unknown") -> None:
+        self._logger.info(f"session: {session_id}, {message}")
+
+    def _log_warning(self, message: str, session_id: str = "unknown") -> None:
+        self._logger.warning(f"session: {session_id}, {message}")
+
+    def _log_error(self, message: str, session_id: str = "unknown") -> None:
+        self._logger.error(f"session: {session_id}, {message}")
+        if DEBUG:
+            raise Exception(message)
+
+
+
+
+

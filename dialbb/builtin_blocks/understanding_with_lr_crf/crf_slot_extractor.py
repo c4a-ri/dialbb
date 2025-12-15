@@ -24,6 +24,7 @@ __copyright__ = 'C4A Research Institute, Inc.'
 
 from typing import List, Dict, Any, Tuple
 import sklearn_crfsuite
+from dialbb.util.logger import get_logger
 
 class CRFSlotExtractor:
 
@@ -36,6 +37,7 @@ class CRFSlotExtractor:
         """
 
         self._language = language
+        self._logger = get_logger("CRFSLotExtractor")
 
         crf_X_train = []
         crf_y_train = []
@@ -61,6 +63,8 @@ class CRFSlotExtractor:
         # training the model
         self.crf.fit(crf_X_train, crf_y_train)
 
+
+
     def _tokens_with_pos2crf_features(self, tokens_with_pos: List[Tuple[str, str]]):
 
         crf_features: List[Dict[str, Any]] = [self._word2features(tokens_with_pos, i)
@@ -77,6 +81,7 @@ class CRFSlotExtractor:
         :return: list of crf-labels (BIO tags)
         """
 
+        # self._logger.debug("tokens: " + str(tokens_with_pos))
         crf_labels: List[str] = ['O'] * len(tokens_with_pos)  # crf labels for each token
         for slot_name, slot_value in slots.items():
             str_to_search: str = slot_value
@@ -102,8 +107,8 @@ class CRFSlotExtractor:
                 for j in i_indices:
                     crf_labels[j] = 'I-' + slot_name
 
+        # self._logger.debug("crf_labels: " + str(crf_labels))
         return crf_labels
-
 
     def extract_slots(self, tokens_with_pos: List[Tuple[str, str]]) -> Dict[str, str]:
         """
@@ -112,8 +117,10 @@ class CRFSlotExtractor:
         :return: slot name-value dict {<slot name>: <slot value>, <slot name>: <slot value>, ...}
         """
 
+        # self._logger.debug("tokens: " + str(tokens_with_pos))
         crf_features: List[Dict[str, Any]] = self._tokens_with_pos2crf_features(tokens_with_pos)
         predicted_labels: List[str] = self.crf.predict_single(crf_features)
+        # self._logger.debug("predicted labels: " + str(predicted_labels))
         result: Dict[str, str] = {}
         slot_name: str = ""
         slot_value: str = ""

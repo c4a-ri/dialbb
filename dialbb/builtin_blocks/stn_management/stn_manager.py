@@ -40,9 +40,10 @@ from dialbb.util.context_db import ContextDB
 from dialbb.builtin_blocks.stn_management.state_transition_network \
     import StateTransitionNetwork, State, Transition, Argument, Condition, Action, \
     INITIAL_STATE_NAME, ERROR_STATE_NAME, FINAL_ABORT_STATE_NAME, GOSUB, EXIT, function_call_pattern, \
-    BUILTIN_FUNCTION_PREFIX, COMMA, SEMICOLON
+    BUILTIN_FUNCTION_PREFIX, COMMA, SEMICOLON, LEFTBRACE, RIGHTBRACE
 from dialbb.builtin_blocks.stn_management.stn_creator import create_stn
 from dialbb.abstract_block import AbstractBlock
+from dialbb.builtin_blocks.util import extract_aux_data
 from dialbb.main import ANY_FLAG, DEBUG, CONFIG_KEY_FLAGS_TO_USE, CONFIG_DIR
 from dialbb.util.error_handlers import abort_during_building
 
@@ -80,6 +81,8 @@ CONTEXT_KEY_SUB_DIALOGUE_STACK: str = '_sub_dialogue_stack'
 CONTEXT_KEY_REACTION: str = '_reaction'
 CONTEXT_KEY_REQUESTING_CONFIRMATION: str = '_requesting_confirmation'
 CONTEXT_KEY_TURNS_IN_STATE: str = '_turns_in_state'
+CONTEXT_KEY_SESSION_ID: str = '_session_id'
+CONTEXT_KEY_USER_ID: str = '_user_id'
 
 INPUT_KEY_AUX_DATA: str = "aux_data"
 INPUT_KEY_SENTENCE: str = "sentence"
@@ -369,6 +372,8 @@ class Manager(AbstractBlock):
                            CONTEXT_KEY_SUB_DIALOGUE_STACK: [],
                            CONTEXT_KEY_REACTION: "",
                            CONTEXT_KEY_TURNS_IN_STATE: 1,
+                           CONTEXT_KEY_SESSION_ID: session_id,
+                           CONTEXT_KEY_USER_ID: user_id,
                            CONTEXT_KEY_REQUESTING_CONFIRMATION: False}
 
                 self._add_context(session_id, context)
@@ -555,6 +560,10 @@ class Manager(AbstractBlock):
 
             aux_data['state'] = new_state_name  # add new state to aux_data
 
+            # update aux_data using (key:value, key:value, ..) in output sentence
+            output_text, aux_data_to_update = extract_aux_data(output_text)
+            aux_data.update(aux_data_to_update)
+
             # create output data
             output = {"output_text": output_text, "final": final, "aux_data": aux_data}
 
@@ -596,7 +605,7 @@ class Manager(AbstractBlock):
 
         for m in PROMPT_TEMPLATE_PATTERN.finditer(result):  # $$$ ... $$$
             prompt_template: str = m.group(1)
-            prompt_template = prompt_template.replace('{', '@').replace('}', '@')
+            prompt_template = prompt_template.replace('{', LEFTBRACE).replace('}', RIGHTBRACE)
             result = result.replace(m.group(0), f'{{_generate_with_prompt_template("{prompt_template}")}}')
 
         result = LLM_INSTRUCTION_PATTERN.sub(r'{_generate_with_llm("\1")}', result)   # $ ... $

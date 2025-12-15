@@ -1,16 +1,48 @@
 # Changelog
 
 
-## 1.2.0 (xxxx.xx.xx)
+## 1.1.3 (2025.12.08)
 
-- ChatGPT Dialogue Embedded Block
+- Conforms to Python 3.12 and 3.13
 
-  - Changed to allow inserting keys from aux_data and the current date/time into prompt template placeholders.
+- ChatGPT Dialogue Builtin Block
+
+  - Using gpt-5* other than gpt-5
+
+  - Writing output aux_data in output sentence
+  
+- STN Manager Embedded Block
+
+  - Using gpt-5* other than gpt-5
+
+  - Logging in scenario functions
+
+  - Writing output aux_data in output sentence
+
+- No-code tool
+
+  - LLM-based tester included
+
+## 1.1.1 (2025.11.22)
+
+- ChatGPT Dialogue Builtin Block
+
+  - Bug fix related to placeholder replacement in prompts
+
+  - Allows writing aux_data keys and the current date/time into prompt template placeholders
+
+  - Default safety instructions added for improved safety when using ChatGPT
 
 - STN Manager Embedded Block
 
-  - Changed to allow inserting keys from aux_data into prompt template placeholders.
-	
+  - Bug fix related to placeholder replacement in prompts
+
+  - Modified to allow writing aux_data keys into prompt template placeholders
+
+  - Default safety instructions added for improved safety when using ChatGPT
+
+  - Fixed an issue where it would not proceed to a sub-dialogue after a skip transition
+
 ## 1.1.0 (2025.11.8)
 
 - No-code tool

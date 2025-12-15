@@ -9,14 +9,11 @@ __version__ = '0.1'
 __author__ = 'Mikio Nakano'
 __copyright__ = 'C4A Research Institute, Inc.'
 
-from typing import Dict, List, Any, Union, Tuple
-import sys
+from typing import Dict, List, Any, Tuple
 import re
 from pandas import DataFrame
 
-from dialbb.builtin_blocks.preprocess.abstract_canonicalizer import AbstractCanonicalizer
-from dialbb.util.builtin_block_utils import create_block_object
-from dialbb.util.error_handlers import abort_during_building, warn_during_building
+from dialbb.util.error_handlers import abort_during_building
 from dialbb.main import ANY_FLAG
 from dialbb.main import CONFIG_KEY_FLAGS_TO_USE
 

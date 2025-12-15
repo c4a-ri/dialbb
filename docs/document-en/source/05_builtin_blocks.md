@@ -458,8 +458,8 @@ The context information is pre-set with the following key-value pairs.
 | _previous_system_utterance | previous system utterance (string)|
 | _dialogue_history | Dialogue history (list)|
 | _turns_in_state | The number of user turns in the current state (integer)|
-
-
+| _session_id | The session ID of the current conversation (string) |
+| _user_id | The user ID of the most recent user utterance (string) |
 
 The dialog history is in the following form.
 
@@ -535,7 +535,7 @@ For function calls, the functions can take arguments explained above as function
 
 ### Function Definitions
 
-Functions used in conditions and actions are either built-in to DialBB or defined by the developers.The function used in a condition returns a boolean value, while the function used in an action returns nothing.
+Functions used in conditions and actions (called "scenario functions" altogether)are either built-in to DialBB or defined by the developers. The function used in a condition returns a Boolean value, while the function used in an action returns nothing.
 
 
 #### Built-in functions
@@ -655,7 +655,7 @@ To use these functions, the following settings are required:
 
   - `instruction` (string)
 
-    This is used as the system role message when calling the ChatGPT API. It is only used during text generation.
+    This is used as the system role message when calling the ChatGPT API. It is only used during text generation. See [this](https://github.com/c4a-ri/dialbb/blob/main/dialbb/util/globals.py)default for the default value.
 
   - `temperature` (float)
 
@@ -675,6 +675,7 @@ To use these functions, the following settings are required:
     A list that enumerates the system persona to be written in the GPT prompt.
 
     If this element is absent, no specific persona is specified.
+
 
 
   e.g.:
@@ -717,21 +718,21 @@ Here are some examples:
 
   ```python
   _generate_with_prompt_template("""
-  
+
   # Situation
-  
+
   {situation}
-  
+
   # Your persona
-  
+
   {persona}
-  
+
   # Dialogue history up to now
-  
+
   {dialogue_history}
-  
+
   # Task
-  
+
   Determine whether the user has given a reason, and answer with either 'yes' or 'no'.
   """)
   ```
@@ -740,21 +741,21 @@ Here are some examples:
 
   ```python
   _generate_with_prompt_template("""
-  
+
   # Situation
-  
+
   {situation}
-  
+
   # Your persona
-  
+
   {persona}
-  
+
   # Dialogue history up to now
-  
+
   {dialogue_history}
-  
+
   # Task
-  
+
   Based on the dialogue so far, generate a closing utterance within 50 characters.
   """)
   ```
@@ -775,25 +776,14 @@ Here are some examples:
   - `{current_time}`
     Replaced with a string representing the current date, day of the week, and time (hour, minute, second) at which the dialogue is taking place.
 
-  - {aux_dataのキー}
 
-    The value of the auxiliary data key (if it is not a string, convert it to a string) is used as a replacement.
+  - `{<a string consisting only of alphabets, digits, and underscores>}`
 
-- Removing the placeholders that could not be replaced:
+     If the string exists as a key in aux_data, it is replaced with the corresponding value converted to a string.
+	
+- Placeholder removal
 
-  Sections enclosed by `[[[` and `]]]` are deleted from the prompt if they contain placeholders that remain unreplaced. For example:
-
-  ```txt
-  [[[ 
-  
-  # Caution
-  
-  {caution}
-  
-  ]]]
-  ```
-
-  If `aux_data` does not contain the key `caution`, this section will be removed. Note that in this case, the keys in `aux_data` must consist only of letters, numbers, and underscores.
+  If an unreplaced placeholder remains and is enclosed in `[[[` and `]]]`, that portion will be removed.
 
 
 #### Syntax sugars for built-in functions
@@ -894,12 +884,37 @@ All arguments used in the scenario must be strings.
 In the case of a special variable or variables, the value of the variable is passed as an argument.
 In the case of a variable reference, the variable name without the `&`' is passed, and in the case of a constant, the string in `""` is passed.
 
+#### Logging in functions
+
+In scenario functions, logging can be performed using the following functions. The logs are written to standard output along with the session ID.
+
+- `dialbb.builtin_blocks.stn_management.util.scenario_function_log_debug(message: str)`
+   Writes a log at the debug level.
+- `dialbb.builtin_blocks.stn_management.util.scenario_function_log_info(message: str)`
+   Writes a log at the info level.
+- `dialbb.builtin_blocks.stn_management.util.scenario_function_log_warning(message: str)`
+   Writes a log at the warning level.
+- `dialbb.builtin_blocks.stn_management.util.scenario_function_log_error(message: str)`
+   Writes a log at the error level. In debug mode, this function also raises an Exception.
+
 ### Reaction
 
 In an action function, setting a string to `_reaction` in the context information will prepend that string to the system's response after the state transition.
 
 For example, if the action function `_set(&_reaction, "I agree.")` is executed and the system's response in the subsequent state is "How was the food?", then the system will return the response "I agree. How was the food?".
 
+(extract_aux_data)=
+
+### Extraction of aux_data from System Utterances
+
+When the output system utterance string ends with a segment in the format `(<key_1>: <value_1>,  <key_2>: <value_2>, ... <key_n>: <value_n>)`, this part is removed from the utterance string, and the corresponding data is added to the output’s `aux_data` as: `{"<key_1>": "<value_1>",  "<key_2>": "<value_2>", ... "<key_n>": "<value_n>"} (If a key already exists, the value is updated.) This mechanism can be used for client-side control.
+
+Example:
+
+- System utterance string: `"Hello! (emotion:happy)"`
+- Final system utterance: `"Hello"`,  Update to `aux_data`: `{"emotion": "happy"}`
+
+Each key must consist of a combination of letters, numbers, and underscores.
 
 ### Continuous Transition
 
@@ -911,7 +926,7 @@ If the input `nlu_result` is a list that contains multiple language understandin
 
 Starting from the top of the list, check whether the `type` value of a candidate language understanding result is equal to the `user utterance type` value of one of the possible transitions from the current state, and use the candidate language understanding result if there is an equal transition. If none of the candidate language comprehension results meet the above conditions, the first language comprehension result in the list is used.
 
-### Subdialogue (Deprecated)
+### Subdialogue
 
 If the destination state name is of the form `#gosub:<state name1>:<state name2>`, it transitions to the state `<state name1>` and executes a subdialogue starting there. If the destination state is `:exit`, it moves to the state `<state name2>`.
 For example, if the destination state name is of the form `#gosub:request_confirmation:confirmed`, a subdialogue starting with `request_confirmatin` is executed, and when the destination state becomes `:exit`, it returns to `confirmed`. When the destination becomes `:exit`, it returns to `confirmed`.
@@ -1055,8 +1070,7 @@ Engages in dialogue using OpenAI's ChatGPT.
   - `aux_data`: auxiliary data (dictionary type)
   - `final`: boolean flag indicating whether the dialog is finished or not.
 
-The inputs `aux_data` and `user_id` are not used.
-The output `aux_data` is the same as the input `aux_data` and `final` is always `False`.
+The input `user_id` is not used. The output `aux_data` is the same as the input `aux_data` and `final` is always `False`.
 
 When using these blocks, you need to set the OpenAI license key in the environment variable `OPENAI_API_KEY`.
 
@@ -1066,50 +1080,57 @@ When using these blocks, you need to set the OpenAI license key in the environme
 
    This is the first system utterance of the dialog.
 
-- `user_name`, `system_name`
+- `user_name` (string, default value is `"User"`.)
 
-   These were deprecated in ver. 1.1.
+   This string is used when providing conversation history to the ChatGPT prompt.
+   Deprecated in version 1.1.0, but reinstated in version 1.1.1.
+
+- `system_name` (string, default value is "System")
+
+   This string is used when providing conversation history to the ChatGPT prompt.
+   Deprecated in version 1.1.0, but reinstated in version 1.1.1.
 
 - `prompt_template` (string)
 
   This specifies the file of the prompt for making ChatGPT generate a system utterance as a relative path from the configuration file directory.
 
+- `temperature` (float, default value is `0.7`)
+
+  THe temperature parameter when calling ChatGPT.
+
 - `gpt_model` (string, default value is `gpt-4o-mini`)
 
    Open AI GPT model. You can specify `gpt-4o`, `gpt-4o-mini` and so on. 
+
+- `instruction` (string, see [this](https://github.com/c4a-ri/dialbb/blob/main/dialbb/util/globals.py)default for the default value.)
+
+   The instruction to ChatGPT as system role message.
+
+
+### Place Holders in Prompt Templates
+
+- The following place holders can be used in prompt templates.
+
+  - `{current_time}`
+    Replaced with a string representing the current date, day of the week, and time (hour, minute, second) at which the dialogue is taking place.
+
+  - `{<a string consisting only of alphabets, digits, and underscores>}`
+
+     If the string exists as a key in aux_data, it is replaced with the corresponding value converted to a string.
+	
+- Placeholder removal
+
+  If an unreplaced placeholder remains and is enclosed in `[[[` and `]]]`, that portion will be removed.
+
 
 ### Process Details
 
 - At the beginning of the dialog, the value of `first_system_utterance` in the block configuration is returned as system utterance.
 - In the second and subsequent turns, the prompt template is given to ChatGPT and the returned string is returned as the system utterance.
 
-#### Placeholders in Prompt Templates
+### Extraction of aux_data from System Utterances
 
-- `{current_time}` is replaced with the current date and time. If the `language` value in the configuration file is set to `ja`, the string will be in Japanese; otherwise, it will be in English. 
-
-  Example usage:
-
-  ```
-  Please generate an utterance taking into account that the current time is {current_time}.
-  ```
-
-  のような形で使えます。
-
-- `{key_from_aux_data}` is replaced with the value from auxiliary data. If the value is not a string, it will be converted to one.
-
-- Sections enclosed in `[[[` and `]]]` will be removed from the prompt if they contain unreplaced placeholders. For example:
-
-  ```
-  [[[ 
-  
-  # Caution
-  
-  {caution}
-  
-  ]]]
-  ```
-
-  If `caution` is not included in `aux_data`, this entire block will be deleted. Please note that keys in `aux_data` must consist only of letters, numbers, and underscores.
+Same as {numref}`extract_aux_data`.
 
 
 (chatgpt_ner)=
