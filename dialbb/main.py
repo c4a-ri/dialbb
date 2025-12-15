@@ -155,7 +155,6 @@ class DialogueProcessor:
             self._log_info(f"new session started.", session_id=session_id)
             blackboard[KEY_SESSION_ID] = session_id
             blackboard['user_utterance'] = ""
-            self._log_debug(f"new session", session_id=session_id)
         else:
             session_id = blackboard[KEY_SESSION_ID]  # session id received from the client
             self._log_info(f"existing session continues.", session_id=session_id)
