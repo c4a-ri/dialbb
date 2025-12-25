@@ -85,7 +85,7 @@ class ContextDB:
         result: Dict[str, Any] = pickle.loads(serialized_data)
         return result
 
-    def add_data(self, session_id: str, key: str, data: Dict[str, Any]) -> None:
+    def add_data(self, session_id: str, key: str, data: Any) -> None:
 
         serialized_data = self._serialize_data(data)
         if self._context_collection.find_one({KEY_SESSION_ID: session_id}):

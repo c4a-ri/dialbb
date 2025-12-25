@@ -33,6 +33,7 @@ import io, sys
 import os
 import hashlib
 
+from dialbb.util.context_db import ContextDB
 from dialbb.util.globals import DEBUG
 from dialbb.abstract_block import AbstractBlock
 from dialbb.util.error_handlers import abort_during_building
@@ -46,6 +47,7 @@ CONFIG_KEY_LANGUAGE: str = "language"
 KEY_SESSION_ID: str = 'session_id'
 KEY_USER_UTTERANCE: str = 'user_utterance'
 KEY_BLOCK_CLASS: str = 'block_class'
+KEY_HISTORY: str = 'history'
 CONFIG_DIR: str = ""
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
@@ -118,11 +120,29 @@ class DialogueProcessor:
         context_db_config = config.get("context_db")
         self._use_context_db: bool = True if context_db_config else False
 
-
-
-
+        if self._use_context_db:
+            self._context_db = ContextDB(context_db_config)
+        else:
+            # session_id -> context
+            self._sessions2histories: Dict[str, List[Dict[str, Any]]] = {}
+            # for rewinding  状態を元に戻す時のため
+            # session_id -> context
 
         self._logger = get_logger("main")
+
+    def _add_history(self, session_id: str, history: List[Dict[str, Any]]) -> None:
+        if self._use_context_db:
+            self._context_db.add_data(session_id, KEY_HISTORY, history)
+        else:
+            self._sessions2histories[session_id] = history
+
+    def _get_history(self, session_id: str) -> List[Dict[str, Any]]:
+        if self._use_context_db:
+            history: List[Dict[str, Any]] = self._context_db.get_data(session_id, KEY_HISTORY)
+        else:
+            history: List[Dict[str, Any]] = self._sessions2histories.get(session_id)
+        return history
+
 
     @classmethod
     def get_config(cls):
@@ -162,10 +182,18 @@ class DialogueProcessor:
             self._log_info(f"new session started.", session_id=session_id)
             blackboard[KEY_SESSION_ID] = session_id
             blackboard['user_utterance'] = ""
+            history: List[Dict[str, Any]] = []
         else:
             session_id = blackboard[KEY_SESSION_ID]  # session id received from the client
             self._log_info(f"existing session continues.", session_id=session_id)
+            history = self._get_history(session_id)
         self._log_debug(f"blackboard: " + str(blackboard), session_id=session_id)
+
+        history.append({"speaker": "user",
+                        "user_id": blackboard.get('user_id', ""),
+                        "aux_data": blackboard.get('aux_data', {}),
+                        "utterance": blackboard['user_utterance']})
+        blackboard['dialogue_history'] = history
 
         # each block process blackboard
         for block in self._blocks:
@@ -183,6 +211,11 @@ class DialogueProcessor:
                     sys.exit(1)
                 blackboard[key_in_blackboard] = output_from_block[key_in_output]
             self._log_debug(f"blackboard: " + str(blackboard), session_id=session_id)
+
+        history.append({"speaker": "user",
+                        "aux_data": blackboard.get('aux_data', {}),
+                        "utterance": blackboard.get('system_utterance', "")})
+        self._add_history(session_id, history)
 
         # create response from the blackboard
         response = {"system_utterance": blackboard.get('system_utterance', ""),

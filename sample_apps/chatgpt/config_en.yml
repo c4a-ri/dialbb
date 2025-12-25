@@ -7,6 +7,7 @@ blocks:
       user_id: user_id
       user_utterance: user_utterance
       aux_data: aux_data
+      dialogue_history: dialogue_history
     output:
       system_utterance: system_utterance
       aux_data: aux_data
