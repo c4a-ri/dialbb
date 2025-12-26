@@ -31,6 +31,10 @@ import ruamel.yaml
 from typing import Any, Dict, List
 
 from dialbb.no_code.gui_utils import child_position, gui_text
+from dialbb.util.logger import get_logger
+
+
+logger = get_logger(__name__)
 
 
 # -------- config.yml編集の管理するクラス -------------------------------------
@@ -43,8 +47,8 @@ class ConfigManager:
         try:
             with open(file_path, encoding="utf-8") as file:
                 self.config = self.yaml.load(file)
-        except Exception as e:
-            print(f"can't read config file: {file_path}. " + str(e))
+        except (FileNotFoundError, IOError, ruamel.yaml.YAMLError):
+            logger.exception("can't read config file: %s", file_path)
 
         self.search_pattern = {
             "understander": "dialbb.builtin_blocks.understanding_with_chatgpt",
@@ -59,12 +63,15 @@ class ConfigManager:
             try:
                 with open(template_config_file, encoding="utf-8") as fp:
                     template_config: Dict[str, Any] = self.yaml.load(fp)
-            except Exception as e:
-                print(f"can't read template config file: {file_path}. " + str(e))
-            for block_desc in template_config["blocks"]:
-                if block_desc["name"] == "understander":
+            except (FileNotFoundError, IOError, ruamel.yaml.YAMLError):
+                logger.exception(
+                    "can't read template config file: %s.", template_config_file
+                )
+                template_config = {"blocks": []}
+            for block_desc in template_config.get("blocks", []):
+                if block_desc.get("name") == "understander":
                     self.block_understander[language] = block_desc
-                elif block_desc["name"] == "ner":
+                elif block_desc.get("name") == "ner":
                     self.block_ner[language] = block_desc
 
         # self.yaml.dump(self.config, sys.stdout)
@@ -75,7 +82,7 @@ class ConfigManager:
         for block in self.config.get("blocks", []):
             if block.get("name") == name:
                 result = block
-                # print(f'### block data: {block}')
+                # logger.debug(f'### block data: {block}')
         return result
 
     # whether to use NLUER block
@@ -199,8 +206,8 @@ class ConfigManager:
             self.yaml.dump(self.config, stream=file)
 
 
-# Config編集の処理
-def edit_config(parent, file_path, template_path, settings):
+# アプリConfig編集の処理
+def edit_app_config(parent, file_path, template_path, settings):
     config = ConfigManager(file_path, template_path)
 
     # 編集画面を表示
@@ -269,7 +276,8 @@ def edit_config(parent, file_path, template_path, settings):
         padding=(10),
         style="My.TLabelframe",
     )
-    gpt_mng_fr.pack(expand=True, fill=tk.Y, padx=5, pady=5)
+    # ウィンドウ幅に合わせて横方向にも広がるようにする
+    gpt_mng_fr.pack(expand=True, fill=tk.BOTH, padx=5, pady=5)
     # ［ChatGPTモデル］プルダウンメニュー
     label1 = tk.Label(gpt_mng_fr, text=gui_text("conf_edt_gptmodel"))
     models = settings.get_gptmodels()
@@ -288,12 +296,12 @@ def edit_config(parent, file_path, template_path, settings):
 
     label1.grid(column=0, row=1)
     # combobox.grid(column=1, row=1, columnspan=2, padx=5, pady=5)
-    combobox.grid(column=1, row=1, padx=5, pady=5)
+    combobox.grid(column=1, row=1, padx=5, pady=5, sticky=tk.EW)
 
     # モデル候補の編集ボタンを追加
     other_model_button = ttk.Button(
         gpt_mng_fr,
-        text=gui_text("conf_edt_other"),
+        text=gui_text("btn_add"),
         # width=10,
         command=lambda: gptmodel_edit(sub_menu, settings),
     )
@@ -427,4 +435,144 @@ def edit_config(parent, file_path, template_path, settings):
 
     def cancel_btn_click():
         # 画面を閉じる
+        sub_menu.destroy()
+
+
+# 自動テストConfig編集の処理
+def edit_test_config(parent, file_path: str, settings) -> None:
+    # simulation config を直接読み込み
+    yaml = ruamel.yaml.YAML()
+    yaml.indent(sequence=4, offset=2)
+    logger.debug("read config file: %s", file_path)
+
+    try:
+        with open(file_path, encoding="utf-8") as file:
+            config = yaml.load(file)
+    except (FileNotFoundError, IOError):
+        logger.exception("can't read config file: %s.", file_path)
+        return
+
+    # file_pathよりファイル名のみ抽出
+    template_content = ""
+    config_settings = config.get("settings", "")
+    if config_settings:
+        template_name = config_settings[0].get("prompt_template", "")
+
+        # file_pathのfile_nameをtemplate_nameに置き換えてtemplateファイルのパスを生成
+        template_path = file_path.replace(os.path.basename(file_path), template_name)
+        # テキストファイルを読み込む
+        try:
+            with open(template_path, encoding="utf-8") as file:
+                template_content = file.read()
+        except (FileNotFoundError, IOError):
+            logger.exception("can't read template file: %s.", template_path)
+        logger.debug("template_name: %s", template_name)
+
+    # 編集画面を表示
+    sub_menu = tk.Toplevel(parent)
+    sub_menu.title(gui_text("conf_edt_title"))
+    sub_menu.grab_set()
+    sub_menu.focus_set()
+    sub_menu.transient(parent)
+
+    # サイズ＆表示位置の指定
+    parent_x = (
+        parent.winfo_rootx() + parent.winfo_width() // 4 - sub_menu.winfo_width() // 2
+    )
+    parent_y = (
+        parent.winfo_rooty()
+        + parent.winfo_height() // 10
+        - sub_menu.winfo_height() // 2
+    )
+    sub_menu.geometry(f"500x380+{parent_x}+{parent_y}")
+
+    # ChatGPT Manager Frame
+    gpt_mng_fr = ttk.Labelframe(
+        sub_menu,
+        text=gui_text("conf_edt_chatgpt"),
+        padding=(10),
+        style="My.TLabelframe",
+    )
+    # テスト用ダイアログでも横方向に広げる
+    gpt_mng_fr.pack(expand=True, fill=tk.BOTH, padx=5, pady=5)
+
+    # ChatGPTモデル プルダウンメニュー
+    label1 = tk.Label(gpt_mng_fr, text=gui_text("conf_edt_gptmodel"))
+    models = settings.get_gptmodels()
+    if not models:
+        # default設定
+        models = ["gpt-4o", "gpt-4o-mini"]
+    current_model = config.get("model", "")
+    if current_model and current_model not in models:
+        # 現在のモデルが候補に無い場合は先頭に追加
+        models.insert(0, current_model)
+
+    # コンボボックス用は current_model を初期値として一度だけ設定
+    selected_val = tk.StringVar()
+    combobox = ttk.Combobox(
+        gpt_mng_fr,
+        textvariable=selected_val,
+        values=models,
+        state="normal",
+        style="office.TCombobox",
+    )
+
+    # ウィンドウが表示された後に実行される処理を設定
+    sub_menu.bind("<Map>", lambda event: on_window_shown())
+
+    label1.grid(column=0, row=1)
+    combobox.grid(column=1, row=1, padx=5, pady=5, sticky=tk.W)
+
+    # prompt_template編集エリア
+    label2 = tk.Label(gpt_mng_fr, text=gui_text("conf_edt_situation"))
+    stt = scrolledtext.ScrolledText(gpt_mng_fr, wrap=tk.NONE, width=36, height=16)
+    horiz_scrollbar1 = tk.Scrollbar(gpt_mng_fr, orient=tk.HORIZONTAL, command=stt.xview)
+    stt.config(xscrollcommand=horiz_scrollbar1.set)
+    # テンプレート内容を表示
+    stt.insert(0.0, template_content)
+    label2.grid(column=0, row=2)
+    stt.grid(column=1, row=2, columnspan=2, sticky=tk.NSEW, padx=5, pady=5)
+    horiz_scrollbar1.grid(column=1, row=3, columnspan=2, sticky=tk.NSEW)
+
+    gpt_mng_fr.grid_columnconfigure(1, weight=1)
+    gpt_mng_fr.grid_rowconfigure(2, weight=1)
+    gpt_mng_fr.grid_rowconfigure(4, weight=1)
+
+    # OK/Cancel ボタン
+    ok_btn = ttk.Button(
+        sub_menu, text=gui_text("btn_ok"), command=lambda: ok_btn_click()
+    )
+    cancel_btn = ttk.Button(
+        sub_menu, text=gui_text("btn_cancel"), command=lambda: cancel_btn_click()
+    )
+
+    cancel_btn.pack(side="right", padx=5, pady=5)
+    ok_btn.pack(side="right", padx=5, pady=5)
+
+    # ウィンドウが表示された後にコンボボックスの値を設定する
+    def on_window_shown():
+        combobox.current(newindex=models.index(current_model))
+
+    # ボタンクリックの処理
+    def ok_btn_click():
+        gpt_model = combobox.get()
+        prompt = stt.get(1.0, tk.END)
+
+        # YAML に設定を反映
+        if config:
+            config["model"] = gpt_model
+
+        # ファイルに書き込み
+        logger.info("write config file: %s", file_path)
+        with open(file_path, mode="w", encoding="utf-8") as file:
+            yaml.dump(config, stream=file)
+
+        # ファイルに書き込み
+        logger.info("write template file: %s", template_path)
+        with open(template_path, mode="w", encoding="utf-8") as file:
+            file.write(prompt)
+
+        sub_menu.destroy()
+
+    def cancel_btn_click():
         sub_menu.destroy()
