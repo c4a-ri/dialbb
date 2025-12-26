@@ -29,6 +29,8 @@ from pymongo import MongoClient
 from pymongo.collection import Collection
 from typing import Dict, Any, Optional
 
+from pymongo.errors import ServerSelectionTimeoutError
+
 from dialbb.util.error_handlers import abort_during_building
 
 CONFIG_KEY_CONTEXT_DB_HOST: str = "host"
@@ -36,10 +38,7 @@ CONFIG_KEY_CONTEXT_DB_PORT: str = "port"
 CONFIG_KEY_CONTEXT_DB_USER: str = "user"
 CONFIG_KEY_CONTEXT_DB_PASSWORD: str = "password"
 KEY_SESSION_ID: str = "session_id"
-# KEY_CONTEXT: str = "context"
-# KEY_PREVIOUS_CONTEXT: str = "previous_context"
 TEN_MINUTES: int = 10*60*1000
-# CONTEXT_KEY_CURRENT_STATE_NAME = '_current_state_name'
 
 # context db (to be used when mongo is not used)
 context_db = None
@@ -70,6 +69,11 @@ class ContextDB:
             assert mongo_client is not None
             mongo_context_db = mongo_client.context_db
             self._context_collection: Collection = mongo_context_db.context_collection
+            try:
+                mongo_client.admin.command("ping")   #
+                print("successfully connected the context db.")
+            except ServerSelectionTimeoutError as e:
+                abort_during_building("failed to connect the context db " + str(e))
         except Exception as e:
             abort_during_building(f"failed to connect the context db.")
 
