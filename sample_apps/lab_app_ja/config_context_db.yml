@@ -4,6 +4,12 @@ language: ja   # 言語を指定
 
 system_name: ラーメンボット
 
+context_db:
+  host: localhost
+  port: 27017
+  user: admin
+  password: password
+
 blocks:  # ブロックのリスト
   - name: canonicalizer  # ブロック名
     # ブロックのクラス
@@ -50,11 +56,6 @@ blocks:  # ブロックのリスト
       output_text: system_utterance
       final: final
       aux_data: aux_data
-    context_db:
-      host: localhost
-      port: 27017
-      user: admin
-      password: password
     repeat_when_no_available_transitions: yes
     input_confidence_threshold: 0.5
     confirmation_request:

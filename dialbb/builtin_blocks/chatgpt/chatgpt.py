@@ -83,14 +83,6 @@ class ChatGPT(AbstractBlock):
         # temperature
         self._temperature = self.block_config.get("temperature", 0.7)
 
-
-
-        # {"session1" : [{"speaker": "user", "utterance": <user utterance>},
-        #                {"speaker": "system", "utterance": <system utterance>},
-        #                ....]
-        # ...}
-        self._dialogue_history: Dict[str, List[Dict[str, str]]] = {}
-
     def process(self, input_data: Dict[str, Any], session_id: str) -> Union[Dict[str, Union[dict, Any]], str]:
         """
         main process of this block
@@ -100,20 +92,19 @@ class ChatGPT(AbstractBlock):
         :return: output from the block. The keys are "system utterance" (str), "aux_data" (dict), and "final" (bool).
         """
 
-        self._user_id = input_data["user_id"]
-        if session_id not in self._dialogue_history.keys():  # first turn
-            self._dialogue_history[session_id] = []
+        dialogue_history = input_data.get("dialogue_history")
+        if not dialogue_history:
+            self.log_error("dialogue_history is not specified as input in the block configuration.")
+
+        aux_data = input_data.get("aux_data", {})
+        if aux_data is None:
+            aux_data = {}
+        if len(dialogue_history) == 1:
             system_utterance = self.block_config.get("first_system_utterance")
-            aux_data = input_data['aux_data']
+            aux_data = input_data.get('aux_data', {})
             final = False
         else:  # second turn and after
-            self._dialogue_history[session_id].append({"speaker": "user", "utterance": input_data["user_utterance"]})
-            system_utterance, aux_data, final \
-                = self.generate_system_utterance(self._dialogue_history[session_id],
-                                                 session_id,
-                                                 self._user_id,
-                                                 input_data["aux_data"])
-        self._dialogue_history[session_id].append({"speaker": "system", "utterance": system_utterance})
+            system_utterance, aux_data, final = self.generate_system_utterance(dialogue_history, aux_data, session_id)
         return {"system_utterance": system_utterance,
                 "aux_data": aux_data,
                 "final": final}
@@ -169,17 +160,20 @@ class ChatGPT(AbstractBlock):
             result = now.strftime("%A, %B %d, %Y %I:%M:%S %p")
         return result
 
-    def generate_system_utterance(self, dialogue_history: List[Dict[str, str]],
-                                  session_id: str, user_id: str,
-                                  aux_data: Dict[str, Any]) -> Tuple[str, Dict[str, Any], bool]:
+    def generate_system_utterance(
+            self,
+            dialogue_history: List[Dict[str, str]],
+            aux_data: Dict[str, Any],
+            session_id: str
+    ) -> Tuple[str, Dict[str, Any], bool]:
+
         """
         Generates system utterance using ChatGPT
 
         :param dialogue_history: list of turn information  [{"speaker": "system", "utterance": <system utterance>},
                                                             {"speaker": "user", "utterance": <user utterance>} ...]
-        :param session_id: user id string
-        :param user_id: user id string
         :param aux_data: auxiliary data received from main
+        :param session_id: session ID
         :return: a tuple of system utterance string, aux_data as is, and final flag (always False)
         """
 
@@ -192,7 +186,6 @@ class ChatGPT(AbstractBlock):
         prompt = REMAINING_TAGS_PATTERN.sub("", prompt)  # remove remaining tags enclosed by [[[ .... ]]]]
         prompt = prompt.replace('[[[', "")  # remove remaining brackets
         prompt = prompt.replace(']]]', "")
-
 
         # add dialogue history to string
         dialogue_history_string: str = ""
