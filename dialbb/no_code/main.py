@@ -126,7 +126,7 @@ def exec_editor(file_path, parent, button) -> None:
     global editor_server, editor_apl
 
     if not editor_server:
-        # エディタ終了処理
+        # エディタ起動処理
         # convert knowledge excel to JSON 知識記述Excel-json変換
         ret = convert_excel_to_json(
             file_path, os.path.join(EDITOR_APPDATA_DIR, "init.json")
@@ -192,6 +192,8 @@ def exec_editor(file_path, parent, button) -> None:
                 detail=gui_text("msg_warn_no_saved_detail"),
                 parent=parent,
             )
+        
+        if os.path.isfile(json_file):
             os.remove(json_file)
 
         # エディタアプリ終了
@@ -344,20 +346,16 @@ def sample_func() -> None:
 # -------- ボタンクリック対応処理 -------------------------------------
 # [close]ボタン：メインウィンドウを閉じる
 def close_dialbb_nc(root) -> None:
-    global dialbb_proc
-    global app_file_timestamp
-
+    logger.info(f"close_dialbb_nc dialbb_proc: {dialbb_proc} editor_server: {editor_server}")
     if dialbb_proc:
         # dialbbサーバ停止
         dialbb_proc.stop()
+        messagebox.showwarning("Warning", gui_text("msg_warn_forced_process_stop") % "dialbb-server")
 
-    # アプリファイルの変更チェック
-    # if not app_file_timestamp.check():
-    #     ret = messagebox.askquestion("File changed", "アプリケーションファイルがエキスポートされていません。",
-    #                                  detail="エキスポートせずに終了しますか？",
-    #                                  icon='warning')
-    #     if ret == 'no':
-    #         return
+    if editor_server:
+        # エディタ用サーバ停止
+        editor_server.stop()
+        messagebox.showwarning("Warning", gui_text("msg_warn_forced_process_stop") % "editor-server")
 
     # 画面を閉じる
     root.quit()
@@ -938,6 +936,9 @@ def main() -> None:
 
     # GUIの画面構築
     set_main_frame(root)
+
+    # Ensure DialBB server is stopped when the window is closed
+    root.protocol("WM_DELETE_WINDOW", lambda: close_dialbb_nc(root))
 
     # 画面を表示する
     root.mainloop()
