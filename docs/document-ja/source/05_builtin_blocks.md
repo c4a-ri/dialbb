@@ -734,6 +734,12 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
     GPTのプロンプトに書くシステムのペルソナを列挙したものです．
 
     この要素がない場合，ペルソナは指定されません．
+	
+  - `cautions` （文字列のリスト）
+  
+    TO WRITE
+	
+	check_with_llmでは使われないことを書くこと
 
   例：
 
@@ -953,6 +959,19 @@ def get_ramen_location(ramen: str, variable: str, context: Dict[str, Any]) -> No
 
 - `dialbb.builtin_blocks.stn_management.util.scenario_function_log_error(message: str)`
   errorレベルのログが書き出されます。デバッグモードの時にはExceptionを投げます。
+
+(extract_aux_data)=
+
+### システム発話からの出力aux_dataの抽出
+
+出力のシステム発話文字列の最後に `(<key_1>: <value_1>,  <key_2>: <value_2>, ... <key_n>: <value_n>)`の形の文字列があるとき、この部分は発話文字列から削除され、出力の`aux_data`に`{”<key_1>”: ”<value_1>”,  ”<key_2>”: ”<value_2>”, ... ”<key_n>”: ”<value_n>”}`が付け加わります。（実際にはupdateされるので、同じキーがあれば値が上書きされます。）クライアントの制御に用いることができます。
+
+例：
+
+- システム発話文字列 ：`"こんにちは (emotion:happy)"`
+- 最終的なシステム発話：`"こんにちは"`， `aux_data`のアップデート：`{"emotion": "happy"}`
+
+キーはアルファベット、数字、アンダースコアの並びでないといけません。
 
 ### 連続遷移
 
@@ -1180,8 +1199,11 @@ OpenAI社のChatGPTを用いて対話を行います．
 ### 処理内容
 
 - 対話の最初はブロックコンフィギュレーションの`first_system_utterance`の値をシステム発話として返します．
-
 - 2回目以降のターンでは，プロンプトテンプレートを与えてChatGPTに発話を生成させ，返ってきた文字列をシステム発話として返します．
+
+### システム発話からの出力aux_dataの抽出
+
+{numref}`extract_aux_data`と同じです。
 
 
 (chatgpt_ner)=

@@ -29,6 +29,10 @@ btn_load:
   ja: "読み込み"
   en: "Import"
 
+btn_add:
+  ja: "追加"
+  en: "Add"
+
 btn_dialbb_start:
   ja: "サーバ起動"
   en: "Start Server"
@@ -40,6 +44,14 @@ btn_dialbb_stop:
 btn_chat_start:
   ja: "対話開始"
   en: "Start dialogue"
+
+btn_test:
+  ja: "テスト"
+  en: "Test"
+
+btn_execute:
+  ja: "実行"
+  en: "Execute"
 
 btn_exit:
   ja: "終了"
@@ -207,6 +219,10 @@ msg_warn_error_node_exists:
   ja: "Warning: typeがerrorのシステムノードがありません。"
   en: "Warning: Error system node has no type."
 
+msg_warn_forced_process_stop:
+  ja: "Warning: %sが残っていたので停止しました。"
+  en: "Warning: %s was still running so it was stopped."
+
 msg_chat_no_response:
   ja: "システム発話がありません。"
   en: "No system utterances."
@@ -285,7 +301,7 @@ edt_list_title:
 
 # Config編集ダイアログ
 conf_edt_title:
-  ja: "コンフィグレーション"
+  ja: "コンフィギュレーション"
   en: "Edit Application"
 
 conf_edt_named_entity:
@@ -315,6 +331,10 @@ conf_edt_situation:
 conf_edt_persona:
   ja: "ペルソナ:"
   en: "Persona:"
+
+conf_edt_cautions:
+  ja: "注意事項:"
+  en: "Cautions:"
 
 # 関数編集ダイアログ
 func_edt_title:
