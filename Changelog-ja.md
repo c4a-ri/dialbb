@@ -14,6 +14,10 @@
 
   - メインモジュールの対話履歴を使うように変更
 
+- STN Manager組み込みブロック
+
+  - ChatGPT利用時の注意事項がコンフィギュレーションで指定可能に
+
 ## 1.1.3 (2025.12.08)
 
 - Python 3.12 and 3.13 対応
@@ -22,7 +26,7 @@
 
   - gpt-5以外のgpt-5*を利用可能に
 
-- STN Manager Embedded Block
+- STN Manager 組み込みブロック
 
   - gpt-5以外のgpt-5*を利用可能に
 
