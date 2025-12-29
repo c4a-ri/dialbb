@@ -301,7 +301,7 @@ edt_list_title:
 
 # Config編集ダイアログ
 conf_edt_title:
-  ja: "コンフィグレーション"
+  ja: "コンフィギュレーション"
   en: "Edit Application"
 
 conf_edt_named_entity:
@@ -331,6 +331,10 @@ conf_edt_situation:
 conf_edt_persona:
   ja: "ペルソナ:"
   en: "Persona:"
+
+conf_edt_cautions:
+  ja: "注意事項:"
+  en: "Cautions:"
 
 # 関数編集ダイアログ
 func_edt_title:
