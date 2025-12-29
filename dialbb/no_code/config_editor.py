@@ -110,21 +110,16 @@ class ConfigManager:
             result = chatgpt.get("model", "")
         return result
 
-    # ChatGPTのsituationを取得
-    def get_situation(self) -> str:
+    # ChatGPTのsituation, persona, cautionsを取得
+    def get_prompt_elements(self, name) -> str:
         result = ""
         chatgpt: Dict[str, Any] = self.get_block("manager").get("chatgpt")
         if chatgpt:
-            result = chatgpt.get("situation")
-        return "\n".join(result)
-
-    # ChatGPTのpersonaを取得
-    def get_persona(self) -> str:
-        result = ""
-        chatgpt: Dict[str, Any] = self.get_block("manager").get("chatgpt")
-        if chatgpt:
-            result = chatgpt.get("persona")
-        return "\n".join(result)
+            result = chatgpt.get(name)
+        if result:
+            return "\n".join(result)
+        else:
+            return ""
 
     # get block descriptions to add
     def get_fixed_element(self, block_name: str) -> Dict[str, Any]:
@@ -196,7 +191,7 @@ class ConfigManager:
     # situationの設定
     def set_chatgpt_list(self, label: str, data: str) -> None:
         chatgpt = self.get_block("manager").get("chatgpt")
-        if chatgpt:
+        if chatgpt and data:
             # リストにして空行削除
             chatgpt[label] = [a for a in data.split("\n") if a != ""]
 
@@ -314,7 +309,7 @@ def edit_app_config(parent, file_path, template_path, settings):
     horiz_scrollbar1 = tk.Scrollbar(gpt_mng_fr, orient=tk.HORIZONTAL, command=stt.xview)
     stt.config(xscrollcommand=horiz_scrollbar1.set)
     # configの値を設定
-    stt.insert(0.0, config.get_situation())
+    stt.insert(0.0, config.get_prompt_elements("situation"))
     label2.grid(column=0, row=2)
     stt.grid(column=1, row=2, columnspan=2, sticky=tk.NSEW, padx=5, pady=5)
     horiz_scrollbar1.grid(column=1, row=3, columnspan=2, sticky=tk.NSEW)
@@ -326,15 +321,29 @@ def edit_app_config(parent, file_path, template_path, settings):
     horiz_scrollbar2 = tk.Scrollbar(gpt_mng_fr, orient=tk.HORIZONTAL, command=psn.xview)
     psn.config(xscrollcommand=horiz_scrollbar2.set)
     # configの値を設定
-    psn.insert(0.0, config.get_persona())
+    psn.insert(0.0, config.get_prompt_elements("persona"))
     # ラベルを作成
     label2.grid(column=0, row=4)
     psn.grid(column=1, row=4, columnspan=2, sticky=tk.NSEW, padx=5, ipady=8)
     horiz_scrollbar2.grid(column=1, row=5, columnspan=2, sticky=tk.NSEW, padx=5)
 
+    # cautions入力エリア
+    label2 = tk.Label(gpt_mng_fr, text=gui_text("conf_edt_cautions"))
+    ctn = scrolledtext.ScrolledText(gpt_mng_fr, wrap=tk.NONE, width=24, height=6)
+    # 横方向のスクロールバーを作成
+    horiz_scrollbar3 = tk.Scrollbar(gpt_mng_fr, orient=tk.HORIZONTAL, command=ctn.xview)
+    ctn.config(xscrollcommand=horiz_scrollbar3.set)
+    # configの値を設定
+    ctn.insert(0.0, config.get_prompt_elements("cautions"))
+    # ラベルを作成
+    label2.grid(column=0, row=6)
+    ctn.grid(column=1, row=6, columnspan=2, sticky=tk.NSEW, padx=5, ipady=3)
+    horiz_scrollbar3.grid(column=1, row=7, columnspan=2, sticky=tk.NSEW, padx=5)
+
     gpt_mng_fr.grid_columnconfigure(1, weight=1)
     gpt_mng_fr.grid_rowconfigure(2, weight=1)
     gpt_mng_fr.grid_rowconfigure(4, weight=1)
+    gpt_mng_fr.grid_rowconfigure(6, weight=1)
 
     # OKボタン
     ok_btn = ttk.Button(
@@ -419,6 +428,7 @@ def edit_app_config(parent, file_path, template_path, settings):
         gpt_model = combobox.get()
         situation = stt.get(1.0, tk.END)
         persona = psn.get(1.0, tk.END)
+        cautions = ctn.get(1.0, tk.END)
 
         # change config data (overwrite even if there's no change)
         config.set_chatgpt_understander(chatgpt)
@@ -426,6 +436,7 @@ def edit_app_config(parent, file_path, template_path, settings):
         config.set_chatgpt_model(gpt_model)
         config.set_chatgpt_list("situation", situation)
         config.set_chatgpt_list("persona", persona)
+        config.set_chatgpt_list("cautions", cautions)
 
         # write config.yml
         config.write()
