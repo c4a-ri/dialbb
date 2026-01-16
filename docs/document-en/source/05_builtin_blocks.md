@@ -677,6 +677,15 @@ To use these functions, the following settings are required:
     If this element is absent, no specific persona is specified.
 
 
+  - `cautions` (list of strings)
+
+    A list of cautionary notes or warnings intended for the system to be written in the GPT prompt.
+
+    If this element is not present, no cautions are specified.
+
+    In the case of `check_with_llm`, even if this element exists, the cautions are not specified.
+
+
 
   e.g.:
 
@@ -699,6 +708,9 @@ To use these functions, the following settings are required:
         - Single
         - You talk very friendly
         - Diplomatic and cheerful
+      cautions:
+        - Do not generate long sentences
+        - Do not put period at the end of sentences
   ```
 
 `_check_with_prompt_template(prompt_template)` and `_generate_with_llm(prompt_template)` perform condition checking and text generation by providing prompts to a large language model.
@@ -727,6 +739,10 @@ Here are some examples:
 
   {persona}
 
+  # Cautions
+
+  {cautions}
+
   # Dialogue history up to now
 
   {dialogue_history}
@@ -750,6 +766,10 @@ Here are some examples:
 
   {persona}
 
+  # Cautions
+
+  {cautions}
+
   # Dialogue history up to now
 
   {dialogue_history}
@@ -772,6 +792,9 @@ Here are some examples:
 
   - `{persona}`
     Replaced with the value of `persona` from the `chatgpt` element in the block configuration.
+
+  - `{cautions}`
+    Replaced with the value of `cautions` from the `chatgpt` element in the block configuration.
 
   - `{current_time}`
     Replaced with a string representing the current date, day of the week, and time (hour, minute, second) at which the dialogue is taking place.
