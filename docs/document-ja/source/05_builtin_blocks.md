@@ -737,9 +737,10 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
 	
   - `cautions` （文字列のリスト）
   
-    TO WRITE
-	
-	check_with_llmでは使われないことを書くこと
+    GPTのプロンプトに書くシステムへの注意事項を列挙したものです．
+    この要素がない場合，注意事項は指定されません．
+
+	なお、`check_with_llm`では、この要素があっても注意事項は指定されません。
 
   例：
 
@@ -762,9 +763,13 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
       - 独身
       - 非常にフレンドリーに話す
       - 外交的で陽気
+    cautions:
+      - 長い発話は禁止
+      - 発話の最後には「。」をつけない
+
   ```
 
-`_check_with_prompt_template(prompt_template)`および`_generate_with_llm(prompt_template)`は，大規模言語モデルにプロンプトを与えて条件の判定および文字列の生成を行います．プロンプトは，引数に指定したプロンプトテンプレートのプレースホルダを値に置き換えることで作られます．
+`_check_with_prompt_template(prompt_template)`および`_generate_with_prompt_template(prompt_template)`は，大規模言語モデルにプロンプトを与えて条件の判定および文字列の生成を行います．プロンプトは，引数に指定したプロンプトテンプレートのプレースホルダを値に置き換えることで作られます．
 
 これらの関数を使うには上記の環境変数`OPENAI_API_KEY`の設定と，ブロックコンフィギュレーションの`chatgpt`要素の設定が必要です．
 
@@ -789,6 +794,10 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
 
   {persona}
 
+  # 注意事項
+
+  {cautions}
+
   # 現在までの対話
 
   {dialogue_history}
@@ -810,6 +819,10 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
   # あなたのペルソナ
 
   {persona}
+
+  # 注意事項
+
+  {cautions}
 
   # 現在までの対話
 
@@ -834,7 +847,11 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
   
   - `{persona}`
 
-    ブロックコンフィギュレーション`chatgpt`要素の`persona`の値で置き換えられる
+    ブロックコンフィギュレーションの`chatgpt`要素の`persona`の値で置き換えられる
+
+  - `{cautions}`
+
+    ブロックコンフィギュレーションの`chatgpt`要素の`cautions`の値で置き換えられる
 
   - `{current_time}`
 
