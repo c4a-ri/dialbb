@@ -63,7 +63,7 @@ Windows11，MacOSで動作します．
 
 必要なファイルを以下の要領でダウンロードします．
 
-  - ブラウザでのアドレスバーに https://github.com/c4a-ri/dialbb-scenario-editor/blob/main/docs/files/DialBB_Scenario_Editor-installer-1.1.0-win.exe を打ち込んでEnterキーを押します．
+  - ブラウザでのアドレスバーに https://github.com/c4a-ri/dialbb-scenario-editor/blob/main/docs/files/DialBB_Scenario_Editor-installer-1.0.2-win.exe を打ち込んでEnterキーを押します．
 - 遷移したページの右側の下向き矢印をクリックします．
   
 - `ダウンロード`フォルダに`DialBB_Scenario_Editor-installer-1.0.0-win.exe`という名前のアプリのインストーラーがダウンロードされます．
@@ -106,7 +106,7 @@ pip install --force-reinstall *.whl
 
 ### シナリオエディタのインストール
 
-ブラウザからhttps://drive.google.com/file/d/1ebLGkBhH-OA4vW0vxOZb-wdSucgnmqYw/view?usp=drive_linkにアクセスして，pkgファイルをダウンロードします．ダブルクリックしてインストールしてください．セキュリティの関係でインストールがうまくいかないことがあります．その場合，DialBBの開発者にお気軽に連絡ください．
+ブラウザから https://drive.google.com/file/d/16_rYTOeXMBOVUvV0iLc_re4mFk3mspPM/view?usp=sharing にアクセスして，pkgファイルをダウンロードします．ダブルクリックしてインストールしてください．セキュリティの関係でインストールがうまくいかないことがあります．その場合，DialBBの開発者にお気軽に連絡ください．
 
 
 ### 起動
@@ -346,6 +346,8 @@ Webサーバとしてアプリケーションを動かし，他のプログラ�
   
   固有表現抽出については後で説明します．
 
+**utteranceの編集ができなくなることがあります。（原因は不明です。）その場合、左上のメニューから`View`->`Toggle Developer Tools`を選ぶと編集が再びできることがわかっています。出現したDeveloper Toolのウインドウは右上の×を押して閉じてください。**
+
 #### ユーザノードの編集の仕方
 
 ユーザノードを右クリックすると以下のような入力ダイアログが表示されますので，中身を書き換えて`Save`ボタンを押します．`Close`ボタンを押すと保存せずに閉じます．
@@ -418,7 +420,7 @@ Webサーバとしてアプリケーションを動かし，他のプログラ�
 
 `遷移時のアクション`は進んだ使い方の時のみ利用するのでここでは説明しません．
 
-
+**遷移の条件の編集ができなくなることがあります。（原因は不明です。）その場合、左上のメニューから`View`->`Toggle Developer Tools`を選ぶと編集が再びできることがわかっています。出現したDeveloper Toolのウインドウは右上の×を押して閉じてください。**
 
 ### 言語理解用知識の編集（上級用）
 
