@@ -66,10 +66,10 @@ Windows11，MacOSで動作します．
   - ブラウザでのアドレスバーに https://github.com/c4a-ri/dialbb-scenario-editor/blob/main/docs/files/DialBB_Scenario_Editor-installer-1.0.2-win.exe を打ち込んでEnterキーを押します．
 - 遷移したページの右側の下向き矢印をクリックします．
   
-- `ダウンロード`フォルダに`DialBB_Scenario_Editor-installer-1.0.0-win.exe`という名前のアプリのインストーラーがダウンロードされます．
+- `ダウンロード`フォルダに`DialBB_Scenario_Editor-installer-1.0.2-win.exe`という名前のアプリのインストーラーがダウンロードされます．
   - エクスプローラでこのインストーラーをダブルクリックします．
     - 「WindowsによってPCが保護されました」と出るかもしれません．その場合，「詳細情報」をクリックすると，「実行」ボタンが出てくるので，それを押してください．
-  - ダイアログが表示されたら\[OK\]ボタンを押すとインストールが始まります．
+  - ダイアログが表示されたら`同意する`ボタンを押し、次に`インストール`ボタンを押すとインストールが始まります．
 
 ### 起動
 
