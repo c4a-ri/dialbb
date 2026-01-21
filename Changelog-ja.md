@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.2.0 ()
+
+- ノーコードツール
+
+  - ユーザシミュレータを用いたテストが可能に
+  
+- システム発話から付加情報を抽出してaux_dataに
+
+- メインモジュールが対話履歴を持つように変更 (todo documentation)
+
+- ChatGPT Dialogue組み込みブロック
+
+  - メインモジュールの対話履歴を使うように変更 (todo documentation)
+
+- STN Manager組み込みブロック
+
+  - ChatGPT利用時の注意事項がコンフィギュレーションで指定可能に
+
 ## 1.1.3 (2025.12.08)
 
 - Python 3.12 and 3.13 対応
@@ -8,7 +26,7 @@
 
   - gpt-5以外のgpt-5*を利用可能に
 
-- STN Manager Embedded Block
+- STN Manager 組み込みブロック
 
   - gpt-5以外のgpt-5*を利用可能に
 

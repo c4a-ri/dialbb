@@ -90,12 +90,14 @@ def dialogue():
     return result
 
 
-def start_dialbb(config_file, port=8080):
+def start_dialbb(config_file: str, port: int) -> None:
+
     global app, logger, dialogue_processor
 
     dialogue_processor = DialogueProcessor(config_file)
     logger = get_logger("server")
     logger.propagate = False
+
     app.run(host="0.0.0.0", port=port)
 
 

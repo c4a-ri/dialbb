@@ -7,13 +7,21 @@
 
 - ChatGPT Dialogue Builtin Block
 
-  - Allows to use gpt-5* other than gpt-5
+  - Using gpt-5* other than gpt-5
 
+  - Writing output aux_data in output sentence
+  
 - STN Manager Embedded Block
 
-  - Allows to use gpt-5* other than gpt-5
+  - Using gpt-5* other than gpt-5
 
-  - Allows to log in scenario functions
+  - Logging in scenario functions
+
+  - Writing output aux_data in output sentence
+
+- No-code tool
+
+  - LLM-based tester included
 
 ## 1.1.1 (2025.11.22)
 

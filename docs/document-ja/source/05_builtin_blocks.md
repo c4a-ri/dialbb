@@ -734,6 +734,13 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
     GPTのプロンプトに書くシステムのペルソナを列挙したものです．
 
     この要素がない場合，ペルソナは指定されません．
+	
+  - `cautions` （文字列のリスト）
+  
+    GPTのプロンプトに書くシステムへの注意事項を列挙したものです．
+    この要素がない場合，注意事項は指定されません．
+
+	なお、`check_with_llm`では、この要素があっても注意事項は指定されません。
 
   例：
 
@@ -756,9 +763,13 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
       - 独身
       - 非常にフレンドリーに話す
       - 外交的で陽気
+    cautions:
+      - 長い発話は禁止
+      - 発話の最後には「。」をつけない
+
   ```
 
-`_check_with_prompt_template(prompt_template)`および`_generate_with_llm(prompt_template)`は，大規模言語モデルにプロンプトを与えて条件の判定および文字列の生成を行います．プロンプトは，引数に指定したプロンプトテンプレートのプレースホルダを値に置き換えることで作られます．
+`_check_with_prompt_template(prompt_template)`および`_generate_with_prompt_template(prompt_template)`は，大規模言語モデルにプロンプトを与えて条件の判定および文字列の生成を行います．プロンプトは，引数に指定したプロンプトテンプレートのプレースホルダを値に置き換えることで作られます．
 
 これらの関数を使うには上記の環境変数`OPENAI_API_KEY`の設定と，ブロックコンフィギュレーションの`chatgpt`要素の設定が必要です．
 
@@ -783,6 +794,10 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
 
   {persona}
 
+  # 注意事項
+
+  {cautions}
+
   # 現在までの対話
 
   {dialogue_history}
@@ -804,6 +819,10 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
   # あなたのペルソナ
 
   {persona}
+
+  # 注意事項
+
+  {cautions}
 
   # 現在までの対話
 
@@ -828,7 +847,11 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
   
   - `{persona}`
 
-    ブロックコンフィギュレーション`chatgpt`要素の`persona`の値で置き換えられる
+    ブロックコンフィギュレーションの`chatgpt`要素の`persona`の値で置き換えられる
+
+  - `{cautions}`
+
+    ブロックコンフィギュレーションの`chatgpt`要素の`cautions`の値で置き換えられる
 
   - `{current_time}`
 
@@ -953,6 +976,19 @@ def get_ramen_location(ramen: str, variable: str, context: Dict[str, Any]) -> No
 
 - `dialbb.builtin_blocks.stn_management.util.scenario_function_log_error(message: str)`
   errorレベルのログが書き出されます。デバッグモードの時にはExceptionを投げます。
+
+(extract_aux_data)=
+
+### システム発話からの出力aux_dataの抽出
+
+出力のシステム発話文字列の最後に `(<key_1>: <value_1>,  <key_2>: <value_2>, ... <key_n>: <value_n>)`の形の文字列があるとき、この部分は発話文字列から削除され、出力の`aux_data`に`{”<key_1>”: ”<value_1>”,  ”<key_2>”: ”<value_2>”, ... ”<key_n>”: ”<value_n>”}`が付け加わります。（実際にはupdateされるので、同じキーがあれば値が上書きされます。）クライアントの制御に用いることができます。
+
+例：
+
+- システム発話文字列 ：`"こんにちは (emotion:happy)"`
+- 最終的なシステム発話：`"こんにちは"`， `aux_data`のアップデート：`{"emotion": "happy"}`
+
+キーはアルファベット、数字、アンダースコアの並びでないといけません。
 
 ### 連続遷移
 
@@ -1180,8 +1216,11 @@ OpenAI社のChatGPTを用いて対話を行います．
 ### 処理内容
 
 - 対話の最初はブロックコンフィギュレーションの`first_system_utterance`の値をシステム発話として返します．
-
 - 2回目以降のターンでは，プロンプトテンプレートを与えてChatGPTに発話を生成させ，返ってきた文字列をシステム発話として返します．
+
+### システム発話からの出力aux_dataの抽出
+
+{numref}`extract_aux_data`と同じです。
 
 
 (chatgpt_ner)=
