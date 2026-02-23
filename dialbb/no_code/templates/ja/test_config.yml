@@ -1,5 +1,5 @@
-user_name: ユーザ
-system_name: システム
+user_name: User
+system_name: System
 model: gpt-4o-mini
 
 settings:

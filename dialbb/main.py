@@ -212,7 +212,7 @@ class DialogueProcessor:
                 blackboard[key_in_blackboard] = output_from_block[key_in_output]
             self._log_debug(f"blackboard: " + str(blackboard), session_id=session_id)
 
-        history.append({"speaker": "user",
+        history.append({"speaker": "system",
                         "aux_data": blackboard.get('aux_data', {}),
                         "utterance": blackboard.get('system_utterance', "")})
         self._add_history(session_id, history)

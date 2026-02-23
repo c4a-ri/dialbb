@@ -957,35 +957,9 @@ It is also possible to transition to a subdialogue within a subdialogue.
 
 ### Saving Context Information in an External Database
 
-When operating the DialBB application as a web server, using a load balancer to distribute processing across multiple instances can handle request surges efficiently. By saving context information in an external database (MongoDB), a single session can be processed by different instances. (Feature added in version 0.10.0)
+When the configuration includes a `context_db` element, contextual information is stored in an external database (MongoDB). For details on how to specify `context_db`, please refer to {numref}`context_db`.
 
-To use an external database, specify `context_db` element like the following in the block configuration:
-
-```yaml
-context_db:
-  host: localhost
-  port: 27017
-  user: admin
-  password: password
-```
-
-Each key is defined as follows:
-
-- `host` (str)
-
-  The hostname where MongoDB is running.
-
-- `port` (int, default value: `27017`)
-
-  The port number used to access MongoDB.
-
-- `user` (str)
-
-  The username for accessing MongoDB.
-
-- `password` (str)
-
-  The password for accessing MongoDB.
+(In version 1.2, `context_db` was changed to be specified at the top level of the configuration rather than in the block configuration.)
 
 ### Advanced Mechanisms for Handling Speech Input
 
@@ -1085,13 +1059,14 @@ Engages in dialogue using OpenAI's ChatGPT.
 
   - `user_utterance`: Input string (string)
   - `aux_data`: Auxiliary data (dictionary).
-  - `user_id`: auxiliary data (dictionary)
+  - `user_id`: User ID (string)
+  - `dialogue_history`: Dialogue history (list of dictionaries)
 
 - Output
 
   - `system_utterance`: Input string (string)
   - `aux_data`: auxiliary data (dictionary type)
-  - `final`: boolean flag indicating whether the dialog is finished or not.
+  - `final`: Boolean flag indicating whether the dialog is finished or not.
 
 The input `user_id` is not used. The output `aux_data` is the same as the input `aux_data` and `final` is always `False`.
 
@@ -1119,7 +1094,7 @@ When using these blocks, you need to set the OpenAI license key in the environme
 
 - `temperature` (float, default value is `0.7`)
 
-  THe temperature parameter when calling ChatGPT.
+  The temperature parameter when calling ChatGPT.
 
 - `gpt_model` (string, default value is `gpt-4o-mini`)
 
@@ -1140,10 +1115,12 @@ When using these blocks, you need to set the OpenAI license key in the environme
   - `{<a string consisting only of alphabets, digits, and underscores>}`
 
      If the string exists as a key in aux_data, it is replaced with the corresponding value converted to a string.
-	
+
 - Placeholder removal
 
   If an unreplaced placeholder remains and is enclosed in `[[[` and `]]]`, that portion will be removed.
+
+- `{dialogue_history}` does not need to be specified in the templates.
 
 
 ### Process Details
