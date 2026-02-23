@@ -141,4 +141,17 @@ dmypy.json
 # dialbb temp files
 #_*
 
+# keep empty data dir
+/dialbb/no_code/app/*
+!/dialbb/no_code/app/.gitkeep
+/dialbb/pyeditor/data/*
+!/dialbb/pyeditor/data/.gitkeep
 
+# Temporary backup file
+*-old.py
+*_old.py
+*-sav.py
+*_sav.py
+
+# debug tools
+/scripts/

@@ -33,8 +33,12 @@ import zipfile
 from typing import Dict, Optional, Any
 
 import test
-from dialbb.no_code.tools.knowledgeConverter2json import convert2json
-from dialbb.no_code.tools.knowledgeConverter2excel import convert2excel
+from dialbb.no_code.tools.scenario_converter2json import (
+    convert_excel_to_json as scenario_convert_excel_to_json,
+)
+from dialbb.no_code.tools.scenario_converter2excel import (
+    convert_json_to_excel as scenario_convert_json_to_excel,
+)
 from dialbb.no_code.config_editor import edit_app_config, edit_test_config
 from dialbb.no_code.function_editor import edit_scenario_functions
 from dialbb.no_code.gui_utils import (
@@ -60,31 +64,9 @@ NC_PATH: str = SCRIPT_ROOT
 APP_FILE_DIR: str = os.path.join(NC_PATH, "app")
 TEMPLATE_DIR: str = os.path.join(NC_PATH, "templates")
 DATA_DIR: str = os.path.join(NC_PATH, "data")
-EDITOR_APL_NAME: str = "DialBB_Scenario_Editor"
-
-if sys.platform.startswith("win"):  # windows
-    EDITOR_APL_EXE: str = os.path.join(
-        os.environ.get("LOCALAPPDATA"),
-        "Programs",
-        "DialBB_Scenario_Editor",
-        "DialBB_Scenario_Editor.exe",
-    )
-    EDITOR_APPDATA_DIR: str = os.path.join(
-        os.environ.get("APPDATA"), "dialbb-scenario-editor"
-    )
-    EDITOR_EXE_CMD: list[str] = [f"{EDITOR_APL_EXE}", f"--lang=LANG"]
-
-elif sys.platform == "darwin":  # mac
-    EDITOR_APL_EXE: str = os.path.join(
-        os.environ.get("HOME"), "Applications", f"{EDITOR_APL_NAME}.app"
-    )
-    EDITOR_APPDATA_DIR: str = os.path.join(
-        os.environ.get("HOME"), "Library/Application Support", "dialbb-scenario-editor"
-    )
-    EDITOR_EXE_CMD: list[str] = ["open", "-a", f"{EDITOR_APL_NAME}", "--args", "LANG"]
-
-else:  # linux isn't supported
-    logger.error(f"Unsupported OS: {sys.platform}")
+PYEDITOR_DIR: str = os.path.join(LIB_DIR, "pyeditor")
+PYEDITOR_EDITOR_SCRIPT: str = os.path.join(PYEDITOR_DIR, "scenario_editor.py")
+PYEDITOR_STATE_GRAPH_JSON: str = os.path.join(PYEDITOR_DIR, "data", "state_graph.json")
 
 
 APP_FILES: Dict[str, str] = {
@@ -104,7 +86,6 @@ TEST_CONFIG_FILES: str = os.path.join(
 
 # Scenario Editor process information  シナリオエディタのプロセス情報
 editor_server: Optional[ProcessManager] = None
-editor_apl: Optional[subprocess.Popen] = None
 
 # dialbb process information  DialBBサーバのプロセス情報
 dialbb_proc: Optional[ProcessManager] = None
@@ -123,96 +104,72 @@ CHAT_area: Optional[tk.Text] = None
 # -------- GUI Editor -------------------------------------
 # Start GUI Editor GUIエディタ起動/停止
 def exec_editor(file_path, parent, button) -> None:
-    global editor_server, editor_apl
+    global editor_server
 
     if not editor_server:
         # エディタ起動処理
-        # convert knowledge excel to JSON 知識記述Excel-json変換
-        ret = convert_excel_to_json(
-            file_path, os.path.join(EDITOR_APPDATA_DIR, "init.json")
-        )
+        # convert excel to JSON（PyEditor入力）
+        ret = convert_excel_to_json(file_path, PYEDITOR_STATE_GRAPH_JSON)
         if not ret:
             return
 
         arg_lang = f"--lang={gui_text('language type')}"
         logger.info(
-            f"Starting editor. OS: {sys.platform}, Editor exec: {EDITOR_APL_EXE}, Language: {arg_lang}"
+            "Starting pyEditor. OS: %s, Script: %s, Language: %s",
+            sys.platform,
+            PYEDITOR_EDITOR_SCRIPT,
+            arg_lang,
         )
-        # エディタ用サーバ起動
-        cmd = os.path.join(NC_PATH, r"start_editor.py")
-        editor_server = ProcessManager(cmd, ["--mode=nc", arg_lang])
+        if not os.path.exists(PYEDITOR_EDITOR_SCRIPT):
+            messagebox.showerror(
+                gui_text("msg_editor_err_title"),
+                gui_text("msg_editor_err_msg"),
+                detail=f"script not found: {PYEDITOR_EDITOR_SCRIPT}",
+                parent=parent,
+            )
+            return
+
+        editor_server = ProcessManager(
+            PYEDITOR_EDITOR_SCRIPT,
+            [PYEDITOR_STATE_GRAPH_JSON, arg_lang],
+        )
         ret = editor_server.start()
-        if ret:
-            try:
-                # シナリオエディタアプリの実行
-                if not os.path.exists(EDITOR_APL_EXE):
-                    raise FileNotFoundError(
-                        gui_text("msg_editor_err_notfound") + f": {EDITOR_APL_EXE}"
-                    )
-                # アプリ起動 （言語種別引数あり）
-                cmd = [
-                    s.replace("LANG", gui_text("language type")) for s in EDITOR_EXE_CMD
-                ]
-                logger.info(f"Editor command: {cmd}")
-                editor_apl = subprocess.Popen(cmd)
-
-                # waiting for an order to quit   終了の指示待ち
-                # messagebox.showinfo(
-                #     gui_text("msg_editor_st_title"),
-                #     gui_text("msg_editor_st_msg"),
-                #     detail=gui_text("msg_editor_st_detail"),
-                #     parent=parent,
-                # )
-                button.configure(text=gui_text("btn_scenario_stop"))
-
-            except Exception as e:
-                logger.error(f"アプリ起動失敗: {e}")
-                messagebox.showerror(
-                    gui_text("msg_editor_err_title"),
-                    gui_text("msg_editor_err_msg"),
-                    detail=f"{e}",
-                    parent=parent,
-                )
-
-        else:
+        if not ret:
+            editor_server = None
             messagebox.showerror(
                 gui_text("msg_editor_err_title"),
                 gui_text("msg_editor_err_msg"),
                 detail=gui_text("msg_editor_err_detail"),
                 parent=parent,
             )
+            return
+
+        button.configure(text=gui_text("btn_scenario_stop"))
     else:
+        # エディタ終了前に保存確認
+        save_confirm = messagebox.askyesno(
+            gui_text("msg_warn_confirm"),
+            gui_text("msg_warn_no_saved_detail"),
+            parent=parent,
+        )
+
+        # no: 終了しない
+        if not save_confirm:
+            return
+
         # エディタ終了処理
-        json_file = os.path.join(DATA_DIR, "save.json")
-        # エディタ保存データをチェック
-        if not os.path.isfile(json_file):
-            messagebox.showwarning(
-                "Warning",
-                gui_text("msg_warn_no_saved"),
-                detail=gui_text("msg_warn_no_saved_detail"),
+        try:
+            scenario_convert_json_to_excel(PYEDITOR_STATE_GRAPH_JSON, file_path)
+        except Exception as e:
+            logger.error("JSON->Excel conversion failed: %s", e)
+            messagebox.showerror(
+                gui_text("msg_editor_err_title"),
+                gui_text("msg_editor_err_msg"),
+                detail=f"{e}",
                 parent=parent,
             )
-        
-        if os.path.isfile(json_file):
-            os.remove(json_file)
 
-        # エディタアプリ終了
-        if editor_apl:
-            if sys.platform.startswith("win"):
-                os.system(f"taskkill /F /T /PID {editor_apl.pid}")
-                editor_apl = None
-            else:
-                applescript_command = f'tell application "{EDITOR_APL_NAME}" to quit'
-                try:
-                    subprocess.run(["osascript", "-e", applescript_command], check=True)
-                    logger.info(f"{EDITOR_APL_NAME} を正常に終了しました。")
-                    editor_apl = None
-                except subprocess.CalledProcessError as e:
-                    logger.error(f"{EDITOR_APL_NAME} の終了に失敗しました: {e}")
-        else:
-            messagebox.showwarning("Warning", gui_text("msg_editor_warn_server_none"))
-
-        # エディタ用サーバ停止
+        # pyEditorプロセス停止
         editor_server.stop()
         editor_server = None
         button.configure(text=gui_text("btn_scenario_start"))
@@ -231,9 +188,16 @@ def convert_excel_to_json(xlsx: str, json: str) -> bool:
     if xlsx == "" or json == "":
         messagebox.showerror("Warning", gui_text("msg_convfile_nothing"))
     else:
-        convert2json(xlsx, json)
-        # messagebox.showinfo("File Convertor", f"{json}を生成しました.")
-        result = True
+        try:
+            scenario_convert_excel_to_json(xlsx, json)
+            result = True
+        except Exception as e:
+            logger.error("Excel->JSON conversion failed: %s", e)
+            messagebox.showerror(
+                "Error",
+                gui_text("msg_editor_err_msg"),
+                detail=f"{e}",
+            )
 
     return result
 

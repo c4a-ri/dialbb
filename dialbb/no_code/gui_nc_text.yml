@@ -167,12 +167,12 @@ msg_warn_no_file:
   ja: "ファイルが存在しません。"
   en: "File does not exist."
 
-msg_warn_no_saved:
-  ja: "シナリオデータが保存されていません。"
-  en: "Scenario data not saved."
+msg_warn_confirm:
+  ja: "確認"
+  en: "Confirmation"
 
 msg_warn_no_saved_detail:
-  ja: "必要ならエディターの[保存]ボタンを押してから、[OK]を押します。"
+  ja: "変更した場合は[保存]が必要です、このまま終了しますか？"
   en: "Press the editor's Save button if necessary, then press OK."
 
 msg_info_new_app:
@@ -210,6 +210,10 @@ msg_warn_sys_node_no_transition_dest:
 msg_warn_sys_node_utter_empty:
   ja: "Warning: システムノード%sの発話が空です。"
   en: "Warning: The utterance for system node %s is empty."
+ 
+msg_warn_kind_duplicates:
+  ja: "Warning: 次のノード種別が複数存在します:\n%s"
+  en: "Warning: The following node kinds exist multiple times:\n%s"
 
 msg_warn_initial_node_exists:
   ja: "Warning: typeがinitialのシステムノードがありません。"
