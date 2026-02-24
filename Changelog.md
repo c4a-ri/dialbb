@@ -1,4 +1,4 @@
-2# Changelog
+# Changelog
 
 
 ## 1.1.3 (2025.12.08)
