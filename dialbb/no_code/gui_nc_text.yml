@@ -175,6 +175,10 @@ msg_warn_no_saved_detail:
   ja: "変更した場合は[保存]が必要です、このまま終了しますか？"
   en: "Press the editor's Save button if necessary, then press OK."
 
+msg_scn_load_confirm:
+  ja: "セーブデータをロードします。今までの修正は破棄されます"
+  en: "Load the saved data. Any unsaved changes will be discarded."
+
 msg_info_new_app:
   ja: "新規アプリケーションが作成されました。"
   en: "A new application has been created."

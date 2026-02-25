@@ -1363,7 +1363,7 @@ class GraphicsView(QtWidgets.QGraphicsView):
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("DialBBシナリオエディタ (PySide6)")
+        self.setWindowTitle("DialBBシナリオエディタ ")
         self.resize(900, 600)
 
         # Undoスタック（Ctrl+Z/Y）
@@ -1378,9 +1378,13 @@ class MainWindow(QtWidgets.QMainWindow):
         toolbar = self.addToolBar("tools")
         toolbar.setMovable(False)
 
-        toolbar.addAction("保存 (PNG)", lambda: self.scene.save_png("state_graph_qt.png"))
-        toolbar.addAction("エクスポート JSON", lambda: self.scene.export_json("state_graph.json"))
-        toolbar.addAction("インポート JSON", lambda: self.scene.import_json("state_graph.json"))
+        spacer = QtWidgets.QWidget()
+        spacer.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
+        toolbar.addWidget(spacer)
+
+        # toolbar.addAction("保存 (PNG)", lambda: self.scene.save_png("state_graph_qt.png"))
+        toolbar.addAction("セーブ", lambda: self.scene.export_json("state_graph.json"))
+        toolbar.addAction("ロード", self.confirm_and_load_json)
         toolbar.addAction("整列", self.scene.auto_layout)
 
         # 見た目（ボタン風）
@@ -1440,6 +1444,19 @@ class MainWindow(QtWidgets.QMainWindow):
         print(f"auto loading: {path}")
 
         self.scene.import_json(path)
+
+    def confirm_and_load_json(self):
+        """ロード前に確認ダイアログを表示し、OK時のみ読み込む"""
+        msg = gui_text("msg_scn_load_confirm")
+        reply = QtWidgets.QMessageBox.question(
+            self,
+            gui_text("msg_warn_confirm"),
+            msg,
+            QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel,
+            QtWidgets.QMessageBox.Cancel,
+        )
+        if reply == QtWidgets.QMessageBox.Ok:
+            self.scene.import_json("state_graph.json")
 
     def keyPressEvent(self, event):
         """Delete=削除 / Esc=選択解除"""
