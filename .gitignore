@@ -154,4 +154,5 @@ dmypy.json
 *_sav.py
 
 # debug tools
-/scripts/
+/scripts/debug_generate_rows.py
+/scripts/print_rows.py
