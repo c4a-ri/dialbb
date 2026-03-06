@@ -37,9 +37,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
-import string
 import uuid
-import random
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Tuple, Optional
@@ -61,13 +59,17 @@ REQUIRED_COLS = [
 ]
 
 SPECIAL_STATES = {"#initial", "#prep", "#error"}
+SHORT_ID_DIGITS = 6
+_SHORT_ID_STATE = {"next": 1}
 
 
 def gen_short_id(length: int = 6, used: Optional[set[str]] = None) -> str:
-    chars = string.ascii_uppercase + string.digits
     used = used if used is not None else set()
+
+    digits = length if length > 0 else SHORT_ID_DIGITS
     while True:
-        s = "".join(random.choices(chars, k=length))
+        s = f"{_SHORT_ID_STATE['next']:0{digits}d}"
+        _SHORT_ID_STATE["next"] += 1
         if s not in used:
             used.add(s)
             return s
