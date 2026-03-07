@@ -1085,13 +1085,14 @@ Engages in dialogue using OpenAI's ChatGPT.
 
   - `user_utterance`: Input string (string)
   - `aux_data`: Auxiliary data (dictionary).
-  - `user_id`: auxiliary data (dictionary)
+  - `user_id`: User ID (string)
+  - `dialogue_history`: Dialogue history (list of dictionaries)
 
 - Output
 
   - `system_utterance`: Input string (string)
   - `aux_data`: auxiliary data (dictionary type)
-  - `final`: boolean flag indicating whether the dialog is finished or not.
+  - `final`: Boolean flag indicating whether the dialog is finished or not.
 
 The input `user_id` is not used. The output `aux_data` is the same as the input `aux_data` and `final` is always `False`.
 
@@ -1119,7 +1120,7 @@ When using these blocks, you need to set the OpenAI license key in the environme
 
 - `temperature` (float, default value is `0.7`)
 
-  THe temperature parameter when calling ChatGPT.
+  The temperature parameter when calling ChatGPT.
 
 - `gpt_model` (string, default value is `gpt-4o-mini`)
 
@@ -1140,10 +1141,12 @@ When using these blocks, you need to set the OpenAI license key in the environme
   - `{<a string consisting only of alphabets, digits, and underscores>}`
 
      If the string exists as a key in aux_data, it is replaced with the corresponding value converted to a string.
-	
+
 - Placeholder removal
 
   If an unreplaced placeholder remains and is enclosed in `[[[` and `]]]`, that portion will be removed.
+
+- `{dialogue_history}` does not need to be specified in the templates.
 
 
 ### Process Details
