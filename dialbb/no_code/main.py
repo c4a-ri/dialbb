@@ -21,7 +21,8 @@
 __version__ = "0.1"
 __author__ = "Mikio Nakano"
 
-import os, sys
+import os
+import sys
 import argparse
 import tkinter as tk
 from tkinter import ttk
@@ -31,22 +32,26 @@ import subprocess
 import shutil
 import zipfile
 from typing import Dict, Optional, Any
+from dataclasses import dataclass
 
-import test
-from dialbb.no_code.tools.knowledgeConverter2json import convert2json
-from dialbb.no_code.tools.knowledgeConverter2excel import convert2excel
+from dialbb.no_code.tools.scenario_converter2json import (
+    convert_excel_to_json as scenario_convert_excel_to_json,
+)
+from dialbb.no_code.tools.scenario_converter2excel import (
+    convert_json_to_excel as scenario_convert_json_to_excel,
+)
 from dialbb.no_code.config_editor import edit_app_config, edit_test_config
 from dialbb.no_code.function_editor import edit_scenario_functions
 from dialbb.no_code.gui_utils import (
     read_gui_settings,
     ProcessManager,
     FileTimestamp,
-    central_position,
     child_position,
     read_gui_text_data,
     gui_text,
 )
 from dialbb.main import DialogueProcessor
+from dialbb.paths import DIALBB_DIR, NC_PATH, APP_DIR, TEMPLATE_DIR
 from dialbb.util.logger import get_logger
 from dialbb.sim_tester.main import test_by_simulation
 
@@ -54,37 +59,10 @@ from dialbb.sim_tester.main import test_by_simulation
 logger = get_logger("dialbb.no_code.main")
 
 # paths  実行環境パス
-SCRIPT_ROOT: str = os.path.dirname(os.path.abspath(__file__))
-LIB_DIR: str = os.path.abspath(os.path.join(SCRIPT_ROOT, ".."))
-NC_PATH: str = SCRIPT_ROOT
-APP_FILE_DIR: str = os.path.join(NC_PATH, "app")
-TEMPLATE_DIR: str = os.path.join(NC_PATH, "templates")
-DATA_DIR: str = os.path.join(NC_PATH, "data")
-EDITOR_APL_NAME: str = "DialBB_Scenario_Editor"
-
-if sys.platform.startswith("win"):  # windows
-    EDITOR_APL_EXE: str = os.path.join(
-        os.environ.get("LOCALAPPDATA"),
-        "Programs",
-        "DialBB_Scenario_Editor",
-        "DialBB_Scenario_Editor.exe",
-    )
-    EDITOR_APPDATA_DIR: str = os.path.join(
-        os.environ.get("APPDATA"), "dialbb-scenario-editor"
-    )
-    EDITOR_EXE_CMD: list[str] = [f"{EDITOR_APL_EXE}", f"--lang=LANG"]
-
-elif sys.platform == "darwin":  # mac
-    EDITOR_APL_EXE: str = os.path.join(
-        os.environ.get("HOME"), "Applications", f"{EDITOR_APL_NAME}.app"
-    )
-    EDITOR_APPDATA_DIR: str = os.path.join(
-        os.environ.get("HOME"), "Library/Application Support", "dialbb-scenario-editor"
-    )
-    EDITOR_EXE_CMD: list[str] = ["open", "-a", f"{EDITOR_APL_NAME}", "--args", "LANG"]
-
-else:  # linux isn't supported
-    logger.error(f"Unsupported OS: {sys.platform}")
+APP_FILE_DIR: str = APP_DIR
+PYEDITOR_DIR: str = os.path.join(DIALBB_DIR, "pyeditor")
+PYEDITOR_EDITOR_SCRIPT: str = os.path.join(PYEDITOR_DIR, "scenario_editor.py")
+PYEDITOR_STATE_GRAPH_JSON: str = os.path.join(PYEDITOR_DIR, "data", "state_graph.json")
 
 
 APP_FILES: Dict[str, str] = {
@@ -102,119 +80,97 @@ TEST_CONFIG_FILES: str = os.path.join(
 
 # define application files  アプリファイルの定義
 
-# Scenario Editor process information  シナリオエディタのプロセス情報
-editor_server: Optional[ProcessManager] = None
-editor_apl: Optional[subprocess.Popen] = None
+@dataclass
+class RuntimeProcesses:
+    """実行中プロセスの状態を保持する。"""
 
-# dialbb process information  DialBBサーバのプロセス情報
-dialbb_proc: Optional[ProcessManager] = None
-dialbb_log_file: str = ""
+    editor_process: Optional[ProcessManager] = None
+    dialbb_proc: Optional[ProcessManager] = None
 
-# dialogue processor instance ダイアログプロセッサインスタンス
-dialogue_processor: Optional[DialogueProcessor] = None
+
+PROCESS_STATE = RuntimeProcesses()
 
 # application file timestamp アプリファイルのタイムスタンプ
-app_file_timestamp: float = FileTimestamp(APP_FILE_DIR, APP_FILES.values())
+app_file_timestamp: FileTimestamp = FileTimestamp(APP_FILE_DIR, list(APP_FILES.values()))
 
-# チャット表示エリア
-CHAT_area: Optional[tk.Text] = None
+
+class AppFileFrame(ttk.Frame):
+    """アプリファイル選択UIで使う拡張Frame（型情報用）。"""
+
+    spec_app: tk.Label
+    edit_box: tk.Entry
 
 
 # -------- GUI Editor -------------------------------------
 # Start GUI Editor GUIエディタ起動/停止
 def exec_editor(file_path, parent, button) -> None:
-    global editor_server, editor_apl
-
-    if not editor_server:
+    """シナリオエディタの起動/停止と保存連携を行う。"""
+    if not PROCESS_STATE.editor_process:
         # エディタ起動処理
-        # convert knowledge excel to JSON 知識記述Excel-json変換
-        ret = convert_excel_to_json(
-            file_path, os.path.join(EDITOR_APPDATA_DIR, "init.json")
-        )
+        # convert excel to JSON（PyEditor入力）
+        ret = convert_excel_to_json(file_path, PYEDITOR_STATE_GRAPH_JSON)
         if not ret:
             return
 
         arg_lang = f"--lang={gui_text('language type')}"
         logger.info(
-            f"Starting editor. OS: {sys.platform}, Editor exec: {EDITOR_APL_EXE}, Language: {arg_lang}"
+            "Starting pyEditor. OS: %s, Script: %s, Language: %s",
+            sys.platform,
+            PYEDITOR_EDITOR_SCRIPT,
+            arg_lang,
         )
-        # エディタ用サーバ起動
-        cmd = os.path.join(NC_PATH, r"start_editor.py")
-        editor_server = ProcessManager(cmd, ["--mode=nc", arg_lang])
-        ret = editor_server.start()
-        if ret:
-            try:
-                # シナリオエディタアプリの実行
-                if not os.path.exists(EDITOR_APL_EXE):
-                    raise FileNotFoundError(
-                        gui_text("msg_editor_err_notfound") + f": {EDITOR_APL_EXE}"
-                    )
-                # アプリ起動 （言語種別引数あり）
-                cmd = [
-                    s.replace("LANG", gui_text("language type")) for s in EDITOR_EXE_CMD
-                ]
-                logger.info(f"Editor command: {cmd}")
-                editor_apl = subprocess.Popen(cmd)
+        if not os.path.exists(PYEDITOR_EDITOR_SCRIPT):
+            messagebox.showerror(
+                gui_text("msg_editor_err_title"),
+                gui_text("msg_editor_err_msg"),
+                detail=f"script not found: {PYEDITOR_EDITOR_SCRIPT}",
+                parent=parent,
+            )
+            return
 
-                # waiting for an order to quit   終了の指示待ち
-                # messagebox.showinfo(
-                #     gui_text("msg_editor_st_title"),
-                #     gui_text("msg_editor_st_msg"),
-                #     detail=gui_text("msg_editor_st_detail"),
-                #     parent=parent,
-                # )
-                button.configure(text=gui_text("btn_scenario_stop"))
-
-            except Exception as e:
-                logger.error(f"アプリ起動失敗: {e}")
-                messagebox.showerror(
-                    gui_text("msg_editor_err_title"),
-                    gui_text("msg_editor_err_msg"),
-                    detail=f"{e}",
-                    parent=parent,
-                )
-
-        else:
+        PROCESS_STATE.editor_process = ProcessManager(
+            PYEDITOR_EDITOR_SCRIPT,
+            [PYEDITOR_STATE_GRAPH_JSON, arg_lang],
+        )
+        ret = PROCESS_STATE.editor_process.start()
+        if not ret:
+            PROCESS_STATE.editor_process = None
             messagebox.showerror(
                 gui_text("msg_editor_err_title"),
                 gui_text("msg_editor_err_msg"),
                 detail=gui_text("msg_editor_err_detail"),
                 parent=parent,
             )
+            return
+
+        button.configure(text=gui_text("btn_scenario_stop"))
     else:
+        # エディタ終了前に保存確認
+        save_confirm = messagebox.askyesno(
+            gui_text("msg_warn_confirm"),
+            gui_text("msg_warn_no_saved_detail"),
+            parent=parent,
+        )
+
+        # no: 終了しない
+        if not save_confirm:
+            return
+
         # エディタ終了処理
-        json_file = os.path.join(DATA_DIR, "save.json")
-        # エディタ保存データをチェック
-        if not os.path.isfile(json_file):
-            messagebox.showwarning(
-                "Warning",
-                gui_text("msg_warn_no_saved"),
-                detail=gui_text("msg_warn_no_saved_detail"),
+        try:
+            scenario_convert_json_to_excel(PYEDITOR_STATE_GRAPH_JSON, file_path)
+        except (OSError, RuntimeError, ValueError) as e:
+            logger.error("JSON->Excel conversion failed: %s", e)
+            messagebox.showerror(
+                gui_text("msg_editor_err_title"),
+                gui_text("msg_editor_err_msg"),
+                detail=f"{e}",
                 parent=parent,
             )
-        
-        if os.path.isfile(json_file):
-            os.remove(json_file)
 
-        # エディタアプリ終了
-        if editor_apl:
-            if sys.platform.startswith("win"):
-                os.system(f"taskkill /F /T /PID {editor_apl.pid}")
-                editor_apl = None
-            else:
-                applescript_command = f'tell application "{EDITOR_APL_NAME}" to quit'
-                try:
-                    subprocess.run(["osascript", "-e", applescript_command], check=True)
-                    logger.info(f"{EDITOR_APL_NAME} を正常に終了しました。")
-                    editor_apl = None
-                except subprocess.CalledProcessError as e:
-                    logger.error(f"{EDITOR_APL_NAME} の終了に失敗しました: {e}")
-        else:
-            messagebox.showwarning("Warning", gui_text("msg_editor_warn_server_none"))
-
-        # エディタ用サーバ停止
-        editor_server.stop()
-        editor_server = None
+        # pyEditorプロセス停止
+        PROCESS_STATE.editor_process.stop()
+        PROCESS_STATE.editor_process = None
         button.configure(text=gui_text("btn_scenario_start"))
 
 
@@ -231,9 +187,16 @@ def convert_excel_to_json(xlsx: str, json: str) -> bool:
     if xlsx == "" or json == "":
         messagebox.showerror("Warning", gui_text("msg_convfile_nothing"))
     else:
-        convert2json(xlsx, json)
-        # messagebox.showinfo("File Convertor", f"{json}を生成しました.")
-        result = True
+        try:
+            scenario_convert_excel_to_json(xlsx, json)
+            result = True
+        except (OSError, RuntimeError, ValueError) as e:
+            logger.error("Excel->JSON conversion failed: %s", e)
+            messagebox.showerror(
+                "Error",
+                gui_text("msg_editor_err_msg"),
+                detail=f"{e}",
+            )
 
     return result
 
@@ -241,50 +204,52 @@ def convert_excel_to_json(xlsx: str, json: str) -> bool:
 # -------- DialBBサーバ関連 -------------------------------------
 # DialBBサーバ起動/停止
 def exec_dialbb(app_file, button) -> None:
-    global dialbb_proc
-    global dialbb_log_file
-
-    if dialbb_proc:
+    """DialBBサーバの起動/停止をトグルする。"""
+    if PROCESS_STATE.dialbb_proc:
         # DialBBサーバ停止
-        dialbb_proc.stop()
-        dialbb_proc = None
+        PROCESS_STATE.dialbb_proc.stop()
+        PROCESS_STATE.dialbb_proc = None
         # ボタン表示切替
         button.config(text=gui_text("btn_dialbb_start"))
     else:
-        logger.info(f"app_file:{app_file}")
+        logger.info("app_file:%s", app_file)
         # サーバ起動
-        cmd = os.path.join(LIB_DIR, r"server/run_server.py")
-        dialbb_proc = ProcessManager(cmd, [app_file], dialbb=True)
-        ret = dialbb_proc.start()
-        dialbb_log_file = dialbb_proc.get_log_file()
+        cmd = os.path.join(DIALBB_DIR, r"server/run_server.py")
+        PROCESS_STATE.dialbb_proc = ProcessManager(cmd, [app_file], dialbb=True)
+        ret = PROCESS_STATE.dialbb_proc.start()
         if ret:
             # ボタン表示切替
             button.config(text=gui_text("btn_dialbb_stop"))
         else:
             messagebox.showerror("Error", gui_text("msg_dialbb_err_start"))
-            dialbb_proc = None
+            PROCESS_STATE.dialbb_proc = None
 
 
 # Show log
 def show_log() -> None:
-    global dialbb_log_file
+    """DialBBログファイルを既定アプリで開く。"""
+    if PROCESS_STATE.dialbb_proc:
+        log_file = PROCESS_STATE.dialbb_proc.get_log_file()
+    else:
+        log_file = ""
 
-    if dialbb_log_file:
-        logger.info(f"Opening log file: {dialbb_log_file}")
+    if log_file:
+        logger.info("Opening log file: %s", log_file)
         if os.name == "nt":
-            os.startfile(filepath=dialbb_log_file)
+            os.startfile(filepath=log_file)
         else:
-            subprocess.run(["open", dialbb_log_file])
+            subprocess.run(["open", log_file], check=False)
     else:
         messagebox.showwarning("Warning", gui_text("msg_dialbb_warn_no_log"))
 
 
 # -------- GUI画面制御サブルーチン -------------------------------------
 # ファイル設定エリアのフレームを作成して返却する
-def set_file_frame(parent_frame, settings, label_text, file_type_list) -> ttk.Frame:
+def set_file_frame(parent_frame, settings, label_text, file_type_list) -> AppFileFrame:
+    """アプリファイルの選択/読み込みUIフレームを作成する。"""
     # ラベルの作成
     # file_frame = ttk.Frame(parent_frame, style="My.TLabelframe")
-    file_frame = ttk.Frame(parent_frame)
+    file_frame = AppFileFrame(parent_frame)
     file_frame.spec_app = tk.Label(file_frame)
     file_frame.spec_app.grid(column=1, columnspan=2, row=0, sticky=tk.W, padx=5)
     # アプリ名の表示エリアを登録して保存アプリ名を表示する
@@ -329,16 +294,18 @@ def set_file_frame(parent_frame, settings, label_text, file_type_list) -> ttk.Fr
 
 # Excel編集処理
 def edit_excel(file_path) -> None:
-    logger.info(f"Editing Excel file: {file_path}")
+    """指定したExcelファイルを関連付けアプリで開く。"""
+    logger.info("Editing Excel file: %s", file_path)
     # ファイルを関連付けされたアプリで開く
     if os.name == "nt":
         os.startfile(filepath=file_path)
     else:
-        subprocess.run(["open", file_path])
+        subprocess.run(["open", file_path], check=False)
 
 
 # 開発Debug用
 def sample_func() -> None:
+    """開発確認用のダミー処理。"""
     # ボタンで起動するサンプル
     messagebox.showinfo("Information", "Not implemented.")
 
@@ -346,16 +313,21 @@ def sample_func() -> None:
 # -------- ボタンクリック対応処理 -------------------------------------
 # [close]ボタン：メインウィンドウを閉じる
 def close_dialbb_nc(root) -> None:
-    logger.info(f"close_dialbb_nc dialbb_proc: {dialbb_proc} editor_server: {editor_server}")
-    if dialbb_proc:
+    """起動中プロセスを停止して no_code GUI を終了する。"""
+    logger.info(
+        "close_dialbb_nc dialbb_proc: %s editor_process: %s",
+        PROCESS_STATE.dialbb_proc,
+        PROCESS_STATE.editor_process,
+    )
+    if PROCESS_STATE.dialbb_proc:
         # dialbbサーバ停止
-        dialbb_proc.stop()
+        PROCESS_STATE.dialbb_proc.stop()
         messagebox.showwarning("Warning", gui_text("msg_warn_forced_process_stop") % "dialbb-server")
 
-    if editor_server:
+    if PROCESS_STATE.editor_process:
         # エディタ用サーバ停止
-        editor_server.stop()
-        messagebox.showwarning("Warning", gui_text("msg_warn_forced_process_stop") % "editor-server")
+        PROCESS_STATE.editor_process.stop()
+        messagebox.showwarning("Warning", gui_text("msg_warn_forced_process_stop") % "editor-process")
 
     # 画面を閉じる
     root.quit()
@@ -363,12 +335,14 @@ def close_dialbb_nc(root) -> None:
 
 # [cancel]ボタン：自ウィンドウを閉じる
 def on_cancel(frame) -> None:
+    """サブウィンドウを閉じる。"""
     # 画面を閉じる
     frame.destroy()
 
 
 # [select]ボタン：アプリファイルの読み込み
-def set_file_path_command(edit_box, settings, title, file_type_list) -> None:
+def set_file_path_command(edit_box, _settings, title, file_type_list) -> None:
+    """ファイル選択ダイアログで選んだパスを入力欄へ反映する。"""
     file_path = filedialog.askopenfilename(title=title, filetypes=file_type_list)
     if file_path:
         # パスをテキストボックスに設定する
@@ -376,10 +350,11 @@ def set_file_path_command(edit_box, settings, title, file_type_list) -> None:
         edit_box.insert(tk.END, file_path)
 
 
-def import_application_file(edit_box, settings, file_type_list) -> None:
+def import_application_file(edit_box, settings, _file_type_list) -> None:
+    """zip形式のアプリファイルを展開して設定へ反映する。"""
     file_path = edit_box.get()
     if file_path:
-        logger.info(f"{file_path} decompress to {APP_FILE_DIR}")
+        logger.info("%s decompress to %s", file_path, APP_FILE_DIR)
         # zipファイルをシステムエリアに展開する
         with zipfile.ZipFile(file_path) as zf:
             zf.extractall(APP_FILE_DIR)
@@ -393,8 +368,7 @@ def import_application_file(edit_box, settings, file_type_list) -> None:
 
 # [create]ボタンの処理。templateファイルをコピーする。
 def create_app_files(parent, settings) -> None:
-    global APP_FILES
-
+    """テンプレートから新規アプリファイル一式を作成する。"""
     sub_menu = tk.Toplevel(parent)
     sub_menu.title(gui_text("cre_title"))
     sub_menu.grab_set()  # モーダルにする
@@ -416,23 +390,9 @@ def create_app_files(parent, settings) -> None:
         label_frame, text=gui_text("cre_japanese"), value="ja", variable=radio_val
     )
 
-    # Button
-    ok_btn = ttk.Button(sub_menu, text=gui_text("btn_ok"), command=lambda: btn_click())
-    can_btn = ttk.Button(
-        sub_menu, text=gui_text("btn_cancel"), command=lambda: on_cancel(sub_menu)
-    )
-
-    # Layout
-    label_frame.pack(side="top", padx=5, pady=5)
-    rb1.pack(side="left", padx=5, pady=5)
-    rb2.pack(side="left", padx=5, pady=5)
-    can_btn.pack(side="right", padx=5, pady=5)
-    ok_btn.pack(side="right", padx=5, pady=5)
-    # サイズ＆表示位置の指定
-    child_position(parent, sub_menu, width=250, height=130)
-
     # ボタンクリックされた際のイベント
     def btn_click():
+        """選択言語のテンプレートをコピーして初期化する。"""
         lang = radio_val.get()
         if not lang:
             messagebox.showerror("Warning", gui_text("msg_cre_nolang"))
@@ -475,27 +435,40 @@ def create_app_files(parent, settings) -> None:
         # 画面を閉じる
         sub_menu.destroy()
 
+    # Button
+    ok_btn = ttk.Button(sub_menu, text=gui_text("btn_ok"), command=btn_click)
+    can_btn = ttk.Button(
+        sub_menu, text=gui_text("btn_cancel"), command=lambda: on_cancel(sub_menu)
+    )
+
+    # Layout
+    label_frame.pack(side="top", padx=5, pady=5)
+    rb1.pack(side="left", padx=5, pady=5)
+    rb2.pack(side="left", padx=5, pady=5)
+    can_btn.pack(side="right", padx=5, pady=5)
+    ok_btn.pack(side="right", padx=5, pady=5)
+    # サイズ＆表示位置の指定
+    child_position(parent, sub_menu, width=250, height=130)
+
 
 # [save]ボタンの処理。アプリファイルをzip圧縮して保存する
 def export_app_file(file_path, settings):
-    global APP_FILES
-    global app_file_timestamp
-
+    """アプリファイル一式をzipとして保存する。"""
     if file_path == "":
         # messagebox.showerror("Warning", "アプリケーションファイルが選択されていません.")
         # return
-        dir = ""
+        base_dir = ""
     else:
-        dir = os.path.dirname(file_path)
+        base_dir = os.path.dirname(file_path)
 
     zip_file = filedialog.asksaveasfilename(
         title=gui_text("msg_appfile_export"),
-        initialdir=dir,
+        initialdir=base_dir,
         filetypes=[("zip file", "*.zip")],
         defaultextension="zip",
     )
     if zip_file:
-        logger.info(f"{APP_FILES.values()} compress to {zip_file}")
+        logger.info("%s compress to %s", APP_FILES.values(), zip_file)
         # APP_FILE_DIR 配下の全ファイルを再帰的に圧縮する
         with zipfile.ZipFile(zip_file, "w", compression=zipfile.ZIP_DEFLATED) as zf:
             for root, _, files in os.walk(APP_FILE_DIR):
@@ -515,6 +488,7 @@ def export_app_file(file_path, settings):
 
 # [setting]ボタンの処理。ユーザ情報の設定。
 def setting_json(parent, settings):
+    """設定ダイアログを開き、APIキーを保存する。"""
     sub_menu = tk.Toplevel(parent)
     sub_menu.title(gui_text("set_title_top"))
     sub_menu.grab_set()  # モーダルにする
@@ -535,8 +509,20 @@ def setting_json(parent, settings):
     # configの値を設定
     api_key.insert(0, settings.get_gptkey())
 
+    # ボタンクリックされた際のイベント
+    def ok_click():
+        """設定値を保存してダイアログを閉じる。"""
+        # OPENAI_KEYの登録
+        key = api_key.get()
+        settings.set_gptkey(key)
+        # OPENAI_KEY環境変数をセット
+        os.environ["OPENAI_API_KEY"] = key
+        messagebox.showinfo("Settings", gui_text("msg_saved"))
+        # 画面を閉じる
+        sub_menu.destroy()
+
     # Button
-    ok_btn = ttk.Button(sub_menu, text=gui_text("btn_ok"), command=lambda: ok_click())
+    ok_btn = ttk.Button(sub_menu, text=gui_text("btn_ok"), command=ok_click)
     can_btn = ttk.Button(
         sub_menu, text=gui_text("btn_cancel"), command=lambda: on_cancel(sub_menu)
     )
@@ -550,20 +536,10 @@ def setting_json(parent, settings):
     can_btn.pack(side="right", padx=5, pady=5)
     ok_btn.pack(side="right", padx=5, pady=5)
 
-    # ボタンクリックされた際のイベント
-    def ok_click():
-        # OPENAI_KEYの登録
-        key = api_key.get()
-        settings.set_gptkey(key)
-        # OPENAI_KEY環境変数をセット
-        os.environ["OPENAI_API_KEY"] = key
-        messagebox.showinfo("Settings", gui_text("msg_saved"))
-        # 画面を閉じる
-        sub_menu.destroy()
-
 
 # 自動テスト実行
-def exec_test(sub_menu: tk.Toplevel) -> None:
+def exec_test(sub_menu: tk.Toplevel, chat_area: tk.Text) -> None:
+    """シミュレーションテストを実行し、結果をチャット欄へ表示する。"""
     sub_menu.destroy()
 
     test_config_file = os.path.join(APP_FILE_DIR, APP_FILES["test-config"])
@@ -571,22 +547,19 @@ def exec_test(sub_menu: tk.Toplevel) -> None:
 
     # シミュレーターの起動
     # result = test_by_simulation(test_config_file, app_config_file)
-    if CHAT_area:
-        CHAT_area.delete("1.0", tk.END)
-        for result in test_by_simulation(test_config_file, app_config_file):
-            # 対話結果を表示
-            CHAT_area.insert(tk.END, result)
-            CHAT_area.insert(tk.END, "\n")
-            CHAT_area.update_idletasks()
-            CHAT_area.see(tk.END)
-        CHAT_area.insert(tk.END, "----Test complete----\n")
-
-    else:
-        logger.error("CHAT_area is not defined.")
+    chat_area.delete("1.0", tk.END)
+    for result in test_by_simulation(test_config_file, app_config_file):
+        # 対話結果を表示
+        chat_area.insert(tk.END, result)
+        chat_area.insert(tk.END, "\n")
+        chat_area.update_idletasks()
+        chat_area.see(tk.END)
+    chat_area.insert(tk.END, "----Test complete----\n")
 
 
 # テスト・サブメニュー
-def submenu_test(parent, settings) -> None:
+def submenu_test(parent, settings, chat_area: tk.Text) -> None:
+    """テスト実行とテスト設定編集のサブメニューを表示する。"""
     # 選択画面を表示
     sub_menu: tk.Toplevel = tk.Toplevel(parent)
     sub_menu.title("Test Menu")
@@ -600,7 +573,9 @@ def submenu_test(parent, settings) -> None:
 
     # ボタンの作成
     btn_gui = ttk.Button(
-        sub_menu, text=gui_text("btn_execute"), command=lambda: exec_test(sub_menu)
+        sub_menu,
+        text=gui_text("btn_execute"),
+        command=lambda: exec_test(sub_menu, chat_area),
     )
     btn_gui.pack(side=tk.TOP, pady=5)
 
@@ -624,10 +599,10 @@ def submenu_test(parent, settings) -> None:
 # create main frame
 # Mainフレームを作成する関数
 def set_main_frame(root_frame) -> None:
-    global CHAT_area
-
+    """no_code メイン画面のウィジェットを構築する。"""
     # GUIセッティング情報の読み込み
     settings = read_gui_settings(os.path.join(NC_PATH, "settings.dat"))
+    dialogue_processor_local: Optional[DialogueProcessor] = None
 
     # OPENAI_KEY環境変数の設定
     if settings.get_gptkey():
@@ -750,12 +725,6 @@ def set_main_frame(root_frame) -> None:
     # setting_btn.pack(side=tk.LEFT, padx=10)
     setting_btn.grid(row=0, column=0, padx=5, pady=5)
 
-    # chatボタン:チャット開始
-    chat_btn = ttk.Button(
-        dialbb_label, text=gui_text("btn_chat_start"), command=lambda: start_chat()
-    )
-    chat_btn.grid(row=0, column=1, padx=5, pady=5)
-
     # startボタン:DialBBサーバ起動
     dialbb_btn = ttk.Button(
         dialbb_label,
@@ -774,14 +743,6 @@ def set_main_frame(root_frame) -> None:
     # show_log_btn.pack(side=tk.LEFT, padx=10)
     show_log_btn.grid(row=0, column=3, padx=5, pady=5)
 
-    # auto test button
-    test_btn = ttk.Button(
-        dialbb_label,
-        text=gui_text("btn_test"),
-        command=lambda: submenu_test(dialbb_label, settings),
-    )
-    test_btn.grid(row=0, column=4, padx=5, pady=5)
-
     dialbb_label.columnconfigure((0, 1, 2, 3, 4), weight=1)
     dialbb_label.pack(fill=tk.BOTH, padx=10, pady=10)
 
@@ -794,19 +755,27 @@ def set_main_frame(root_frame) -> None:
     chat_frame = ttk.Frame(root_frame)
     chat_frame.pack(fill=tk.BOTH, padx=10, pady=5, expand=True)
     # チャット表示TextArea
-    CHAT_area = tk.Text(
+    chat_area = tk.Text(
         chat_frame,
         height=16,
         wrap=tk.CHAR,
         state=tk.NORMAL,
         bg="white",
     )
-    CHAT_area.pack(side=tk.LEFT, fill=tk.BOTH, padx=10, pady=5, expand=True)
+    chat_area.pack(side=tk.LEFT, fill=tk.BOTH, padx=10, pady=5, expand=True)
     # スクロールバー
-    scrollbar = ttk.Scrollbar(chat_frame, orient=tk.VERTICAL, command=CHAT_area.yview)
+    scrollbar = ttk.Scrollbar(chat_frame, orient=tk.VERTICAL, command=chat_area.yview)
     scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
     # TextとScrollbarの連携
-    CHAT_area.config(yscrollcommand=scrollbar.set)
+    chat_area.config(yscrollcommand=scrollbar.set)
+
+    # auto test button
+    test_btn = ttk.Button(
+        dialbb_label,
+        text=gui_text("btn_test"),
+        command=lambda: submenu_test(dialbb_label, settings, chat_area),
+    )
+    test_btn.grid(row=0, column=4, padx=5, pady=5)
 
     # ユーザ入力枠
     u_input_frame = tk.Frame(root_frame)
@@ -826,6 +795,7 @@ def set_main_frame(root_frame) -> None:
     def set_chat_message(
         user_id: str = "", session_id: str = "", user_utterance: str = ""
     ) -> Dict[str, Any]:
+        """DialBB送信用のリクエスト辞書を作成する。"""
         data = {
             "user_id": user_id,
             "session_id": session_id,
@@ -837,50 +807,52 @@ def set_main_frame(root_frame) -> None:
 
     # レスポンス表示処理
     def display_response(resp: Dict[str, str]) -> str:
+        """DialBB応答をチャット欄に表示して session_id を返す。"""
         session_id = resp.get("session_id", "")
         if session_id == "":
-            CHAT_area.insert(tk.END, f"{gui_text('msg_chat_no_sessionid')}\n")
+            chat_area.insert(tk.END, f"{gui_text('msg_chat_no_sessionid')}\n")
         else:
             output_msg = resp.get("system_utterance", gui_text("msg_chat_no_response"))
-            CHAT_area.insert(tk.END, f"System: {output_msg}\n")
-        CHAT_area.see(tk.END)
+            chat_area.insert(tk.END, f"System: {output_msg}\n")
+        chat_area.see(tk.END)
 
         return session_id
 
     # チャット開始処理
     def start_chat() -> None:
-        global dialogue_processor
-        nonlocal session_id
+        """チャットセッションを開始して初回応答を表示する。"""
+        nonlocal session_id, dialogue_processor_local
 
-        CHAT_area.delete("1.0", tk.END)
+        chat_area.delete("1.0", tk.END)
         if u_input["state"] != tk.NORMAL:
             u_input.config(state=tk.NORMAL)
             u_input.focus_set()
 
         # dialbbをインスタンス化
         config = os.path.join(APP_FILE_DIR, APP_FILES["config"])
-        dialogue_processor = DialogueProcessor(config)
+        dialogue_processor_local = DialogueProcessor(config)
 
         # 開始リクエスト送信
         request_json = {"user_id": user_id}
-        resp = dialogue_processor.process(request_json, initial=True)
+        resp = dialogue_processor_local.process(request_json, initial=True)
         # システムメッセージ表示
         session_id = display_response(resp)
 
     # ユーザ入力メッセージ送信処理
     def send_chat_message(message: str) -> None:
+        """ユーザ発話を送信し、応答をチャット欄へ追記する。"""
         nonlocal session_id
 
-        if message.strip() == "" or not dialogue_processor:
+        if message.strip() == "" or not dialogue_processor_local:
             return
 
         # 入力欄クリア
         u_input.delete(0, tk.END)
 
         # ユーザメッセージ表示
-        CHAT_area.insert(tk.END, f"User: {message}\n")
-        CHAT_area.update_idletasks()
-        CHAT_area.see(tk.END)
+        chat_area.insert(tk.END, f"User: {message}\n")
+        chat_area.update_idletasks()
+        chat_area.see(tk.END)
 
         # DialBBサーバにメッセージを送信する
         # 送信データ設定
@@ -888,9 +860,17 @@ def set_main_frame(root_frame) -> None:
             user_id=user_id, session_id=session_id, user_utterance=message
         )
         # リクエスト送信
-        resp = dialogue_processor.process(req)
+        resp = dialogue_processor_local.process(req)
         # システムメッセージ表示
         session_id = display_response(resp)
+
+    # chatボタン:チャット開始
+    chat_btn = ttk.Button(
+        dialbb_label,
+        text=gui_text("btn_chat_start"),
+        command=start_chat,
+    )
+    chat_btn.grid(row=0, column=1, padx=5, pady=5)
 
     # closeボタン
     close_btn = ttk.Button(
@@ -902,6 +882,7 @@ def set_main_frame(root_frame) -> None:
 
 
 def main() -> None:
+    """no_code GUI を起動してメインループを開始する。"""
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "lang",
@@ -913,7 +894,7 @@ def main() -> None:
     args = parser.parse_args()
 
     # GUI表示テキストデータを取得
-    read_gui_text_data(os.path.join(NC_PATH, "gui_nc_text.yml"), args.lang)
+    read_gui_text_data(lang=args.lang)
 
     # create root widget
     # Rootウジェットの生成

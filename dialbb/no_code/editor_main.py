@@ -21,7 +21,6 @@
 __version__ = "0.1"
 __author__ = "Mikio Nakano"
 
-import sys
 import os
 import tkinter as tk
 from tkinter import ttk
@@ -32,60 +31,14 @@ import subprocess
 import webbrowser
 import time
 import platform
-from typing import List
 from tools.knowledgeConverter2json import convert2json
 from tools.knowledgeConverter2excel import convert2excel
-from dialbb.no_code.gui_utils import gui_text
+from dialbb.no_code.gui_utils import ProcessManager, gui_text
 
 # 実行環境パス
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 EDITOR_DIR: str = os.path.join(SCRIPT_ROOT, "gui_editor")
 print(f"SCRIPT_ROOT={SCRIPT_ROOT}\nEDITOR_DIR={EDITOR_DIR}")
-
-
-# -------- プロセス管理クラス -------------------------------------
-class ProcessManager:
-    def __init__(self, cmd: str, param: List[str] = None) -> None:
-        if param is None:
-            param = []
-        self.cmd = cmd
-        self.param = param
-        self.pf = platform.system()
-
-    # プロセス起動
-    def start(self) -> bool:
-        # プロセス起動コマンド
-        if self.pf == "Windows":
-            # windows
-            # Pythonの実行可能ファイルのパスを取得
-            cmd = [sys.executable, self.cmd] + self.param
-            print(f"CLI:{cmd}")
-            self.process = subprocess.Popen(cmd)
-        else:
-            # Linux
-            cmd = f"exec python {self.cmd} {' '.join(self.param)}"
-            self.process = subprocess.Popen(cmd, shell=True)
-
-        ret_code = self.process.poll()
-        if ret_code is not None:
-            messagebox.showerror(
-                "ERROR", "サーバ起動に失敗しました.", detail=self.process.stdout
-            )
-            return False
-        print(f"# Start process pid={self.process.pid}.")
-        return True
-
-    # プロセス停止
-    def stop(self) -> None:
-        # サーバ停止
-        if self.pf == "Windows":
-            # windows
-            os.system(f"taskkill /F /T /PID {self.process.pid}")
-        else:
-            # Linux
-            self.process.terminate()
-        self.process.wait()
-        print(f"# Terminated process of {self.cmd}.")
 
 
 # カスタムメッセージダイアログのクラス
