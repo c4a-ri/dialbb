@@ -4,69 +4,72 @@ import os
 import math
 import json
 import uuid
-import random
-import string
 from collections import deque
 from PySide6 import QtCore, QtGui, QtWidgets
 
-from constants import DEFAULT_NODE_KINDS
+from constants import (
+    CONNECTOR_OUTSIDE,
+    CONNECTOR_R,
+    DATA_PATH,
+    DEFAULT_NODE_KINDS,
+    NODE_CORNER_R,
+    NODE_H_SYSTEM,
+    NODE_H_USER,
+    NODE_HEADER_H,
+    NODE_TYPE_SYSTEM,
+    NODE_TYPE_USER,
+    NODE_W,
+    PAD,
+    SHADOW_DX,
+    SHADOW_DY,
+    SHORT_ID_DIGITS,
+    SYS_UTTERANCE_H,
+    USR_CONDITION_H,
+)
 from node_checks import node_check_and_warn, check_kind_duplicates
-from dialbb.paths import GUI_NC_TEXT
 from dialbb.no_code.gui_utils import read_gui_text_data, gui_text
 
-
-# =========================
-# 定数：見た目・サイズ設定
-# =========================
-
-# ノードサイズ（固定レイアウト方針）
-NODE_W = 140                 # ノード幅
-NODE_H = 200                 # （未使用枠：共通の高さなどに使える）
-NODE_H_SYSTEM = 160          # Systemノードの固定高さ
-NODE_H_USER   = 260          # Userノードの固定高さ
-
-# QTextEdit高さ（ノード内の表示用：スクロール無しで収まる前提）
-SYS_UTTERANCE_H = 35         # System発話
-USR_CONDITION_H = 40         # User条件
-USR_ACTION_H    = 30         # Userアクション
-
-# ノードの角丸・ヘッダ
-NODE_CORNER_R = 12           # ノード角丸
-NODE_HEADER_H = 34           # ヘッダー高さ
-
-# コネクタ
-CONNECTOR_R = 6              # コネクタ半径（円）
-
-# boundingRectの余白（影・選択枠・アンチエイリアス用）
-SHADOW_DX = 2
-SHADOW_DY = 3
-PAD = 8                      # 選択枠 + AA分の余白
-CONNECTOR_OUTSIDE = -6       # コネクタを外側に出す量（マイナスで外へ）
-
-# node types
-NODE_TYPE_SYSTEM = "system"
-NODE_TYPE_USER = "user"
-
-DATA_PATH = os.path.join(os.path.dirname(__file__), "data")
-
 # ==================================
-# ノードIDの表示用（6桁・大文字英数字・人が読む用の短いID）
+# ノードIDの表示用（6桁数字・人が読む用の短いID）
 # ==================================
-def generate_short_id(length=6):
-    chars = string.ascii_uppercase + string.digits  # A-Z + 0-9
-    return "".join(random.choices(chars, k=length))
+_SHORT_ID_STATE = {"next": 1}
+
+
+def _format_short_id(value: int) -> str:
+    """整数IDを固定桁（SHORT_ID_DIGITS）の文字列に整形する。"""
+    return f"{value:0{SHORT_ID_DIGITS}d}"
+
+
+def generate_short_id() -> str:
+    """表示用の連番 short_id を1件払い出して返す。"""
+    short_id = _format_short_id(_SHORT_ID_STATE["next"])
+    _SHORT_ID_STATE["next"] += 1
+    return short_id
+
+
+def sync_short_id_counter(short_ids: list[str]) -> None:
+    """既存 short_id 一覧から次に採番する番号を同期する。"""
+    max_id = 0
+    for short_id in short_ids:
+        if short_id and short_id.isdigit():
+            max_id = max(max_id, int(short_id))
+
+    _SHORT_ID_STATE["next"] = max(max_id + 1, 1)
 
 
 # ==================================
 # ノード編集ダイアログ（モーダル）
 # ==================================
 class NodeEditDialog(QtWidgets.QDialog):
+    """System/User ノードの編集を行うモーダルダイアログ。"""
+
     def __init__(self, node: "NodeItem", state_list=None, parent=None):
+        """ノード編集ダイアログを初期化する。"""
         super().__init__(parent)
         self.node = node
         self.state_list = state_list or []
         self.setModal(True)
-        self.setWindowTitle(node.node_type)
+        self.setWindowTitle(gui_text("scn_node_edit_title"))
 
         # UI構築 → ノード値の読み込み
         self._build_ui()
@@ -82,8 +85,8 @@ class NodeEditDialog(QtWidgets.QDialog):
 
         # ---- form（入力エリア） ----
         form = QtWidgets.QFormLayout()
-        form.setLabelAlignment(QtCore.Qt.AlignLeft)
-        form.setFormAlignment(QtCore.Qt.AlignTop)
+        form.setLabelAlignment(QtCore.Qt.AlignmentFlag.AlignLeft)
+        form.setFormAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
         form.setHorizontalSpacing(12)
         form.setVerticalSpacing(12)
 
@@ -101,8 +104,8 @@ class NodeEditDialog(QtWidgets.QDialog):
             self.utterance = QtWidgets.QTextEdit()
             self.utterance.setMinimumHeight(120)
 
-            form.addRow("ノードタイプ:", self.node_kind)
-            form.addRow("発話:", self.utterance)
+            form.addRow(gui_text("scn_form_node_type"), self.node_kind)
+            form.addRow(gui_text("scn_form_utterance"), self.utterance)
 
         # User用フォーム
         else:
@@ -123,20 +126,20 @@ class NodeEditDialog(QtWidgets.QDialog):
             self.action = QtWidgets.QTextEdit()
             self.action.setMinimumHeight(80)
 
-            form.addRow("優先度（0以上の整数）:", self.priority)
-            form.addRow("ユーザ発話タイプ:", self.utterance_type)
-            form.addRow("遷移の条件:", self.condition)
-            form.addRow("遷移時のアクション（上級者用）:", self.action)
+            form.addRow(gui_text("scn_form_priority"), self.priority)
+            form.addRow(gui_text("scn_form_user_utterance_type"), self.utterance_type)
+            form.addRow(gui_text("scn_form_transition_condition"), self.condition)
+            form.addRow(gui_text("scn_form_transition_action_advanced"), self.action)
 
         root.addLayout(form)
         root.addStretch(1)
 
         # ---- buttons（保存/キャンセル） ----
         btns = QtWidgets.QDialogButtonBox()
-        btn_cancel = btns.addButton("キャンセル", QtWidgets.QDialogButtonBox.RejectRole)
-        btn_ok = btns.addButton("保存", QtWidgets.QDialogButtonBox.AcceptRole)
-        btn_ok.setFocusPolicy(QtCore.Qt.StrongFocus)
-        btn_cancel.setFocusPolicy(QtCore.Qt.StrongFocus)
+        btn_cancel = btns.addButton(gui_text("btn_cancel"), QtWidgets.QDialogButtonBox.ButtonRole.RejectRole)
+        btn_ok = btns.addButton(gui_text("scn_btn_save"), QtWidgets.QDialogButtonBox.ButtonRole.AcceptRole)
+        btn_ok.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)
+        btn_cancel.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)
 
         btn_cancel.clicked.connect(self.reject)
         btn_ok.clicked.connect(self.accept)
@@ -158,10 +161,10 @@ class NodeEditDialog(QtWidgets.QDialog):
             widgets = [self.priority, self.utterance_type, self.condition, self.action]
 
         for w in widgets:
-            w.setFocusPolicy(QtCore.Qt.StrongFocus)
+            w.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)
 
-        btn_cancel.setFocusPolicy(QtCore.Qt.StrongFocus)
-        btn_ok.setFocusPolicy(QtCore.Qt.StrongFocus)
+        btn_cancel.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)
+        btn_ok.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)
 
         # Tab順（同一Dialog内のみ）
         if self.node.node_type == NODE_TYPE_SYSTEM:
@@ -214,7 +217,10 @@ class NodeEditDialog(QtWidgets.QDialog):
 # コネクタ（ノードの接続点）
 # =========================
 class ConnectorItem(QtWidgets.QGraphicsEllipseItem):
+    """ノードの入出力接続点を表す GraphicsItem。"""
+
     def __init__(self, parent_node, name, x, y):
+        """ノード上の接続点（コネクタ）を作成する。"""
         super().__init__(-CONNECTOR_R, -CONNECTOR_R, CONNECTOR_R * 2, CONNECTOR_R * 2)
         self.setBrush(QtGui.QBrush(QtGui.QColor("#ffffff")))
         self.setPen(QtGui.QPen(QtGui.QColor("#333333")))
@@ -222,8 +228,8 @@ class ConnectorItem(QtWidgets.QGraphicsEllipseItem):
         self.name = name
         self.node = parent_node
         self.setPos(x, y)
-        self.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable, False)
-        self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable, False)
+        self.setFlag(QtWidgets.QGraphicsItem.GraphicsItemFlag.ItemIsSelectable, False)
+        self.setFlag(QtWidgets.QGraphicsItem.GraphicsItemFlag.ItemIsMovable, False)
 
     def center_scene_pos(self):
         """エッジ描画用：コネクタ中心のScene座標を返す"""
@@ -238,17 +244,18 @@ class EdgeItem(QtWidgets.QGraphicsPathItem):
     HIT_STROKE_WIDTH = 12.0  # 見た目より太い当たり判定
 
     def __init__(self, from_connector, to_connector):
+        """2つのコネクタ間を結ぶ有向エッジを初期化する。"""
         super().__init__()
         self.from_conn = from_connector
         self.to_conn = to_connector
 
         pen = QtGui.QPen(QtGui.QColor("#000000"))
         pen.setWidth(2)
-        pen.setCapStyle(QtCore.Qt.RoundCap)
-        pen.setJoinStyle(QtCore.Qt.RoundJoin)
+        pen.setCapStyle(QtCore.Qt.PenCapStyle.RoundCap)
+        pen.setJoinStyle(QtCore.Qt.PenJoinStyle.RoundJoin)
         self.setPen(pen)
         self.setZValue(0)
-        self.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable, True)
+        self.setFlag(QtWidgets.QGraphicsItem.GraphicsItemFlag.ItemIsSelectable, True)
 
         # 矢印の大きさ
         self.arrow_size = 12
@@ -281,9 +288,9 @@ class EdgeItem(QtWidgets.QGraphicsPathItem):
         self._c1 = c1
         self._c2 = c2
 
-    def paint(self, painter: QtGui.QPainter, option, widget=None):
+    def paint(self, painter: QtGui.QPainter, _option, _widget=None):
         """Draw the edge path and an arrow on the 'to' end to indicate direction."""
-        painter.setRenderHint(QtGui.QPainter.Antialiasing, True)
+        painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing, True)
 
         pen = self.pen()
         painter.setPen(pen)
@@ -327,13 +334,13 @@ class EdgeItem(QtWidgets.QGraphicsPathItem):
         """選択しやすいように当たり判定だけ太くする"""
         stroker = QtGui.QPainterPathStroker()
         stroker.setWidth(self.HIT_STROKE_WIDTH)
-        stroker.setCapStyle(QtCore.Qt.RoundCap)
-        stroker.setJoinStyle(QtCore.Qt.RoundJoin)
+        stroker.setCapStyle(QtCore.Qt.PenCapStyle.RoundCap)
+        stroker.setJoinStyle(QtCore.Qt.PenJoinStyle.RoundJoin)
         return stroker.createStroke(self.path())
 
     def itemChange(self, change, value):
         """選択時は色/太さを変えて視認性UP"""
-        if change == QtWidgets.QGraphicsItem.ItemSelectedHasChanged:
+        if change == QtWidgets.QGraphicsItem.GraphicsItemChange.ItemSelectedHasChanged:
             selected = bool(value)
             pen = self.pen()
             if selected:
@@ -350,7 +357,10 @@ class EdgeItem(QtWidgets.QGraphicsPathItem):
 # ノード（System/User）
 # =========================
 class NodeItem(QtWidgets.QGraphicsItem):
+    """System/User ノード本体の描画・値保持・接続管理を担う。"""
+
     def __init__(self, x, y, text="State", node_id=None, node_type=NODE_TYPE_USER):
+        """System/User ノード本体を作成して初期表示を構築する。"""
         super().__init__()
 
         # ノード基本情報（固定サイズ方針）
@@ -363,9 +373,9 @@ class NodeItem(QtWidgets.QGraphicsItem):
         # 選択/移動ができるGraphicsItem
         self.setZValue(1)
         self.setPos(x, y)
-        self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable, True)
-        self.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable, True)
-        self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges, True)
+        self.setFlag(QtWidgets.QGraphicsItem.GraphicsItemFlag.ItemIsMovable, True)
+        self.setFlag(QtWidgets.QGraphicsItem.GraphicsItemFlag.ItemIsSelectable, True)
+        self.setFlag(QtWidgets.QGraphicsItem.GraphicsItemFlag.ItemSendsGeometryChanges, True)
 
         # 見た目（System/Userで配色を切り替え）
         if self.node_type == NODE_TYPE_SYSTEM:
@@ -424,16 +434,16 @@ class NodeItem(QtWidgets.QGraphicsItem):
         return path
 
     # ---- paint（ノード見た目の描画） ----
-    def paint(self, painter: QtGui.QPainter, option, widget=None):
+    def paint(self, painter: QtGui.QPainter, _option, _widget=None):
         """ノードのカード風描画（影/本体/ヘッダー/IDバッジ/選択枠）"""
-        painter.setRenderHint(QtGui.QPainter.Antialiasing, True)
+        painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing, True)
 
         r = self.boundingRect()
 
         # 影
         shadow = QtCore.QRectF(r)
         shadow.translate(2, 3)
-        painter.setPen(QtCore.Qt.NoPen)
+        painter.setPen(QtCore.Qt.PenStyle.NoPen)
         painter.setBrush(QtGui.QColor(0, 0, 0, 40))
         painter.drawRoundedRect(shadow, NODE_CORNER_R, NODE_CORNER_R)
 
@@ -444,7 +454,7 @@ class NodeItem(QtWidgets.QGraphicsItem):
 
         # ヘッダー
         header = QtCore.QRectF(r.left(), r.top(), r.width(), NODE_HEADER_H)
-        painter.setPen(QtCore.Qt.NoPen)
+        painter.setPen(QtCore.Qt.PenStyle.NoPen)
         painter.setBrush(self.header_color)
         painter.drawRoundedRect(header, NODE_CORNER_R, NODE_CORNER_R)
 
@@ -478,21 +488,23 @@ class NodeItem(QtWidgets.QGraphicsItem):
         painter.drawRoundedRect(badge_rect, 8, 8)
 
         painter.setPen(QtGui.QPen(QtGui.QColor("#1b2b3a")))
-        painter.drawText(badge_rect, QtCore.Qt.AlignCenter, badge_text)
+        painter.drawText(badge_rect, QtCore.Qt.AlignmentFlag.AlignCenter, badge_text)
 
         # 選択枠
         if self.isSelected():
             sel_pen = QtGui.QPen(QtGui.QColor("#2d6cff"), 3)
-            sel_pen.setJoinStyle(QtCore.Qt.RoundJoin)
+            sel_pen.setJoinStyle(QtCore.Qt.PenJoinStyle.RoundJoin)
             painter.setPen(sel_pen)
-            painter.setBrush(QtCore.Qt.NoBrush)
+            painter.setBrush(QtCore.Qt.BrushStyle.NoBrush)
             painter.drawRoundedRect(r.adjusted(1, 1, -1, -1), NODE_CORNER_R, NODE_CORNER_R)
 
     # ---- ノード内のフォーム表示（ProxyWidget） ----
     def _build_form(self):
         """ノード内に「読み取り専用フォーム」を固定配置で載せる（編集はダイアログ）"""
         if hasattr(self, "form_proxy") and self.form_proxy is not None:
-            self.scene().removeItem(self.form_proxy) if self.scene() else None
+            scene = self.scene()
+            if scene is not None:
+                scene.removeItem(self.form_proxy)
             self.form_proxy = None
 
         self.form_widget = QtWidgets.QWidget()
@@ -505,13 +517,13 @@ class NodeItem(QtWidgets.QGraphicsItem):
 
         # ノードタイプ別：フォーム項目を固定で構築
         if self.node_type == NODE_TYPE_SYSTEM:
-            self._add_labeled_line(v, "ノードタイプ", "initial", key="node_kind")
-            self._add_labeled_text(v, "発話", "", key="utterance", min_h=SYS_UTTERANCE_H)
+            self._add_labeled_line(v, gui_text("scn_form_node_type_plain"), "initial", key="node_kind")
+            self._add_labeled_text(v, gui_text("scn_form_utterance_plain"), "", key="utterance", min_h=SYS_UTTERANCE_H)
         else:
-            self._add_labeled_line(v, "優先度", "", key="priority")
-            self._add_labeled_line(v, "発話タイプ", "", key="utterance_type")
-            self._add_labeled_text(v, "遷移の条件", "", key="condition", min_h=USR_CONDITION_H)
-            self._add_labeled_line(v, "遷移時のアクション", "", key="action")
+            self._add_labeled_line(v, gui_text("scn_form_priority_plain"), "", key="priority")
+            self._add_labeled_line(v, gui_text("scn_form_user_utterance_type_plain"), "", key="utterance_type")
+            self._add_labeled_text(v, gui_text("scn_form_transition_condition_plain"), "", key="condition", min_h=USR_CONDITION_H)
+            self._add_labeled_line(v, gui_text("scn_form_transition_action_plain"), "", key="action")
 
         v.addStretch(1)
 
@@ -615,16 +627,10 @@ class NodeItem(QtWidgets.QGraphicsItem):
 
     def itemChange(self, change, value):
         """ノード移動時に接続エッジを追従更新"""
-        if change == QtWidgets.QGraphicsItem.ItemPositionHasChanged:
+        if change == QtWidgets.QGraphicsItem.GraphicsItemChange.ItemPositionHasChanged:
             for e in list(self.edges):
                 e.update_positions()
         return super().itemChange(change, value)
-
-    # ---- title edit ----
-    def set_label(self, text):
-        """ヘッダータイトルの更新"""
-        self.title_item.setText(text)
-        self._layout_texts()
 
     # ---- form field access (JSON/ダイアログ連携用) ----
     def get_field(self, key: str) -> str:
@@ -660,6 +666,7 @@ class GraphHistoryCommand(QtGui.QUndoCommand):
     """Scene全体の before/after を保存して Undo/Redo する（スナップショット方式）"""
 
     def __init__(self, scene, before_state: dict, after_state: dict, description: str):
+        """Undo/Redo 用の前後スナップショットを保持する。"""
         super().__init__(description)
         self.scene = scene
         self.before_state = before_state
@@ -667,9 +674,11 @@ class GraphHistoryCommand(QtGui.QUndoCommand):
         self._first = True  # push直後のredoは「現状維持」になるのでスキップ
 
     def undo(self):
+        """before_state を Scene に復元する。"""
         self.scene._load_state_from_dict(self.before_state)
 
     def redo(self):
+        """after_state を Scene に復元する。"""
         if self._first:
             self._first = False
             return
@@ -687,7 +696,10 @@ LAYOUT_DY = NODE_H_USER + 50  # 縦並びの間隔（重なり防止）
 # Scene：編集操作の中心（追加/接続/Undo/整列）
 # ==================================
 class GraphScene(QtWidgets.QGraphicsScene):
+    """ノード編集操作全体を管理する Scene。"""
+
     def __init__(self, undo_stack: QtGui.QUndoStack | None = None, parent=None):
+        """ノード編集用の Scene を初期化する。"""
         super().__init__(parent)
         self.nodes: list[NodeItem] = []
         self.edges: list[EdgeItem] = []
@@ -701,6 +713,7 @@ class GraphScene(QtWidgets.QGraphicsScene):
         self._drag_before_state: dict | None = None
         self._drag_start_positions: dict[NodeItem, QtCore.QPointF] = {}
         self._dragging_nodes: bool = False
+        self._drag_start: ConnectorItem | None = None
 
     def _find_ancestor_item(self, item):
         """Proxy内の子Widget等からでも Node/Connector を拾うための親たどり"""
@@ -758,13 +771,13 @@ class GraphScene(QtWidgets.QGraphicsScene):
             if self.undo_stack is not None:
                 before = self._state_to_dict()
                 dlg = NodeEditDialog(item, state_list=state_list)
-                if dlg.exec() == QtWidgets.QDialog.Accepted:
+                if dlg.exec() == QtWidgets.QDialog.DialogCode.Accepted:
                     dlg.apply_to_node()
                     after = self._state_to_dict()
                     self.undo_stack.push(GraphHistoryCommand(self, before, after, "ノード編集"))
             else:
                 dlg = NodeEditDialog(item, state_list=state_list)
-                if dlg.exec() == QtWidgets.QDialog.Accepted:
+                if dlg.exec() == QtWidgets.QDialog.DialogCode.Accepted:
                     dlg.apply_to_node()
 
             event.accept()
@@ -785,7 +798,7 @@ class GraphScene(QtWidgets.QGraphicsScene):
                 QtCore.QLineF(start.center_scene_pos(), start.center_scene_pos())
             )
             pen = QtGui.QPen(QtGui.QColor("gray"))
-            pen.setStyle(QtCore.Qt.DashLine)
+            pen.setStyle(QtCore.Qt.PenStyle.DashLine)
             pen.setWidth(2)
             self.temp_line.setPen(pen)
             self.temp_line.setZValue(-1)
@@ -803,7 +816,7 @@ class GraphScene(QtWidgets.QGraphicsScene):
 
     def mouseMoveEvent(self, event):
         """移動：エッジ作成中なら仮線を更新、通常時はデフォルト処理"""
-        if self.temp_line is not None and hasattr(self, "_drag_start"):
+        if self.temp_line is not None and self._drag_start is not None:
             p1 = self._drag_start.center_scene_pos()
             p2 = event.scenePos()
             self.temp_line.setLine(p1.x(), p1.y(), p2.x(), p2.y())
@@ -813,7 +826,7 @@ class GraphScene(QtWidgets.QGraphicsScene):
     def mouseReleaseEvent(self, event):
         """解放：エッジ確定 or ノード移動のUndo確定"""
         # エッジ作成ドラッグ終了
-        if self.temp_line is not None and hasattr(self, "_drag_start"):
+        if self.temp_line is not None and self._drag_start is not None:
             items = self.items(event.scenePos())
             target = None
             for it in items:
@@ -827,7 +840,7 @@ class GraphScene(QtWidgets.QGraphicsScene):
 
             self.removeItem(self.temp_line)
             self.temp_line = None
-            del self._drag_start
+            self._drag_start = None
             return
 
         # 通常のクリック/ドラッグ終了
@@ -876,12 +889,14 @@ class GraphScene(QtWidgets.QGraphicsScene):
     def create_edge(self, from_conn: ConnectorItem, to_conn: ConnectorItem):
         """履歴つきのエッジ生成（通常操作はこちら）"""
         def do():
+            """履歴エントリ内でエッジ生成を実行する。"""
             self._create_edge_raw(from_conn, to_conn)
         self._push_history("エッジ追加", do)
 
     def delete_selected(self):
         """選択中のノード/エッジを削除（履歴つき）"""
         def do():
+            """履歴エントリ内で選択アイテムを削除する。"""
             for item in list(self.selectedItems()):
                 if isinstance(item, EdgeItem):
                     self.remove_edge(item)
@@ -904,22 +919,24 @@ class GraphScene(QtWidgets.QGraphicsScene):
 
         # 空白：System/User追加
         if item is None:
-            act_sys = menu.addAction("Systemとして追加")
-            act_user = menu.addAction("Userとして追加")
+            act_sys = menu.addAction(gui_text("scn_menu_add_system"))
+            act_user = menu.addAction(gui_text("scn_menu_add_user"))
             menu.addSeparator()
-            act_cancel = menu.addAction("キャンセル")
+            menu.addAction(gui_text("btn_cancel"))
 
             chosen = menu.exec(event.screenPos())
             if chosen == act_sys:
                 def do():
-                    node = NodeItem(pos.x(), pos.y(), text="システム", node_type=NODE_TYPE_SYSTEM)
+                    """Systemノード追加を履歴付きで実行する。"""
+                    node = NodeItem(pos.x(), pos.y(), text=gui_text("scn_node_label_system"), node_type=NODE_TYPE_SYSTEM)
                     self.addItem(node)
                     self.nodes.append(node)
                 self._push_history("Systemノード追加", do)
 
             elif chosen == act_user:
                 def do():
-                    node = NodeItem(pos.x(), pos.y(), text="ユーザ", node_type=NODE_TYPE_USER)
+                    """Userノード追加を履歴付きで実行する。"""
+                    node = NodeItem(pos.x(), pos.y(), text=gui_text("scn_node_label_user"), node_type=NODE_TYPE_USER)
                     self.addItem(node)
                     self.nodes.append(node)
                 self._push_history("Userノード追加", do)
@@ -927,28 +944,19 @@ class GraphScene(QtWidgets.QGraphicsScene):
             event.accept()
             return
 
-        # ノード：ラベル編集 /（Systemのみ）配下User整列 / 削除
+        # ノード：（Systemのみ）配下User整列 / 削除
         if isinstance(item, NodeItem):
-            act_edit = menu.addAction("ラベル編集")
-
             act_align = None
             if item.node_type == NODE_TYPE_SYSTEM:
-                act_align = menu.addAction("接続先Userを優先度順に縦整列")
+                act_align = menu.addAction(gui_text("scn_menu_align_connected_users"))
 
-            act_del = menu.addAction("削除")
+            act_del = menu.addAction(gui_text("scn_menu_delete"))
             menu.addSeparator()
-            act_cancel = menu.addAction("キャンセル")
+            menu.addAction(gui_text("btn_cancel"))
 
             chosen = menu.exec(event.screenPos())
 
-            if chosen == act_edit:
-                text, ok = QtWidgets.QInputDialog.getText(
-                    None, "ラベル編集", "ラベルを入力:", text=item.title_item.text()
-                )
-                if ok and text is not None:
-                    item.set_label(text)
-
-            elif act_align and chosen == act_align:
+            if act_align and chosen == act_align:
                 self.align_users_under_system(item)
 
             elif chosen == act_del:
@@ -959,7 +967,7 @@ class GraphScene(QtWidgets.QGraphicsScene):
 
         # エッジ：削除
         if isinstance(item, EdgeItem):
-            act_del = menu.addAction("削除")
+            act_del = menu.addAction(gui_text("scn_menu_delete"))
             chosen = menu.exec(event.screenPos())
             if chosen == act_del:
                 self.remove_edge(item)
@@ -1054,6 +1062,8 @@ class GraphScene(QtWidgets.QGraphicsScene):
             if fc and tc:
                 self._create_edge_raw(fc, tc)
 
+        sync_short_id_counter([n.short_id for n in self.nodes])
+
     def _push_history(self, description: str, mutate_func):
         """操作前後のスナップショットを取り、UndoStackへ積む共通関数"""
         if self.undo_stack is None:
@@ -1075,15 +1085,15 @@ class GraphScene(QtWidgets.QGraphicsScene):
         # data(json)をnode_check_and_warnに渡して検査する
         warning = node_check_and_warn(data)
         if warning:
-            msg = f"シナリオに警告があります。エクスポートを中止します。\n\n{warning}"
-            QtWidgets.QMessageBox.warning(None, "エクスポート警告", msg)
+            msg = gui_text("scn_msg_export_warning_with_detail").format(detail=warning)
+            QtWidgets.QMessageBox.warning(None, gui_text("scn_title_export_warning"), msg)
             return
 
         # --- validation: certain System node kinds must not appear more than once ---
         dup_warn = check_kind_duplicates(data, ["prep", "initial", "error"])
         if dup_warn:
-            msg = "エクスポートを中止しました。" + "\n" + dup_warn
-            QtWidgets.QMessageBox.warning(None, "エクスポート警告", msg)
+            msg = gui_text("scn_msg_export_aborted_with_detail").format(detail=dup_warn)
+            QtWidgets.QMessageBox.warning(None, gui_text("scn_title_export_warning"), msg)
             return
 
         # write JSON only if validation passed
@@ -1091,7 +1101,9 @@ class GraphScene(QtWidgets.QGraphicsScene):
             json.dump(data, f, ensure_ascii=False, indent=2)
 
         QtWidgets.QMessageBox.information(
-            None, "エクスポート", f"{os.path.abspath(file_path)} にエクスポートしました"
+            None,
+            gui_text("scn_title_export"),
+            gui_text("scn_msg_export_done").format(path=os.path.abspath(file_path)),
         )
 
     def import_json(self, path):
@@ -1102,20 +1114,22 @@ class GraphScene(QtWidgets.QGraphicsScene):
                 data = json.load(f)
 
             def do():
+                """JSONの内容をSceneへ反映して表示位置を整列する。"""
                 self._load_state_from_dict(data)
+                self._auto_layout_impl()
 
             self._push_history("JSONインポート", do)
 
             print(f"インポート {os.path.abspath(file_path)} を読み込みました")
         except Exception as exc:
-            QtWidgets.QMessageBox.critical(None, "インポートエラー", str(exc))
+            QtWidgets.QMessageBox.critical(None, gui_text("scn_title_import_error"), str(exc))
 
     # ---------- PNG export ----------
     def save_png(self, path):
         """Sceneの見えている内容をPNGで保存"""
         rect = self.itemsBoundingRect()
         if rect.isNull():
-            QtWidgets.QMessageBox.warning(None, "保存", "保存する内容がありません")
+            QtWidgets.QMessageBox.warning(None, gui_text("scn_title_save"), gui_text("scn_msg_nothing_to_save"))
             return
 
         margin = 20
@@ -1125,23 +1139,27 @@ class GraphScene(QtWidgets.QGraphicsScene):
         w = max(1, int(rect.width() * scale))
         h = max(1, int(rect.height() * scale))
 
-        img = QtGui.QImage(w, h, QtGui.QImage.Format_ARGB32)
+        img = QtGui.QImage(w, h, QtGui.QImage.Format.Format_ARGB32)
         img.fill(QtGui.QColor("white"))
 
         painter = QtGui.QPainter(img)
-        painter.setRenderHint(QtGui.QPainter.Antialiasing, True)
-        painter.setRenderHint(QtGui.QPainter.TextAntialiasing, True)
+        painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing, True)
+        painter.setRenderHint(QtGui.QPainter.RenderHint.TextAntialiasing, True)
 
         target = QtCore.QRectF(0, 0, w, h)
         self.render(painter, target, rect)
         painter.end()
 
         img.save(path)
-        QtWidgets.QMessageBox.information(None, "保存", f"{os.path.abspath(path)} に保存しました")
+        QtWidgets.QMessageBox.information(
+            None,
+            gui_text("scn_title_save"),
+            gui_text("scn_msg_saved_to_path").format(path=os.path.abspath(path)),
+        )
 
     # ---------- layout helpers：部分整列 / 全体整列 ----------
     def align_users_under_system(self, system_node: NodeItem):
-        """Systemの接続先Userを priority（降順）で縦整列（System右側へ配置）"""
+        """Systemの接続先Userを priority（昇順）で縦整列（System右側へ配置）"""
         if system_node.node_type != NODE_TYPE_SYSTEM:
             return
 
@@ -1157,6 +1175,7 @@ class GraphScene(QtWidgets.QGraphicsScene):
 
         # priorityソート（値が壊れていても落ちないように）
         def priority_of(node: NodeItem) -> int:
+            """Userノードの priority を数値化して返す。"""
             try:
                 return int(node.get_field("priority") or 0)
             except ValueError:
@@ -1249,6 +1268,7 @@ class GraphScene(QtWidgets.QGraphicsScene):
             # User層は priority、その他は現Y順（元の上下関係を維持）
             if all(n.node_type == NODE_TYPE_USER for n in nodes):
                 def priority_of(node: NodeItem) -> int:
+                    """User層整列用の priority 値を返す。"""
                     try:
                         return int(node.get_field("priority") or 0)
                     except ValueError:
@@ -1269,25 +1289,26 @@ class GraphScene(QtWidgets.QGraphicsScene):
 # View：ズーム/パン（Scene操作を邪魔しない）
 # ==================================
 class GraphicsView(QtWidgets.QGraphicsView):
-    """ホイールズーム、Space+ドラッグ or 中ボタンでパン（通常操作はSceneへ渡す）"""
+    """ホイールズーム、Ctrl+ドラッグ or 中ボタンでパン（通常操作はSceneへ渡す）"""
 
     def __init__(self, scene, parent=None):
+        """ズーム・パン操作付きの View を初期化する。"""
         super().__init__(scene, parent)
 
-        self.setRenderHint(QtGui.QPainter.Antialiasing, True)
-        self.setRenderHint(QtGui.QPainter.TextAntialiasing, True)
+        self.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing, True)
+        self.setRenderHint(QtGui.QPainter.RenderHint.TextAntialiasing, True)
 
-        self._default_drag_mode = QtWidgets.QGraphicsView.RubberBandDrag
+        self._default_drag_mode = QtWidgets.QGraphicsView.DragMode.RubberBandDrag
         self.setDragMode(self._default_drag_mode)
 
-        self.setTransformationAnchor(QtWidgets.QGraphicsView.AnchorUnderMouse)
-        self.setResizeAnchor(QtWidgets.QGraphicsView.AnchorUnderMouse)
+        self.setTransformationAnchor(QtWidgets.QGraphicsView.ViewportAnchor.AnchorUnderMouse)
+        self.setResizeAnchor(QtWidgets.QGraphicsView.ViewportAnchor.AnchorUnderMouse)
 
         self._panning = False
-        self._space_down = False
+        self._ctrl_down = False
         self._pan_start = QtCore.QPoint()
 
-        self.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)
 
     # ---------- Zoom ----------
     def wheelEvent(self, event: QtGui.QWheelEvent):
@@ -1295,22 +1316,22 @@ class GraphicsView(QtWidgets.QGraphicsView):
         zoom = 1.15 if event.angleDelta().y() > 0 else 1 / 1.15
         self.scale(zoom, zoom)
 
-    # ---------- Space key ----------
+    # ---------- Ctrl key ----------
     def keyPressEvent(self, event: QtGui.QKeyEvent):
-        """Space押下中だけパンモード（カーソル変更）"""
-        if event.key() == QtCore.Qt.Key_Space and not event.isAutoRepeat():
-            self._space_down = True
-            self.setCursor(QtCore.Qt.OpenHandCursor)
+        """Ctrl押下中だけパンモード（カーソル変更）"""
+        if event.key() == QtCore.Qt.Key.Key_Control and not event.isAutoRepeat():
+            self._ctrl_down = True
+            self.setCursor(QtCore.Qt.CursorShape.OpenHandCursor)
             event.accept()
             return
         super().keyPressEvent(event)
 
     def keyReleaseEvent(self, event: QtGui.QKeyEvent):
-        """Space解除で通常カーソルへ"""
-        if event.key() == QtCore.Qt.Key_Space and not event.isAutoRepeat():
-            self._space_down = False
+        """Ctrl解除で通常カーソルへ"""
+        if event.key() == QtCore.Qt.Key.Key_Control and not event.isAutoRepeat():
+            self._ctrl_down = False
             if not self._panning:
-                self.setCursor(QtCore.Qt.ArrowCursor)
+                self.setCursor(QtCore.Qt.CursorShape.ArrowCursor)
             event.accept()
             return
         super().keyReleaseEvent(event)
@@ -1318,13 +1339,14 @@ class GraphicsView(QtWidgets.QGraphicsView):
     # ---------- Mouse ----------
     def mousePressEvent(self, event: QtGui.QMouseEvent):
         """パン開始条件だけViewが奪い、それ以外はSceneへ渡す"""
-        if event.button() == QtCore.Qt.MiddleButton or (
-            event.button() == QtCore.Qt.LeftButton and self._space_down
+        ctrl_pressed = bool(event.modifiers() & QtCore.Qt.KeyboardModifier.ControlModifier)
+        if event.button() == QtCore.Qt.MouseButton.MiddleButton or (
+            event.button() == QtCore.Qt.MouseButton.LeftButton and (self._ctrl_down or ctrl_pressed)
         ):
             self._panning = True
             self._pan_start = event.position().toPoint()
-            self.setCursor(QtCore.Qt.ClosedHandCursor)
-            self.setDragMode(QtWidgets.QGraphicsView.NoDrag)
+            self.setCursor(QtCore.Qt.CursorShape.ClosedHandCursor)
+            self.setDragMode(QtWidgets.QGraphicsView.DragMode.NoDrag)
             event.accept()
             return
 
@@ -1350,7 +1372,11 @@ class GraphicsView(QtWidgets.QGraphicsView):
         if self._panning:
             self._panning = False
             self.setDragMode(self._default_drag_mode)
-            self.setCursor(QtCore.Qt.OpenHandCursor if self._space_down else QtCore.Qt.ArrowCursor)
+            self.setCursor(
+                QtCore.Qt.CursorShape.OpenHandCursor
+                if self._ctrl_down
+                else QtCore.Qt.CursorShape.ArrowCursor
+            )
             event.accept()
             return
 
@@ -1361,9 +1387,12 @@ class GraphicsView(QtWidgets.QGraphicsView):
 # MainWindow：ツールバー/Undo/ショートカット
 # ==================================
 class MainWindow(QtWidgets.QMainWindow):
+    """PyEditor のメインウィンドウ。"""
+
     def __init__(self):
+        """メインウィンドウとツールバーを初期化する。"""
         super().__init__()
-        self.setWindowTitle("DialBBシナリオエディタ ")
+        self.setWindowTitle(gui_text("scn_main_title"))
         self.resize(900, 600)
 
         # Undoスタック（Ctrl+Z/Y）
@@ -1375,17 +1404,20 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setCentralWidget(self.view)
 
         # ---- Toolbar（主要操作を1クリック化） ----
-        toolbar = self.addToolBar("tools")
+        toolbar = self.addToolBar(gui_text("scn_toolbar_name"))
         toolbar.setMovable(False)
 
         spacer = QtWidgets.QWidget()
-        spacer.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
+        spacer.setSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Preferred,
+        )
         toolbar.addWidget(spacer)
 
         # toolbar.addAction("保存 (PNG)", lambda: self.scene.save_png("state_graph_qt.png"))
-        toolbar.addAction("セーブ", lambda: self.scene.export_json("state_graph.json"))
-        toolbar.addAction("ロード", self.confirm_and_load_json)
-        toolbar.addAction("整列", self.scene.auto_layout)
+        toolbar.addAction(gui_text("scn_toolbar_save"), lambda: self.scene.export_json("state_graph.json"))
+        toolbar.addAction(gui_text("scn_toolbar_load"), self.confirm_and_load_json)
+        toolbar.addAction(gui_text("scn_toolbar_align"), self.scene.auto_layout)
 
         # 見た目（ボタン風）
         toolbar.setStyleSheet("""
@@ -1413,23 +1445,19 @@ class MainWindow(QtWidgets.QMainWindow):
                 border-color: #2d6cff;
             }
         """)
-        toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonTextOnly)
+        toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonStyle.ToolButtonTextOnly)
 
         # Undo / Redo（ツールバー + ショートカット）
-        act_undo = toolbar.addAction("元に戻す")
+        act_undo = toolbar.addAction(gui_text("scn_toolbar_undo"))
         act_undo.triggered.connect(self.undo_stack.undo)
-        act_undo.setShortcut(QtGui.QKeySequence.Undo)
+        act_undo.setShortcut(QtGui.QKeySequence.StandardKey.Undo)
 
-        act_redo = toolbar.addAction("やり直し")
+        act_redo = toolbar.addAction(gui_text("scn_toolbar_redo"))
         act_redo.triggered.connect(self.undo_stack.redo)
-        act_redo.setShortcut(QtGui.QKeySequence.Redo)
+        act_redo.setShortcut(QtGui.QKeySequence.StandardKey.Redo)
 
         # ---- StatusBar（操作ヒント） ----
-        hint = QtWidgets.QLabel(
-            "操作: 右クリック=追加/編集,  ダブルクリック=ノード編集,  "
-            "コネクタドラッグ=接続,  Delete=削除,  Ctrl+Z/Y=Undo/Redo,  "
-            "ホイール=ズーム,  中ボタン or Space+ドラッグ=パン"
-        )
+        hint = QtWidgets.QLabel(gui_text("scn_status_hint"))
         hint.setStyleSheet("color: #ffffff; padding: 4px;")
         statusbar = self.statusBar()
         statusbar.setStyleSheet("background: #4682b4;")
@@ -1452,17 +1480,17 @@ class MainWindow(QtWidgets.QMainWindow):
             self,
             gui_text("msg_warn_confirm"),
             msg,
-            QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel,
-            QtWidgets.QMessageBox.Cancel,
+            QtWidgets.QMessageBox.StandardButton.Ok | QtWidgets.QMessageBox.StandardButton.Cancel,
+            QtWidgets.QMessageBox.StandardButton.Ok,
         )
-        if reply == QtWidgets.QMessageBox.Ok:
+        if reply == QtWidgets.QMessageBox.StandardButton.Ok:
             self.scene.import_json("state_graph.json")
 
     def keyPressEvent(self, event):
         """Delete=削除 / Esc=選択解除"""
-        if event.key() == QtCore.Qt.Key_Delete:
+        if event.key() == QtCore.Qt.Key.Key_Delete:
             self.scene.delete_selected()
-        elif event.key() == QtCore.Qt.Key_Escape:
+        elif event.key() == QtCore.Qt.Key.Key_Escape:
             self.scene.clearSelection()
         else:
             super().keyPressEvent(event)
@@ -1472,6 +1500,7 @@ class MainWindow(QtWidgets.QMainWindow):
 # エントリポイント
 # =========================
 def main():
+    """PyEditorを起動し、必要に応じてJSONを初期ロードする。"""
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "json_path",
@@ -1491,7 +1520,7 @@ def main():
     app = QtWidgets.QApplication(sys.argv)
 
     # GUI表示テキストデータを取得
-    read_gui_text_data(GUI_NC_TEXT, args.lang)
+    read_gui_text_data(lang=args.lang)
 
     # -----------------------------
     #  起動引数の取得
@@ -1506,6 +1535,7 @@ def main():
     if json_path:
         try:
             w.load_json_file(json_path)   # ←既存の読込関数を呼ぶだけ
+            w.undo_stack.clear()          # 起動時ロード状態をUndoの基準点にする
         except Exception as e:
             print(e)
 
