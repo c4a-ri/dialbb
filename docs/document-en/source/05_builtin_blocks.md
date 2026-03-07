@@ -957,35 +957,9 @@ It is also possible to transition to a subdialogue within a subdialogue.
 
 ### Saving Context Information in an External Database
 
-When operating the DialBB application as a web server, using a load balancer to distribute processing across multiple instances can handle request surges efficiently. By saving context information in an external database (MongoDB), a single session can be processed by different instances. (Feature added in version 0.10.0)
+When the configuration includes a `context_db` element, contextual information is stored in an external database (MongoDB). For details on how to specify `context_db`, please refer to {numref}`context_db`.
 
-To use an external database, specify `context_db` element like the following in the block configuration:
-
-```yaml
-context_db:
-  host: localhost
-  port: 27017
-  user: admin
-  password: password
-```
-
-Each key is defined as follows:
-
-- `host` (str)
-
-  The hostname where MongoDB is running.
-
-- `port` (int, default value: `27017`)
-
-  The port number used to access MongoDB.
-
-- `user` (str)
-
-  The username for accessing MongoDB.
-
-- `password` (str)
-
-  The password for accessing MongoDB.
+(In version 1.2, `context_db` was changed to be specified at the top level of the configuration rather than in the block configuration.)
 
 ### Advanced Mechanisms for Handling Speech Input
 

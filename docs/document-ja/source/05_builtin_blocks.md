@@ -1020,35 +1020,10 @@ subdialogueの中でsubdialogueに遷移することも可能です．
 
 ### 外部データベースへの文脈情報の保存
 
-DialBBアプリケーションをWebサーバとして動作させる場合，リクエストが集中した際にロードバランサを使って複数インスタンスでに処理を分散させる場合，文脈情報を外部DB（MongoDB)に保存することで，一つのセッションを異なるインスタンスで処理することが可能です．(ver. 0.10.0で追加)
+コンフィギュレーションに`context_db`要素があるとき、文脈情報を外部DB（MongoDB)に保存します。`context_db`の指定の仕方は、{numref}`context_db`を見てください。
 
-外部DBを使うには，ブロックコンフィギュレーションに以下のように`context_db`要素を指定します．
+(ver. 1.2でcontext_dbはブロックコンフィギュレーションではなく、コンフィグレーションのトップレベルでしていするように変更されました。)
 
-```yaml
-context_db:
-  host: localhost
-  port: 27017
-  user: admin
-  password: password
-```
-
-各キーは以下です．
-
-- `host` （str)
-
-  MongoDBが動作しているホスト名
-
-- `port` (int. デフォルト値`27017`)
-
-  MongoDBのアクセスのためのポート番号
-
-- `user` （str)
-
-  MongoDBのアクセスのためのユーザ名
-
-- `password` （str)
-
-  MongoDBのアクセスのためのパスワード
 
 ### 音声入力を扱うための仕組み
 
@@ -1148,7 +1123,7 @@ OpenAI社のChatGPTを用いて対話を行います．
   - `user_utterance`: 入力文字列（文字列）
   - `aux_data`: 補助データ（辞書型）
   - `user_id`: ユーザID （文字列）
-  - `dialogue_history`: 対話履歴（メインモジュールが保持しているもの） 辞書型のリスト
+  - `dialogue_history`: 対話履歴 （辞書型のリスト）
   
 - 出力
   - `system_utterance`: 入力文字列（文字列）
