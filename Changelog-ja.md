@@ -10,11 +10,11 @@
 
 - システム発話から付加情報を抽出してaux_dataに
 
-- メインモジュールが対話履歴を持つように変更 (todo documentation)
+- メインモジュールが対話履歴を持つように変更 
 
 - ChatGPT Dialogue組み込みブロック
 
-  - メインモジュールの対話履歴を使うように変更 (todo documentation)
+  - メインモジュールの対話履歴を使うように変更
 
 - STN Manager組み込みブロック
 
