@@ -336,6 +336,10 @@ conf_edt_situation:
   ja: "状況:"
   en: "Situation:"
 
+conf_edt_prompt:
+  ja: "プロンプト:"
+  en: "Prompt:"
+
 conf_edt_persona:
   ja: "ペルソナ:"
   en: "Persona:"
@@ -425,12 +429,12 @@ scn_form_transition_action_plain:
   en: "Action on Transition"
 
 scn_menu_add_system:
-  ja: "Systemとして追加"
-  en: "Add as System"
+  ja: "システムノード追加"
+  en: "Add System Node"
 
 scn_menu_add_user:
-  ja: "Userとして追加"
-  en: "Add as User"
+  ja: "ユーザノード追加"
+  en: "Add User Node"
 
 scn_node_label_system:
   ja: "システム"

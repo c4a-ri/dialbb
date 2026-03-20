@@ -535,7 +535,7 @@ def edit_test_config(parent, file_path: str, settings) -> None:
     combobox.grid(column=1, row=1, padx=5, pady=5, sticky=tk.W)
 
     # prompt_template編集エリア
-    label2 = tk.Label(gpt_mng_fr, text=gui_text("conf_edt_situation"))
+    label2 = tk.Label(gpt_mng_fr, text=gui_text("conf_edt_prompt"))
     stt = scrolledtext.ScrolledText(gpt_mng_fr, wrap=tk.NONE, width=36, height=16)
     horiz_scrollbar1 = tk.Scrollbar(gpt_mng_fr, orient=tk.HORIZONTAL, command=stt.xview)
     stt.config(xscrollcommand=horiz_scrollbar1.set)

@@ -39,6 +39,12 @@ SHADOW_DY = 3
 PAD = 8
 CONNECTOR_OUTSIDE = -6
 
+# Viewの初期表示倍率（1.0=100%）
+INITIAL_VIEW_SCALE = 0.65
+
+# JSON読み込み時の自動整列で使う開始X（左寄せ）
+IMPORT_LAYOUT_BASE_X = -320.0
+
 # node types
 NODE_TYPE_SYSTEM = "system"
 NODE_TYPE_USER = "user"

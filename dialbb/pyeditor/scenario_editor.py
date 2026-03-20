@@ -12,6 +12,8 @@ from constants import (
     CONNECTOR_R,
     DATA_PATH,
     DEFAULT_NODE_KINDS,
+    IMPORT_LAYOUT_BASE_X,
+    INITIAL_VIEW_SCALE,
     NODE_CORNER_R,
     NODE_H_SYSTEM,
     NODE_H_USER,
@@ -716,8 +718,8 @@ class GraphScene(QtWidgets.QGraphicsScene):
         self._drag_start: ConnectorItem | None = None
 
     def _find_ancestor_item(self, item):
-        """Proxy内の子Widget等からでも Node/Connector を拾うための親たどり"""
-        while item is not None and not isinstance(item, (NodeItem, ConnectorItem)):
+        """Proxy内の子Widget等からでも Node/Connector/Edge を拾うための親たどり"""
+        while item is not None and not isinstance(item, (NodeItem, ConnectorItem, EdgeItem)):
             item = item.parentItem()
         return item
 
@@ -915,6 +917,10 @@ class GraphScene(QtWidgets.QGraphicsScene):
         raw = self.itemAt(pos, QtGui.QTransform())
         item = self._find_ancestor_item(raw)
 
+        if isinstance(item, (NodeItem, EdgeItem)):
+            self.clearSelection()
+            item.setSelected(True)
+
         menu = QtWidgets.QMenu()
 
         # 空白：System/User追加
@@ -960,7 +966,7 @@ class GraphScene(QtWidgets.QGraphicsScene):
                 self.align_users_under_system(item)
 
             elif chosen == act_del:
-                self.remove_node(item)
+                self._push_history("ノード削除", lambda: self.remove_node(item))
 
             event.accept()
             return
@@ -968,9 +974,11 @@ class GraphScene(QtWidgets.QGraphicsScene):
         # エッジ：削除
         if isinstance(item, EdgeItem):
             act_del = menu.addAction(gui_text("scn_menu_delete"))
+            menu.addSeparator()
+            menu.addAction(gui_text("btn_cancel"))
             chosen = menu.exec(event.screenPos())
             if chosen == act_del:
-                self.remove_edge(item)
+                self._push_history("エッジ削除", lambda: self.remove_edge(item))
             event.accept()
             return
 
@@ -1116,7 +1124,7 @@ class GraphScene(QtWidgets.QGraphicsScene):
             def do():
                 """JSONの内容をSceneへ反映して表示位置を整列する。"""
                 self._load_state_from_dict(data)
-                self._auto_layout_impl()
+                self._auto_layout_impl(base_x=IMPORT_LAYOUT_BASE_X)
 
             self._push_history("JSONインポート", do)
 
@@ -1198,7 +1206,7 @@ class GraphScene(QtWidgets.QGraphicsScene):
         """全体整列（履歴つきの入口）"""
         self._push_history("自動整列", self._auto_layout_impl)
 
-    def _auto_layout_impl(self):
+    def _auto_layout_impl(self, base_x: float = 0.0):
         """全体整列：BFSでレベル付け→左→右へ層配置、各層内は縦に重ならないよう整列"""
         if not self.nodes:
             return
@@ -1257,7 +1265,6 @@ class GraphScene(QtWidgets.QGraphicsScene):
             levels.setdefault(lv, []).append(n)
 
         # 6) レベルを左→右に配置、レベル内は縦整列
-        base_x = 0.0
         base_y = 0.0
         dy = LAYOUT_DY
 
@@ -1309,6 +1316,9 @@ class GraphicsView(QtWidgets.QGraphicsView):
         self._pan_start = QtCore.QPoint()
 
         self.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)
+
+        # 初期表示時の倍率
+        self.scale(INITIAL_VIEW_SCALE, INITIAL_VIEW_SCALE)
 
     # ---------- Zoom ----------
     def wheelEvent(self, event: QtGui.QWheelEvent):
