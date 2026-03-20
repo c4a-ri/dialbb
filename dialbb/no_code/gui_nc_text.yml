@@ -336,6 +336,10 @@ conf_edt_situation:
   ja: "状況:"
   en: "Situation:"
 
+conf_edt_prompt:
+  ja: "プロンプト:"
+  en: "Prompt:"
+
 conf_edt_persona:
   ja: "ペルソナ:"
   en: "Persona:"
