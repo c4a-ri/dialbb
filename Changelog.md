@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.2.0 ()
+
+- No-code tool
+
+  - Python-based scenario editor
+
+  - Tester with a user simulator
+
+  - Cautions can be specified in the configuration editing window
+
+  - Default app changed
+
+- Additional information is extracted from system utterances and stored in aux_data
+
+- Main module changed to retain dialogue history
+
+- ChatGPT Dialogue built-in block
+
+  - Uses the dialogue history of the main module
+
+- STN Manager built-in block
+
+  Cautions for using ChatGPT can now be specified in the configuration
 
 ## 1.1.3 (2025.12.08)
 
