@@ -28,17 +28,8 @@ import traceback
 from datetime import datetime
 from typing import Dict, Any
 import os
+from dialbb.builtin_blocks.stn_management.util import scenario_function_log_debug
 
-use_openai: bool = False
-
-openai_client = None
-
-openai_api_key: str = os.environ.get('OPENAI_API_KEY', os.environ.get('OPENAI_KEY', ""))
-if openai_api_key:
-    import openai
-    use_openai = True
-    openai.api_key = openai_api_key
-    openai_client = openai.OpenAI(api_key=openai_api_key)
 
 
 # 知っているラーメンの種類
@@ -52,7 +43,10 @@ def is_known_ramen(ramen: str, context: Dict[str, Any]) -> bool:
     :param context: 対話文脈（未使用）
     :return: 知っていたらTrue, さもなくばFalse
     """
-    return ramen in known_ramens
+
+    result: bool = ramen in known_ramens
+    scenario_function_log_debug(f"whether {ramen} is known: {str(result)}", context)
+    return result
 
 
 def is_novel_ramen(ramen: str, context: Dict[str, Any]) -> bool:

@@ -6,7 +6,8 @@ export default defineConfig({
   plugins: [vue()],
   base: './',
   build: {
-    outDir: '../static/new',
+    // outDir: '../static/new',
+    outDir: '../dialbb/server/static/new',
     emptyOutDir: true
   }
 })

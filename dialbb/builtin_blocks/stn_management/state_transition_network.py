@@ -45,6 +45,9 @@ SEMICOLON: str = "&&&semicolon&&&"
 LEFTPAREN: str = "&&&leftparen&&&"
 RIGHTPAREN: str = "&&&rightparen&&&"
 DOUBLEQUOTE: str = "&&&doublequote&&&"
+LEFTBRACE: str = "&&&leftbrace&&&"
+RIGHTBRACE: str = "&&&rightbrace&&&"
+
 
 function_call_pattern = re.compile(r"([^(]+)\(([^)]*)\)", re.DOTALL)  # matches function patter such as "func(..)"
 ne_condition_pattern = re.compile("([^=]+)!=(.+)")  # matches <variable>!=<value>
@@ -74,6 +77,8 @@ class Argument:
                           .replace(COMMA, ",")
                           .replace(LEFTPAREN, "(")
                           .replace(RIGHTPAREN, ")")
+                          .replace(LEFTBRACE, "{")
+                          .replace(RIGHTBRACE, "}")
                           .replace(DOUBLEQUOTE, '"')) # revert semicolon, comma, etc
         elif argument_string[0] in ('&', '＆'):  # variable name 変数名
             self._type = ADDRESS
@@ -209,7 +214,7 @@ class Transition:
                 continue
             if condition_str.startswith('$$$') and condition_str.endswith("$$$"):   # $$$$ .... $$$ "
                 prompt_template: str = condition_str[3:-3]
-                prompt_template = prompt_template.replace('{', '@').replace('}', '@')
+                prompt_template = prompt_template.replace('{', LEFTBRACE).replace('}', RIGHTBRACE)
                 condition_str = f'_check_with_prompt_template("{prompt_template}")'
             elif condition_str.startswith('$') and condition_str.endswith("$"):   # $$$$ .... $$$ "
                 task: str = condition_str[1:-1]

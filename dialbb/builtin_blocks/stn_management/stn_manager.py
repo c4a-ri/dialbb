@@ -36,13 +36,14 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
 from dialbb.builtin_blocks.stn_management.scenario_graph import create_scenario_graph
-from dialbb.builtin_blocks.stn_management.context_db import ContextDB
+from dialbb.util.context_db import ContextDB
 from dialbb.builtin_blocks.stn_management.state_transition_network \
     import StateTransitionNetwork, State, Transition, Argument, Condition, Action, \
     INITIAL_STATE_NAME, ERROR_STATE_NAME, FINAL_ABORT_STATE_NAME, GOSUB, EXIT, function_call_pattern, \
-    BUILTIN_FUNCTION_PREFIX, COMMA, SEMICOLON
+    BUILTIN_FUNCTION_PREFIX, COMMA, SEMICOLON, LEFTBRACE, RIGHTBRACE
 from dialbb.builtin_blocks.stn_management.stn_creator import create_stn
 from dialbb.abstract_block import AbstractBlock
+from dialbb.builtin_blocks.util import extract_aux_data
 from dialbb.main import ANY_FLAG, DEBUG, CONFIG_KEY_FLAGS_TO_USE, CONFIG_DIR
 from dialbb.util.error_handlers import abort_during_building
 
@@ -80,6 +81,8 @@ CONTEXT_KEY_SUB_DIALOGUE_STACK: str = '_sub_dialogue_stack'
 CONTEXT_KEY_REACTION: str = '_reaction'
 CONTEXT_KEY_REQUESTING_CONFIRMATION: str = '_requesting_confirmation'
 CONTEXT_KEY_TURNS_IN_STATE: str = '_turns_in_state'
+CONTEXT_KEY_SESSION_ID: str = '_session_id'
+CONTEXT_KEY_USER_ID: str = '_user_id'
 
 INPUT_KEY_AUX_DATA: str = "aux_data"
 INPUT_KEY_SENTENCE: str = "sentence"
@@ -91,6 +94,8 @@ KEY_BARGE_IN: str = 'barge_in'
 KEY_BARGE_IN_IGNORED: str = "barge_in_ignored"
 KEY_LONG_SILENCE: str = "long_silence"
 KEY_TYPE: str = 'type'
+KEY_STN_CONTEXT: str = "stn_context"
+KEY_STN_PREVIOUS_CONTEXT: str = "stn_previous_context"
 
 SHEET_NAME_SCENARIO: str = "scenario"
 DEFAULT_UTTERANCE_ASKING_REPETITION: str = "Could you say that again?"
@@ -190,9 +195,18 @@ class Manager(AbstractBlock):
 
         # dialogue context for each dialogue session  session id -> {key -> value}
         # セッション毎の対話文脈
-        self._use_context_db: bool = True if self.block_config.get(CONFIG_KEY_CONTEXT_DB) else False
+        self._use_context_db: bool = False
+        context_db_config: Dict[str, Any] = {}
+        if self.config.get(CONFIG_KEY_CONTEXT_DB):
+            self._use_context_db: bool = True
+            context_db_config = self.config.get(CONFIG_KEY_CONTEXT_DB)
+        elif self.block_config.get(CONFIG_KEY_CONTEXT_DB):
+            self._use_context_db: bool = True
+            context_db_config = self.block_config.get(CONFIG_KEY_CONTEXT_DB)
+            print("Warning: Context DB specification should be at the top level since ver 1.2.")
+
         if self._use_context_db:  # use an external session information database
-            self._context_db = ContextDB(self.block_config[CONFIG_KEY_CONTEXT_DB])
+            self._context_db = ContextDB(context_db_config)
         else:
             # session_id -> context
             self._sessions2contexts: Dict[str, Dict[str, Any]] = {}
@@ -287,26 +301,26 @@ class Manager(AbstractBlock):
 
     def _add_context(self, session_id: str, context: Dict[str, Any]) -> None:
         if self._use_context_db:
-            self._context_db.add_context(session_id, context)
+            self._context_db.add_data(session_id, KEY_STN_CONTEXT, context)
         else:
             self._sessions2contexts[session_id] = context
 
     def _get_context(self, session_id: str) -> Dict[str, Any]:
         if self._use_context_db:
-            context: Dict[str, Any] = self._context_db.get_context(session_id)
+            context: Dict[str, Any] = self._context_db.get_data(session_id, KEY_STN_CONTEXT)
         else:
             context: Dict[str, Any] = self._sessions2contexts.get(session_id)
         return context
 
     def _add_previous_context(self, session_id: str, context: Dict[str, Any]) -> None:
         if self._use_context_db:
-            self._context_db.add_previous_context(session_id, context)
+            self._context_db.add_data(session_id, KEY_STN_PREVIOUS_CONTEXT, context)
         else:
             self._sessions2previous_contexts[session_id] = pickle.dumps(context)  # unlikely to be used
 
     def _get_previous_context(self, session_id: str) -> Dict[str, Any]:
         if self._use_context_db:
-            context = self._context_db.get_previous_context(session_id)
+            context = self._context_db.get_data(session_id, KEY_STN_PREVIOUS_CONTEXT)
         else:
             context = pickle.loads(self._sessions2previous_contexts[session_id])
         return context
@@ -358,6 +372,8 @@ class Manager(AbstractBlock):
                            CONTEXT_KEY_SUB_DIALOGUE_STACK: [],
                            CONTEXT_KEY_REACTION: "",
                            CONTEXT_KEY_TURNS_IN_STATE: 1,
+                           CONTEXT_KEY_SESSION_ID: session_id,
+                           CONTEXT_KEY_USER_ID: user_id,
                            CONTEXT_KEY_REQUESTING_CONFIRMATION: False}
 
                 self._add_context(session_id, context)
@@ -480,6 +496,7 @@ class Manager(AbstractBlock):
                     self.log_debug("Skip state. Making another transition.", session_id=session_id)
                     new_state_name = self._transition(new_state_name, nlu_result, aux_data, context,
                                                       user_id, session_id, sentence)
+                    new_state_name = self._handle_sub_dialogue(new_state_name, session_id, context)
                     if not self._network.is_skip_state(new_state_name):
                         break
 
@@ -543,6 +560,10 @@ class Manager(AbstractBlock):
 
             aux_data['state'] = new_state_name  # add new state to aux_data
 
+            # update aux_data using (key:value, key:value, ..) in output sentence
+            output_text, aux_data_to_update = extract_aux_data(output_text)
+            aux_data.update(aux_data_to_update)
+
             # create output data
             output = {"output_text": output_text, "final": final, "aux_data": aux_data}
 
@@ -584,7 +605,7 @@ class Manager(AbstractBlock):
 
         for m in PROMPT_TEMPLATE_PATTERN.finditer(result):  # $$$ ... $$$
             prompt_template: str = m.group(1)
-            prompt_template = prompt_template.replace('{', '@').replace('}', '@')
+            prompt_template = prompt_template.replace('{', LEFTBRACE).replace('}', RIGHTBRACE)
             result = result.replace(m.group(0), f'{{_generate_with_prompt_template("{prompt_template}")}}')
 
         result = LLM_INSTRUCTION_PATTERN.sub(r'{_generate_with_llm("\1")}', result)   # $ ... $
@@ -794,7 +815,7 @@ class Manager(AbstractBlock):
                                           user_id, session_id, sentence)
                    for raw_argument in raw_argument_values]
         except Exception as e:  # failure in realization
-            self.log_warning(f"Exception occurred during realizing arguments in system utterance: {str(argument_names)}",
+            self.log_warning(f"Exception occurred during realizing arguments in system utterance: {str(raw_argument_values)}",
                              session_id=session_id)
             if DEBUG:
                 raise Exception(e)

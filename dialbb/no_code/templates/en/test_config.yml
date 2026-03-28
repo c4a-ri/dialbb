@@ -1,0 +1,9 @@
+user_name: User
+system_name: System
+model: gpt-4o-mini
+
+settings:
+  - prompt_template: test_prompt.txt
+temperatures:
+  - 0.7
+

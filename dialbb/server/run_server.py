@@ -16,8 +16,7 @@ from flask import Flask, request, jsonify, render_template, make_response
 
 from dialbb.main import DialogueProcessor
 from dialbb.util.logger import get_logger
-
-DIALBB_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
+from dialbb.paths import DIALBB_DIR, TEMPLATE_FOLDER
 
 # read json schema files
 init_request_schema_file: str = os.path.join(DIALBB_DIR, "schemata/init_request.jsd")
@@ -30,9 +29,9 @@ with open(init_request_schema_file) as fp:
 with open(dialogue_request_schema_file) as fp:
     dialogue_request_schema = json.load(fp)
 
-print(os.path.join(DIALBB_DIR, 'server/static/new'))
-app = Flask(__name__, template_folder=os.path.join(DIALBB_DIR, 'server/static/new'),
-            static_folder=os.path.join(DIALBB_DIR, 'server/static/new/assets'))
+print(TEMPLATE_FOLDER)
+app = Flask(__name__, template_folder=TEMPLATE_FOLDER,
+            static_folder=os.path.join(TEMPLATE_FOLDER, 'assets'))
 
 app.config['JSON_AS_ASCII'] = False
 app.logger.propagate = False
@@ -90,12 +89,14 @@ def dialogue():
     return result
 
 
-def start_dialbb(config_file, port=8080):
+def start_dialbb(config_file: str, port: int) -> None:
+
     global app, logger, dialogue_processor
 
     dialogue_processor = DialogueProcessor(config_file)
     logger = get_logger("server")
     logger.propagate = False
+
     app.run(host="0.0.0.0", port=port)
 
 

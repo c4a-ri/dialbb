@@ -82,6 +82,10 @@ blocks:  # list of blocks
         - Single
         - You talk very friendly
         - Diplomatic and cheerful
+      cautions:
+        - Do not generate long sentences
+        - Do not put period at the end of sentences
+
 
     
     

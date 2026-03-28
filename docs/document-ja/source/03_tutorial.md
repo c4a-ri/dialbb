@@ -89,11 +89,12 @@ blocks:
       user_id: user_id
       user_utterance: user_utterance
       aux_data: aux_data
+      dialogue_history: dialogue_history
     output:
       system_utterance: system_utterance
       aux_data: aux_data
       final: final
-    first_system_utterance: "こんにちは．私の名前は由衣です．少しお話させてください．スイーツって好きですか？"
+    first_system_utterance: "こんにちは。私の名前は由衣。少しお話させてね。スイーツって好き？"
     prompt_template: prompt_template_ja.txt
     gpt_model: gpt-4o-mini
 ```
@@ -138,13 +139,33 @@ blocks:
 - スイーツが好きかどうか聞く
 - ユーザがスイーツが好きな場合，どんなスイーツが好きか聞く
 - ユーザがスイーツが好きでない場合，なんで好きじゃないのか聞く
+
+# 注意事項
+
+- あなたの名前や「ユーザ」を発話の先頭に入れないでください。
+- 「」はつけないでください。
+[[[
+{notes}
+]]]
+
 ```
 
-このプロンプトテンプレートと対話の履歴を用いて次のシステム発話を生成します。
+このプロンプトテンプレートにそれまでの対話の履歴をつけたものがChatGPTに送られてシステム発話が生成されます。
+
+```
+[[[
+{notes}
+]]]
+```
+の部分は通常使われずに削除されます。詳細な説明は省略します。
+
+
+
+
 
 (app_development_with_chatgpt_app)=
 
-### ChatGPTアプリケーションを利用したアプリケーション作成
+### ChatGPTアプリケーションを流用したアプリケーション作成
 
 このアプリケーションを流用して新しいアプリケーションを作るには以下のようにします．
 

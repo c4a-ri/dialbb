@@ -458,8 +458,8 @@ The context information is pre-set with the following key-value pairs.
 | _previous_system_utterance | previous system utterance (string)|
 | _dialogue_history | Dialogue history (list)|
 | _turns_in_state | The number of user turns in the current state (integer)|
-
-
+| _session_id | The session ID of the current conversation (string) |
+| _user_id | The user ID of the most recent user utterance (string) |
 
 The dialog history is in the following form.
 
@@ -535,7 +535,7 @@ For function calls, the functions can take arguments explained above as function
 
 ### Function Definitions
 
-Functions used in conditions and actions are either built-in to DialBB or defined by the developers.The function used in a condition returns a boolean value, while the function used in an action returns nothing.
+Functions used in conditions and actions (called "scenario functions" altogether)are either built-in to DialBB or defined by the developers. The function used in a condition returns a Boolean value, while the function used in an action returns nothing.
 
 
 #### Built-in functions
@@ -655,7 +655,7 @@ To use these functions, the following settings are required:
 
   - `instruction` (string)
 
-    This is used as the system role message when calling the ChatGPT API. It is only used during text generation.
+    This is used as the system role message when calling the ChatGPT API. It is only used during text generation. See [this](https://github.com/c4a-ri/dialbb/blob/main/dialbb/util/globals.py)default for the default value.
 
   - `temperature` (float)
 
@@ -675,6 +675,16 @@ To use these functions, the following settings are required:
     A list that enumerates the system persona to be written in the GPT prompt.
 
     If this element is absent, no specific persona is specified.
+
+
+  - `cautions` (list of strings)
+
+    A list of cautionary notes or warnings intended for the system to be written in the GPT prompt.
+
+    If this element is not present, no cautions are specified.
+
+    In the case of `check_with_llm`, even if this element exists, the cautions are not specified.
+
 
 
   e.g.:
@@ -698,6 +708,9 @@ To use these functions, the following settings are required:
         - Single
         - You talk very friendly
         - Diplomatic and cheerful
+      cautions:
+        - Do not generate long sentences
+        - Do not put period at the end of sentences
   ```
 
 `_check_with_prompt_template(prompt_template)` and `_generate_with_llm(prompt_template)` perform condition checking and text generation by providing prompts to a large language model.
@@ -726,6 +739,10 @@ Here are some examples:
 
   {persona}
 
+  # Cautions
+
+  {cautions}
+
   # Dialogue history up to now
 
   {dialogue_history}
@@ -748,6 +765,10 @@ Here are some examples:
   # Your persona
 
   {persona}
+
+  # Cautions
+
+  {cautions}
 
   # Dialogue history up to now
 
@@ -772,8 +793,20 @@ Here are some examples:
   - `{persona}`
     Replaced with the value of `persona` from the `chatgpt` element in the block configuration.
 
+  - `{cautions}`
+    Replaced with the value of `cautions` from the `chatgpt` element in the block configuration.
+
   - `{current_time}`
     Replaced with a string representing the current date, day of the week, and time (hour, minute, second) at which the dialogue is taking place.
+
+
+  - `{<a string consisting only of alphabets, digits, and underscores>}`
+
+     If the string exists as a key in aux_data, it is replaced with the corresponding value converted to a string.
+	
+- Placeholder removal
+
+  If an unreplaced placeholder remains and is enclosed in `[[[` and `]]]`, that portion will be removed.
 
 
 #### Syntax sugars for built-in functions
@@ -874,12 +907,37 @@ All arguments used in the scenario must be strings.
 In the case of a special variable or variables, the value of the variable is passed as an argument.
 In the case of a variable reference, the variable name without the `&`' is passed, and in the case of a constant, the string in `""` is passed.
 
+#### Logging in functions
+
+In scenario functions, logging can be performed using the following functions. The logs are written to standard output along with the session ID.
+
+- `dialbb.builtin_blocks.stn_management.util.scenario_function_log_debug(message: str)`
+   Writes a log at the debug level.
+- `dialbb.builtin_blocks.stn_management.util.scenario_function_log_info(message: str)`
+   Writes a log at the info level.
+- `dialbb.builtin_blocks.stn_management.util.scenario_function_log_warning(message: str)`
+   Writes a log at the warning level.
+- `dialbb.builtin_blocks.stn_management.util.scenario_function_log_error(message: str)`
+   Writes a log at the error level. In debug mode, this function also raises an Exception.
+
 ### Reaction
 
 In an action function, setting a string to `_reaction` in the context information will prepend that string to the system's response after the state transition.
 
 For example, if the action function `_set(&_reaction, "I agree.")` is executed and the system's response in the subsequent state is "How was the food?", then the system will return the response "I agree. How was the food?".
 
+(extract_aux_data)=
+
+### Extraction of aux_data from System Utterances
+
+When the output system utterance string ends with a segment in the format `(<key_1>: <value_1>,  <key_2>: <value_2>, ... <key_n>: <value_n>)`, this part is removed from the utterance string, and the corresponding data is added to the output’s `aux_data` as: `{"<key_1>": "<value_1>",  "<key_2>": "<value_2>", ... "<key_n>": "<value_n>"} (If a key already exists, the value is updated.) This mechanism can be used for client-side control.
+
+Example:
+
+- System utterance string: `"Hello! (emotion:happy)"`
+- Final system utterance: `"Hello"`,  Update to `aux_data`: `{"emotion": "happy"}`
+
+Each key must consist of a combination of letters, numbers, and underscores.
 
 ### Continuous Transition
 
@@ -899,35 +957,9 @@ It is also possible to transition to a subdialogue within a subdialogue.
 
 ### Saving Context Information in an External Database
 
-When operating the DialBB application as a web server, using a load balancer to distribute processing across multiple instances can handle request surges efficiently. By saving context information in an external database (MongoDB), a single session can be processed by different instances. (Feature added in version 0.10.0)
+When the configuration includes a `context_db` element, contextual information is stored in an external database (MongoDB). For details on how to specify `context_db`, please refer to {numref}`context_db`.
 
-To use an external database, specify `context_db` element like the following in the block configuration:
-
-```yaml
-context_db:
-  host: localhost
-  port: 27017
-  user: admin
-  password: password
-```
-
-Each key is defined as follows:
-
-- `host` (str)
-
-  The hostname where MongoDB is running.
-
-- `port` (int, default value: `27017`)
-
-  The port number used to access MongoDB.
-
-- `user` (str)
-
-  The username for accessing MongoDB.
-
-- `password` (str)
-
-  The password for accessing MongoDB.
+(In version 1.2, `context_db` was changed to be specified at the top level of the configuration rather than in the block configuration.)
 
 ### Advanced Mechanisms for Handling Speech Input
 
@@ -1027,16 +1059,16 @@ Engages in dialogue using OpenAI's ChatGPT.
 
   - `user_utterance`: Input string (string)
   - `aux_data`: Auxiliary data (dictionary).
-  - `user_id`: auxiliary data (dictionary)
+  - `user_id`: User ID (string)
+  - `dialogue_history`: Dialogue history (list of dictionaries)
 
 - Output
 
   - `system_utterance`: Input string (string)
   - `aux_data`: auxiliary data (dictionary type)
-  - `final`: boolean flag indicating whether the dialog is finished or not.
+  - `final`: Boolean flag indicating whether the dialog is finished or not.
 
-The inputs `aux_data` and `user_id` are not used.
-The output `aux_data` is the same as the input `aux_data` and `final` is always `False`.
+The input `user_id` is not used. The output `aux_data` is the same as the input `aux_data` and `final` is always `False`.
 
 When using these blocks, you need to set the OpenAI license key in the environment variable `OPENAI_API_KEY`.
 
@@ -1046,23 +1078,59 @@ When using these blocks, you need to set the OpenAI license key in the environme
 
    This is the first system utterance of the dialog.
 
-- `user_name`, `system_name`
+- `user_name` (string, default value is `"User"`.)
 
-   These were deprecated in ver. 1.1.
+   This string is used when providing conversation history to the ChatGPT prompt.
+   Deprecated in version 1.1.0, but reinstated in version 1.1.1.
+
+- `system_name` (string, default value is "System")
+
+   This string is used when providing conversation history to the ChatGPT prompt.
+   Deprecated in version 1.1.0, but reinstated in version 1.1.1.
 
 - `prompt_template` (string)
 
   This specifies the file of the prompt for making ChatGPT generate a system utterance as a relative path from the configuration file directory.
 
+- `temperature` (float, default value is `0.7`)
+
+  The temperature parameter when calling ChatGPT.
+
 - `gpt_model` (string, default value is `gpt-4o-mini`)
 
    Open AI GPT model. You can specify `gpt-4o`, `gpt-4o-mini` and so on. 
 
+- `instruction` (string, see [this](https://github.com/c4a-ri/dialbb/blob/main/dialbb/util/globals.py)default for the default value.)
+
+   The instruction to ChatGPT as system role message.
+
+
+### Place Holders in Prompt Templates
+
+- The following place holders can be used in prompt templates.
+
+  - `{current_time}`
+    Replaced with a string representing the current date, day of the week, and time (hour, minute, second) at which the dialogue is taking place.
+
+  - `{<a string consisting only of alphabets, digits, and underscores>}`
+
+     If the string exists as a key in aux_data, it is replaced with the corresponding value converted to a string.
+
+- Placeholder removal
+
+  If an unreplaced placeholder remains and is enclosed in `[[[` and `]]]`, that portion will be removed.
+
+- `{dialogue_history}` does not need to be specified in the templates.
+
+
 ### Process Details
 
 - At the beginning of the dialog, the value of `first_system_utterance` in the block configuration is returned as system utterance.
-
 - In the second and subsequent turns, the prompt template is given to ChatGPT and the returned string is returned as the system utterance.
+
+### Extraction of aux_data from System Utterances
+
+Same as {numref}`extract_aux_data`.
 
 
 (chatgpt_ner)=

@@ -234,6 +234,66 @@ then what can be referenced by `input['sentence']` in the block is `blackboard['
   If `blackboard` already has `system_utterance` as a key, the value is overwritten.
 
 
+## Retaining Dialogue History
+
+(Added in ver. 1.2)
+
+### Retaining Dialogue History in the Blackboard
+
+The `dialogue_history` element of `blackboard` stores dialogue history in the following format through internal processing of the main process:
+
+```JSON
+[
+  {
+    "speaker": "system",
+    "aux_data": <aux_data of the output. {} if aux_data is not included in the output>,
+    "utterance": <system utterance string>
+  },
+  {
+    "speaker": "user",
+    "user_id": <user_id of the input. "" if user_id is not included in the input>,
+    "aux_data": <aux_data of the input. {} if aux_data is not included in the input>,
+    "utterance": <user utterance string>
+  }
+  ...
+]
+```
+
+(context_db)=
+
+### Storing Dialogue History in an External Database
+
+When running the DialBB application as a web server, if requests become concentrated and processing is distributed across multiple instances using a load balancer, storing contextual information in an external database (MongoDB) allows a single session to be handled by different instances.
+
+To use an external database, specify the `context_db` element in the block configuration as follows:
+
+```yaml
+context_db:
+  host: localhost
+  port: 27017
+  user: admin
+  password: password
+```
+
+Each key is described below:
+
+- `host` (str)
+
+  The hostname where MongoDB is running.
+
+- `port` (int, default: `27017`)
+
+  The port number used to access MongoDB.
+
+- `user` (str)
+
+  The username for accessing MongoDB.
+
+- `password` (str)
+
+  The password for accessing MongoDB.
+
+
 ## How to make your own blocks
 
 Developers can create their own blocks.
@@ -281,7 +341,9 @@ blackboard is defined by the configuration (see "{ref}`configuration`"). `sessio
 
 ### Available Methods
 
-The following logging methods are available
+#### Logging
+
+The following logging methods are available:
 
 - `log_debug(self, message: str, session_id: str="unknown")`
 
@@ -290,7 +352,7 @@ The following logging methods are available
 
 - `log_info(self, message: str, session_id: str="unknown")`
 
-  Outputs info level logs to standard error output.
+  Outputs info-level logs to standard error output.
   
 - `log_warning(self, message: str, session_id: str="unknown")`
 
@@ -298,7 +360,9 @@ The following logging methods are available
 
 - `log_error(self, message: str, session_id: str="unknown")`
 
-  Outputs error-level logs to standard error output.
+  Outputs error-level logs to standard error output. In the debug mode mentioned below, an exception is raised.
+
+In the debug mode mentioned below, the log level is set to `debug`; otherwise, it defaults to `info`.
 
 
 ## Debug Mode

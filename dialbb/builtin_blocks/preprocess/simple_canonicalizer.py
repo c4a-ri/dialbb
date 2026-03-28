@@ -27,7 +27,7 @@ class SimpleCanonicalizer(AbstractCanonicalizer):
 
     def __init__(self, *args):
         super().__init__(*args)
-        self._whitespace_pattern = re.compile("\s+")
+        self._whitespace_pattern = re.compile(r"\s+")
 
     def canonicalize(self, input_text: str) -> str:
         """
