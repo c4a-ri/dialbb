@@ -94,6 +94,11 @@ pymongo = "4.11"
 google-generativeai = "0.8.5"
 pySide6 = "^6.6.0"
 pillow = "^12.0.0"
+google-cloud-speech = "^2.33.0"
+pyaudio = {version = "^0.2.14", markers = "platform_system != 'Windows'"}
+pyaudiowpatch = {version = "^0.2.12.7", markers = "platform_system == 'Windows'"}
+sounddevice = "^0.5.2"
+websocket-client = "^1.9.0"
 
 [build-system]
 requires = ["poetry-core"]
