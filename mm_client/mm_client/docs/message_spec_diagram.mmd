@@ -1,0 +1,35 @@
+flowchart LR
+  subgraph Threads[スレッドモジュール]
+    STT[ASRスレッド\nrun_stt_worker]
+    MAIN[メインスレッド\nMultimodalMainModule.run]
+    DIALBB[DialBBスレッド\nrun_dialbb_worker]
+    TTS[TTSスレッド\nrun_tts_worker]
+  end
+
+  Q1[(stt_event_queue\nQueue<RecognitionEvent>)]
+  Q2[(dialbb_request_queue\nQueue<DialbbRequest>)]
+  Q3[(dialbb_response_queue\nQueue<DialbbResponse>)]
+  Q4[(tts_request_queue\nQueue<TtsRequest>)]
+  Q5[(tts_result_queue\nQueue<TtsResult>)]
+
+  STT -->|送信| Q1
+  Q1 -->|受信| MAIN
+
+  MAIN -->|送信| Q2
+  Q2 -->|受信| DIALBB
+
+  DIALBB -->|送信| Q3
+  Q3 -->|受信| MAIN
+
+  MAIN -->|送信| Q4
+  Q4 -->|受信| TTS
+
+  TTS -->|送信| Q5
+  Q5 -->|受信| MAIN
+
+  MAIN -. stop_event .- STT
+  MAIN -. stop_event .- DIALBB
+  MAIN -. stop_event .- TTS
+
+  classDef thread fill:#e6f4ff,stroke:#5b8fb9,color:#1f2937;
+  class STT,MAIN,DIALBB,TTS thread;
