@@ -29,6 +29,10 @@ btn_load:
   ja: "読み込み"
   en: "Import"
 
+btn_add:
+  ja: "追加"
+  en: "Add"
+
 btn_dialbb_start:
   ja: "サーバ起動"
   en: "Start Server"
@@ -40,6 +44,14 @@ btn_dialbb_stop:
 btn_chat_start:
   ja: "対話開始"
   en: "Start dialogue"
+
+btn_test:
+  ja: "テスト"
+  en: "Test"
+
+btn_execute:
+  ja: "実行"
+  en: "Execute"
 
 btn_exit:
   ja: "終了"
@@ -155,13 +167,17 @@ msg_warn_no_file:
   ja: "ファイルが存在しません。"
   en: "File does not exist."
 
-msg_warn_no_saved:
-  ja: "シナリオデータが保存されていません。"
-  en: "Scenario data not saved."
+msg_warn_confirm:
+  ja: "確認"
+  en: "Confirmation"
 
 msg_warn_no_saved_detail:
-  ja: "必要ならエディターの[保存]ボタンを押してから、[OK]を押します。"
+  ja: "変更した場合は[保存]が必要です、このまま終了しますか？"
   en: "Press the editor's Save button if necessary, then press OK."
+
+msg_scn_load_confirm:
+  ja: "保存データをロードします。今までの修正は破棄されます"
+  en: "Load the saved data. Any unsaved changes will be discarded."
 
 msg_info_new_app:
   ja: "新規アプリケーションが作成されました。"
@@ -198,6 +214,10 @@ msg_warn_sys_node_no_transition_dest:
 msg_warn_sys_node_utter_empty:
   ja: "Warning: システムノード%sの発話が空です。"
   en: "Warning: The utterance for system node %s is empty."
+ 
+msg_warn_kind_duplicates:
+  ja: "Warning: 次のノード種別が複数存在します:\n%s"
+  en: "Warning: The following node kinds exist multiple times:\n%s"
 
 msg_warn_initial_node_exists:
   ja: "Warning: typeがinitialのシステムノードがありません。"
@@ -206,6 +226,10 @@ msg_warn_initial_node_exists:
 msg_warn_error_node_exists:
   ja: "Warning: typeがerrorのシステムノードがありません。"
   en: "Warning: Error system node has no type."
+
+msg_warn_forced_process_stop:
+  ja: "Warning: %sが残っていたので停止しました。"
+  en: "Warning: %s was still running so it was stopped."
 
 msg_chat_no_response:
   ja: "システム発話がありません。"
@@ -285,7 +309,7 @@ edt_list_title:
 
 # Config編集ダイアログ
 conf_edt_title:
-  ja: "コンフィグレーション"
+  ja: "コンフィギュレーション"
   en: "Edit Application"
 
 conf_edt_named_entity:
@@ -312,9 +336,17 @@ conf_edt_situation:
   ja: "状況:"
   en: "Situation:"
 
+conf_edt_prompt:
+  ja: "プロンプト:"
+  en: "Prompt:"
+
 conf_edt_persona:
   ja: "ペルソナ:"
   en: "Persona:"
+
+conf_edt_cautions:
+  ja: "注意事項:"
+  en: "Cautions:"
 
 # 関数編集ダイアログ
 func_edt_title:
@@ -337,4 +369,154 @@ editor_st_msg:
 editor_st_detail:
   ja: ""
   en: "Please access http://localhost:5000/\nPress \"Stop\" to stop the server."
+
+
+# Scenario editor (node editor)
+scn_node_edit_title:
+  ja: "ノード編集"
+  en: "Edit Node"
+
+scn_btn_save:
+  ja: "保存"
+  en: "Save"
+
+scn_form_node_type:
+  ja: "ノードタイプ:"
+  en: "Node Type:"
+
+scn_form_utterance:
+  ja: "発話:"
+  en: "Utterance:"
+
+scn_form_priority:
+  ja: "優先度（0以上の整数）:"
+  en: "Priority (integer >= 0):"
+
+scn_form_user_utterance_type:
+  ja: "ユーザ発話タイプ:"
+  en: "User Utterance Type:"
+
+scn_form_transition_condition:
+  ja: "遷移の条件:"
+  en: "Transition Condition:"
+
+scn_form_transition_action_advanced:
+  ja: "遷移時のアクション（上級者用）:"
+  en: "Action on Transition (Advanced):"
+
+scn_form_node_type_plain:
+  ja: "ノードタイプ"
+  en: "Node Type"
+
+scn_form_utterance_plain:
+  ja: "発話"
+  en: "Utterance"
+
+scn_form_priority_plain:
+  ja: "優先度"
+  en: "Priority"
+
+scn_form_user_utterance_type_plain:
+  ja: "発話タイプ"
+  en: "Utterance Type"
+
+scn_form_transition_condition_plain:
+  ja: "遷移の条件"
+  en: "Transition Condition"
+
+scn_form_transition_action_plain:
+  ja: "遷移時のアクション"
+  en: "Action on Transition"
+
+scn_menu_add_system:
+  ja: "システムノード追加"
+  en: "Add System Node"
+
+scn_menu_add_user:
+  ja: "ユーザノード追加"
+  en: "Add User Node"
+
+scn_node_label_system:
+  ja: "システム"
+  en: "System"
+
+scn_node_label_user:
+  ja: "ユーザ"
+  en: "User"
+
+scn_menu_align_connected_users:
+  ja: "接続先Userを優先度順に縦整列"
+  en: "Align connected Users by priority"
+
+scn_menu_delete:
+  ja: "削除"
+  en: "Delete"
+
+scn_title_export_warning:
+  ja: "エクスポート警告"
+  en: "Export Warning"
+
+scn_msg_export_warning_with_detail:
+  ja: "シナリオに警告があります。エクスポートを中止します。\n\n{detail}"
+  en: "There are warnings in the scenario. Export has been canceled.\n\n{detail}"
+
+scn_msg_export_aborted_with_detail:
+  ja: "エクスポートを中止しました。\n{detail}"
+  en: "Export has been canceled.\n{detail}"
+
+scn_title_export:
+  ja: "エクスポート"
+  en: "Export"
+
+scn_msg_export_done:
+  ja: "{path} にエクスポートしました"
+  en: "Exported to {path}"
+
+scn_title_import_error:
+  ja: "インポートエラー"
+  en: "Import Error"
+
+scn_title_save:
+  ja: "保存"
+  en: "Save"
+
+scn_msg_nothing_to_save:
+  ja: "保存する内容がありません"
+  en: "There is nothing to save."
+
+scn_msg_saved_to_path:
+  ja: "{path} に保存しました"
+  en: "Saved to {path}"
+
+scn_main_title:
+  ja: "DialBBシナリオエディタ"
+  en: "DialBB Scenario Editor"
+
+scn_toolbar_name:
+  ja: "ツール"
+  en: "Tools"
+
+scn_toolbar_save:
+  ja: "保存"
+  en: "Save"
+
+scn_toolbar_load:
+  ja: "再読み込み"
+  en: "Reload"
+
+scn_toolbar_align:
+  ja: "整列"
+  en: "Align"
+
+scn_toolbar_undo:
+  ja: "元に戻す"
+  en: "Undo"
+
+scn_toolbar_redo:
+  ja: "やり直し"
+  en: "Redo"
+
+scn_status_hint:
+  ja: "操作: 右クリック=追加/編集,  ダブルクリック=ノード編集,  コネクタドラッグ=接続,  Delete=削除,  Ctrl+Z/Y=Undo/Redo,  ホイール=ズーム,  中ボタン or Ctrl+ドラッグ=パン"
+  en: "Actions: Right click=add/edit, double click=node edit, connector drag=connect, Delete=remove, Ctrl+Z/Y=Undo/Redo, wheel=zoom, middle button or Ctrl+drag=pan"
 

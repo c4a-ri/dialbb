@@ -24,7 +24,7 @@ __author__ = 'Mikio Nakano'
 __copyright__ = 'C4A Research Institute, Inc.'
 
 import traceback
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Tuple
 import os
 import datetime
 import re
@@ -188,11 +188,16 @@ def builtin_num_turns_exceeds(threshold_str: str, context: Dict[str, Any]) -> bo
         return False
 
 
-def get_bullet_pointed_string(situation: List[str]) -> str:
+def stringify_items(items: List[str]) -> str:
+    """
+    Convert a listed items to a string to be embedded in a prompt
+    :param items: listed items
+    :return: the resulting string
+    """
 
     result = ""
-    for situation_element in situation:
-        result += f"- {situation_element}\n"
+    for item in items:
+        result += f"- {item}\n"
     return result
 
 
@@ -213,14 +218,15 @@ def builtin_num_turns_in_state_exceeds(threshold_str: str, context: Dict[str, An
     return True if context.get("_turns_in_state", 0) > threshold else False
 
 
-def create_prompt_in_default_format(task: str, language: str, persona: str, situation: str,
+def create_prompt_in_default_format(task: str, language: str, persona: str, situation: str, cautions: str,
                                     dialogue_history: List[Dict[str, Any]]) -> str:
     """
     create prompt for chatgpt-based generation/condition check in default format
     :param task: task specified in the scenario
     :param language:  'en', 'ja', ...
-    :param system_persona: persona specified in the configuration
+    :param persona: persona specified in the configuration
     :param situation: situation specified in the configuration
+    :param cautions: cautions specified in the configuration
     :param dialogue_history: dialogue history string
     :return: generated utterance or check result
     """
@@ -230,11 +236,13 @@ def create_prompt_in_default_format(task: str, language: str, persona: str, situ
     if language == 'ja':
         word_situation: str = "状況"
         word_your_persona: str = "あなたのペルソナ"
+        word_cautions: str = "注意事項"
         word_task: str = "タスク"
         word_dialogue_history: str = "今までの対話"
     else:
         word_situation: str = "Situation"
         word_your_persona: str = "Your persona"
+        word_cautions: str = "Cautions"
         word_task: str = "Task"
         word_dialogue_history: str = "Dialogue up to now"
 
@@ -246,6 +254,11 @@ def create_prompt_in_default_format(task: str, language: str, persona: str, situ
     if persona:
         prompt += f"# {word_your_persona}\n\n"
         prompt += persona
+        prompt += '\n'
+
+    if cautions:
+        prompt += f"# {word_cautions}\n\n"
+        prompt += cautions
         prompt += '\n'
 
     dialogue_history_string: str = create_dialogue_history_string(dialogue_history, language)
@@ -336,7 +349,7 @@ def get_current_time_string(language: str) -> str:
 
 
 def create_prompt_from_template(prompt_template: str,
-                                situation: str, persona: str,
+                                situation: str, persona: str, cautions: str,
                                 dialogue_history_string: str,
                                 language: str, aux_data: Dict[str, Any]) -> str:
     """
@@ -345,6 +358,7 @@ def create_prompt_from_template(prompt_template: str,
     :param dialogue_history_string: stringified dialouge history
     :param situation: stringified situation for chatgpt
     :param persona: stringified persona for chatgpt
+    :param cautions: stringified cautions for chatgpt
     :param language: 'ja', 'en', ...
     :param aux_data: aux_data from main module
     :return: prompt
@@ -355,9 +369,11 @@ def create_prompt_from_template(prompt_template: str,
     prompt = prompt.replace("{current_time}", get_current_time_string(language))
     prompt = prompt.replace("{persona}", persona)
     prompt = prompt.replace("{situation}", situation)
+    prompt = prompt.replace("{cautions}", cautions)
     prompt = prompt.replace("@dialogue_history@", dialogue_history_string)
     prompt = prompt.replace("@current_time@", get_current_time_string(language))
     prompt = prompt.replace("@persona@", persona)
+    prompt = prompt.replace("@cautions@", cautions)
     prompt = prompt.replace("@situation@", situation)
     for aux_data_key, aux_data_value in aux_data.items():
         prompt = prompt.replace("{" + aux_data_key + "}", str(aux_data_value))  # aux_data values replace their place holders
@@ -416,8 +432,8 @@ def builtin_generate_with_prompt_template(prompt_template: str, context: Dict[st
     dialogue_history: List[Dict[str, str]] = context['_dialogue_history']
     dialogue_history_string: str = create_dialogue_history_string(dialogue_history, language)
     aux_data = context['_aux_data']
-    situation, persona = get_situation_and_persona_from_config(context)
-    prompt: str = create_prompt_from_template(prompt_template, situation, persona,
+    situation, persona, cautions = get_prompt_elements_from_config(context)
+    prompt: str = create_prompt_from_template(prompt_template, situation, persona, cautions,
                                               dialogue_history_string, language, aux_data)
 
     scenario_function_log_debug("prompt for chatgpt: " + prompt, context)
@@ -429,20 +445,23 @@ def builtin_generate_with_prompt_template(prompt_template: str, context: Dict[st
     return generated_utterance
 
 
-def get_situation_and_persona_from_config(context: Dict[str, Any]) :
+def get_prompt_elements_from_config(context: Dict[str, Any]) -> Tuple[str, str, str]:
 
     # read chatgpt settings in the block config
     chatgpt_settings: Dict[str, Any] = context['_block_config'].get("chatgpt")
     if chatgpt_settings:
-        persona_list: List[str] = chatgpt_settings.get("persona")
-        persona = get_bullet_pointed_string(persona_list)
-        situation_list: List[str] = chatgpt_settings.get("situation")
-        situation = get_bullet_pointed_string(situation_list)
+        persona_list: List[str] = chatgpt_settings.get("persona", [])
+        persona: str = stringify_items(persona_list)
+        situation_list: List[str] = chatgpt_settings.get("situation", [])
+        situation:str = stringify_items(situation_list)
+        caution_list: List[str] = chatgpt_settings.get("cautions", [])
+        cautions: str = stringify_items(caution_list)
     else:
         persona: str = ""
         situation: str = ""
+        cautions: str = ""
 
-    return situation, persona
+    return situation, persona, cautions
 
 
 def builtin_check_with_prompt_template(prompt_template: str, context: Dict[str, Any]) -> bool:
@@ -461,8 +480,9 @@ def builtin_check_with_prompt_template(prompt_template: str, context: Dict[str, 
     dialogue_history: List[Dict[str, str]] = context['_dialogue_history']
     dialogue_history_string: str = create_dialogue_history_string(dialogue_history, language)
     aux_data = context['_aux_data']
-    situation, persona = get_situation_and_persona_from_config(context)
-    prompt: str = create_prompt_from_template(prompt_template, situation, persona,
+    situation, persona, cautions = get_prompt_elements_from_config(context)
+    # don't use cautions in checking
+    prompt: str = create_prompt_from_template(prompt_template, situation, persona, "",
                                               dialogue_history_string, language, aux_data)
     response = call_chatgpt(prompt, context, checking=True)
 
@@ -493,10 +513,10 @@ def builtin_generate_with_llm(task: str, context: Dict[str, Any]) -> str:
     else:
         task = task + "Please don't include your name."
 
-    situation, persona = get_situation_and_persona_from_config(context)
+    situation, persona, cautions = get_prompt_elements_from_config(context)
     dialogue_history: List[Dict[str, str]] = context['_dialogue_history']
 
-    prompt: str = create_prompt_in_default_format(task, language, persona, situation, dialogue_history)
+    prompt: str = create_prompt_in_default_format(task, language, persona, situation, cautions, dialogue_history)
     if DEBUG:
         print("prompt: \n" + prompt)
 
@@ -526,7 +546,7 @@ def builtin_check_with_llm(task: str, context: Dict[str, Any]) -> bool:
 
     language: str = context['_config'].get("language")
 
-    situation, persona = get_situation_and_persona_from_config(context)
+    situation, persona, cautions = get_prompt_elements_from_config(context)
 
     dialogue_history: List[Dict[str, str]] = context['_dialogue_history']
 
@@ -535,7 +555,7 @@ def builtin_check_with_llm(task: str, context: Dict[str, Any]) -> bool:
     else:
         task = task + "Please answer with yes or no."
 
-    prompt: str = create_prompt_in_default_format(task, language, persona, situation, dialogue_history)
+    prompt: str = create_prompt_in_default_format(task, language, persona, situation, cautions, dialogue_history)
 
     if DEBUG:
         print("prompt: \n" + prompt)

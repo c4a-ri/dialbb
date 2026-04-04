@@ -24,6 +24,7 @@ const keydown = (event: KeyboardEvent) => {
   textinput()
 }
 const textinput = async () => {
+  console.log(`textinput called`)
   const user_utterance = input_text.value
   if (user_utterance.length == 0) return
   console.log(`user utterance =${user_utterance}`)
@@ -39,6 +40,14 @@ const textinput = async () => {
   })
   input_text.value = ""
   scrollEnd();
+  // backend can request the frontend to clear/reload the chat window
+  if (res.data && res.data.aux_data && res.data.aux_data.clear_chat_window === 'yes') {
+    console.log('Server requested clear_chat_window -> reloading page.')
+    setTimeout(() => {
+      window.location.reload()
+    }, 5000)
+    return
+  }
 }
 const start = async () => {
   try {

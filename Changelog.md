@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.2.0 (2026.3.31)
+
+- No-code tool
+
+  - Python-based scenario editor
+
+  - Tester with a user simulator
+
+  - Cautions can be specified in the configuration editing window
+
+  - Default app changed
+
+- Additional information is extracted from system utterances and stored in aux_data
+
+- Main module changed to retain dialogue history
+
+- ChatGPT Dialogue built-in block
+
+  - Uses the dialogue history of the main module
+
+- STN Manager built-in block
+
+  Cautions for using ChatGPT can now be specified in the configuration
 
 ## 1.1.3 (2025.12.08)
 
@@ -7,13 +30,21 @@
 
 - ChatGPT Dialogue Builtin Block
 
-  - Allows to use gpt-5* other than gpt-5
+  - Using gpt-5* other than gpt-5
 
+  - Writing output aux_data in output sentence
+  
 - STN Manager Embedded Block
 
-  - Allows to use gpt-5* other than gpt-5
+  - Using gpt-5* other than gpt-5
 
-  - Allows to log in scenario functions
+  - Logging in scenario functions
+
+  - Writing output aux_data in output sentence
+
+- No-code tool
+
+  - LLM-based tester included
 
 ## 1.1.1 (2025.11.22)
 
