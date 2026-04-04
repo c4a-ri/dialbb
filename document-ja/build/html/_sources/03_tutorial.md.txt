@@ -89,11 +89,12 @@ blocks:
       user_id: user_id
       user_utterance: user_utterance
       aux_data: aux_data
+      dialogue_history: dialogue_history
     output:
       system_utterance: system_utterance
       aux_data: aux_data
       final: final
-    first_system_utterance: "こんにちは．私の名前は由衣です．少しお話させてください．スイーツって好きですか？"
+    first_system_utterance: "こんにちは。私の名前は由衣。少しお話させてね。スイーツって好き？"
     prompt_template: prompt_template_ja.txt
     gpt_model: gpt-4o-mini
 ```
@@ -164,7 +165,7 @@ blocks:
 
 (app_development_with_chatgpt_app)=
 
-### ChatGPTアプリケーションを利用したアプリケーション作成
+### ChatGPTアプリケーションを流用したアプリケーション作成
 
 このアプリケーションを流用して新しいアプリケーションを作るには以下のようにします．
 

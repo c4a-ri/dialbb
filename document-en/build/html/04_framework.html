@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>4. Framework Specifications &mdash; DialBB ver. 1.1 Document v1.1.0 documentation</title>
+  <title>4. Framework Specifications &mdash; DialBB ver. 1.2 Document v1.2.0 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -30,7 +30,7 @@
           
           
           <a href="index.html" class="icon icon-home">
-            DialBB ver. 1.1 Document
+            DialBB ver. 1.2 Document
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -63,17 +63,22 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#configuration">4.3. Configuration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#how-to-make-your-own-blocks">4.4. How to make your own blocks</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#methods-to-be-implemented">4.4.1. Methods to be Implemented</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#available-variables">4.4.2. Available Variables</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#available-methods">4.4.3. Available Methods</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#logging">4.4.3.1. Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#retaining-dialogue-history">4.4. Retaining Dialogue History</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#retaining-dialogue-history-in-the-blackboard">4.4.1. Retaining Dialogue History in the Blackboard</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#storing-dialogue-history-in-an-external-database">4.4.2. Storing Dialogue History in an External Database</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#how-to-make-your-own-blocks">4.5. How to make your own blocks</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#methods-to-be-implemented">4.5.1. Methods to be Implemented</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#available-variables">4.5.2. Available Variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#available-methods">4.5.3. Available Methods</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#logging">4.5.3.1. Logging</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#debug-mode">4.5. Debug Mode</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#test-using-test-scenarios">4.6. Test Using Test Scenarios</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#debug-mode">4.6. Debug Mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#test-using-test-scenarios">4.7. Test Using Test Scenarios</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="05_builtin_blocks.html">5. Built-in Block Classes</a></li>
@@ -86,7 +91,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">DialBB ver. 1.1 Document</a>
+          <a href="index.html">DialBB ver. 1.2 Document</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -298,12 +303,63 @@ then what can be referenced by <code class="docutils literal notranslate"><span 
 </li>
 </ul>
 </section>
+<section id="retaining-dialogue-history">
+<h2><span class="section-number">4.4. </span>Retaining Dialogue History<a class="headerlink" href="#retaining-dialogue-history" title="Permalink to this heading"></a></h2>
+<p>(Added in ver. 1.2)</p>
+<section id="retaining-dialogue-history-in-the-blackboard">
+<h3><span class="section-number">4.4.1. </span>Retaining Dialogue History in the Blackboard<a class="headerlink" href="#retaining-dialogue-history-in-the-blackboard" title="Permalink to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">dialogue_history</span></code> element of <code class="docutils literal notranslate"><span class="pre">blackboard</span></code> stores dialogue history in the following format through internal processing of the main process:</p>
+<div class="highlight-JSON notranslate"><div class="highlight"><pre><span></span>[
+  {
+    &quot;speaker&quot;: &quot;system&quot;,
+    &quot;aux_data&quot;: &lt;aux_data of the output. {} if aux_data is not included in the output&gt;,
+    &quot;utterance&quot;: &lt;system utterance string&gt;
+  },
+  {
+    &quot;speaker&quot;: &quot;user&quot;,
+    &quot;user_id&quot;: &lt;user_id of the input. &quot;&quot; if user_id is not included in the input&gt;,
+    &quot;aux_data&quot;: &lt;aux_data of the input. {} if aux_data is not included in the input&gt;,
+    &quot;utterance&quot;: &lt;user utterance string&gt;
+  }
+  ...
+]
+</pre></div>
+</div>
+</section>
+<section id="storing-dialogue-history-in-an-external-database">
+<span id="context-db"></span><h3><span class="section-number">4.4.2. </span>Storing Dialogue History in an External Database<a class="headerlink" href="#storing-dialogue-history-in-an-external-database" title="Permalink to this heading"></a></h3>
+<p>When running the DialBB application as a web server, if requests become concentrated and processing is distributed across multiple instances using a load balancer, storing contextual information in an external database (MongoDB) allows a single session to be handled by different instances.</p>
+<p>To use an external database, specify the <code class="docutils literal notranslate"><span class="pre">context_db</span></code> element in the block configuration as follows:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">context_db</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">host</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">localhost</span>
+<span class="w">  </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">27017</span>
+<span class="w">  </span><span class="nt">user</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">admin</span>
+<span class="w">  </span><span class="nt">password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">password</span>
+</pre></div>
+</div>
+<p>Each key is described below:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">host</span></code> (str)</p>
+<p>The hostname where MongoDB is running.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">port</span></code> (int, default: <code class="docutils literal notranslate"><span class="pre">27017</span></code>)</p>
+<p>The port number used to access MongoDB.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">user</span></code> (str)</p>
+<p>The username for accessing MongoDB.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">password</span></code> (str)</p>
+<p>The password for accessing MongoDB.</p>
+</li>
+</ul>
+</section>
+</section>
 <section id="how-to-make-your-own-blocks">
-<h2><span class="section-number">4.4. </span>How to make your own blocks<a class="headerlink" href="#how-to-make-your-own-blocks" title="Permalink to this heading"></a></h2>
+<h2><span class="section-number">4.5. </span>How to make your own blocks<a class="headerlink" href="#how-to-make-your-own-blocks" title="Permalink to this heading"></a></h2>
 <p>Developers can create their own blocks.</p>
 <p>The block class must be a descendant of <code class="docutils literal notranslate"><span class="pre">diabb.abstract_block.AbstractBlock</span></code>.</p>
 <section id="methods-to-be-implemented">
-<h3><span class="section-number">4.4.1. </span>Methods to be Implemented<a class="headerlink" href="#methods-to-be-implemented" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">4.5.1. </span>Methods to be Implemented<a class="headerlink" href="#methods-to-be-implemented" title="Permalink to this heading"></a></h3>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">__init__(self,</span> <span class="pre">*args)</span></code></p>
 <p>Constructor. It is defined as follows:</p>
@@ -322,7 +378,7 @@ blackboard is defined by the configuration (see “<a class="reference internal"
 </ul>
 </section>
 <section id="available-variables">
-<h3><span class="section-number">4.4.2. </span>Available Variables<a class="headerlink" href="#available-variables" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">4.5.2. </span>Available Variables<a class="headerlink" href="#available-variables" title="Permalink to this heading"></a></h3>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">self.config</span></code> (dictionary)</p>
 <p>This is a dictionary type data of the contents of the configuration. By referring to this data, it is possible to read in elements that have been added by the user.</p>
@@ -339,9 +395,9 @@ blackboard is defined by the configuration (see “<a class="reference internal"
 </ul>
 </section>
 <section id="available-methods">
-<h3><span class="section-number">4.4.3. </span>Available Methods<a class="headerlink" href="#available-methods" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">4.5.3. </span>Available Methods<a class="headerlink" href="#available-methods" title="Permalink to this heading"></a></h3>
 <section id="logging">
-<h4><span class="section-number">4.4.3.1. </span>Logging<a class="headerlink" href="#logging" title="Permalink to this heading"></a></h4>
+<h4><span class="section-number">4.5.3.1. </span>Logging<a class="headerlink" href="#logging" title="Permalink to this heading"></a></h4>
 <p>The following logging methods are available:</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">log_debug(self,</span> <span class="pre">message:</span> <span class="pre">str,</span> <span class="pre">session_id:</span> <span class="pre">str=&quot;unknown&quot;)</span></code></p>
@@ -362,12 +418,12 @@ blackboard is defined by the configuration (see “<a class="reference internal"
 </section>
 </section>
 <section id="debug-mode">
-<h2><span class="section-number">4.5. </span>Debug Mode<a class="headerlink" href="#debug-mode" title="Permalink to this heading"></a></h2>
+<h2><span class="section-number">4.6. </span>Debug Mode<a class="headerlink" href="#debug-mode" title="Permalink to this heading"></a></h2>
 <p>When the environment variable <code class="docutils literal notranslate"><span class="pre">DIALBB_DEBUG</span></code> is set to <code class="docutils literal notranslate"><span class="pre">yes</span></code> (case-insensitive) during Python startup, the program runs in debug mode. In this case, the value of <code class="docutils literal notranslate"><span class="pre">dialbb.main.DEBUG</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code>. This value can also be referenced in blocks created by the application developer.</p>
 <p>If <code class="docutils literal notranslate"><span class="pre">dialbb.main.DEBUG</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code>, the logging level is set to debug; otherwise it is set to info.</p>
 </section>
 <section id="test-using-test-scenarios">
-<h2><span class="section-number">4.6. </span>Test Using Test Scenarios<a class="headerlink" href="#test-using-test-scenarios" title="Permalink to this heading"></a></h2>
+<h2><span class="section-number">4.7. </span>Test Using Test Scenarios<a class="headerlink" href="#test-using-test-scenarios" title="Permalink to this heading"></a></h2>
 <p>The following commands can be used to test with test scenarios.</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python<span class="w"> </span>dialbb/util/test.py<span class="w"> </span>&lt;application<span class="w"> </span>configuration&gt;<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>&lt;<span class="nb">test</span><span class="w"> </span>scenario&gt;<span class="w"> </span><span class="o">[</span>--output<span class="w"> </span>&lt;output<span class="w"> </span>file&gt;<span class="o">]</span>

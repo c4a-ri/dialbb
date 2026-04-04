@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>5. Built-in Block Classes &mdash; DialBB ver. 1.1 Document v1.1.0 documentation</title>
+  <title>5. Built-in Block Classes &mdash; DialBB ver. 1.2 Document v1.2.0 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -30,7 +30,7 @@
           
           
           <a href="index.html" class="icon icon-home">
-            DialBB ver. 1.1 Document
+            DialBB ver. 1.2 Document
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -87,14 +87,15 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#reaction">5.4.7. Reaction</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#continuous-transition">5.4.8. Continuous Transition</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#dealing-with-multiple-language-understanding-results">5.4.9. Dealing with Multiple Language Understanding Results</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#subdialogue">5.4.10. Subdialogue</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#saving-context-information-in-an-external-database">5.4.11. Saving Context Information in an External Database</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#advanced-mechanisms-for-handling-speech-input">5.4.12. Advanced Mechanisms for Handling Speech Input</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#additional-block-configuration-parameters">5.4.12.1. Additional block configuration parameters</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#adding-built-in-condition-functions">5.4.12.2. Adding built-in condition functions</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#ignoring-the-last-incorrect-input">5.4.12.3. Ignoring the last incorrect input</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#extraction-of-aux-data-from-system-utterances">5.4.8. Extraction of aux_data from System Utterances</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#continuous-transition">5.4.9. Continuous Transition</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dealing-with-multiple-language-understanding-results">5.4.10. Dealing with Multiple Language Understanding Results</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subdialogue">5.4.11. Subdialogue</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#saving-context-information-in-an-external-database">5.4.12. Saving Context Information in an External Database</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#advanced-mechanisms-for-handling-speech-input">5.4.13. Advanced Mechanisms for Handling Speech Input</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#additional-block-configuration-parameters">5.4.13.1. Additional block configuration parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#adding-built-in-condition-functions">5.4.13.2. Adding built-in condition functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ignoring-the-last-incorrect-input">5.4.13.3. Ignoring the last incorrect input</a></li>
 </ul>
 </li>
 </ul>
@@ -104,22 +105,23 @@
 <li class="toctree-l3"><a class="reference internal" href="#id8">5.5.2. Block Configuration Parameters</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#place-holders-in-prompt-templates">5.5.3. Place Holders in Prompt Templates</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#id9">5.5.4. Process Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id10">5.5.5. Extraction of aux_data from System Utterances</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#chatgpt-ner-named-entity-recognition-block-using-chatgpt">5.6. ChatGPT NER (Named Entity Recognition Block Using ChatGPT)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#input-and-output">5.6.1. Input and Output</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id10">5.6.2. Block Configuration Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id11">5.6.2. Block Configuration Parameters</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#named-entity-knowledge">5.6.3. Named Entity Knowledge</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#id11">5.6.3.1. utterances Sheet</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id12">5.6.3.1. utterances Sheet</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#classes-sheet">5.6.3.2. classes Sheet</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#spacy-based-ner-named-entity-recognizer-block-using-spacy">5.7. spaCy-Based NER (Named Entity Recognizer Block using spaCy)</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id12">5.7.1. Input/Output</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id13">5.7.2. Block Configuration Parameters</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id14">5.7.3. Process Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id13">5.7.1. Input/Output</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id14">5.7.2. Block Configuration Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id15">5.7.3. Process Details</a></li>
 </ul>
 </li>
 </ul>
@@ -133,7 +135,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">DialBB ver. 1.1 Document</a>
+          <a href="index.html">DialBB ver. 1.2 Document</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -772,6 +774,11 @@ In a final state, the system generates a system utterance and terminates the dia
 <p>A list that enumerates the system persona to be written in the GPT prompt.</p>
 <p>If this element is absent, no specific persona is specified.</p>
 </li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cautions</span></code> (list of strings)</p>
+<p>A list of cautionary notes or warnings intended for the system to be written in the GPT prompt.</p>
+<p>If this element is not present, no cautions are specified.</p>
+<p>In the case of <code class="docutils literal notranslate"><span class="pre">check_with_llm</span></code>, even if this element exists, the cautions are not specified.</p>
+</li>
 </ul>
 <p>e.g.:</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="nt">chatgpt</span><span class="p">:</span>
@@ -792,6 +799,9 @@ In a final state, the system generates a system utterance and terminates the dia
 <span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Single</span>
 <span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">You talk very friendly</span>
 <span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Diplomatic and cheerful</span>
+<span class="w">    </span><span class="nt">cautions</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Do not generate long sentences</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Do not put period at the end of sentences</span>
 </pre></div>
 </div>
 </li>
@@ -817,6 +827,10 @@ The prompts are created by replacing the placeholders in the specified prompt te
 
 <span class="si">{persona}</span>
 
+<span class="s2"># Cautions</span>
+
+<span class="si">{cautions}</span>
+
 <span class="s2"># Dialogue history up to now</span>
 
 <span class="si">{dialogue_history}</span>
@@ -839,6 +853,10 @@ The prompts are created by replacing the placeholders in the specified prompt te
 
 <span class="si">{persona}</span>
 
+<span class="s2"># Cautions</span>
+
+<span class="si">{cautions}</span>
+
 <span class="s2"># Dialogue history up to now</span>
 
 <span class="si">{dialogue_history}</span>
@@ -859,6 +877,8 @@ Replaced with the dialogue up to that point, including the latest user utterance
 Replaced with the value of <code class="docutils literal notranslate"><span class="pre">situation</span></code> from the <code class="docutils literal notranslate"><span class="pre">chatgpt</span></code> element in the block configuration.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">{persona}</span></code>
 Replaced with the value of <code class="docutils literal notranslate"><span class="pre">persona</span></code> from the <code class="docutils literal notranslate"><span class="pre">chatgpt</span></code> element in the block configuration.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">{cautions}</span></code>
+Replaced with the value of <code class="docutils literal notranslate"><span class="pre">cautions</span></code> from the <code class="docutils literal notranslate"><span class="pre">chatgpt</span></code> element in the block configuration.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">{current_time}</span></code>
 Replaced with a string representing the current date, day of the week, and time (hour, minute, second) at which the dialogue is taking place.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">{&lt;a</span> <span class="pre">string</span> <span class="pre">consisting</span> <span class="pre">only</span> <span class="pre">of</span> <span class="pre">alphabets,</span> <span class="pre">digits,</span> <span class="pre">and</span> <span class="pre">underscores&gt;}</span></code></p>
@@ -962,52 +982,40 @@ Writes a log at the error level. In debug mode, this function also raises an Exc
 <p>In an action function, setting a string to <code class="docutils literal notranslate"><span class="pre">_reaction</span></code> in the context information will prepend that string to the system’s response after the state transition.</p>
 <p>For example, if the action function <code class="docutils literal notranslate"><span class="pre">_set(&amp;_reaction,</span> <span class="pre">&quot;I</span> <span class="pre">agree.&quot;)</span></code> is executed and the system’s response in the subsequent state is “How was the food?”, then the system will return the response “I agree. How was the food?”.</p>
 </section>
+<section id="extraction-of-aux-data-from-system-utterances">
+<span id="extract-aux-data"></span><h3><span class="section-number">5.4.8. </span>Extraction of aux_data from System Utterances<a class="headerlink" href="#extraction-of-aux-data-from-system-utterances" title="Permalink to this heading"></a></h3>
+<p>When the output system utterance string ends with a segment in the format <code class="docutils literal notranslate"><span class="pre">(&lt;key_1&gt;:</span> <span class="pre">&lt;value_1&gt;,</span>&#160; <span class="pre">&lt;key_2&gt;:</span> <span class="pre">&lt;value_2&gt;,</span> <span class="pre">...</span> <span class="pre">&lt;key_n&gt;:</span> <span class="pre">&lt;value_n&gt;)</span></code>, this part is removed from the utterance string, and the corresponding data is added to the output’s <code class="docutils literal notranslate"><span class="pre">aux_data</span></code> as: `{“&lt;key_1&gt;”: “&lt;value_1&gt;”,  “&lt;key_2&gt;”: “&lt;value_2&gt;”, … “&lt;key_n&gt;”: “&lt;value_n&gt;”} (If a key already exists, the value is updated.) This mechanism can be used for client-side control.</p>
+<p>Example:</p>
+<ul class="simple">
+<li><p>System utterance string: <code class="docutils literal notranslate"><span class="pre">&quot;Hello!</span> <span class="pre">(emotion:happy)&quot;</span></code></p></li>
+<li><p>Final system utterance: <code class="docutils literal notranslate"><span class="pre">&quot;Hello&quot;</span></code>,  Update to <code class="docutils literal notranslate"><span class="pre">aux_data</span></code>: <code class="docutils literal notranslate"><span class="pre">{&quot;emotion&quot;:</span> <span class="pre">&quot;happy&quot;}</span></code></p></li>
+</ul>
+<p>Each key must consist of a combination of letters, numbers, and underscores.</p>
+</section>
 <section id="continuous-transition">
-<h3><span class="section-number">5.4.8. </span>Continuous Transition<a class="headerlink" href="#continuous-transition" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">5.4.9. </span>Continuous Transition<a class="headerlink" href="#continuous-transition" title="Permalink to this heading"></a></h3>
 <p>If a transition is made to a state where the first system utterance is <code class="docutils literal notranslate"><span class="pre">$skip</span></code>, the next transition is made immediately without returning a system response. This is used in cases where the second transition is selected based on the result of the action of the first transition.</p>
 </section>
 <section id="dealing-with-multiple-language-understanding-results">
-<h3><span class="section-number">5.4.9. </span>Dealing with Multiple Language Understanding Results<a class="headerlink" href="#dealing-with-multiple-language-understanding-results" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">5.4.10. </span>Dealing with Multiple Language Understanding Results<a class="headerlink" href="#dealing-with-multiple-language-understanding-results" title="Permalink to this heading"></a></h3>
 <p>If the input <code class="docutils literal notranslate"><span class="pre">nlu_result</span></code> is a list that contains multiple language understanding results, the process is as follows.</p>
 <p>Starting from the top of the list, check whether the <code class="docutils literal notranslate"><span class="pre">type</span></code> value of a candidate language understanding result is equal to the <code class="docutils literal notranslate"><span class="pre">user</span> <span class="pre">utterance</span> <span class="pre">type</span></code> value of one of the possible transitions from the current state, and use the candidate language understanding result if there is an equal transition. If none of the candidate language comprehension results meet the above conditions, the first language comprehension result in the list is used.</p>
 </section>
 <section id="subdialogue">
-<h3><span class="section-number">5.4.10. </span>Subdialogue<a class="headerlink" href="#subdialogue" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">5.4.11. </span>Subdialogue<a class="headerlink" href="#subdialogue" title="Permalink to this heading"></a></h3>
 <p>If the destination state name is of the form <code class="docutils literal notranslate"><span class="pre">#gosub:&lt;state</span> <span class="pre">name1&gt;:&lt;state</span> <span class="pre">name2&gt;</span></code>, it transitions to the state <code class="docutils literal notranslate"><span class="pre">&lt;state</span> <span class="pre">name1&gt;</span></code> and executes a subdialogue starting there. If the destination state is <code class="docutils literal notranslate"><span class="pre">:exit</span></code>, it moves to the state <code class="docutils literal notranslate"><span class="pre">&lt;state</span> <span class="pre">name2&gt;</span></code>.
 For example, if the destination state name is of the form <code class="docutils literal notranslate"><span class="pre">#gosub:request_confirmation:confirmed</span></code>, a subdialogue starting with <code class="docutils literal notranslate"><span class="pre">request_confirmatin</span></code> is executed, and when the destination state becomes <code class="docutils literal notranslate"><span class="pre">:exit</span></code>, it returns to <code class="docutils literal notranslate"><span class="pre">confirmed</span></code>. When the destination becomes <code class="docutils literal notranslate"><span class="pre">:exit</span></code>, it returns to <code class="docutils literal notranslate"><span class="pre">confirmed</span></code>.
 It is also possible to transition to a subdialogue within a subdialogue.</p>
 </section>
 <section id="saving-context-information-in-an-external-database">
-<h3><span class="section-number">5.4.11. </span>Saving Context Information in an External Database<a class="headerlink" href="#saving-context-information-in-an-external-database" title="Permalink to this heading"></a></h3>
-<p>When operating the DialBB application as a web server, using a load balancer to distribute processing across multiple instances can handle request surges efficiently. By saving context information in an external database (MongoDB), a single session can be processed by different instances. (Feature added in version 0.10.0)</p>
-<p>To use an external database, specify <code class="docutils literal notranslate"><span class="pre">context_db</span></code> element like the following in the block configuration:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">context_db</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">host</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">localhost</span>
-<span class="w">  </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">27017</span>
-<span class="w">  </span><span class="nt">user</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">admin</span>
-<span class="w">  </span><span class="nt">password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">password</span>
-</pre></div>
-</div>
-<p>Each key is defined as follows:</p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">host</span></code> (str)</p>
-<p>The hostname where MongoDB is running.</p>
-</li>
-<li><p><code class="docutils literal notranslate"><span class="pre">port</span></code> (int, default value: <code class="docutils literal notranslate"><span class="pre">27017</span></code>)</p>
-<p>The port number used to access MongoDB.</p>
-</li>
-<li><p><code class="docutils literal notranslate"><span class="pre">user</span></code> (str)</p>
-<p>The username for accessing MongoDB.</p>
-</li>
-<li><p><code class="docutils literal notranslate"><span class="pre">password</span></code> (str)</p>
-<p>The password for accessing MongoDB.</p>
-</li>
-</ul>
+<h3><span class="section-number">5.4.12. </span>Saving Context Information in an External Database<a class="headerlink" href="#saving-context-information-in-an-external-database" title="Permalink to this heading"></a></h3>
+<p>When the configuration includes a <code class="docutils literal notranslate"><span class="pre">context_db</span></code> element, contextual information is stored in an external database (MongoDB). For details on how to specify <code class="docutils literal notranslate"><span class="pre">context_db</span></code>, please refer to <a class="reference internal" href="04_framework.html#context-db"><span class="std std-numref">Section 4.4.2</span></a>.</p>
+<p>(In version 1.2, <code class="docutils literal notranslate"><span class="pre">context_db</span></code> was changed to be specified at the top level of the configuration rather than in the block configuration.)</p>
 </section>
 <section id="advanced-mechanisms-for-handling-speech-input">
-<h3><span class="section-number">5.4.12. </span>Advanced Mechanisms for Handling Speech Input<a class="headerlink" href="#advanced-mechanisms-for-handling-speech-input" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">5.4.13. </span>Advanced Mechanisms for Handling Speech Input<a class="headerlink" href="#advanced-mechanisms-for-handling-speech-input" title="Permalink to this heading"></a></h3>
 <section id="additional-block-configuration-parameters">
-<h4><span class="section-number">5.4.12.1. </span>Additional block configuration parameters<a class="headerlink" href="#additional-block-configuration-parameters" title="Permalink to this heading"></a></h4>
+<h4><span class="section-number">5.4.13.1. </span>Additional block configuration parameters<a class="headerlink" href="#additional-block-configuration-parameters" title="Permalink to this heading"></a></h4>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">input_confidence_threshold</span></code> (float; default value <code class="docutils literal notranslate"><span class="pre">1.0</span></code>)
 If the input is a speech recognition result and its confidence is less than this value, the confidence is considered low. The confidence of the input is the value of <code class="docutils literal notranslate"><span class="pre">confidence</span></code> in <code class="docutils literal notranslate"><span class="pre">aux_data</span></code>. If there is no <code class="docutils literal notranslate"><span class="pre">confidence</span></code> key in <code class="docutils literal notranslate"><span class="pre">aux_data</span></code>, the confidence is considered high. In the case of low confidence, the process depends on the value of the parameter described below.</p></li>
@@ -1049,7 +1057,7 @@ Then, the next process is performed in response to the user’s utterance.</p>
 </ul>
 </section>
 <section id="adding-built-in-condition-functions">
-<h4><span class="section-number">5.4.12.2. </span>Adding built-in condition functions<a class="headerlink" href="#adding-built-in-condition-functions" title="Permalink to this heading"></a></h4>
+<h4><span class="section-number">5.4.13.2. </span>Adding built-in condition functions<a class="headerlink" href="#adding-built-in-condition-functions" title="Permalink to this heading"></a></h4>
 <p>The following built-in condition functions have been added</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">_confidence_is_low()</span></code></p>
@@ -1061,7 +1069,7 @@ Then, the next process is performed in response to the user’s utterance.</p>
 </ul>
 </section>
 <section id="ignoring-the-last-incorrect-input">
-<h4><span class="section-number">5.4.12.3. </span>Ignoring the last incorrect input<a class="headerlink" href="#ignoring-the-last-incorrect-input" title="Permalink to this heading"></a></h4>
+<h4><span class="section-number">5.4.13.3. </span>Ignoring the last incorrect input<a class="headerlink" href="#ignoring-the-last-incorrect-input" title="Permalink to this heading"></a></h4>
 <p>If the value of <code class="docutils literal notranslate"><span class="pre">rewind</span></code> in the input <code class="docutils literal notranslate"><span class="pre">aux_data</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code>, a transition is made from the state before the last response.
 Any changes to the dialog context due to actions taken during the previous response will also be undone.
 This function is used when a user utterance is accidentally split in the middle during speech recognition and only the first half of the utterance is responded to.</p>
@@ -1081,14 +1089,15 @@ This function is used when a user utterance is accidentally split in the middle 
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">user_utterance</span></code>: Input string (string)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">aux_data</span></code>: Auxiliary data (dictionary).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">user_id</span></code>: auxiliary data (dictionary)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">user_id</span></code>: User ID (string)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dialogue_history</span></code>: Dialogue history (list of dictionaries)</p></li>
 </ul>
 </li>
 <li><p>Output</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">system_utterance</span></code>: Input string (string)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">aux_data</span></code>: auxiliary data (dictionary type)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">final</span></code>: boolean flag indicating whether the dialog is finished or not.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">final</span></code>: Boolean flag indicating whether the dialog is finished or not.</p></li>
 </ul>
 </li>
 </ul>
@@ -1113,7 +1122,7 @@ Deprecated in version 1.1.0, but reinstated in version 1.1.1.</p>
 <p>This specifies the file of the prompt for making ChatGPT generate a system utterance as a relative path from the configuration file directory.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">temperature</span></code> (float, default value is <code class="docutils literal notranslate"><span class="pre">0.7</span></code>)</p>
-<p>THe temperature parameter when calling ChatGPT.</p>
+<p>The temperature parameter when calling ChatGPT.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">gpt_model</span></code> (string, default value is <code class="docutils literal notranslate"><span class="pre">gpt-4o-mini</span></code>)</p>
 <p>Open AI GPT model. You can specify <code class="docutils literal notranslate"><span class="pre">gpt-4o</span></code>, <code class="docutils literal notranslate"><span class="pre">gpt-4o-mini</span></code> and so on.</p>
@@ -1138,6 +1147,7 @@ Replaced with a string representing the current date, day of the week, and time 
 <li><p>Placeholder removal</p>
 <p>If an unreplaced placeholder remains and is enclosed in <code class="docutils literal notranslate"><span class="pre">[[[</span></code> and <code class="docutils literal notranslate"><span class="pre">]]]</span></code>, that portion will be removed.</p>
 </li>
+<li><p><code class="docutils literal notranslate"><span class="pre">{dialogue_history}</span></code> does not need to be specified in the templates.</p></li>
 </ul>
 </section>
 <section id="id9">
@@ -1146,6 +1156,10 @@ Replaced with a string representing the current date, day of the week, and time 
 <li><p>At the beginning of the dialog, the value of <code class="docutils literal notranslate"><span class="pre">first_system_utterance</span></code> in the block configuration is returned as system utterance.</p></li>
 <li><p>In the second and subsequent turns, the prompt template is given to ChatGPT and the returned string is returned as the system utterance.</p></li>
 </ul>
+</section>
+<section id="id10">
+<h3><span class="section-number">5.5.5. </span>Extraction of aux_data from System Utterances<a class="headerlink" href="#id10" title="Permalink to this heading"></a></h3>
+<p>Same as <a class="reference internal" href="#extract-aux-data"><span class="std std-numref">Section 5.4.8</span></a>.</p>
 </section>
 </section>
 <section id="chatgpt-ner-named-entity-recognition-block-using-chatgpt">
@@ -1182,8 +1196,8 @@ Replaced with a string representing the current date, day of the week, and time 
 </li>
 </ul>
 </section>
-<section id="id10">
-<h3><span class="section-number">5.6.2. </span>Block Configuration Parameters<a class="headerlink" href="#id10" title="Permalink to this heading"></a></h3>
+<section id="id11">
+<h3><span class="section-number">5.6.2. </span>Block Configuration Parameters<a class="headerlink" href="#id11" title="Permalink to this heading"></a></h3>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">knowledge_file</span></code> (String)</p>
 <p>Specifies the Excel file containing named entity knowledge. The file path should be relative to the directory where the configuration file is located.</p>
@@ -1239,8 +1253,8 @@ Replaced with a string representing the current date, day of the week, and time 
 </tbody>
 </table>
 <p>Although the sheet names can be changed in the block configuration, this is rarely needed, so detailed explanations are omitted.</p>
-<section id="id11">
-<h4><span class="section-number">5.6.3.1. </span>utterances Sheet<a class="headerlink" href="#id11" title="Permalink to this heading"></a></h4>
+<section id="id12">
+<h4><span class="section-number">5.6.3.1. </span>utterances Sheet<a class="headerlink" href="#id12" title="Permalink to this heading"></a></h4>
 <p>Each row consists of the following columns:</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">flag</span></code></p>
@@ -1286,8 +1300,8 @@ Replaced with a string representing the current date, day of the week, and time 
 <span id="spacy-ner"></span><h2><span class="section-number">5.7. </span>spaCy-Based NER (Named Entity Recognizer Block using spaCy)<a class="headerlink" href="#spacy-based-ner-named-entity-recognizer-block-using-spacy" title="Permalink to this heading"></a></h2>
 <p>(<code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.ner_with_spacy.ne_recognizer.SpaCyNER</span></code>)</p>
 <p>Performs named entity recognition using <a class="reference external" href="https://spacy.io">spaCy</a> and <a class="reference external" href="https://megagonlabs.github.io/ginza/">GiNZA</a>.</p>
-<section id="id12">
-<h3><span class="section-number">5.7.1. </span>Input/Output<a class="headerlink" href="#id12" title="Permalink to this heading"></a></h3>
+<section id="id13">
+<h3><span class="section-number">5.7.1. </span>Input/Output<a class="headerlink" href="#id13" title="Permalink to this heading"></a></h3>
 <ul>
 <li><p>Input</p>
 <ul class="simple">
@@ -1325,8 +1339,8 @@ Replaced with a string representing the current date, day of the week, and time 
 <li><p><code class="docutils literal notranslate"><span class="pre">en_core_web_trf</span></code> (3.5.0): <a class="reference external" href="https://huggingface.co/spacy/en_core_web_trfhttps://pypi.org/project/ja-ginza-electra/">https://spacy.io/models/en#en_core_web_trf-labels</a></p></li>
 </ul>
 </section>
-<section id="id13">
-<h3><span class="section-number">5.7.2. </span>Block Configuration Parameters<a class="headerlink" href="#id13" title="Permalink to this heading"></a></h3>
+<section id="id14">
+<h3><span class="section-number">5.7.2. </span>Block Configuration Parameters<a class="headerlink" href="#id14" title="Permalink to this heading"></a></h3>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">model</span></code> (String: Required)</p>
 <p>The name of the spaCy/GiNZA model. It can be <code class="docutils literal notranslate"><span class="pre">ja_ginza_electra</span></code> (Japanese), <code class="docutils literal notranslate"><span class="pre">en_core_web_trf</span></code> (English), etc.</p>
@@ -1344,8 +1358,8 @@ Replaced with a string representing the current date, day of the week, and time 
 </li>
 </ul>
 </section>
-<section id="id14">
-<h3><span class="section-number">5.7.3. </span>Process Details<a class="headerlink" href="#id14" title="Permalink to this heading"></a></h3>
+<section id="id15">
+<h3><span class="section-number">5.7.3. </span>Process Details<a class="headerlink" href="#id15" title="Permalink to this heading"></a></h3>
 <p>Extracts the named entities in <code class="docutils literal notranslate"><span class="pre">input_text</span></code> using spaCy/GiNZA and returns the result in <code class="docutils literal notranslate"><span class="pre">aux_data</span></code>.</p>
 </section>
 </section>

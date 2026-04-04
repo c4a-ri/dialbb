@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>3. チュートリアル &mdash; DialBB ver. 1.1 ドキュメント v1.1.0 ドキュメント</title>
+  <title>3. チュートリアル &mdash; DialBB ver. 1.2 ドキュメント v1.2.0 ドキュメント</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -31,7 +31,7 @@
           
           
           <a href="index.html" class="icon icon-home">
-            DialBB ver. 1.1 ドキュメント
+            DialBB ver. 1.2 ドキュメント
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -54,7 +54,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#chatgpt">3.3. ChatGPT対話アプリケーション</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#id6">3.3.1. 説明</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#app-development-with-chatgpt-app">3.3.2. ChatGPTアプリケーションを利用したアプリケーション作成</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#app-development-with-chatgpt-app">3.3.2. ChatGPTアプリケーションを流用したアプリケーション作成</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#id8">3.4. シンプルアプリケーション</a><ul>
@@ -118,7 +118,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">DialBB ver. 1.1 ドキュメント</a>
+          <a href="index.html">DialBB ver. 1.2 ドキュメント</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -204,11 +204,12 @@
 <span class="w">      </span><span class="nt">user_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">user_id</span>
 <span class="w">      </span><span class="nt">user_utterance</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">user_utterance</span>
 <span class="w">      </span><span class="nt">aux_data</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aux_data</span>
+<span class="w">      </span><span class="nt">dialogue_history</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dialogue_history</span>
 <span class="w">    </span><span class="nt">output</span><span class="p">:</span>
 <span class="w">      </span><span class="nt">system_utterance</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">system_utterance</span>
 <span class="w">      </span><span class="nt">aux_data</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aux_data</span>
 <span class="w">      </span><span class="nt">final</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">final</span>
-<span class="w">    </span><span class="nt">first_system_utterance</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;こんにちは．私の名前は由衣です．少しお話させてください．スイーツって好きですか？&quot;</span>
+<span class="w">    </span><span class="nt">first_system_utterance</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;こんにちは。私の名前は由衣。少しお話させてね。スイーツって好き？&quot;</span>
 <span class="w">    </span><span class="nt">prompt_template</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prompt_template_ja.txt</span>
 <span class="w">    </span><span class="nt">gpt_model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpt-4o-mini</span>
 </pre></div>
@@ -267,7 +268,7 @@
 <p>の部分は通常使われずに削除されます。詳細な説明は省略します。</p>
 </section>
 <section id="app-development-with-chatgpt-app">
-<span id="id7"></span><h3><span class="section-number">3.3.2. </span>ChatGPTアプリケーションを利用したアプリケーション作成<a class="headerlink" href="#app-development-with-chatgpt-app" title="この見出しへのパーマリンク"></a></h3>
+<span id="id7"></span><h3><span class="section-number">3.3.2. </span>ChatGPTアプリケーションを流用したアプリケーション作成<a class="headerlink" href="#app-development-with-chatgpt-app" title="この見出しへのパーマリンク"></a></h3>
 <p>このアプリケーションを流用して新しいアプリケーションを作るには以下のようにします．</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">sample_apps/chatgpt</span></code>をディレクトリ毎コピーします．DialBBのディレクトリとは全く関係ないディレクトリで構いません．</p></li>
@@ -640,7 +641,7 @@
 <p>STN Managerブロックで用いるプログラムです</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">test_requests.json</span></code></p>
-<p>テストリクエスト（<a class="reference internal" href="04_framework.html#test-requests"><span class="std std-numref">4.7 章</span></a>）のファイルです．</p>
+<p>テストリクエスト（<a class="reference internal" href="04_framework.html#test-requests"><span class="std std-numref">4.8 章</span></a>）のファイルです．</p>
 </li>
 </ul>
 </section>
@@ -833,7 +834,7 @@ $$$
 <span class="w">  </span><span class="nt">action</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">repeat</span>
 </pre></div>
 </div>
-<p>これらの意味は<a class="reference internal" href="05_builtin_blocks.html#handling-speech-input"><span class="std std-numref">5.5.11 章</span></a>を見てください．</p>
+<p>これらの意味は<a class="reference internal" href="05_builtin_blocks.html#handling-speech-input"><span class="std std-numref">5.5.12 章</span></a>を見てください．</p>
 <p><code class="docutils literal notranslate"><span class="pre">test_requests.json</span></code>には音声入力に対応した入力の例が入っています．</p>
 </section>
 </section>
