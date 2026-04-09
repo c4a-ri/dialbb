@@ -6,7 +6,8 @@ authors = ["Mikio Nakano <mikio.nakano@c4a.jp>"]
 readme = "README.md"
 
 packages = [
-    { include = "dialbb" }
+    { include = "dialbb" },
+    { include = "mm_client", from = "mm_client" },
 ]
 include = [
 ]

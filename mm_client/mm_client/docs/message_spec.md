@@ -4,13 +4,27 @@
 
 本書は、マルチモーダルクライアントにおけるモジュール／スレッド間のメッセージ契約と、queue.Queue を用いた通信方式を定義する。
 
-対象実装ファイル:
-- start_multimodal_client.py
-- asr/google_stt_client.py
-- main/main_module.py
-- main/dialbb_client.py
-- tts/speech_synthesizer.py
-- main/messages.py
+## 1.1 基本の仕組み
+
+本モジュールは「4つのスレッド」と「5つの Queue」で構成される。
+
+- STTスレッド: 音声認識結果を生成する（RecognitionEvent）。
+- MAINスレッド: 全体の司令塔。認識結果を受けて対話要求を作り、応答をTTSへ渡す。
+- DialBBスレッド: DialogueProcessor を呼び出して対話応答を生成する。
+- TTSスレッド: 音声合成を実行する（現状はスタブ）。
+
+<br>
+
+Queue はスレッド間のメッセージ受け渡し口であり、非同期に安全な連携を実現する。
+- stt_event_queue: STT -> MAIN に RecognitionEvent を渡す。
+- dialbb_request_queue: MAIN -> DialBB に DialbbRequest を渡す。
+- dialbb_response_queue: DialBB -> MAIN に DialbbResponse を渡す。
+- tts_request_queue: MAIN -> TTS に TtsRequest を渡す。
+- tts_result_queue: TTS -> MAIN に TtsResult を渡す。
+
+特に stt_event_queue は、認識中イベント（partial）、確定イベント（final）、開始/終了イベント、エラーイベントを MAIN に順序付きで届けるための中核 Queue である。
+
+停止は stop_event で全スレッド共通管理する。MAIN が終了語やエラーを検知すると stop_event をセットし、全ワーカはこれを監視して終了する。
 
 ## 2. スレッド・Queue 構成
 
@@ -23,26 +37,26 @@ flowchart LR
     TTS[TTSスレッド\nrun_tts_worker]
   end
 
-  Q1[(stt_event_queue\nQueue<RecognitionEvent>)]
-  Q2[(dialbb_request_queue\nQueue<DialbbRequest>)]
-  Q3[(dialbb_response_queue\nQueue<DialbbResponse>)]
-  Q4[(tts_request_queue\nQueue<TtsRequest>)]
-  Q5[(tts_result_queue\nQueue<TtsResult>)]
+  Q1[(Q1: stt_event_queue\nQueue<RecognitionEvent>)]
+  Q2[(Q2: dialbb_request_queue\nQueue<DialbbRequest>)]
+  Q3[(Q3: dialbb_response_queue\nQueue<DialbbResponse>)]
+  Q4[(Q4: tts_request_queue\nQueue<TtsRequest>)]
+  Q5[(Q5: tts_result_queue\nQueue<TtsResult>)]
 
-  STT -->|送信| Q1
-  Q1 -->|受信| MAIN
+  STT -->|RecognitionEvent| Q1
+  Q1 -->|RecognitionEvent| MAIN
 
-  MAIN -->|送信| Q2
-  Q2 -->|受信| DIALBB
+  MAIN -->|DialbbRequest| Q2
+  Q2 -->|DialbbRequest| DIALBB
 
-  DIALBB -->|送信| Q3
-  Q3 -->|受信| MAIN
+  DIALBB -->|DialbbResponse| Q3
+  Q3 -->|DialbbResponse| MAIN
 
-  MAIN -->|送信| Q4
-  Q4 -->|受信| TTS
+  MAIN -->|TtsRequest| Q4
+  Q4 -->|TtsRequest| TTS
 
-  TTS -->|送信| Q5
-  Q5 -->|受信| MAIN
+  TTS -->|TtsResult| Q5
+  Q5 -->|TtsResult| MAIN
 
   MAIN -. stop_event .- STT
   MAIN -. stop_event .- DIALBB
@@ -52,16 +66,20 @@ flowchart LR
   class STT,MAIN,DIALBB,TTS thread;
 ```
 
+注: STT -> MAIN の RecognitionEvent には speech_started / partial_transcript / speech_ended / final_transcript / error が含まれる。
+
 ## 3. メッセージ型定義
 
 ### 3.1 RecognitionEventType（列挙体）
-- speech_started
-- speech_ended
-- partial_transcript
-- final_transcript
-- error
+- speech_started: 音声区間の開始を検知したイベント（発話開始通知）。
+- speech_ended: 音声区間の終了を検知したイベント（発話終了通知）。
+- partial_transcript: 認識途中の中間テキストを通知するイベント。
+- final_transcript: 認識が確定した最終テキストを通知するイベント。
+- error: 音声認識処理中の例外・失敗を通知するイベント。
 
 ### 3.2 RecognitionEvent
+使用Queue：stt_event_queue（STT -> MAIN）
+
 | 項目 | 型 | 説明 |
 |---|---|---|
 | event_type | RecognitionEventType | イベント種別 |
@@ -71,24 +89,32 @@ flowchart LR
 | occurred_at | datetime | イベント発生時刻 |
 
 ### 3.3 DialbbRequest
+使用Queue：dialbb_request_queue（MAIN -> DIALBB）
+
 | 項目 | 型 | 説明 |
 |---|---|---|
 | session_id | str | セッション識別子 |
 | user_text | str | ユーザ確定発話テキスト |
 
 ### 3.4 DialbbResponse
+使用Queue：dialbb_response_queue（DIALBB -> MAIN）
+
 | 項目 | 型 | 説明 |
 |---|---|---|
 | session_id | str | セッション識別子 |
 | system_text | str | DialBB層からの応答テキスト |
 
 ### 3.5 TtsRequest
+使用Queue：tts_request_queue（MAIN -> TTS）
+
 | 項目 | 型 | 説明 |
 |---|---|---|
 | session_id | str | セッション識別子 |
 | text | str | 合成対象テキスト |
 
 ### 3.6 TtsResult
+使用Queue：tts_result_queue（TTS -> MAIN）
+
 | 項目 | 型 | 説明 |
 |---|---|---|
 | session_id | str | セッション識別子 |

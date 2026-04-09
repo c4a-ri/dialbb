@@ -1,0 +1,10 @@
+# mm_client runtime settings
+# Paths can be absolute or relative to this file.
+
+stt:
+  # Google Speech-to-Text service account key file
+  key_file: 
+
+dialbb:
+  # DialBB application config used by DialogueProcessor
+  config_file: ../../../sample_apps/lab_app_ja/config.yml
