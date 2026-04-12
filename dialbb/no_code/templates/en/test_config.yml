@@ -1,6 +1,7 @@
 user_name: User
 system_name: System
 model: gpt-4o-mini
+max_turns: 30
 
 settings:
   - prompt_template: test_prompt.txt

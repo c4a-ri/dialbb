@@ -62,8 +62,6 @@ class LLMTester:
 
         self._temperature: float = 0.0
         self._messages: List[Dict[str, str]] = []
-        self._user_name_string: str = test_config.get("user_name", "User")
-        self._system_name_string: str = test_config.get("system_name", "System")
         self._dialogue_history = ""
 
     def set_parameters_and_clear_history(self, prompt_template: str, temperature: float) -> None:

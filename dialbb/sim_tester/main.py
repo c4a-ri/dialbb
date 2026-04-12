@@ -203,6 +203,7 @@ def test_by_simulation(test_config_file: str, app_config_file: str, output_file:
 
 
 def main():
+
     # read arguments
     parser = argparse.ArgumentParser()
     parser.add_argument("--app_config", help="dialbb app config yaml file", required=True)
@@ -214,7 +215,11 @@ def main():
     app_config_file: str = args.app_config
     test_config_file: str = args.test_config
     if args.output:
-        test_by_simulation(test_config_file, app_config_file, output_file=args.output, json_output=args.json_output)
+        for result in test_by_simulation(test_config_file,
+                                         app_config_file,
+                                         output_file=args.output,
+                                         json_output=args.json_output):
+            pass
     else:
         for result in test_by_simulation(test_config_file, app_config_file):
             # print(f"##>{result}", end="")
