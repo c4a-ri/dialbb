@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.1 (2026.4.15)
+
+- Simulation-based tester's bug fixed
+
 ## 1.2.0 (2026.4.4)
 
 - No-code tool
