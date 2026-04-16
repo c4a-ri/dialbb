@@ -16,7 +16,9 @@ class MicrophoneAudioInput:
         self.closed = True
 
     def __enter__(self):
+        # 非同期コールバックで受けた音声データを内部キューへ積む。
         self._audio_interface = pyaudio.PyAudio()
+        # input=True でマイク入力ストリームを開く。
         self._audio_stream = self._audio_interface.open(
             format=pyaudio.paInt16,
             channels=1,
@@ -29,6 +31,7 @@ class MicrophoneAudioInput:
         return self
 
     def __exit__(self, exc_type, exc_value, traceback) -> None:
+        # ストリーム停止後に終端マーカー(None)を積んで consumer を終了させる。
         self._audio_stream.stop_stream()
         self._audio_stream.close()
         self.closed = True
@@ -36,6 +39,7 @@ class MicrophoneAudioInput:
         self._audio_interface.terminate()
 
     def _fill_buffer(self, in_data, frame_count, time_info, status_flags):
+        # PyAudio コールバックから呼ばれ、受信した生データをキューへ渡す。
         self._buffer.put(in_data)
         return None, pyaudio.paContinue
 
@@ -45,6 +49,7 @@ class MicrophoneAudioInput:
             if chunk is None:
                 return
 
+            # 取り出し可能な分をまとめて返し、STT 呼び出し回数を減らす。
             data = [chunk]
             while True:
                 try:
@@ -53,6 +58,7 @@ class MicrophoneAudioInput:
                         return
                     data.append(chunk)
                 except queue.Empty:
+                    # 現時点で取り出せる分をまとめたら返却する。
                     break
 
             yield b"".join(data)

@@ -5,7 +5,8 @@
 MAINスレッド/STTスレッド/DialBBスレッド/TTSスレッド
 2. スレッド間は queue.Queue で非同期連携  
 ［STT→MAIN→DialBB→MAIN→TTS→MAIN］
-3. 終了制御は共通 stop_event で一元管理：start_mm_client.py  
+3. GUI（Tkinter）の対話開始/対話終了で、対話状態と音声入力受付を制御  
+4. アプリ終了は GUI の終了ボタンで共通 stop_event を発行し、全スレッドをクリーンに停止  
 
 ## 1.1. スレッド間メッセージ仕様
 
@@ -14,10 +15,10 @@ MAINスレッド/STTスレッド/DialBBスレッド/TTSスレッド
 ## 2. 実装ファイル
 | ファイル名 | 概要 |
 |---|---|
-| start_multimodal_client.py | クライアント全体の起動エントリポイント。各ワーカスレッドとQueueを初期化して実行を開始する。 |
+| start_mm_client.py | クライアント全体の起動エントリポイント。GUIと各ワーカスレッド、Queue、Eventを初期化して実行を開始する。 |
 | asr/google_stt_client.py | Google Cloud Speech-to-Text を使ったストリーミング音声認識を担当する。 |
-| main/main_module.py | メインモジュール。STT/DialBB/TTS間のメッセージを中継し、終了制御を行う。 |
-| main/dialbb_client.py | DialBB連携ワーカー。DialogueProcessor を呼び出して対話メッセージを生成する。 |
+| main/main_module.py | メインモジュール。STT/DialBB/TTS間のメッセージを中継し、対話状態を制御する。 |
+| main/dialbb_client.py | DialBB連携ワーカー。対話開始要求時に初回応答を生成し、以降の対話を処理する。 |
 | tts/speech_synthesizer.py | 音声合成ワーカー（現状はスタブ実装）。TTS要求を処理して完了結果を返す。 |
 | main/messages.py | スレッド間でやり取りするメッセージ型（dataclass/enum）を定義する。 |
 
@@ -26,6 +27,8 @@ MAINスレッド/STTスレッド/DialBBスレッド/TTSスレッド
 Main がイベント集約・状態管理・ルーティングを担当し、各ワーカーは単機能化。  
 - メッセージ駆動設計  ：messages.py
 dataclass と Enum でスレッド間でやり取りするデータを型として明示。  
+- Event駆動の対話制御  
+`conversation_active_event` と `stt_enabled_event` で対話状態と音声入力受付を切り替える。  
 - 非同期ポーリング処理  
 Queue の timeout/get_nowait を使ってブロックを抑えたループ実装、タイムアウトは0.1秒で設定  
 
@@ -57,7 +60,13 @@ site-packages\にはdialbb, mm_client をインストール
 
 1. `dialbb-mm-client`
 
-### 7.2 設定ファイル（config.yml）
+### 7.2 GUI操作
+
+- `対話開始`: 初回に DialBB へ開始要求を送り、システム発話をTTS再生後に音声入力を開始。
+- `対話終了`: 対話を停止し、各スレッドは待機状態へ戻る（音声入力は受け付けない）。
+- `終了`: `stop_event` を発行して全ワーカースレッドを終了し、GUIを閉じる。
+
+### 7.3 設定ファイル（config.yml）
 - 既定の設定ファイル: `mm_client/config/config.yml`
 - 起動時に引数で設定ファイルを1つ指定可能: `dialbb-mm-client <config_file>`
 

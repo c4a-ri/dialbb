@@ -141,6 +141,7 @@ dmypy.json
 
 # dialbb temp files
 #_*
+sample_apps/*/_*
 
 # keep empty data dir
 /dialbb/no_code/app/*
