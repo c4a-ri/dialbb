@@ -363,6 +363,8 @@ def main() -> None:
     chat_queue: "queue.Queue[tuple[str, str]]" = queue.Queue()
     # ワーカーからGUIへのエラー通知キュー。
     error_queue: "queue.Queue[str]" = queue.Queue()
+    # main_module から TTS ワーカーへの再生キャンセル通知キュー。
+    tts_cancel_queue: "queue.Queue[str]" = queue.Queue()
 
     main_module = MultimodalMainModule()
 
@@ -402,6 +404,8 @@ def main() -> None:
                 "tts_request_queue": tts_request_queue,
                 "tts_result_queue": tts_result_queue,
                 "stop_event": stop_event,
+                "conversation_active_event": conversation_active_event,
+                "tts_cancel_queue": tts_cancel_queue,
             },
             name="tts-worker",
             daemon=False,
@@ -419,6 +423,7 @@ def main() -> None:
                 "stt_enabled_event": stt_enabled_event,
                 "stop_event": stop_event,
                 "chat_queue": chat_queue,
+                "tts_cancel_queue": tts_cancel_queue,
             },
             name="main-module-worker",
             daemon=False,

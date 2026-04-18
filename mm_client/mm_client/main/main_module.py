@@ -35,6 +35,7 @@ class MultimodalMainModule:
         stt_enabled_event: Event,
         stop_event: Event,
         chat_queue: Optional[Queue] = None,
+        tts_cancel_queue: Optional[Queue] = None,
     ) -> None:
         while not stop_event.is_set():
             # 1) DialBB から届いた応答を取り出して TTS へ流す。
@@ -44,6 +45,7 @@ class MultimodalMainModule:
                 conversation_active_event=conversation_active_event,
                 stt_enabled_event=stt_enabled_event,
                 chat_queue=chat_queue,
+                tts_cancel_queue=tts_cancel_queue,
             )
             # 2) TTS 完了通知を取り出して状態を更新（現状はログのみ）。
             self._process_tts_results(
@@ -66,6 +68,7 @@ class MultimodalMainModule:
                 conversation_active_event=conversation_active_event,
                 stt_enabled_event=stt_enabled_event,
                 chat_queue=chat_queue,
+                tts_cancel_queue=tts_cancel_queue,
             )
             if should_stop:
                 # 5) 終了条件を満たしたため全スレッドへ停止を通知。
@@ -78,14 +81,17 @@ class MultimodalMainModule:
         conversation_active_event: Event,
         stt_enabled_event: Event,
         chat_queue: Optional[Queue] = None,
+        tts_cancel_queue: Optional[Queue] = None,
     ) -> bool:
         if not conversation_active_event.is_set() or not stt_enabled_event.is_set():
             # 対話停止中または音声入力停止中は STT イベントを破棄する。
             return False
 
         if event.event_type == RecognitionEventType.SPEECH_STARTED:
-            # VAD 由来の発話開始通知。
-            logger.info("[MAIN] 発話開始")
+            # バージイン: ユーザ発話開始を検知したら TTS を即時中断する。
+            logger.info("[MAIN] 発話開始（バージイン）")
+            if tts_cancel_queue is not None:
+                tts_cancel_queue.put("cancel")
             return False
 
         if event.event_type == RecognitionEventType.SPEECH_ENDED:
@@ -136,6 +142,7 @@ class MultimodalMainModule:
         conversation_active_event: Event,
         stt_enabled_event: Event,
         chat_queue: Optional[Queue] = None,
+        tts_cancel_queue: Optional[Queue] = None,
     ) -> None:
         # キューが空になるまで処理し、応答を TTS キューへ橋渡しする。
         while True:
@@ -159,6 +166,13 @@ class MultimodalMainModule:
                 continue
             # TTS 再生中はマイク入力を一時停止し、ハウリング混入を防ぐ。
             stt_enabled_event.clear()
+            # 念のため前回の再生キャンセルを空にしてから新規送信する。
+            if tts_cancel_queue is not None:
+                while not tts_cancel_queue.empty():
+                    try:
+                        tts_cancel_queue.get_nowait()
+                    except Exception:
+                        break
             # DialBB のテキスト応答を、そのまま TTS 要求へ変換する。
             tts_request_queue.put(
                 TtsRequest(
@@ -185,4 +199,9 @@ class MultimodalMainModule:
                 logger.info("[MAIN] 音声合成完了: %s", tts_result.text)
                 if conversation_active_event.is_set():
                     # 対話中のみ、合成完了後にマイク入力を再開する。
+                    stt_enabled_event.set()
+            else:
+                logger.warning("[MAIN] 音声合成が中断または失敗: %s", tts_result.text)
+                if conversation_active_event.is_set():
+                    # 中断・エラー時もマイク入力を再開してユーザ応答を受け付ける。
                     stt_enabled_event.set()

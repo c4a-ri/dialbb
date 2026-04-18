@@ -100,6 +100,8 @@ pyaudio = {version = "^0.2.14", markers = "platform_system != 'Windows'"}
 pyaudiowpatch = {version = "^0.2.12.7", markers = "platform_system == 'Windows'"}
 sounddevice = "^0.5.2"
 websocket-client = "^1.9.0"
+google-cloud-texttospeech = "^2.36.0"
+pygame = "^2.6.1"
 
 [build-system]
 requires = ["poetry-core"]
