@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.2.1 (2026.4.xx)
+
+- Simulation-based tester's bug fixed
+
+- No-code tool
+
+  - Allow specifying the maximum number of turns for simulation-based testing
+
+  - Automatically adjust the canvas size in the scenario editor
+
 ## 1.2.0 (2026.4.4)
 
 - No-code tool

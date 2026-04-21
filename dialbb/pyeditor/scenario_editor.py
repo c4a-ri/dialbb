@@ -700,6 +700,11 @@ LAYOUT_DY = NODE_H_USER + 50  # 縦並びの間隔（重なり防止）
 class GraphScene(QtWidgets.QGraphicsScene):
     """ノード編集操作全体を管理する Scene。"""
 
+    SCENE_MARGIN_X = 200
+    SCENE_MARGIN_Y = 140
+    MIN_SCENE_W = 1200
+    MIN_SCENE_H = 800
+
     def __init__(self, undo_stack: QtGui.QUndoStack | None = None, parent=None):
         """ノード編集用の Scene を初期化する。"""
         super().__init__(parent)
@@ -716,6 +721,38 @@ class GraphScene(QtWidgets.QGraphicsScene):
         self._drag_start_positions: dict[NodeItem, QtCore.QPointF] = {}
         self._dragging_nodes: bool = False
         self._drag_start: ConnectorItem | None = None
+
+        # 初期状態でもパン可能な最小範囲を確保
+        self.update_scene_rect_to_contents()
+
+    def update_scene_rect_to_contents(self):
+        """現在の内容に合わせてScene範囲を更新する（左右余白を最小化）。"""
+        rect = self.itemsBoundingRect()
+
+        if rect.isNull():
+            self.setSceneRect(
+                -self.MIN_SCENE_W / 2,
+                -self.MIN_SCENE_H / 2,
+                self.MIN_SCENE_W,
+                self.MIN_SCENE_H,
+            )
+            return
+
+        rect = rect.adjusted(
+            -self.SCENE_MARGIN_X,
+            -self.SCENE_MARGIN_Y,
+            self.SCENE_MARGIN_X,
+            self.SCENE_MARGIN_Y,
+        )
+
+        if rect.width() < self.MIN_SCENE_W:
+            pad = (self.MIN_SCENE_W - rect.width()) / 2
+            rect = rect.adjusted(-pad, 0, pad, 0)
+        if rect.height() < self.MIN_SCENE_H:
+            pad = (self.MIN_SCENE_H - rect.height()) / 2
+            rect = rect.adjusted(0, -pad, 0, pad)
+
+        self.setSceneRect(rect)
 
     def _find_ancestor_item(self, item):
         """Proxy内の子Widget等からでも Node/Connector/Edge を拾うための親たどり"""
@@ -861,6 +898,7 @@ class GraphScene(QtWidgets.QGraphicsScene):
                 before = self._drag_before_state
                 after = self._state_to_dict()
                 self.undo_stack.push(GraphHistoryCommand(self, before, after, "ノード移動"))
+                self.update_scene_rect_to_contents()
 
         # 後片付け
         self._dragging_nodes = False
@@ -1071,15 +1109,18 @@ class GraphScene(QtWidgets.QGraphicsScene):
                 self._create_edge_raw(fc, tc)
 
         sync_short_id_counter([n.short_id for n in self.nodes])
+        self.update_scene_rect_to_contents()
 
     def _push_history(self, description: str, mutate_func):
         """操作前後のスナップショットを取り、UndoStackへ積む共通関数"""
         if self.undo_stack is None:
             mutate_func()
+            self.update_scene_rect_to_contents()
             return
 
         before = self._state_to_dict()
         mutate_func()
+        self.update_scene_rect_to_contents()
         after = self._state_to_dict()
 
         self.undo_stack.push(GraphHistoryCommand(self, before, after, description))
@@ -1298,6 +1339,9 @@ class GraphScene(QtWidgets.QGraphicsScene):
 class GraphicsView(QtWidgets.QGraphicsView):
     """ホイールズーム、Ctrl+ドラッグ or 中ボタンでパン（通常操作はSceneへ渡す）"""
 
+    MIN_ZOOM_SCALE = 0.08
+    MAX_ZOOM_SCALE = 3.0
+
     def __init__(self, scene, parent=None):
         """ズーム・パン操作付きの View を初期化する。"""
         super().__init__(scene, parent)
@@ -1320,10 +1364,35 @@ class GraphicsView(QtWidgets.QGraphicsView):
         # 初期表示時の倍率
         self.scale(INITIAL_VIEW_SCALE, INITIAL_VIEW_SCALE)
 
+    def _effective_min_zoom_scale(self) -> float:
+        """シーン全体を表示できる倍率を考慮した最小倍率を返す。"""
+        scene = self.scene()
+        if scene is None:
+            return self.MIN_ZOOM_SCALE
+
+        rect = scene.sceneRect()
+        vp = self.viewport().rect()
+        if rect.isNull() or vp.width() <= 0 or vp.height() <= 0:
+            return self.MIN_ZOOM_SCALE
+
+        fit_scale = min(vp.width() / rect.width(), vp.height() / rect.height())
+        # 全体表示に必要な倍率より少しだけ小さい所まで許可して、操作の余裕を残す
+        return min(self.MIN_ZOOM_SCALE, fit_scale * 0.95)
+
     # ---------- Zoom ----------
     def wheelEvent(self, event: QtGui.QWheelEvent):
         """ホイールズーム"""
         zoom = 1.15 if event.angleDelta().y() > 0 else 1 / 1.15
+
+        current_scale = self.transform().m11()
+        target_scale = current_scale * zoom
+        min_scale = self._effective_min_zoom_scale()
+
+        if target_scale < min_scale:
+            zoom = min_scale / current_scale
+        elif target_scale > self.MAX_ZOOM_SCALE:
+            zoom = self.MAX_ZOOM_SCALE / current_scale
+
         self.scale(zoom, zoom)
 
     # ---------- Ctrl key ----------
@@ -1472,9 +1541,6 @@ class MainWindow(QtWidgets.QMainWindow):
         statusbar = self.statusBar()
         statusbar.setStyleSheet("background: #4682b4;")
         statusbar.addWidget(hint)
-
-        # キャンバス（パン可能範囲）
-        self.scene.setSceneRect(-5000, -5000, 10000, 10000)
 
     def load_json_file(self, path: str):
         """外部起動用JSONロード（例外は呼び元に投げる）"""
