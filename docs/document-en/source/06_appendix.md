@@ -110,7 +110,7 @@ The following explains how to run it using Bash. If you are using Windows Comman
 
   A YAML file containing the following keys:
 
-  - `model`: (string, required) Name of the OpenAI GPT model, such as `gpt-4o` and `gpt-4o-mini`. `gpt-5` cannot be used.
+  - `model`: (string, required) Model specifier. Use `provider:model_name` such as `gemini:gemini-2.0-flash-001`. OpenAI GPT models such as `gpt-4o` and `gpt-4o-mini` may omit the `openai:` prefix.
 
   - `user_name`: (string, optional) The name representing the user in the dialogue history. Default is `"User"`.
 

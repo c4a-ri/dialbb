@@ -107,7 +107,7 @@ LLM (ChatGPT) を用いたユーザシミュレータを用いたテスタが付
 
   以下のキーをもつYAML
   
-  - `model`: （文字列．必須）OpenAIのGPTモデル名．`gpt-4o`，`gpt-4o-mini`など．`gpt-5`は不可．
+  - `model`: （文字列．必須）モデル指定文字列．`provider:model_name` の形式で指定します．例：`gemini:gemini-2.0-flash-001`．ただし，`gpt-4o` や `gpt-4o-mini` のようなOpenAIのGPTモデルは `openai:` を省略できます．
   - `user_name`: （文字列．任意）プロンプト内の対話履歴でユーザを指す文字列．デフォルト値 "User"
   - `system_name`: （文字列．任意）プロンプト内の対話履歴でシステムを指す文字列．デフォルト値 "System"
   - `settings`（オブジェクトのリスト．必須）設定のリスト．以下の要素を持つことができる
