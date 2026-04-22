@@ -1,6 +1,7 @@
 user_name: ユーザ
 system_name: システム
-model: gemini:gemini-2.0-flash-001
+llm_type: gemini
+model: gemini-2.0-flash-001
 
 settings:
   - prompt_template: prompt_template1.txt

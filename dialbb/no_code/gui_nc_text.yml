@@ -98,8 +98,8 @@ btn_scenario_func:
   en: "Scenario Functions (Advanced)"
 
 btn_configuration:
-  ja: "コンフィギュレーション"
-  en: "Configuration"
+  ja: "設定"
+  en: "Settings"
 
 
 # ----- 表示メッセージ -----
@@ -309,8 +309,8 @@ edt_list_title:
 
 # Config編集ダイアログ
 conf_edt_title:
-  ja: "コンフィギュレーション"
-  en: "Edit Application"
+  ja: "設定"
+  en: "Settings"
 
 conf_edt_named_entity:
   ja: "固有表現抽出を行いますか？"
@@ -339,6 +339,10 @@ conf_edt_situation:
 conf_edt_prompt:
   ja: "プロンプト:"
   en: "Prompt:"
+
+conf_edt_max_turns:
+  ja: "最大ターン数:"
+  en: "Max Number of Turns:"
 
 conf_edt_persona:
   ja: "ペルソナ:"

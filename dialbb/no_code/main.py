@@ -572,17 +572,9 @@ def submenu_test(parent, settings, chat_area: tk.Text) -> None:
     test_config_file = os.path.join(APP_FILE_DIR, APP_FILES["test-config"])
 
     # ボタンの作成
-    btn_gui = ttk.Button(
-        sub_menu,
-        text=gui_text("btn_execute"),
-        command=lambda: exec_test(sub_menu, chat_area),
-    )
-    btn_gui.pack(side=tk.TOP, pady=5)
-
     btn_conf = ttk.Button(
         sub_menu,
-        text="コンフィギュレーション",
-        width=20,
+        text=gui_text("btn_configuration"),
         command=lambda: edit_test_config(
             sub_menu,
             test_config_file,
@@ -590,6 +582,13 @@ def submenu_test(parent, settings, chat_area: tk.Text) -> None:
         ),
     )
     btn_conf.pack(side=tk.TOP, pady=5)
+
+    btn_gui = ttk.Button(
+        sub_menu,
+        text=gui_text("btn_execute"),
+        command=lambda: exec_test(sub_menu, chat_area),
+    )
+    btn_gui.pack(side=tk.TOP, pady=5)
 
     # Cancelボタン
     cancel_btn = ttk.Button(sub_menu, text="終了", command=lambda: on_cancel(sub_menu))

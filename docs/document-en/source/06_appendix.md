@@ -112,14 +112,9 @@ The following explains how to run it using Bash. If you are using Windows Comman
 
   - `model`: (string, required) Model specifier. Use `provider:model_name` such as `gemini:gemini-2.0-flash-001`. OpenAI GPT models such as `gpt-4o` and `gpt-4o-mini` may omit the `openai:` prefix.
 
-  - `user_name`: (string, optional) The name representing the user in the dialogue history. Default is `"User"`.
-
-  - `system_name`: (string, optional) The name representing the system in the dialogue history. Default is `"System"`.
-
   - `settings`: (list of objects, required) A list of settings. Each can contain the following:
 
     - `prompt_templates`: (list of strings, required) Paths to text files containing prompt templates. The paths are relative to the configuration file. 
-
 
     - `initial_aux_data`: (string, optional) Path to a JSON file containing content to be included in `aux_data` at the beginning of the dialogue when accessing the DialBB application. Path is relative to the configuration file.
 

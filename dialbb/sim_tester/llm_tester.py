@@ -45,8 +45,6 @@ class LLMTester:
 
         self._temperature: float = 0.0
         self._messages: List[Dict[str, str]] = []
-        self._user_name_string: str = test_config.get("user_name", "User")
-        self._system_name_string: str = test_config.get("system_name", "System")
         self._dialogue_history = ""
         self._llm_client = None
 

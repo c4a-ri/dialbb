@@ -507,6 +507,7 @@ def edit_test_config(parent, file_path: str, settings) -> None:
     # テスト用ダイアログでも横方向に広げる
     gpt_mng_fr.pack(expand=True, fill=tk.BOTH, padx=5, pady=5)
 
+
     # ChatGPTモデル プルダウンメニュー
     label1 = tk.Label(gpt_mng_fr, text=gui_text("conf_edt_gptmodel"))
     models = settings.get_gptmodels()
@@ -528,11 +529,21 @@ def edit_test_config(parent, file_path: str, settings) -> None:
         style="office.TCombobox",
     )
 
+    # max_turns用テキストフィールド
+    label_max_turns = tk.Label(gpt_mng_fr, text=gui_text("conf_edt_max_turns"))
+    max_turns_var = tk.StringVar()
+    current_max_turns = str(config.get("max_turns", ""))
+    max_turns_var.set(current_max_turns)
+    entry_max_turns = tk.Entry(gpt_mng_fr, textvariable=max_turns_var, width=10)
+
     # ウィンドウが表示された後に実行される処理を設定
     sub_menu.bind("<Map>", lambda event: on_window_shown())
 
     label1.grid(column=0, row=1)
     combobox.grid(column=1, row=1, padx=5, pady=5, sticky=tk.W)
+    label_max_turns.grid(column=0, row=2, sticky=tk.W)
+    entry_max_turns.grid(column=1, row=2, padx=5, pady=5, sticky=tk.W)
+
 
     # prompt_template編集エリア
     label2 = tk.Label(gpt_mng_fr, text=gui_text("conf_edt_prompt"))
@@ -541,12 +552,14 @@ def edit_test_config(parent, file_path: str, settings) -> None:
     stt.config(xscrollcommand=horiz_scrollbar1.set)
     # テンプレート内容を表示
     stt.insert(0.0, template_content)
-    label2.grid(column=0, row=2)
-    stt.grid(column=1, row=2, columnspan=2, sticky=tk.NSEW, padx=5, pady=5)
-    horiz_scrollbar1.grid(column=1, row=3, columnspan=2, sticky=tk.NSEW)
+    label2.grid(column=0, row=3)
+    stt.grid(column=1, row=3, columnspan=2, sticky=tk.NSEW, padx=5, pady=5)
+    horiz_scrollbar1.grid(column=1, row=4, columnspan=2, sticky=tk.NSEW)
+
 
     gpt_mng_fr.grid_columnconfigure(1, weight=1)
     gpt_mng_fr.grid_rowconfigure(2, weight=1)
+    gpt_mng_fr.grid_rowconfigure(3, weight=1)
     gpt_mng_fr.grid_rowconfigure(4, weight=1)
 
     # OK/Cancel ボタン
@@ -561,17 +574,30 @@ def edit_test_config(parent, file_path: str, settings) -> None:
     ok_btn.pack(side="right", padx=5, pady=5)
 
     # ウィンドウが表示された後にコンボボックスの値を設定する
+
     def on_window_shown():
         combobox.current(newindex=models.index(current_model))
+        entry_max_turns.delete(0, tk.END)
+        entry_max_turns.insert(0, current_max_turns)
 
     # ボタンクリックの処理
+
     def ok_btn_click():
         gpt_model = combobox.get()
         prompt = stt.get(1.0, tk.END)
+        max_turns_val = entry_max_turns.get()
 
         # YAML に設定を反映
         if config:
             config["model"] = gpt_model
+            # max_turnsが空でなければintで保存、空なら削除
+            if max_turns_val.strip():
+                try:
+                    config["max_turns"] = int(max_turns_val)
+                except ValueError:
+                    config["max_turns"] = max_turns_val  # 数値でなければそのまま保存
+            elif "max_turns" in config:
+                del config["max_turns"]
 
         # ファイルに書き込み
         logger.info("write config file: %s", file_path)
