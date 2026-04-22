@@ -41,6 +41,10 @@ class LLMTester:
         if os.environ.get('DIALBB_TESTER_DEBUG', 'no').lower() == "yes":
             self._debug = True
 
+        # conforms to older documents
+        if not os.environ.get('OPENAI_API_KEY') and os.environ.get('OPENAI_KEY'):
+            os.environ['OPENAI_API_KEY'] = os.environ.get('OPENAI_KEY')
+
         self._llm = test_config.get("model", DEFAULT_GPT_MODEL)
 
         self._temperature: float = 0.0

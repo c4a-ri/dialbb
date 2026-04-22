@@ -110,7 +110,7 @@ The following explains how to run it using Bash. If you are using Windows Comman
 
   A YAML file containing the following keys:
 
-  - `model`: (string, required) Model specifier. Use `provider:model_name` such as `gemini:gemini-2.0-flash-001`. OpenAI GPT models such as `gpt-4o` and `gpt-4o-mini` may omit the `openai:` prefix.
+  - `model`: (string, required) Model specifier. Use `provider:model_name` such as `google_genai:gemini-2.0-flash-001`. OpenAI GPT models such as `gpt-4o` and `gpt-4o-mini` may omit the `openai:` prefix.
 
   - `settings`: (list of objects, required) A list of settings. Each can contain the following:
 
