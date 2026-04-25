@@ -22,7 +22,7 @@ DIALOGUE_HISTORY_OLD_TAG: str = '@dialogue_history'
 DIALOGUE_HISTORY_TAG: str = '{dialogue_history}'
 CURRENT_TIME_TAG: str = '{current_time}'
 DIALOGUE_UP_TO_NOW = {"ja": "現在までの対話", "en": "Dialogue up to now"}
-DEFAULT_LLM_MODEL: str = "gpt-3.5-turbo"
+DEFAULT_LLM_MODEL: str = "gpt-4o-mini"
 
 REMAINING_TAGS_PATTERN = re.compile( r"\[\[\[(?=.*\{[A-Za-z0-9_]+\})(?:[^\{\]]|\{[A-Za-z0-9_]+\})*\]\]\]", re.DOTALL)
 
