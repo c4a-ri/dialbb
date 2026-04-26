@@ -1045,13 +1045,11 @@ This function is used when a user utterance is accidentally split in the middle 
 Note that the context information is reverted, but not if you have changed the value of a global variable in an action function or the contents of an external database.
 
 (chatgpt_dialogue)=
-## ChatGPT Dialogue (ChatGPT-based Dialogue Block)
+## LLM Dialogue (LLM-based Dialogue Block)
 
-(Changed in ver0.7)
+(`dialbb.builtin_blocks.llm_dialogue.llm_dialogue.LLMDialogue`)
 
-(`dialbb.builtin_blocks.chatgpt.chatgpt.ChatGPT`) 
-
-Engages in dialogue using OpenAI's ChatGPT.
+Engages in dialogue using an LLM (Large Language Model).
 
 ### Input/Output
 
@@ -1080,25 +1078,23 @@ When using these blocks, you need to set the OpenAI license key in the environme
 
 - `user_name` (string, default value is `"User"`.)
 
-   This string is used when providing conversation history to the ChatGPT prompt.
-   Deprecated in version 1.1.0, but reinstated in version 1.1.1.
+   This string is used when providing conversation history to the LLM prompt.
 
 - `system_name` (string, default value is "System")
 
-   This string is used when providing conversation history to the ChatGPT prompt.
-   Deprecated in version 1.1.0, but reinstated in version 1.1.1.
+   This string is used when providing conversation history to the LLM prompt.
 
 - `prompt_template` (string)
 
-  This specifies the file of the prompt for making ChatGPT generate a system utterance as a relative path from the configuration file directory.
+  This specifies the file of the prompt for making LLM generate a system utterance as a relative path from the configuration file directory.
 
 - `temperature` (float, default value is `0.7`)
 
-  The temperature parameter when calling ChatGPT.
+  The temperature parameter when calling LLM.
 
-- `gpt_model` (string, default value is `gpt-4o-mini`)
+- `model` (string, default value is `gpt-4o-mini`)
 
-   Open AI GPT model. You can specify `gpt-4o`, `gpt-4o-mini` and so on. 
+   LLM model. You can specify `gpt-4o`, `gpt-4o-mini` and so on. 
 
 - `instruction` (string, see [this](https://github.com/c4a-ri/dialbb/blob/main/dialbb/util/globals.py)default for the default value.)
 
@@ -1131,6 +1127,18 @@ When using these blocks, you need to set the OpenAI license key in the environme
 ### Extraction of aux_data from System Utterances
 
 Same as {numref}`extract_aux_data`.
+
+
+(chatgpt_dialogue)=
+## ChatGPT Dialogue (ChatGPT-based Dialogue Block) (Deprecated)
+
+(`dialbb.builtin_blocks.chatgpt.chatgpt.ChatGPT`) 
+
+Engages in dialogue using OpenAI's ChatGPT.
+
+OpenAI社のChatGPTを用いて対話を行います．
+
+LLM Dialogueと同じですが，ChatGPTのモデルしか使えません．コンフィギュレーションのモデル指定のパラメータは`model`ではなく，`gpt_model`です．
 
 
 (chatgpt_ner)=
