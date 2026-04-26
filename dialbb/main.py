@@ -32,6 +32,8 @@ import yaml
 import io, sys
 import os
 import hashlib
+import os
+from dotenv import load_dotenv
 
 from dialbb.util.context_db import ContextDB
 from dialbb.util.globals import DEBUG
@@ -52,6 +54,7 @@ CONFIG_DIR: str = ""
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+
 
 
 @dataclasses.dataclass
@@ -79,6 +82,8 @@ class DialogueProcessor:
         :param config_file: config file for the application
         :param additional_config: additional configuration
         """
+
+        load_dotenv()
 
         print(f"Starting an application with DialBB {__version__}.")
         # read config file configファイルの読み込み
