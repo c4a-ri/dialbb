@@ -1,4 +1,4 @@
-# configuration file for a chatgpt-based Japanese application
+# configuration file for an LLM-based Japanese application
 
 blocks:
   - name: chatgpt

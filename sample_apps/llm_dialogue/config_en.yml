@@ -1,4 +1,4 @@
-# Configuration file for a chatgpt-based English application
+# Configuration file for an LLM-based English application
 
 blocks:
   - name: chatgpt
