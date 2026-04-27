@@ -643,15 +643,12 @@ The functions `_check_with_llm(task)` and `_generate_with_llm(task)` use a large
 
 To use these functions, the following settings are required:
 
-- Set OpenAI's API key to environment variable `OPENAI_API_KEY`.
-
-  Please check websites and other resources to find out how to obtain an API key from OpenAI.
   
-- Add the following elements to the chatgpt block configuration:
+- Add the following elements to the `llm` element (`chatgpt` element is possible but deprecated) in the block configuration:
 
-  - `gpt_model` (string)
+  - `model` (string) (`gpt_model` can also be used but deprecated.)
 
-    This specifies the model name of GPT, such as `gpt-4o`, `gpt-4o-mini`, etc. The default value is `gpt-4o-mini`. `gpt-5` cannot be used.
+    モデル指定文字列です．`provider:model_name` の形式で指定します．例：`google_genai:gemini-2.0-flash-001`．ただし，`gpt-4o` や `gpt-4o-mini` のようなOpenAIのGPTモデルは `openai:` を省略できます．
 
   - `instruction` (string)
 
@@ -875,13 +872,11 @@ Syntax sugars are provided to simplify the description of built-in functions.
   ```
 
   Example of a text generation function call in a system utterance:
-
+  
   ```
   I understand. $Generate a sentence to say it's time to end the talk by continuing the conversation in 50 words$  Thank you for your time.
 
   ```
-
-  I understand. {$"Generate a sentence to say it's time to end the talk by continuing the conversation in 50 words" }  Thank you for your time.
 
   This used to be `$"<task string>"` but it is deprecated.
 
@@ -1094,11 +1089,11 @@ When using these blocks, you need to set the OpenAI license key in the environme
 
 - `model` (string, default value is `gpt-4o-mini`)
 
-   LLM model. You can specify `gpt-4o`, `gpt-4o-mini` and so on. 
+   Model specifier. Use `provider:model_name` such as `google_genai:gemini-2.0-flash-001`. OpenAI GPT models such as `gpt-4o` and `gpt-4o-mini` may omit the `openai:` prefix.
 
 - `instruction` (string, see [this](https://github.com/c4a-ri/dialbb/blob/main/dialbb/util/globals.py)default for the default value.)
 
-   The instruction to ChatGPT as system role message.
+   The instruction to LLM as system role message.
 
 
 ### Place Holders in Prompt Templates
@@ -1122,7 +1117,7 @@ When using these blocks, you need to set the OpenAI license key in the environme
 ### Process Details
 
 - At the beginning of the dialog, the value of `first_system_utterance` in the block configuration is returned as system utterance.
-- In the second and subsequent turns, the prompt template is given to ChatGPT and the returned string is returned as the system utterance.
+- In the second and subsequent turns, the prompt template is given to LLM and the returned string is returned as the system utterance.
 
 ### Extraction of aux_data from System Utterances
 

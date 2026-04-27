@@ -22,7 +22,7 @@ DIALOGUE_HISTORY_OLD_TAG: str = '@dialogue_history'
 DIALOGUE_HISTORY_TAG: str = '{dialogue_history}'
 CURRENT_TIME_TAG: str = '{current_time}'
 DIALOGUE_UP_TO_NOW = {"ja": "現在までの対話", "en": "Dialogue up to now"}
-DEFAULT_LLM_MODEL: str = "gpt-4o-mini"
+DEFAULT_LLM: str = "gpt-4o-mini"
 
 REMAINING_TAGS_PATTERN = re.compile( r"\[\[\[(?=.*\{[A-Za-z0-9_]+\})(?:[^\{\]]|\{[A-Za-z0-9_]+\})*\]\]\]", re.DOTALL)
 
@@ -34,7 +34,7 @@ class LLMDialogue(AbstractBlock):
     def __init__(self, *args):
         super().__init__(*args)
 
-        self._model = self.block_config.get("model", DEFAULT_LLM_MODEL)
+        self._model = self.block_config.get("model", DEFAULT_LLM)
         self._temperature = self.block_config.get("temperature", 0.7)
         self._language = self.config.get("language", 'en')
         self._instruction = self.block_config.get("instruction", CHATGPT_INSTRUCTIONS[self._language])
