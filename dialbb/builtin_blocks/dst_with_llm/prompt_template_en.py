@@ -15,23 +15,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# scenario_functions.py
-#   functions used in sandwich app
-
-__version__ = '0.1'
-__author__ = 'Mikio Nakano'
-__copyright__ = 'C4A Research Institute, Inc.'
-
-from typing import Dict, Any
+# prompt_template_en.py
+#   defines prompt template for English dst_with_llm
 
 
-def is_known_sandwich(sandwich: str, context: Dict[str, Any]) -> bool:
+PROMPT_TEMPLATE_EN: str = '''
+# Task
 
-    return sandwich in ("chicken salad sandwich", "egg salad sandwich", "roast beef sandwich")
+Extract only the required slot values from the dialogue history and return a JSON object.
+The format must be {"<slot name>": "<slot value>", ...}.
+Do not include slots whose values are unknown.
+Return JSON only.
 
+# Slot types
 
-def is_novel_sandwich(sandwich: str, context: Dict[str, Any]) -> bool:
+{slot_definitions}
 
-    return not is_known_sandwich(sandwich, context)
+# Examples
 
+{examples}
 
+# Dialogue history
+
+{dialogue_history}
+
+'''

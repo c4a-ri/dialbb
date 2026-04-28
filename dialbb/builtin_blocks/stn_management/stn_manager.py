@@ -86,6 +86,7 @@ CONTEXT_KEY_USER_ID: str = '_user_id'
 
 INPUT_KEY_AUX_DATA: str = "aux_data"
 INPUT_KEY_SENTENCE: str = "sentence"
+INPUT_KEY_DST_RESULT: str = "dst_result"
 
 KEY_STOP_DIALOGUE: str = "stop_dialogue"
 KEY_REWIND: str = 'rewind'
@@ -342,8 +343,13 @@ class Manager(AbstractBlock):
         """
 
         user_id: str = input_data['user_id']
-        nlu_result: Union[Dict[str, Any], List[Dict[str, Any]]] = input_data.get('nlu_result',
-                                                                                 {KEY_TYPE: "", "slots": {}})
+        nlu_result: Union[Dict[str, Any], List[Dict[str, Any]]] = input_data.get('nlu_result')
+        if nlu_result is None:
+            dst_result = input_data.get(INPUT_KEY_DST_RESULT)
+            if isinstance(dst_result, dict):
+                nlu_result = {KEY_TYPE: "", "slots": dst_result}
+            else:
+                nlu_result = {KEY_TYPE: "", "slots": {}}
         if not nlu_result:
             nlu_result = {KEY_TYPE: "", "slots": {}}
         aux_data: Dict[str, Any] = input_data.get(INPUT_KEY_AUX_DATA)
