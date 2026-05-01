@@ -541,9 +541,9 @@ def builtin_check_with_llm(task: str, context: Dict[str, Any]) -> bool:
     dialogue_history: List[Dict[str, str]] = context['_dialogue_history']
 
     if language == 'ja':
-        task = task + "YesかNoのどちらかで答えてください。"
+        task = task + " YesかNoのどちらかで答えてください。"
     else:
-        task = task + "Please answer with yes or no."
+        task = task + " Please answer with yes or no."
 
     prompt: str = create_prompt_in_default_format(task, language, persona, situation, cautions, dialogue_history)
 

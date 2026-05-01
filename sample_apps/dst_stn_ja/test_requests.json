@@ -1,0 +1,99 @@
+[
+    [
+        {
+        },
+        {
+            "user_utterance": "中野です",
+            "aux_data": {"confidence": 0.9}
+        },
+        {
+            "user_utterance": "うーん",
+            "aux_data": {"confidence": 0.9}
+        },
+        {
+            "user_utterance": "はい",
+            "aux_data": {"confidence": 0.2}
+        },
+        {
+            "user_utterance": "",
+            "aux_data": {"long_silence": true}
+        },
+        {
+            "user_utterance": "はい",
+            "aux_data": {"confidence": 0.9}
+        },
+        {
+            "user_utterance": "味噌ラーメン",
+            "aux_data": {"confidence": 0.2}
+        },
+        {
+            "user_utterance": "いいえ",
+            "aux_data": {"confidence": 0.9}
+        },
+        {
+            "user_utterance": "豚骨ラーメン",
+            "aux_data": {"rewind": true, "confidence": 0.8}
+        },
+        {
+            "user_utterance": "はい",
+            "aux_data": {"confidence": 0.7}
+        },
+        {
+            "user_utterance": "",
+            "aux_data": {"stop_dialogue": true}
+        }
+    ],
+    [
+        {
+        },
+        {
+            "user_utterance": "ジョンです",
+            "aux_data": {"confidence": 0.9}
+        },
+        {
+            "user_utterance": "はい",
+            "aux_data": {"confidence": 0.9}
+        },
+        {
+            "user_utterance": "はい",
+            "aux_data": {"barge_in": true, "confidence":  0.2}
+        },
+        {
+            "user_utterance": "はい",
+            "aux_data": {"barge_in": true, "confidence":  0.8}
+        },
+        {
+            "user_utterance": "味噌ラーメンです",
+            "aux_data": {"confidence": 0.8}
+        },
+        {
+            "user_utterance": "",
+            "aux_data": {"stop_dialogue": true}
+        }
+    ],
+    [
+        {
+        },
+        {
+            "user_utterance": "ちょっと匿名で",
+            "aux_data": {"confidence": 0.9}
+        },
+        {
+            "user_utterance": "はい",
+            "aux_data": {"confidence": 0.9}
+        },
+        {
+            "user_utterance": "はい",
+            "aux_data": {"barge_in": true, "confidence":  0.8}
+        },
+        {
+            "user_utterance": "豚骨ラーメンです",
+            "aux_data": {"confidence": 0.8}
+        },
+        {
+            "user_utterance": "こってり系が好きなので",
+            "aux_data": {"confidence": 0.8}
+        }
+    ]
+]
+
