@@ -19,7 +19,6 @@
 #   main dialogue processor
 #   メイン対話処理
 
-__version__ = '1.2.0'
 __author__ = 'Mikio Nakano'
 __copyright__ = 'C4A Research Institute, Inc.'
 
@@ -56,7 +55,6 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 
-
 @dataclasses.dataclass
 class BlockInfo:
     """
@@ -73,6 +71,8 @@ class DialogueProcessor:
     DialBB対話処理のメインクラス
     """
 
+    __version__ = '2.0.0'
+
     config = {}
 
     def __init__(self, config_file: str, additional_config: Dict[str, Any] = None):
@@ -85,7 +85,7 @@ class DialogueProcessor:
 
         load_dotenv()
 
-        print(f"Starting an application with DialBB {__version__}.")
+        print(f"Starting an application with DialBB {self.__version__}.")
         # read config file configファイルの読み込み
         print("Reading application config file.")
         try:

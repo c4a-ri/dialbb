@@ -51,10 +51,11 @@ class LLMDialogue(AbstractBlock):
             abort_during_building("The format of the prompt template is obsolete. " +
                                   "The 'dialogue_history' tag is no longer necessary.")
         try:
-            self._llm = init_chat_model(
-                self._model,
-                temperature=self._temperature,
-            )
+            if self._model.startswith('gpt-5') or self._model.startswith('openai:gpt-5'):
+                self.log_warning("Note that temperature can't be specified for GPT-5x.")
+                self._llm = init_chat_model(self._model)
+            else:
+                self._llm = init_chat_model(self._model, temperature=self._temperature)
         except ImportError:
             abort_during_building(
                 "langchain and the provider integration packages must be installed. "
@@ -121,9 +122,15 @@ class LLMDialogue(AbstractBlock):
             prompt: str = prompt.replace(DIALOGUE_HISTORY_OLD_TAG, dialogue_history_string)
         else:
             prompt += f"\n#{DIALOGUE_UP_TO_NOW[language]}\n\n{dialogue_history_string}"
-        # LLM呼び出し
+
+        messages = []
+        messages.append({'role': "system", "content": self._instruction})
+        messages.append({'role': "user", "content": prompt})
+        self.log_debug("messages: " + str(messages), session_id=session_id)
+
+        # call LLM
         try:
-            response = self._llm.invoke(prompt)
+            response = self._llm.invoke(messages)
             generated_utterance = response.content if hasattr(response, 'content') else str(response)
         except Exception as e:
             self.log_error("LLM Error: " + traceback.format_exc())

@@ -22,7 +22,7 @@ blocks:  # list of blocks
     function_definitions: scenario_functions  # definition of functions used in the scenario
     scenario_graph: yes
     input:
-      sentence: canonicalized_user_utterance
+      sentence: user_utterance
       dst_result: dst_result
       user_id: user_id
       aux_data: aux_data

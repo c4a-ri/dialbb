@@ -45,7 +45,7 @@ class LLMTester:
         if not os.environ.get('OPENAI_API_KEY') and os.environ.get('OPENAI_KEY'):
             os.environ['OPENAI_API_KEY'] = os.environ.get('OPENAI_KEY')
 
-        self._llm = test_config.get("model", DEFAULT_GPT_MODEL)
+        self._model = test_config.get("model", DEFAULT_GPT_MODEL)
 
         self._temperature: float = 0.0
         self._messages: List[Dict[str, str]] = []
@@ -54,13 +54,20 @@ class LLMTester:
 
     def _initialize_llm(self) -> None:
         try:
-            self._llm_client = init_chat_model(
-                self._llm,
-                temperature=self._temperature,
-                timeout=TIMEOUT,
-            )
+            if self._model.startswith("gpt-5") or self._model.startswith("openai:gpt-5"):
+                print("Note that temperature can't be specified for GPT-5x.")
+                self._llm_client = init_chat_model(
+                    self._model,
+                    timeout=TIMEOUT,
+                )
+            else:
+                self._llm_client = init_chat_model(
+                    self._model,
+                    temperature=self._temperature,
+                    timeout=TIMEOUT,
+                )
         except Exception as exc:
-            print(f"failed to initialize chat model '{self._llm}': {exc}")
+            print(f"failed to initialize chat model '{self._model}': {exc}")
             sys.exit(1)
 
     @staticmethod
@@ -125,4 +132,4 @@ class LLMTester:
         :rtype:
         """
 
-        return self._llm
+        return self._model

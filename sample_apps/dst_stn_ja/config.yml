@@ -23,6 +23,7 @@ blocks:  # ブロックのリスト
     scenario_graph: yes
     input:
       sentence: user_utterance
+      dialogue_history: dialogue_history
       dst_result: dst_result
       user_id: user_id
       aux_data: aux_data

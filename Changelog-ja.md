@@ -2,11 +2,15 @@
 
 ## 2.0.0 (2026.5.12)
 
-- .envから環境変数設定を読み込む toto ドキュメント
+- .envから環境変数設定を読み込む todo ドキュメント
 
 - STN Manager組み込みブロック
 
-  - LangChainをつかえるように toto ドキュメント
+  - LangChainをつかえるように todo ドキュメント
+  
+  - inputにdst_resultを取れる todo ドキュメント
+  
+  - dialogue_historyをinputとして取れる todo ドキュメント
 
 - DST組み込みブロックを新設 todo ドキュメント
 

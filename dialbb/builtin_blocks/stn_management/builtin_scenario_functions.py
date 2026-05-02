@@ -30,7 +30,7 @@ import datetime
 import re
 from langchain.chat_models import init_chat_model
 from langchain_core.messages import HumanMessage, SystemMessage
-from dialbb.builtin_blocks.stn_management.util import scenario_function_log_debug
+from dialbb.builtin_blocks.stn_management.util import scenario_function_log_debug, scenario_function_log_warning
 
 from dialbb.util.globals import CHATGPT_INSTRUCTIONS
 
@@ -260,7 +260,7 @@ def create_prompt_in_default_format(task: str, language: str, persona: str, situ
 
     dialogue_history_string: str = create_dialogue_history_string(dialogue_history, language)
 
-    prompt += f"# {word_dialogue_history}\n\n" + dialogue_history_string
+    prompt += f"# {word_dialogue_history}\n\n" + dialogue_history_string + "\n"
 
     prompt += f"# {word_task}\n\n" + task + "\n\n"
 
@@ -277,7 +277,8 @@ def chatgpt(prompt: str, context: Dict[str, Any], checking: bool = False) -> str
     """
 
     # read chatgpt settings in the block config
-    llm_settings: Dict[str, Any] = context['_block_config'].get("model", context['_block_config'].get("chatgpt"))
+    llm_settings: Dict[str, Any] = context['_block_config'].get("llm", context['_block_config'].get("chatgpt"))
+    language = context['_config'].get('language', 'en')
     if llm_settings:
 
         model: str = llm_settings.get("model", llm_settings.get("gpt_model", DEFAULT_LLM))
@@ -287,13 +288,12 @@ def chatgpt(prompt: str, context: Dict[str, Any], checking: bool = False) -> str
                 llm_settings.get("temperature", 0.7))
         else:  # generation
             temperature: float = llm_settings.get("temperature", 0.7)
-        language = context['_config'].get('language', 'en')
         instruction: str = llm_settings.get("instruction", CHATGPT_INSTRUCTIONS[language])
 
     else:
         model: str = DEFAULT_LLM
         temperature: float = 0.7
-        instruction: str = ""
+        instruction: str = CHATGPT_INSTRUCTIONS[language]
 
     if instruction and not checking:  # only for generation
         messages: List[Dict[str, str]] = [{"role": "system", "content": instruction},
@@ -311,13 +311,13 @@ def chatgpt(prompt: str, context: Dict[str, Any], checking: bool = False) -> str
     while True:
         try:
             if llm is None:
-                if model.startswith("gpt-4") or model.startswith("gpt-3"):
+                if model.startswith("gpt-5") or model.startswith("openai:gpt-5"):
                     scenario_function_log_debug(f"calling llm: model: {model}, " +
                                                 f"temperature: {str(temperature)}, messages: {str(messages)}",
                                                 context)
+                    scenario_function_log_warning("Note that temperature can't be specified for GPT-5x.", context)
                     llm = init_chat_model(
                         model,
-                        temperature=temperature,
                         timeout=LLM_TIMEOUT,
                     )
                 else:
@@ -325,6 +325,7 @@ def chatgpt(prompt: str, context: Dict[str, Any], checking: bool = False) -> str
                                                 context)
                     llm = init_chat_model(
                         model,
+                        temperature=temperature,
                         timeout=LLM_TIMEOUT,
                     )
             response = llm.invoke(llm_messages)
@@ -410,6 +411,8 @@ def create_dialogue_history_string(dialogue_history: List[Dict[str, str]], langu
 
     dialogue_history_string: str = ""
     for turn in dialogue_history:
+        if turn['utterance'] == "":
+            continue
         if turn["speaker"] == 'user':
             dialogue_history_string += f"{word_user}: {turn['utterance']}\n"
         elif turn["speaker"] == 'system':

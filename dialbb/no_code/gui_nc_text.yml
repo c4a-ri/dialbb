@@ -21,6 +21,10 @@ btn_setting:
   ja: "設定"
   en: "Settings"
 
+btn_api_keys:
+  ja: "APIキー"
+  en: "API Keys"
+
 btn_select:
   ja: "選択"
   en: "Select"
@@ -58,8 +62,8 @@ btn_exit:
   en: "Exit"
 
 btn_view_log:
-  ja: "ログ表示"
-  en: "Show log"
+  ja: "サーバログ表示"
+  en: "Show Server log"
 
 btn_ok:
   ja: "OK"
@@ -85,13 +89,9 @@ btn_scenario_stop:
   ja: "シナリオ編集終了"
   en: "Stop Scenario Edit"
 
-btn_lang_knowledge:
-  ja: "言語理解知識"
-  en: "NLU Knowledge"
-
-btn_named_entity:
-  ja: "固有表現抽出知識"
-  en: "NER Knowledge"
+btn_dst_knowledge:
+  ja: "スロット抽出知識"
+  en: "Slot Extraction Knowledge"
 
 btn_scenario_func:
   ja: "シナリオ関数（上級用）"
@@ -243,8 +243,8 @@ msg_chat_no_session:
 # ----- ダイアログ関連 -----
 # mainダイアログ
 main_title_top:
-  ja: "DialBB-ノーコード"
-  en: "DialBB-NC"
+  ja: "DialBB No Code"
+  en: "DialBB No Code"
 
 main_title_1:
   ja: "アプリケーション"
@@ -298,6 +298,10 @@ set_title_top:
   ja: "設定"
   en: "Settings"
 
+set_title_api_keys:
+  ja: "APIキー設定"
+  en: "API Key Settings"
+
 set_japanese:
   ja: "日本語"
   en: "Japanese"
@@ -312,19 +316,20 @@ conf_edt_title:
   ja: "設定"
   en: "Settings"
 
-conf_edt_named_entity:
-  ja: "固有表現抽出を行いますか？"
-  en: "Use named entity extraction?"
+conf_edt_dst:
+  ja: "スロット抽出を行いますか？"
+  en: "Use Slot Extraction"
 
-conf_edt_lang_understanding:
-  ja: "言語理解を行いますか？"
-  en: "Use language understanding?"
+conf_edt_simulation:
+  ja: "シミュレータ設定"
+  en: "User Simulator Settings"
 
-conf_edt_chatgpt:
-  ja: "ChatGPTの設定"
-  en: "ChatGPT settings"
 
-conf_edt_gptmodel:
+conf_edt_llm:
+  ja: "LLMの設定"
+  en: "LLM Settings"
+
+conf_edt_model:
   ja: "モデル:"
   en: "Model:"
 

@@ -87,6 +87,8 @@ CONTEXT_KEY_USER_ID: str = '_user_id'
 INPUT_KEY_AUX_DATA: str = "aux_data"
 INPUT_KEY_SENTENCE: str = "sentence"
 INPUT_KEY_DST_RESULT: str = "dst_result"
+INPUT_KEY_NLU_RESULT: str = "nlu_result"
+INPUT_KEY_DIALOGUE_HISTORY: str = "dialogue_history"
 
 KEY_STOP_DIALOGUE: str = "stop_dialogue"
 KEY_REWIND: str = 'rewind'
@@ -331,7 +333,7 @@ class Manager(AbstractBlock):
         processes input from dialbb main process and output results to it
         メインプロセスからの入力を受け取って処理結果を返す
         :param input_data: dictionary having the following keys:
-                  sentence: canonicalized user utterance string
+                  sentence: user utterance string
                   nlu_result: NLU result (dictionary)
                   user id: user id string
                   aux_data: auxiliary data
@@ -343,7 +345,7 @@ class Manager(AbstractBlock):
         """
 
         user_id: str = input_data['user_id']
-        nlu_result: Union[Dict[str, Any], List[Dict[str, Any]]] = input_data.get('nlu_result')
+        nlu_result: Union[Dict[str, Any], List[Dict[str, Any]]] = input_data.get(INPUT_KEY_NLU_RESULT)
         if nlu_result is None:
             dst_result = input_data.get(INPUT_KEY_DST_RESULT)
             if isinstance(dst_result, dict):
@@ -408,10 +410,6 @@ class Manager(AbstractBlock):
                 # find previous state
                 previous_state_name: str = context.get(CONTEXT_KEY_CURRENT_STATE_NAME, "")
 
-                ### for debug. to delete
-                # previous_context = self._get_previous_context(session_id)
-                # print(f"for debug: state: {context.get(CONTEXT_KEY_CURRENT_STATE_NAME)}, previous state: {previous_context.get(CONTEXT_KEY_CURRENT_STATE_NAME)}")
-
                 if DEBUG:  # logging for debug
                     self._log_dialogue_context_for_debug(session_id, context)
 
@@ -429,7 +427,11 @@ class Manager(AbstractBlock):
 
                 # update dialogue history
                 user: str = user_id if self.multi_party else "user"
-                context[CONTEXT_KEY_DIALOGUE_HISTORY].append({"speaker": user, "utterance": sentence})
+                dialogue_history_from_main: List[Dict[str,str]] = input_data.get(INPUT_KEY_DIALOGUE_HISTORY)
+                if dialogue_history_from_main:
+                    context[CONTEXT_KEY_DIALOGUE_HISTORY] = dialogue_history_from_main
+                else:
+                    context[CONTEXT_KEY_DIALOGUE_HISTORY].append({"speaker": user, "utterance": sentence})
 
                 if previous_state_name == "":
                     self.log_error(f"can't find previous state for session.", session_id=session_id)
@@ -556,7 +558,8 @@ class Manager(AbstractBlock):
                 output_text = f"{context[CONTEXT_KEY_REACTION]} {output_text}"
 
             context[CONTEXT_KEY_PREVIOUS_SYSTEM_UTTERANCE] = output_text
-            context[CONTEXT_KEY_DIALOGUE_HISTORY].append({"speaker": "system", "utterance": output_text})
+            if not input_data.get(INPUT_KEY_DIALOGUE_HISTORY):
+                context[CONTEXT_KEY_DIALOGUE_HISTORY].append({"speaker": "system", "utterance": output_text})
             context[CONTEXT_KEY_REACTION] = ""
 
             # check if the new state is a final state

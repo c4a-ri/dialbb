@@ -79,14 +79,22 @@ class DST(AbstractBlock):
             abort_during_building("unsupported language: " + self._language)
 
         # model and temperature
-        self._model = self.block_config.get(CONFIG_KEY_MODEL,DEFAULT_LLM_MODEL)
+        self._model = self.block_config.get(CONFIG_KEY_MODEL, DEFAULT_LLM_MODEL)
         self._temperature = self.block_config.get(CONFIG_KEY_TEMPERATURE, DEFAULT_TEMPERATURE)
         try:
-            self._llm = init_chat_model(
-                self._model,
-                temperature=self._temperature,
-                timeout=LLM_TIMEOUT,
-            )
+            if self._model.startswith('gpt-5') or self._model.startswith('openai:gpt-5'):
+                self.log_warning("Note that temperature can't be specified for GPT-5x.")
+                self._llm = init_chat_model(
+                    self._model,
+                    temperature=self._temperature,
+                    timeout=LLM_TIMEOUT,
+                )
+            else:
+                self._llm = init_chat_model(
+                    self._model,
+                    temperature=self._temperature,
+                    timeout=LLM_TIMEOUT,
+                )
         except ImportError:
             abort_during_building(
                 "langchain and the provider integration packages must be installed. "
@@ -162,6 +170,8 @@ class DST(AbstractBlock):
     def _stringify_dialogue_history(self, dialogue_history: List[Dict[str, Any]]) -> str:
         dialogue_history_string: str = ""
         for turn in dialogue_history:
+            if turn['utterance'] == "":
+                continue
             if turn["speaker"] == 'user':
                 dialogue_history_string += f"{self.user_name}: {turn['utterance']}\n"
             else:
