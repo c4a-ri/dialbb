@@ -59,7 +59,7 @@ class ConfigManager:
         self.block_understander: Dict[str, Dict[str, Any]] = {}
         self.block_ner: Dict[str, Dict[str, Any]] = {}
         for language in ("ja", "en"):
-            template_config_file = os.path.join(template_path, language, "config.yml")
+            template_config_file = os.path.join(template_path, f"config_full_{language}.yml")
             try:
                 with open(template_config_file, encoding="utf-8") as fp:
                     template_config: Dict[str, Any] = self.yaml.load(fp)

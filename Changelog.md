@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.2 (2026.5.2)
+
+- No-code tool
+
+  - Fixed a bug where language understanding and named entity extraction could not be used.
+
 ## 1.2.1 (2026.4.21)
 
 - Simulation-based tester's bug fixed
