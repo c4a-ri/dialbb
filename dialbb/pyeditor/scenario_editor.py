@@ -117,8 +117,8 @@ class NodeEditDialog(QtWidgets.QDialog):
             self.priority.setMinimumWidth(120)
 
             # ユーザ発話タイプ: Text
-            self.utterance_type = QtWidgets.QTextEdit()
-            self.utterance_type.setMinimumHeight(60)
+            #self.utterance_type = QtWidgets.QTextEdit()
+            #self.utterance_type.setMinimumHeight(60)
 
             # 遷移条件: Text
             self.condition = QtWidgets.QTextEdit()
@@ -129,7 +129,7 @@ class NodeEditDialog(QtWidgets.QDialog):
             self.action.setMinimumHeight(80)
 
             form.addRow(gui_text("scn_form_priority"), self.priority)
-            form.addRow(gui_text("scn_form_user_utterance_type"), self.utterance_type)
+            #form.addRow(gui_text("scn_form_user_utterance_type"), self.utterance_type)
             form.addRow(gui_text("scn_form_transition_condition"), self.condition)
             form.addRow(gui_text("scn_form_transition_action_advanced"), self.action)
 
@@ -151,7 +151,7 @@ class NodeEditDialog(QtWidgets.QDialog):
         if self.node.node_type == NODE_TYPE_SYSTEM:
             self.utterance.setTabChangesFocus(True)
         else:
-            self.utterance_type.setTabChangesFocus(True)
+            #self.utterance_type.setTabChangesFocus(True)
             self.condition.setTabChangesFocus(True)
             self.action.setTabChangesFocus(True)
 
@@ -160,7 +160,8 @@ class NodeEditDialog(QtWidgets.QDialog):
         if self.node.node_type == NODE_TYPE_SYSTEM:
             widgets = [self.node_kind, self.utterance]
         else:
-            widgets = [self.priority, self.utterance_type, self.condition, self.action]
+            # widgets = [self.priority, self.utterance_type, self.condition, self.action]
+            widgets = [self.priority, self.condition, self.action]
 
         for w in widgets:
             w.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)
@@ -175,8 +176,9 @@ class NodeEditDialog(QtWidgets.QDialog):
             QtWidgets.QWidget.setTabOrder(btn_cancel, btn_ok)
             self.node_kind.setFocus()  # 初期フォーカス
         else:
-            QtWidgets.QWidget.setTabOrder(self.priority, self.utterance_type)
-            QtWidgets.QWidget.setTabOrder(self.utterance_type, self.condition)
+            #QtWidgets.QWidget.setTabOrder(self.priority, self.utterance_type)
+            #QtWidgets.QWidget.setTabOrder(self.utterance_type, self.condition)
+            QtWidgets.QWidget.setTabOrder(self.priority, self.condition)
             QtWidgets.QWidget.setTabOrder(self.condition, self.action)
             QtWidgets.QWidget.setTabOrder(self.action, btn_cancel)
             QtWidgets.QWidget.setTabOrder(btn_cancel, btn_ok)
@@ -199,7 +201,7 @@ class NodeEditDialog(QtWidgets.QDialog):
             except ValueError:
                 self.priority.setValue(0)
 
-            self.utterance_type.setPlainText(self.node.get_field("utterance_type"))
+            # self.utterance_type.setPlainText(self.node.get_field("utterance_type"))
             self.condition.setPlainText(self.node.get_field("condition"))
             self.action.setPlainText(self.node.get_field("action"))
 
@@ -210,7 +212,7 @@ class NodeEditDialog(QtWidgets.QDialog):
             self.node.set_field("utterance", self.utterance.toPlainText())
         else:
             self.node.set_field("priority", str(self.priority.value()))
-            self.node.set_field("utterance_type", self.utterance_type.toPlainText())
+            # self.node.set_field("utterance_type", self.utterance_type.toPlainText())
             self.node.set_field("condition", self.condition.toPlainText())
             self.node.set_field("action", self.action.toPlainText())
 
@@ -523,7 +525,7 @@ class NodeItem(QtWidgets.QGraphicsItem):
             self._add_labeled_text(v, gui_text("scn_form_utterance_plain"), "", key="utterance", min_h=SYS_UTTERANCE_H)
         else:
             self._add_labeled_line(v, gui_text("scn_form_priority_plain"), "", key="priority")
-            self._add_labeled_line(v, gui_text("scn_form_user_utterance_type_plain"), "", key="utterance_type")
+            # self._add_labeled_line(v, gui_text("scn_form_user_utterance_type_plain"), "", key="utterance_type")
             self._add_labeled_text(v, gui_text("scn_form_transition_condition_plain"), "", key="condition", min_h=USR_CONDITION_H)
             self._add_labeled_line(v, gui_text("scn_form_transition_action_plain"), "", key="action")
 
@@ -1045,7 +1047,7 @@ class GraphScene(QtWidgets.QGraphicsScene):
                 node_data.update({
                     "priority": n.get_field("priority"),
                     "utterance_example": n.get_field("utterance_example"),
-                    "utterance_type": n.get_field("utterance_type"),
+                    # "utterance_type": n.get_field("utterance_type"),
                     "condition": n.get_field("condition"),
                     "action": n.get_field("action"),
                 })
@@ -1093,7 +1095,7 @@ class GraphScene(QtWidgets.QGraphicsScene):
             else:
                 node.set_field("priority", str(n.get("priority", "")))
                 node.set_field("utterance_example", n.get("utterance_example", ""))
-                node.set_field("utterance_type", n.get("utterance_type", ""))
+                # node.set_field("utterance_type", n.get("utterance_type", ""))
                 node.set_field("condition", n.get("condition", ""))
                 node.set_field("action", n.get("action", ""))
 

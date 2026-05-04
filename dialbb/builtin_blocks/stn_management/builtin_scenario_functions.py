@@ -28,7 +28,9 @@ from typing import Dict, Any, List, Tuple
 import os
 import datetime
 import re
-from dialbb.builtin_blocks.stn_management.util import scenario_function_log_debug
+from langchain.chat_models import init_chat_model
+from langchain_core.messages import HumanMessage, SystemMessage
+from dialbb.builtin_blocks.stn_management.util import scenario_function_log_debug, scenario_function_log_warning
 
 from dialbb.util.globals import CHATGPT_INSTRUCTIONS
 
@@ -36,20 +38,15 @@ from dialbb.util.globals import CHATGPT_INSTRUCTIONS
 REMAINING_TAGS_PATTERN = re.compile( r"\[\[\[(?=.*\{[A-Za-z0-9_]+\})(?:[^\{\]]|\{[A-Za-z0-9_]+\})*\]\]\]",
                                      re.DOTALL)
 
-DEFAULT_GPT_MODEL = 'gpt-4o-mini'
+DEFAULT_LLM = 'gpt-4o-mini'
+LLM_TIMEOUT = 10
 
-use_openai: bool = False
+if not os.environ.get('OPENAI_API_KEY') and os.environ.get('OPENAI_KEY'):
+    os.environ['OPENAI_API_KEY'] = os.environ.get('OPENAI_KEY')
 
-openai_client = None
-
-openai_api_key: str = os.environ.get('OPENAI_API_KEY', os.environ.get('OPENAI_KEY', ""))
-if openai_api_key:
-    import openai
-    use_openai = True
-    openai.api_key = openai_api_key
-    openai_client = openai.OpenAI(api_key=openai_api_key)
 
 DEBUG: bool = (os.environ.get('DIALBB_DEBUG', 'no').lower() == "yes")
+
 
 def builtin_set(variable: str, value: str, context: Dict[str, Any]) -> None:
     """
@@ -263,14 +260,14 @@ def create_prompt_in_default_format(task: str, language: str, persona: str, situ
 
     dialogue_history_string: str = create_dialogue_history_string(dialogue_history, language)
 
-    prompt += f"# {word_dialogue_history}\n\n" + dialogue_history_string
+    prompt += f"# {word_dialogue_history}\n\n" + dialogue_history_string + "\n"
 
     prompt += f"# {word_task}\n\n" + task + "\n\n"
 
     return prompt
 
 
-def call_chatgpt(prompt: str, context: Dict[str, Any], checking: bool = False) -> str:
+def chatgpt(prompt: str, context: Dict[str, Any], checking: bool = False) -> str:
     """
     call chatgpt and return the result
     :param prompt: prompt
@@ -280,58 +277,67 @@ def call_chatgpt(prompt: str, context: Dict[str, Any], checking: bool = False) -
     """
 
     # read chatgpt settings in the block config
-    chatgpt_settings: Dict[str, Any] = context['_block_config'].get("chatgpt")
-    if chatgpt_settings:
-        gpt_model: str = chatgpt_settings.get("gpt_model", DEFAULT_GPT_MODEL)
+    llm_settings: Dict[str, Any] = context['_block_config'].get("llm", context['_block_config'].get("chatgpt"))
+    language = context['_config'].get('language', 'en')
+    if llm_settings:
+
+        model: str = llm_settings.get("model", llm_settings.get("gpt_model", DEFAULT_LLM))
         if checking:
-            gpt_temperature: float = chatgpt_settings.get("temperature_for_checking",
-                                                          chatgpt_settings.get("temperature", 0.7))
+            temperature: float = llm_settings.get(
+                "temperature_for_checking",
+                llm_settings.get("temperature", 0.7))
         else:  # generation
-            gpt_temperature: float = chatgpt_settings.get("temperature", 0.7)
-        language = context['_config'].get('language', 'en')
-        instruction: str = chatgpt_settings.get("instruction", CHATGPT_INSTRUCTIONS[language])
+            temperature: float = llm_settings.get("temperature", 0.7)
+        instruction: str = llm_settings.get("instruction", CHATGPT_INSTRUCTIONS[language])
 
     else:
-        gpt_model: str = DEFAULT_GPT_MODEL
-        gpt_temperature: float = 0.7
-        instruction: str = ""
+        model: str = DEFAULT_LLM
+        temperature: float = 0.7
+        instruction: str = CHATGPT_INSTRUCTIONS[language]
 
-    chat_completion = None
     if instruction and not checking:  # only for generation
         messages: List[Dict[str, str]] = [{"role": "system", "content": instruction},
                                           {"role": "user", "content": prompt}]
     else:
         messages: List[Dict[str, str]] = [{"role": "user", "content": prompt}]
+    llm_messages = []
+    for message in messages:
+        if message["role"] == "system":
+            llm_messages.append(SystemMessage(content=message["content"]))
+        else:
+            llm_messages.append(HumanMessage(content=message["content"]))
+
+    llm = None
     while True:
         try:
-            if gpt_model.startswith("gpt-4") or gpt_model.startswith("gpt-3"):
-                scenario_function_log_debug(f"calling chatgpt: model: {gpt_model}, " +
-                                            f"temperature: {str(gpt_temperature)}, messages: {str(messages)}",
-                                            context)
-                chat_completion = openai_client.with_options(timeout=10).chat.completions.create(
-                    model=gpt_model,
-                    messages=messages,
-                    temperature=gpt_temperature,
-                )
-            else:
-                scenario_function_log_debug(f"calling chatgpt: model: {gpt_model}, messages: {str(messages)}",
-                                            context)
-                chat_completion = openai_client.with_options(timeout=10).chat.completions.create(
-                    model=gpt_model,
-                    messages=messages
-                )
-        except openai.APITimeoutError:
+            if llm is None:
+                if model.startswith("gpt-5") or model.startswith("openai:gpt-5"):
+                    scenario_function_log_debug(f"calling llm: model: {model}, " +
+                                                f"temperature: {str(temperature)}, messages: {str(messages)}",
+                                                context)
+                    scenario_function_log_warning("Note that temperature can't be specified for GPT-5x.", context)
+                    llm = init_chat_model(
+                        model,
+                        timeout=LLM_TIMEOUT,
+                    )
+                else:
+                    scenario_function_log_debug(f"calling llm: model: {model}, messages: {str(messages)}",
+                                                context)
+                    llm = init_chat_model(
+                        model,
+                        temperature=temperature,
+                        timeout=LLM_TIMEOUT,
+                    )
+            response = llm.invoke(llm_messages)
+            result = response.content if hasattr(response, "content") else str(response)
+            if isinstance(result, list):
+                result = "".join(str(item) for item in result)
+            return result
+        except TimeoutError:
             continue
-        except Exception as e:
-            print("OpenAI Error: " + traceback.format_exc())
-        finally:
-            if not chat_completion:
-                continue
-            else:
-                break
-
-    result: str = chat_completion.choices[0].message.content
-    return result
+        except Exception:
+            print("LLM Error: " + traceback.format_exc())
+            return ""
 
 
 def get_current_time_string(language: str) -> str:
@@ -355,7 +361,7 @@ def create_prompt_from_template(prompt_template: str,
     """
     create prompt from prompt template
     :param prompt_template: prompt template
-    :param dialogue_history_string: stringified dialouge history
+    :param dialogue_history_string: stringified dialogue history
     :param situation: stringified situation for chatgpt
     :param persona: stringified persona for chatgpt
     :param cautions: stringified cautions for chatgpt
@@ -376,7 +382,8 @@ def create_prompt_from_template(prompt_template: str,
     prompt = prompt.replace("@cautions@", cautions)
     prompt = prompt.replace("@situation@", situation)
     for aux_data_key, aux_data_value in aux_data.items():
-        prompt = prompt.replace("{" + aux_data_key + "}", str(aux_data_value))  # aux_data values replace their place holders
+        # aux_data values replace their place holders
+        prompt = prompt.replace("{" + aux_data_key + "}", str(aux_data_value))
     prompt = REMAINING_TAGS_PATTERN.sub("", prompt)  # remove remaining tags enclosed by [[[ .... ]]]
     prompt = prompt.replace('[[[', "")  # remove remaining brackets
     prompt = prompt.replace(']]]', "")
@@ -404,6 +411,8 @@ def create_dialogue_history_string(dialogue_history: List[Dict[str, str]], langu
 
     dialogue_history_string: str = ""
     for turn in dialogue_history:
+        if turn['utterance'] == "":
+            continue
         if turn["speaker"] == 'user':
             dialogue_history_string += f"{word_user}: {turn['utterance']}\n"
         elif turn["speaker"] == 'system':
@@ -416,15 +425,11 @@ def create_dialogue_history_string(dialogue_history: List[Dict[str, str]], langu
 
 def builtin_generate_with_prompt_template(prompt_template: str, context: Dict[str, Any]) -> str:
     """
-    Judge if the condition is satisfied using ChatGPT
+    Judge if the condition is satisfied using LLM
     :param prompt_template: instruction
     :param context: dialogue context
     :return: generated system utterance
     """
-
-    if not use_openai:
-        print("Error: can't use openai")
-        return "..."
 
     language: str = context['_config'].get("language")
     system_name: str = "システム" if language == 'ja' else "System"
@@ -436,10 +441,10 @@ def builtin_generate_with_prompt_template(prompt_template: str, context: Dict[st
     prompt: str = create_prompt_from_template(prompt_template, situation, persona, cautions,
                                               dialogue_history_string, language, aux_data)
 
-    scenario_function_log_debug("prompt for chatgpt: " + prompt, context)
-    generated_utterance = call_chatgpt(prompt, context, checking=False)
+    scenario_function_log_debug("prompt for llm: " + prompt, context)
+    generated_utterance = chatgpt(prompt, context, checking=False)
 
-    scenario_function_log_debug("utterance generated by chatgpt: " + generated_utterance, context)
+    scenario_function_log_debug("utterance generated by LLM: " + generated_utterance, context)
     generated_utterance = generated_utterance.replace(f'{system_name}:', '').strip()  # remove 'System: '
 
     return generated_utterance
@@ -447,14 +452,14 @@ def builtin_generate_with_prompt_template(prompt_template: str, context: Dict[st
 
 def get_prompt_elements_from_config(context: Dict[str, Any]) -> Tuple[str, str, str]:
 
-    # read chatgpt settings in the block config
-    chatgpt_settings: Dict[str, Any] = context['_block_config'].get("chatgpt")
-    if chatgpt_settings:
-        persona_list: List[str] = chatgpt_settings.get("persona", [])
+    # read llm settings in the block config
+    llm_settings: Dict[str, Any] = context['_block_config'].get("llm", context['_block_config'].get("chatgpt"))
+    if llm_settings:
+        persona_list: List[str] = llm_settings.get("persona", [])
         persona: str = stringify_items(persona_list)
-        situation_list: List[str] = chatgpt_settings.get("situation", [])
+        situation_list: List[str] = llm_settings.get("situation", [])
         situation:str = stringify_items(situation_list)
-        caution_list: List[str] = chatgpt_settings.get("cautions", [])
+        caution_list: List[str] = llm_settings.get("cautions", [])
         cautions: str = stringify_items(caution_list)
     else:
         persona: str = ""
@@ -466,15 +471,11 @@ def get_prompt_elements_from_config(context: Dict[str, Any]) -> Tuple[str, str, 
 
 def builtin_check_with_prompt_template(prompt_template: str, context: Dict[str, Any]) -> bool:
     """
-    Judge if the condition is satisfied using ChatGPT
+    Judge if the condition is satisfied using LLM
     :param prompt_template: instruction
     :param context: dialogue context
     :return: generated system utterance
     """
-
-    if not use_openai:
-        print("Error: can't use openai")
-        return "..."
 
     language: str = context['_config'].get("language")
     dialogue_history: List[Dict[str, str]] = context['_dialogue_history']
@@ -484,7 +485,7 @@ def builtin_check_with_prompt_template(prompt_template: str, context: Dict[str, 
     # don't use cautions in checking
     prompt: str = create_prompt_from_template(prompt_template, situation, persona, "",
                                               dialogue_history_string, language, aux_data)
-    response = call_chatgpt(prompt, context, checking=True)
+    response = chatgpt(prompt, context, checking=True)
 
     scenario_function_log_debug("check result: " + response, context)
     response = response.lower()
@@ -496,22 +497,18 @@ def builtin_check_with_prompt_template(prompt_template: str, context: Dict[str, 
 
 def builtin_generate_with_llm(task: str, context: Dict[str, Any]) -> str:
     """
-    Judge if the condition is satisfied using ChatGPT
+    Judge if the condition is satisfied using LLM
     :param task: instruction
     :param context: dialogue context
     :return: generated system utterance
     """
-
-    if not use_openai:
-        print("Error: can't use openai")
-        return "..."
 
     language: str = context['_config'].get("language", 'en')
 
     if language == 'ja':
         task = task + "あなたの名前は含めないでください。"
     else:
-        task = task + "Please don't include your name."
+        task = task + "Don't include your name."
 
     situation, persona, cautions = get_prompt_elements_from_config(context)
     dialogue_history: List[Dict[str, str]] = context['_dialogue_history']
@@ -520,10 +517,10 @@ def builtin_generate_with_llm(task: str, context: Dict[str, Any]) -> str:
     if DEBUG:
         print("prompt: \n" + prompt)
 
-    generated_utterance: str = call_chatgpt(prompt, context, checking=False)
+    generated_utterance: str = chatgpt(prompt, context, checking=False)
 
     if DEBUG:
-        print("utterance generated by chatgpt: " + generated_utterance, flush=True)
+        print("utterance generated by LLM: " + generated_utterance, flush=True)
 
     system_name: str = "システム" if language == 'ja' else "System"
 
@@ -540,10 +537,6 @@ def builtin_check_with_llm(task: str, context: Dict[str, Any]) -> bool:
     :return: true if the condition is satisfied
     """
 
-    if not use_openai:
-        print("Error: can't use openai")
-        return False
-
     language: str = context['_config'].get("language")
 
     situation, persona, cautions = get_prompt_elements_from_config(context)
@@ -551,19 +544,19 @@ def builtin_check_with_llm(task: str, context: Dict[str, Any]) -> bool:
     dialogue_history: List[Dict[str, str]] = context['_dialogue_history']
 
     if language == 'ja':
-        task = task + "YesかNoのどちらかで答えてください。"
+        task = task + " YesかNoのどちらかで答えてください。"
     else:
-        task = task + "Please answer with yes or no."
+        task = task + " Please answer with yes or no."
 
     prompt: str = create_prompt_in_default_format(task, language, persona, situation, cautions, dialogue_history)
 
     if DEBUG:
         print("prompt: \n" + prompt)
 
-    response: str = call_chatgpt(prompt, context, checking=True)
+    response: str = chatgpt(prompt, context, checking=True)
 
     if DEBUG:
-        print("response from chatgpt: " + response, flush=True)
+        print("response from LLM: " + response, flush=True)
     response = response.lower()
     if response.find("yes") == -1:  # yes was not found
         return False

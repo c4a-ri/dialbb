@@ -71,20 +71,20 @@ export DIALBB_DEBUG=yes;python run_server.py sample_apps/parrot/config.yml
 
 これにより，コンソールに詳しいログが出力されますので，それを見ることで理解が深まると思います．
 
-## ChatGPT対話アプリケーション
+## LLM対話アプリケーション
 
 ### 説明
 
-{ref}`chatgpt_dialogue`を用い，OpenAIのChatGPTを用いて対話を行います．
+{ref}`llm_dialogue`を用い，単一プロンプトテンプレートと大規模言語モデル（LLM)を使って対話を行います．
 
-`sample_apps/chatgpt/`にあります．
+`sample_apps/llm_dialgoue/`にあります．
 
-`sample_apps/chatgpt/config_ja.yml`の内容は以下のようになっています．
+`sample_apps/llm_dialgoue/config_ja.yml`の内容は以下のようになっています．
 
 ```yaml
 blocks:
   - name: chatgpt
-    block_class: dialbb.builtin_blocks.chatgpt.chatgpt.ChatGPT
+    block_class: dialbb.builtin_blocks.llm_dialogue.llm_dialogue.LLMDialogue
     input:
       user_id: user_id
       user_utterance: user_utterance
@@ -94,20 +94,25 @@ blocks:
       system_utterance: system_utterance
       aux_data: aux_data
       final: final
+    user_name: ユーザ
+    system_name: システム
     first_system_utterance: "こんにちは。私の名前は由衣。少しお話させてね。スイーツって好き？"
     prompt_template: prompt_template_ja.txt
-    gpt_model: gpt-4o-mini
+    model: gpt-4o-mini
+    #model: google_genai:gemini-2.5-flash
+    temperature: 0.7
+    
 ```
 メインモジュールとの情報の授受を図示すると以下のようになります．
 
-![sample-arch](../../images/chatgpt-dialogue-arch-ja.jpg)
+![sample-arch](../../images/llm-dialogue-arch-ja.jpg)
 
 
 ブロックコンフィギュレーションのパラメータとして，`input`，`output`以外にいくつか設定されています．
 
 `prompt_template`は，システム発話のプロンプトのテンプレートを指定します．
 
-プロンプトテンプレート`sample_apps/chatgpt/prompt_template_ja.txt`の中身は以下のようになっています．
+プロンプトテンプレート`sample_apps/llm_dialogue/prompt_template_ja.txt`の中身は以下のようになっています．
 
 ```txt
 # タスク説明
@@ -150,7 +155,7 @@ blocks:
 
 ```
 
-このプロンプトテンプレートにそれまでの対話の履歴をつけたものがChatGPTに送られてシステム発話が生成されます。
+このプロンプトテンプレートにそれまでの対話の履歴をつけたものがLLMに送られてシステム発話が生成されます。
 
 ```
 [[[
@@ -169,9 +174,9 @@ blocks:
 
 このアプリケーションを流用して新しいアプリケーションを作るには以下のようにします．
 
-- `sample_apps/chatgpt`をディレクトリ毎コピーします．DialBBのディレクトリとは全く関係ないディレクトリで構いません．
+- `sample_apps/llm_dialogue`をディレクトリ毎コピーします．DialBBのディレクトリとは全く関係ないディレクトリで構いません．
 
-- `config.yml`や`prompt_template_ja.txt`をを編集します．これらのファイルの名前を変更しても構いません．
+- `config_ja.yml`や`prompt_template_ja.txt`をを編集します．これらのファイルの名前を変更しても構いません．
 
 - 以下のコマンドで起動します．
 

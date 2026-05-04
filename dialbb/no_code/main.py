@@ -48,7 +48,7 @@ from dialbb.no_code.gui_utils import (
     FileTimestamp,
     child_position,
     read_gui_text_data,
-    gui_text,
+    gui_text, SettingData,
 )
 from dialbb.main import DialogueProcessor
 from dialbb.paths import DIALBB_DIR, NC_PATH, APP_DIR, TEMPLATE_DIR
@@ -67,8 +67,7 @@ PYEDITOR_STATE_GRAPH_JSON: str = os.path.join(PYEDITOR_DIR, "data", "state_graph
 
 APP_FILES: Dict[str, str] = {
     "scenario": "scenario.xlsx",
-    "nlu-knowledge": "nlu-knowledge.xlsx",
-    "ner-knowledge": "ner-knowledge.xlsx",
+    "dst-knowledge": "dst-knowledge.xlsx",
     "scenario-functions": "scenario_functions.py",
     "config": "config.yml",
     "test-config": "test_config.yml",
@@ -487,10 +486,10 @@ def export_app_file(file_path, settings):
 
 
 # [setting]ボタンの処理。ユーザ情報の設定。
-def setting_json(parent, settings):
+def set_api_keys(parent, settings: SettingData):
     """設定ダイアログを開き、APIキーを保存する。"""
     sub_menu = tk.Toplevel(parent)
-    sub_menu.title(gui_text("set_title_top"))
+    sub_menu.title(gui_text("set_title_api_keys"))
     sub_menu.grab_set()  # モーダルにする
     sub_menu.focus_set()  # フォーカスを新しいウィンドウをへ移す
     sub_menu.transient(parent)
@@ -501,22 +500,40 @@ def setting_json(parent, settings):
 
     # OPENAI_API_KEY入力エリア
     label1 = tk.Label(f1, text="OPENAI_API_KEY")
-    api_key = tk.Entry(f1, width=30)
+    openai_api_key_entry = tk.Entry(f1, width=50)
+    label2 = tk.Label(f1, text="GOOGLE_API_KEY")
+    google_api_key_entry = tk.Entry(f1, width=50)
+    label3 = tk.Label(f1, text="ANTHROPIC_API_KEY")
+    anthropic_api_key_entry = tk.Entry(f1, width=50)
     # 横方向のスクロールバーを作成
-    horiz_scrollbar1 = tk.Scrollbar(f1, orient=tk.HORIZONTAL, command=api_key.xview)
-    api_key.config(xscrollcommand=horiz_scrollbar1.set)
+    horiz_scrollbar1 = tk.Scrollbar(f1, orient=tk.HORIZONTAL, command=openai_api_key_entry.xview)
+    openai_api_key_entry.config(xscrollcommand=horiz_scrollbar1.set)
+    horiz_scrollbar2 = tk.Scrollbar(f1, orient=tk.HORIZONTAL, command=google_api_key_entry.xview)
+    google_api_key_entry.config(xscrollcommand=horiz_scrollbar2.set)
+    horiz_scrollbar3 = tk.Scrollbar(f1, orient=tk.HORIZONTAL, command=anthropic_api_key_entry.xview)
+    anthropic_api_key_entry.config(xscrollcommand=horiz_scrollbar3.set)
 
     # configの値を設定
-    api_key.insert(0, settings.get_gptkey())
+    openai_api_key_entry.insert(0, settings.get_openai_api_key())
+    google_api_key_entry.insert(0, settings.get_google_api_key())
+    anthropic_api_key_entry.insert(0, settings.get_anthropic_api_key())
 
     # ボタンクリックされた際のイベント
     def ok_click():
         """設定値を保存してダイアログを閉じる。"""
         # OPENAI_KEYの登録
-        key = api_key.get()
-        settings.set_gptkey(key)
-        # OPENAI_KEY環境変数をセット
+        key = openai_api_key_entry.get()
+        settings.set_openai_api_key(key)
         os.environ["OPENAI_API_KEY"] = key
+
+        key = google_api_key_entry.get()
+        settings.set_google_api_key(key)
+        os.environ["GOOGLE_API_KEY"] = key
+
+        key = anthropic_api_key_entry.get()
+        settings.set_anthropic_api_key(key)
+        os.environ["ANTHROPIC_API_KEY"] = key
+
         messagebox.showinfo("Settings", gui_text("msg_saved"))
         # 画面を閉じる
         sub_menu.destroy()
@@ -529,8 +546,17 @@ def setting_json(parent, settings):
 
     # Layout
     label1.grid(column=0, row=0)
-    api_key.grid(column=1, row=0, sticky=tk.NSEW, padx=5, pady=5)
+    label2.grid(column=0, row=2)
+    label3.grid(column=0, row=4)
+
+    openai_api_key_entry.grid(column=1, row=0, sticky=tk.NSEW, padx=5, pady=5)
     horiz_scrollbar1.grid(column=1, row=1, sticky=tk.NSEW)
+    google_api_key_entry.grid(column=1, row=2, sticky=tk.NSEW, padx=5, pady=5)
+    horiz_scrollbar2.grid(column=1, row=3, sticky=tk.NSEW)
+    anthropic_api_key_entry.grid(column=1, row=4, sticky=tk.NSEW, padx=5, pady=5)
+    horiz_scrollbar3.grid(column=1, row=5, sticky=tk.NSEW)
+
+
     f1.grid_columnconfigure(1, weight=1)
     f1.pack(side=tk.TOP, expand=True, fill=tk.X, padx=5, pady=5)
     can_btn.pack(side="right", padx=5, pady=5)
@@ -604,8 +630,8 @@ def set_main_frame(root_frame) -> None:
     dialogue_processor_local: Optional[DialogueProcessor] = None
 
     # OPENAI_KEY環境変数の設定
-    if settings.get_gptkey():
-        os.environ["OPENAI_KEY"] = settings.get_gptkey()
+    if settings.get_openai_api_key():
+        os.environ["OPENAI_API_KEY"] = settings.get_openai_api_key()
 
     # App file Label 作成
     application_frame = ttk.Labelframe(
@@ -639,26 +665,18 @@ def set_main_frame(root_frame) -> None:
             edit_scenario_btn,
         ),
     )
-    edit_scenario_btn.grid(row=0, column=0, padx=5, pady=5)
+    edit_scenario_btn.grid(row=0, column=1, padx=5, pady=5)
 
-    # edit_nlu_knowledge button
-    edit_nlu_knowledge_btn = ttk.Button(
+    # edit_dst_knowledge button
+    edit_dst_knowledge_btn = ttk.Button(
         edit_frame,
-        text=gui_text("btn_lang_knowledge"),
+        text=gui_text("btn_dst_knowledge"),
         command=lambda: edit_excel(
-            os.path.join(APP_FILE_DIR, APP_FILES["nlu-knowledge"])
+            os.path.join(APP_FILE_DIR, APP_FILES["dst-knowledge"])
         ),
     )
-    edit_nlu_knowledge_btn.grid(row=0, column=1, padx=5, pady=5)
-    # edit_ner_knowledge button
-    edit_ner_knowledge_btn = ttk.Button(
-        edit_frame,
-        text=gui_text("btn_named_entity"),
-        command=lambda: edit_excel(
-            os.path.join(APP_FILE_DIR, APP_FILES["ner-knowledge"])
-        ),
-    )
-    edit_ner_knowledge_btn.grid(row=0, column=2, padx=5, pady=5)
+    edit_dst_knowledge_btn.grid(row=0, column=2, padx=5, pady=5)
+
     # edit_scenario_functions button
     edit_scenario_functions_btn = ttk.Button(
         edit_frame,
@@ -680,7 +698,7 @@ def set_main_frame(root_frame) -> None:
             settings,
         ),
     )
-    edit_config_btn.grid(row=1, column=0, padx=5, pady=5)
+    edit_config_btn.grid(row=0, column=0, padx=5, pady=5)
     edit_frame.columnconfigure((0, 1, 2, 3), weight=1)
     # End of added edit frame buttons
 
@@ -718,8 +736,8 @@ def set_main_frame(root_frame) -> None:
     # settingボタン:ユーザ情報の設定
     setting_btn = ttk.Button(
         dialbb_label,
-        text=gui_text("btn_setting"),
-        command=lambda: setting_json(file_frame, settings),
+        text=gui_text("btn_api_keys"),
+        command=lambda: set_api_keys(file_frame, settings),
     )
     # setting_btn.pack(side=tk.LEFT, padx=10)
     setting_btn.grid(row=0, column=0, padx=5, pady=5)
@@ -907,7 +925,7 @@ def main() -> None:
 
     # set title and icon
     # タイトルとアイコンを設定
-    root.title(gui_text("main_title_top"))
+    root.title(gui_text("main_title_top") + " " + DialogueProcessor.__version__)
     # photo = os.path.join(NC_PATH, 'img', 'dialbb-icon.png')
     # root.iconphoto(True, tk.PhotoImage(file=photo))
 

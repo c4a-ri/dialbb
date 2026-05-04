@@ -20,19 +20,18 @@
 #   Tester using LLM-based simulation
 #   LLMを利用したシミュレーションによるテスタ
 
-
-
-import os, sys
+import os
+import sys
 import traceback
-
-import openai
-import google.generativeai as genai
 from typing import Dict, Any, List
+from langchain.chat_models import init_chat_model
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
 DEFAULT_GPT_MODEL: str = "gpt-4o-mini"
 DIALOGUE_HISTORY_TAG: str = '{dialogue_history}'
 DIALOGUE_HISTORY_OLD_TAG: str = '@dialogue_history'
 TIMEOUT: int = 10
+
 
 class LLMTester:
 
@@ -42,27 +41,46 @@ class LLMTester:
         if os.environ.get('DIALBB_TESTER_DEBUG', 'no').lower() == "yes":
             self._debug = True
 
-        self._llm_type = test_config.get("llm_type", "chatgpt")
-        self._llm = test_config.get("model", "")
+        # conforms to older documents
+        if not os.environ.get('OPENAI_API_KEY') and os.environ.get('OPENAI_KEY'):
+            os.environ['OPENAI_API_KEY'] = os.environ.get('OPENAI_KEY')
 
-        if self._llm_type == "chatgpt":
-
-            openai_key: str = os.environ.get('OPENAI_KEY', os.environ.get('OPENAI_API_KEY', ""))
-            if not openai_key:
-                print("environment variable OPENAI_KEY or OPENAI_API_KEY is not defined.")
-                sys.exit(1)
-            self._openai_client = openai.OpenAI(api_key=openai_key)
-            openai.api_key = openai_key
-            self._gpt_model: str = test_config.get("model", DEFAULT_GPT_MODEL)
-
-        else:
-
-            print("unsupported llm type: " + self._llm_type)
-            sys.exit(1)
+        self._model = test_config.get("model", DEFAULT_GPT_MODEL)
 
         self._temperature: float = 0.0
         self._messages: List[Dict[str, str]] = []
         self._dialogue_history = ""
+        self._llm_client = None
+
+    def _initialize_llm(self) -> None:
+        try:
+            if self._model.startswith("gpt-5") or self._model.startswith("openai:gpt-5"):
+                print("Note that temperature can't be specified for GPT-5x.")
+                self._llm_client = init_chat_model(
+                    self._model,
+                    timeout=TIMEOUT,
+                )
+            else:
+                self._llm_client = init_chat_model(
+                    self._model,
+                    temperature=self._temperature,
+                    timeout=TIMEOUT,
+                )
+        except Exception as exc:
+            print(f"failed to initialize chat model '{self._model}': {exc}")
+            sys.exit(1)
+
+    @staticmethod
+    def _convert_message(message: Dict[str, str]):
+        role = message["role"]
+        content = message["content"]
+        if role == "system":
+            return SystemMessage(content=content)
+        if role == "user":
+            return HumanMessage(content=content)
+        if role == "assistant":
+            return AIMessage(content=content)
+        raise ValueError(f"unsupported message role: {role}")
 
     def set_parameters_and_clear_history(self, prompt_template: str, temperature: float) -> None:
         """
@@ -79,7 +97,9 @@ class LLMTester:
             sys.exit(1)
 
         self._temperature = temperature
+        self._messages = []
         self._messages.append({"role": "system", "content": prompt_template})
+        self._initialize_llm()
 
     def generate_next_user_utterance(self, system_utterance: str) -> str:
         """
@@ -90,31 +110,14 @@ class LLMTester:
 
         self._messages.append({"role": "user", "content": system_utterance})
 
-        if self._llm_type == 'chatgpt':
-
-            chat_completion = None
-            while True:
-                try:
-                    chat_completion = self._openai_client.with_options(timeout=TIMEOUT).chat.completions.create(
-                        model=self._gpt_model,
-                        messages=self._messages,
-                        temperature=self._temperature,
-                        )
-                except openai.APITimeoutError:
-                    continue
-                except Exception as e:
-                    traceback.print_exc()
-                    raise Exception
-                finally:
-                    if not chat_completion:
-                        continue
-                    else:
-                        break
-            user_utterance: str = chat_completion.choices[0].message.content
-
-        elif self._llm_type == 'gemini':
-
-            raise Exception("gemini can't be used.")  # this won't occur
+        try:
+            response = self._llm_client.invoke(
+                [self._convert_message(message) for message in self._messages]
+            )
+            user_utterance = response.content if hasattr(response, "content") else str(response)
+        except Exception:
+            traceback.print_exc()
+            raise Exception
 
         print(f"generated user utterance: {user_utterance}")
         user_utterance = user_utterance.replace('"','')
@@ -129,4 +132,4 @@ class LLMTester:
         :rtype:
         """
 
-        return self._llm
+        return self._model

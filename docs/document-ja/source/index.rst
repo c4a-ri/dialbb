@@ -15,7 +15,8 @@ DialBB ver. 1.2 ドキュメント
    02_concept
    03_tutorial
    04_framework
-   05_builtin_blocks
+   051_builtin_blocks
+   052_deprecated_blocks
    06_appendix
    
    

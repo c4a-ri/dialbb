@@ -1,0 +1,24 @@
+# configuration file for an LLM-based Japanese application
+
+blocks:
+  - name: chatgpt
+    block_class: dialbb.builtin_blocks.llm_dialogue.llm_dialogue.LLMDialogue
+    input:
+      user_id: user_id
+      user_utterance: user_utterance
+      aux_data: aux_data
+      dialogue_history: dialogue_history
+    output:
+      system_utterance: system_utterance
+      aux_data: aux_data
+      final: final
+    user_name: ユーザ
+    system_name: システム
+    first_system_utterance: "こんにちは。私の名前は由衣。少しお話させてね。スイーツって好き？"
+    prompt_template: prompt_template_ja.txt
+    model: gpt-4o-mini
+    #model: google_genai:gemini-2.5-flash
+    temperature: 0.7
+    
+    
+

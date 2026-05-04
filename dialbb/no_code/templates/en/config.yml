@@ -1,20 +1,12 @@
 language: en   # specify language
 
 blocks:  # list of blocks
-  - name: canonicalizer  # block name
-    # block class
-    block_class: 
-      dialbb.builtin_blocks.preprocess.simple_canonicalizer.SimpleCanonicalizer
-    input: # input to block
-      input_text: user_utterance
-    output: # output form the block
-      output_text: canonicalized_user_utterance
   - name: manager
     block_class: dialbb.builtin_blocks.stn_management.stn_manager.Manager
     knowledge_file: scenario.xlsx # scenario file
     function_definitions: scenario_functions
     input:
-      sentence: canonicalized_user_utterance
+      sentence: user_utterance
       nlu_result: nlu_result
       user_id: user_id
       aux_data: aux_data
@@ -23,8 +15,8 @@ blocks:  # list of blocks
       final: final
       aux_data: aux_data
     repeat_when_no_available_transitions: yes
-    chatgpt:
-      gpt_model: gpt-4o-mini  # gpt-4o
+    llm:
+      model: gpt-4o-mini  # gpt-4o
       temperature: 0.7
       situation:
         - You are a dialogue system and chatting with the user.
@@ -41,3 +33,7 @@ blocks:  # list of blocks
         - Single
         - You talk very friendly
         - Diplomatic and cheerful
+      cautions:
+        - Do not generate long sentences
+        - Do not put period at the end of sentences
+

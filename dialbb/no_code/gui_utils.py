@@ -298,13 +298,15 @@ class FileTimestamp:
         return result
 
 
-# -------- JSONファイルの管理クラス -------------------------------------
-class JsonInfo:
+# setting JSON file
+class SettingData:
     """GUI設定JSONの暗号化保存と取得を管理する。"""
     # データ要素
-    label_gpt = "OPENAI_API_KEY"
-    label_app = "Specify_application"
-    label_model = "gpt_models"
+    key_openai_api_key = "OPENAI_API_KEY"
+    key_anthropic_api_key = "ANTHROPIC_API_KEY"
+    key_google_api_key = "GOOGLE_API_KEY"
+    key_app_name = "application_name"
+    key_model_list = "model_list"
 
     # 暗号化キー
     key = "6QvOzPwlGXvFpvv4ZrL4RSrpxZmCUK7wSxnmd9qDzp4="
@@ -316,13 +318,13 @@ class JsonInfo:
         self.disp = None
         try:
             # ファイル読み込みデータ復号化
-            self._decryption()
+            self._decrypt()
         except FileNotFoundError:
             # 新規作成
             self.data = {}
 
     # ファイル暗号化ファイル書き込み
-    def _encryption(self):
+    def _encrypt_and_save(self):
         """設定データを暗号化してファイルへ保存する。"""
         # print(f'### Write setting json={self.data}')
         # Fernetオブジェクトを作成する
@@ -339,7 +341,7 @@ class JsonInfo:
             file.write(encrypted)
 
     # ファイル復号化
-    def _decryption(self):
+    def _decrypt(self):
         """設定ファイルを復号化してメモリへ読み込む。"""
         # Fernetオブジェクトを作成する
         fernet = Fernet(self.key)
@@ -363,7 +365,7 @@ class JsonInfo:
         """指定キーへ値を設定し、暗号化保存する。"""
         self.data[key] = value
         # ファイルに保存
-        self._encryption()
+        self._encrypt_and_save()
 
     # アプリ名の表示
     def _disp_appname(self, app_name):
@@ -373,44 +375,62 @@ class JsonInfo:
             self.disp["text"] = f"{gui_text('main_app_name')}: {app_name}"
 
     # OPENAI_API_KEY取得
-    def get_gptkey(self):
+    def get_openai_api_key(self):
         """OPENAI_API_KEY を取得する。"""
-        return self._get(self.label_gpt)
+        return self._get(self.key_openai_api_key)
 
     # OPENAI_API_KEY設定
-    def set_gptkey(self, key):
+    def set_openai_api_key(self, key):
         """OPENAI_API_KEY を設定する。"""
-        self._set(self.label_gpt, key)
+        self._set(self.key_openai_api_key, key)
+
+    def get_google_api_key(self):
+        """OPENAI_API_KEY を取得する。"""
+        return self._get(self.key_google_api_key)
+
+    # OPENAI_API_KEY設定
+    def set_google_api_key(self, key):
+        """OPENAI_API_KEY を設定する。"""
+        self._set(self.key_google_api_key, key)
+
+    def get_anthropic_api_key(self):
+        """OPENAI_API_KEY を取得する。"""
+        return self._get(self.key_anthropic_api_key)
+
+    # OPENAI_API_KEY設定
+    def set_anthropic_api_key(self, key):
+        """OPENAI_API_KEY を設定する。"""
+        self._set(self.key_anthropic_api_key, key)
 
     # アプリ名表示エリアの登録
     def reg_disp_area(self, disp_area):
         """アプリ名表示用ウィジェットを登録する。"""
         self.disp = disp_area
-        self._disp_appname(self._get(self.label_app))
+        self._disp_appname(self._get(self.key_app_name))
 
     # アプリ名取得
     def get_appname(self):
         """設定済みアプリ名を取得する。"""
-        return self._get(self.label_app)
+        return self._get(self.key_app_name)
 
     # アプリ名設定
     def set_appname(self, app_name):
         """アプリ名を設定し、表示エリアを更新する。"""
-        self._set(self.label_app, app_name)
+        self._set(self.key_app_name, app_name)
         # GUI表示の更新
         self._disp_appname(app_name)
 
     # GPT models取得
-    def get_gptmodels(self):
+    def get_llm_models(self):
         """GPTモデル一覧を取得する。"""
-        return self._get(self.label_model)
+        return self._get(self.key_model_list)
 
     # GPT models設定
-    def set_gptmodels(self, models: List[str]):
+    def set_llm_models(self, models: List[str]):
         """GPTモデル一覧を設定する。"""
         if not models:
             models = []
-        self._set(self.label_model, models)
+        self._set(self.key_model_list, models)
 
 
 # -------- Functions -------------------------------------
@@ -439,7 +459,7 @@ def child_position(parent, child, width: int = 0, height: int = 0):
 # GUIで利用するセッティング情報を制御
 def read_gui_settings(file_path):
     """GUI設定ファイルの管理オブジェクトを返す。"""
-    return JsonInfo(file_path)
+    return SettingData(file_path)
 
 
 # GUI表示テキストの実データ（可変データ）はこのモジュールで保持

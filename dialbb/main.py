@@ -19,7 +19,6 @@
 #   main dialogue processor
 #   メイン対話処理
 
-__version__ = '1.2.0'
 __author__ = 'Mikio Nakano'
 __copyright__ = 'C4A Research Institute, Inc.'
 
@@ -32,6 +31,8 @@ import yaml
 import io, sys
 import os
 import hashlib
+import os
+from dotenv import load_dotenv
 
 from dialbb.util.context_db import ContextDB
 from dialbb.util.globals import DEBUG
@@ -70,6 +71,8 @@ class DialogueProcessor:
     DialBB対話処理のメインクラス
     """
 
+    __version__ = '2.0.0'
+
     config = {}
 
     def __init__(self, config_file: str, additional_config: Dict[str, Any] = None):
@@ -80,7 +83,9 @@ class DialogueProcessor:
         :param additional_config: additional configuration
         """
 
-        print(f"Starting an application with DialBB {__version__}.")
+        load_dotenv()
+
+        print(f"Starting an application with DialBB {self.__version__}.")
         # read config file configファイルの読み込み
         print("Reading application config file.")
         try:

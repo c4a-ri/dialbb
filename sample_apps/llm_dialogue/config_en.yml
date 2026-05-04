@@ -1,0 +1,23 @@
+# Configuration file for an LLM-based English application
+
+blocks:
+  - name: chatgpt
+    block_class: dialbb.builtin_blocks.llm_dialogue.llm_dialogue.LLMDialogue
+    input:
+      user_id: user_id
+      user_utterance: user_utterance
+      aux_data: aux_data
+      dialogue_history: dialogue_history
+    output:
+      system_utterance: system_utterance
+      aux_data: aux_data
+      final: final
+    user_name: User
+    system_name: System
+    first_system_utterance: "Hello! Let's talk about food. What kind of cuisine do you like?"
+    prompt_template: prompt_template_en.txt
+    model: gpt-4o-mini
+    temperature: 0.7
+    
+    
+

@@ -70,20 +70,20 @@ export DIALBB_DEBUG=yes; python run_server.py sample_apps/parrot/config.yml
 
 This will output detailed logs to the console, which should help deepen your understanding by observing the system’s behavior in more detail.
 
-## ChatGPT Dialogue Application
+## LLM Dialogue Application
 
 ### Description
 
-Using {ref}`chatgpt_dialogue`, we will conduct a dialogue with OpenAI's ChatGPT.
+Engages in a dialogue with a single prompt template with an LLM using {ref}`llm_dialogue`, 
 
-It can be found in `sample_apps/chatgpt/`.
+It can be found in `sample_apps/llm_dialogue/`.
 
-The contents of `sample_apps/chatgpt/config_en.yml` are as follows.
+The contents of `sample_apps/llm_dialgoue/config_en.yml` are as follows.
 
 ```yaml
 blocks:
   - name: chatgpt
-    block_class: dialbb.builtin_blocks.chatgpt.chatgpt.ChatGPT
+    block_class: dialbb.builtin_blocks.llm_dialogue.llm_dialogue.LLMDialogue
     input:
       user_id: user_id
       user_utterance: user_utterance
@@ -93,20 +93,23 @@ blocks:
       system_utterance: system_utterance
       aux_data: aux_data
       final: final
+    user_name: User
+    system_name: System
     first_system_utterance: "Hello! Let's talk about food. What kind of cuisine do you like?"
     prompt_template: prompt_template_en.txt
-    gpt_model: gpt-4o-mini
+    model: gpt-4o-mini
+    temperature: 0.7
 ```
 
 The exchange of information with the main module is illustrated as follows.
 
-![sample-arch](../../images/chatgpt-dialogue-arch-en.jpg)
+![sample-arch](../../images/llm-dialogue-arch-en.jpg)
 
 In addition to `input` and `output`, several other parameters are configured as block configuration parameters.
 
 The `prompt_template` specifies the template for the system prompt.
 
-The contents of the prompt template `sample_apps/chatgpt/prompt_template_en.txt` are as follows.
+The contents of the prompt template `sample_apps/llm_dialogue/prompt_template_en.txt` are as follows.
 
 ```markdown
 # Task Description
@@ -144,7 +147,7 @@ The contents of the prompt template `sample_apps/chatgpt/prompt_template_en.txt`
 {notes}
 ]]]
 ```
-The conversation history up to that point is attached to this prompt template and sent to ChatGPT, which then generates the system response.
+The conversation history up to that point is attached to this prompt template and sent to the LLM, which then generates the system response.
 
 The following sectionis usually not used and is deleted. A detailed explanation is omitted.
 ```
@@ -159,9 +162,9 @@ The following sectionis usually not used and is deleted. A detailed explanation 
 
 To create a new application by reusing this application, follow these steps:
 
-- Copy the entire `sample_apps/chatgpt` directory. It doesn't need to be placed within the DialBB directory; any directory will work.
+- Copy the entire `sample_apps/llm_dialogue` directory. It doesn't need to be placed within the DialBB directory; any directory will work.
 
-- Edit `config.yml` and `prompt_template_en.txt`. You can also rename these files if desired.
+- Edit `config_en.yml` and `prompt_template_en.txt`. You can also rename these files if desired.
 
 - Start the application with the following command:
 
