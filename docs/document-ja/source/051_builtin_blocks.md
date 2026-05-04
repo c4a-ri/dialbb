@@ -3,6 +3,7 @@
 
 
 
+(dst_with_llm)=
 ## DST with LLM （LLMを用いたスロット抽出ブロック）
 
 (`dialbb.builtin_blocks.understanding_with_chatgpt.chatgpt_understander.Understander`）
@@ -171,10 +172,10 @@
 
   - `dialogue_history`: メインモジュールから送られてくる対話履歴（任意）
   - `sentence`: ユーザ発話（文字列）（`dialogue_history`があればなくても良い）
-  - `nlu_result`:言語理解結果（辞書型または辞書型のリスト）（任意）
-  - `dst_result`:言語理解結果（辞書型または辞書型のリスト）（任意）`nlu_result`がある場合は無視される。
+  - `nlu_result`: 言語理解結果（辞書型または辞書型のリスト）（任意）
+  - `dst_result`: スロット抽出結果（辞書型）（任意）`nlu_result`がある場合は無視される。
   - `user_id`: ユーザID（文字列）（`dialogue_history`があればなくても良い）
-  - `aux_data`: 補助データ（辞書型）（任意：クライアントから補助データを受け取る場合には）
+  - `aux_data`: 補助データ（辞書型）（任意：クライアントから補助データを受け取る場合には必要）
 
 - 出力
 

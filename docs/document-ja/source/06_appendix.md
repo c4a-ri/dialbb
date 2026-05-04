@@ -60,7 +60,7 @@ $ python <DialBBのディレクトリ>/run_server.py [--port <port>] <config fil
 
 
 
-
+(sim_tester)=
 ## ユーザシミュレータを用いたテスタ
 
 LLM (ChatGPT) を用いたユーザシミュレータを用いたテスタが付属しています。

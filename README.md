@@ -10,7 +10,8 @@ Please refer to [the project main page](https://c4a-ri.github.io/dialbb/), which
 
 ## Documents
 
-Please refer to the [document](https://c4a-ri.github.io/dialbb/document-en/build/html/) for detailed specification and the way of application development. 
+Please refer to the [document](https://c4a-ri.github.io/dialbb/document-en/build/html/) for detailed specification and the way of application development. (If this README is not for a released version, please download the [document for the same version as this README](docs/files/document-en.zip).)
+
 
 ## Citation
 
@@ -184,8 +185,8 @@ These application also use OpenAI's ChatGPT. In the same way as LLM Dialogue App
 The following commands allow you to test various features.
 
   ```sh
-  $ dialbb-send-test-requests sample_apps/dst_stn_ja/config.yml test_requests.json # for English app
-  $ dialbb-send-test-requests sample_apps/dst_stn_ja/config.yml test_requests.json # for Japanese app
+  $ dialbb-send-test-requests sample_apps/dst_stn_ja/config.yml sample_apps/dst_stn_ja/test_requests.json # for English app
+  $ dialbb-send-test-requests sample_apps/dst_stn_ja/config.yml sample_apps/dst_stn_ja/test_requests.json # for Japanese app
   ```
 
 ### Uninstalling DialBB

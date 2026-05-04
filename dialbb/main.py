@@ -25,11 +25,11 @@ __copyright__ = 'C4A Research Institute, Inc.'
 import copy
 import dataclasses
 import time
+from pathlib import Path
 from typing import Dict, Any, List
 import importlib
 import yaml
 import io, sys
-import os
 import hashlib
 import os
 from dotenv import load_dotenv
@@ -83,7 +83,25 @@ class DialogueProcessor:
         :param additional_config: additional configuration
         """
 
-        load_dotenv()
+        #load_dotenv()
+
+        # from pathlib import Path
+        # import dotenv
+        # from dotenv import find_dotenv
+
+        env_path = Path.cwd() / ".env"
+        load_dotenv(env_path)
+
+        # print("cwd:", Path.cwd())
+        # print("find_dotenv:", find_dotenv())
+        # print("dotenv file:", dotenv.__file__)
+        #
+        # loaded = load_dotenv()
+        # print("loaded:", loaded)
+        #
+        # print("OPENAI_API_KEY:", os.getenv("OPENAI_API_KEY"))
+        # print(os.getcwd())
+        # print(os.environ['OPENAI_API_KEY'])
 
         print(f"Starting an application with DialBB {self.__version__}.")
         # read config file configファイルの読み込み

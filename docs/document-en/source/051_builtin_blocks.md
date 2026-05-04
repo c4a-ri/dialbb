@@ -165,13 +165,11 @@ Each row consists of the following columns.
 It perfomrs dialogue management using a state-transition neetwork.
 
 - input
-  - `sentence`: user utterance after canonicalization (string)
-
-  - `nlu_result`: language understanding result (dictionary or list of dictionaries)
-
-  - `user_id`: user ID (string)
-
-  - `aux_data`: auxiliary data (dictionary) (not required, but specifying this is recommended)
+  - `dialogue_history`: Dialogue history sent from the main module (optional)
+  - `sentence`: user utterance (string) (if `dialogue_history` persents, this can be ommitted.)
+  - `nlu_result`: language understanding result (dictionary or list of dictionaries) (optional)
+  - `user_id`: user ID (string) (if `dialogue_history` persents, this can be ommitted.)
+  - `aux_data`: auxiliary data (dictionary) (optional, but required when receiving auxiliary data from the client.)
 
 
 - output 
