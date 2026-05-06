@@ -65,7 +65,7 @@ def create_stn(df: DataFrame, flags_to_use: List[str]) -> StateTransitionNetwork
 
     # check column names
     columns = df.columns.values.tolist()
-    for required_column in [COLUMN_STATE, COLUMN_FLAG, COLUMN_SYSTEM_UTTERANCE, COLUMN_USER_UTTERANCE_TYPE,
+    for required_column in [COLUMN_STATE, COLUMN_FLAG, COLUMN_SYSTEM_UTTERANCE,
                             COLUMN_CONDITIONS, COLUMN_ACTIONS, COLUMN_DESTINATION]:
         if required_column not in columns:
             print(f"Column '{required_column}' is missing in the scenario sheet. "
@@ -86,9 +86,13 @@ def create_stn(df: DataFrame, flags_to_use: List[str]) -> StateTransitionNetwork
             current_state = stn.create_new_state(current_state_name)
         system_utterance = normalize(row[COLUMN_SYSTEM_UTTERANCE])
 
+        if not row.get(COLUMN_USER_UTTERANCE_TYPE):
+            row[COLUMN_USER_UTTERANCE_TYPE] = ""
+
         if system_utterance != "":
             current_state.add_system_utterance(system_utterance)
         if row[COLUMN_DESTINATION]:
+
             current_state.add_transition(normalize(row[COLUMN_USER_UTTERANCE_TYPE]),
                                          normalize(row[COLUMN_CONDITIONS]),
                                          normalize(row[COLUMN_ACTIONS]),

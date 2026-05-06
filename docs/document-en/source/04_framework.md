@@ -372,6 +372,21 @@ When the environment variable `DIALBB_DEBUG` is set to `yes` (case-insensitive) 
 
 If `dialbb.main.DEBUG` is `True`, the logging level is set to debug; otherwise it is set to info.
 
+
+## Loading Environment Variables
+
+In addition to the `DIALBB_DEBUG` mentioned above, environment variables are also used to configure items such as API keys for commercial LLMs. Environment variables may be set using methods such as `export` in bash, but they can also be written in a `.env` file in the current directory when the application starts. Write them in the following format:
+
+```txt
+DIALBB_DEBUG=yes
+OPENAI_API_KEY=....
+GOOGLE_API_KEY=...
+ANTHROPIC_API_KEY=...
+```
+
+Environment variables that have already been set **will not be overwritten** by entries in `.env`.
+
+
 ## Test Using Test Scenarios
 
 The following commands can be used to test with test scenarios.

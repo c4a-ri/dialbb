@@ -253,6 +253,7 @@ Each row of the sheet represents a transition. Each row consists of the followin
 - `user utterance type`
 
   The user utterance type obtained by language understanding. It is used as a condition of the transition.
+  If there is no `nlu_result` in the input for this block, this column is optional.
 
 
 - `conditions`
