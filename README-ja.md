@@ -177,12 +177,12 @@ http://<hostname>:8080/test
 
 ### 実験アプリケーション
 
-`sample_apps/lab_app_ja/` （日本語）`sample_apps/lab_app_en/` （英語）に実験的なアプリケーションがあります（日本語）．組み込みブロックの様々な機能を試すためのアプリケーションです．以下の組み込みブロックを用いています．
+`sample_apps/lab_app_ja/` （日本語）`sample_apps/lab_app_en/` （英語）に実験的なアプリケーションがあります．組み込みブロックの様々な機能を試すためのアプリケーションです．以下の組み込みブロックを用いています．
 
 
 - 日本語アプリケーション
 
-  -  Japanese Canonicalizer Block 
+  - Japanese Canonicalizer Block 
   - ChatGPT Understander Block
   - ChatGPT NER Block
   - STN Manager Block
