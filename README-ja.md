@@ -72,7 +72,7 @@ $ dialbb-server sample_apps/parrot/config.yml
   $ curl -X POST -H "Content-Type: application/json" \
     -d '{"user_id":"user1"}' http://localhost:8080/init
   ```
-   以下のレスポンスが帰ります．
+   以下のレスポンスが返ります．
   
   ```json
   {"aux_data":null, 
@@ -88,7 +88,7 @@ $ dialbb-server sample_apps/parrot/config.yml
     -d '{"user_utterance": "こんにちは", "user_id":"user1", "session_id":"dialbb_session1"}' \
     http://localhost:8080/dialogue
   ```
-   以下のレスポンスが帰ります．
+   以下のレスポンスが返ります．
 
   ```json
   {"aux_data":null,
