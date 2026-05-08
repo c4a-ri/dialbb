@@ -107,6 +107,7 @@ def run_stt_worker(
     sample_rate: int = 16000,
     chunk_ms: int = 100,
     language_code: str = "ja-JP",
+    mic_gain: float = 1.0,
 ) -> None:
     """Speech activity detection + STT worker thread."""
     try:
@@ -132,7 +133,7 @@ def run_stt_worker(
 
         try:
             # マイク入力を逐次 chunk 化して STT に流し込む。
-            with MicrophoneAudioInput(sample_rate=sample_rate, chunk_ms=chunk_ms) as mic:
+            with MicrophoneAudioInput(sample_rate=sample_rate, chunk_ms=chunk_ms, gain=mic_gain) as mic:
                 for recognition_event in recognizer.stream(mic.chunks()):
                     if stop_event.is_set():
                         # 停止シグナルを受けたら即座にループを抜ける。

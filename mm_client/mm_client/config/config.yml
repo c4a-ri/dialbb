@@ -1,10 +1,19 @@
 # mm_client runtime settings
 # Paths can be absolute or relative to this file.
 
+main:
+  # メインループ周期 (秒)
+  loop_period: 0.1
+  # ユーザ発話待ちタイムアウト (秒)  T.Oで "user_silence"通知
+  max_user_wait_time: 10.0
+
 stt:
-  # Google Speech-to-Text service account key file
+  # Google Speech-to-Text and Text-to-Speech サービスアカウントキー(json)
   key_file: 
+  # マイク入力のソフトウェアゲイン。1.0=原音, 0.5=半分, 2.0=2倍。
+  # スピーカー音がマイクに回り込む場合は 0.3〜0.5 程度に下げる。
+  mic_gain: 1.0
 
 dialbb:
   # DialBB application config used by DialogueProcessor
-  config_file: ../../../sample_apps/lab_app_ja/config.yml
+  config_file: 

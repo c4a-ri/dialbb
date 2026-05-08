@@ -58,10 +58,10 @@ def _play_audio(
         if cancel_queue is not None:
             try:
                 cancel_queue.get_nowait()
-                logger.info("[TTS] キャンセルキュー受信: 再生中断")
+                logger.debug("[TTS] キャンセルキュー受信: 再生中断")
                 pygame.mixer.music.stop()
                 return False
-            except Exception:
+            except Empty:
                 pass
         pygame.time.wait(50)
     return True
@@ -91,7 +91,16 @@ def run_tts_worker(
         except Empty:
             continue
 
-        logger.info("[TTS] 合成要求受信: %s", request.text)
+        logger.info("[TTS] TTS<-MAIN 合成要求受信")
+        logger.debug("[TTS] request.text=%s", request.text)
+
+        # 前回リクエストの残留キャンセル信号を捨てる（stale cancel 対策）。
+        if tts_cancel_queue is not None:
+            while not tts_cancel_queue.empty():
+                try:
+                    tts_cancel_queue.get_nowait()
+                except Empty:
+                    break
 
         # 句点で分割し、空セグメントを除去する。
         segments = [s.strip() for s in request.text.split("。") if s.strip()]
@@ -104,11 +113,21 @@ def run_tts_worker(
         completed = True
         for segment in segments:
             if stop_event.is_set() or not active_event.is_set():
-                logger.info("[TTS] 中断: %s", segment)
+                logger.debug("[TTS] 中断: %s", segment)
                 completed = False
                 break
 
-            logger.info("[TTS] 合成中: %s", segment)
+            # セグメント処理開始前にキャンセル信号を確認する。
+            if tts_cancel_queue is not None and not tts_cancel_queue.empty():
+                try:
+                    tts_cancel_queue.get_nowait()
+                    logger.debug("[TTS] セグメント開始前にキャンセル検知: 再生中断")
+                except Empty:
+                    pass
+                completed = False
+                break
+
+            logger.debug("[TTS] 合成中: %s", segment)
             try:
                 audio_bytes = _synthesize(client, segment)
             except Exception:
@@ -118,7 +137,7 @@ def run_tts_worker(
 
             finished = _play_audio(audio_bytes, stop_event, active_event, tts_cancel_queue)
             if not finished:
-                logger.info("[TTS] 再生中断: %s", segment)
+                logger.debug("[TTS] 再生中断: %s", segment)
                 completed = False
                 break
 
@@ -129,5 +148,6 @@ def run_tts_worker(
                 completed=completed,
             )
         )
+        logger.info("[TTS] TTS->MAIN 結果送信")
         if completed:
-            logger.info("[TTS] 合成・再生完了: %s", request.text)
+            logger.debug("[TTS] 合成・再生完了: %s", request.text)

@@ -43,6 +43,8 @@ class DialbbRequest:
     user_text: str
     # True の場合は対話開始要求（initial=True）として扱う。
     is_initial: bool = False
+    # バージイン時など追加情報を渡す辞書。{"barge_in": True} など。
+    aux_data: dict = field(default_factory=dict)
 
 
 @dataclass(slots=True)
@@ -51,6 +53,8 @@ class DialbbResponse:
 
     session_id: str
     system_text: str
+    # True の場合は対話の最終応答（以降入力を受け付けない）。
+    is_final: bool = False
 
 
 @dataclass(slots=True)

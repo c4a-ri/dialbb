@@ -6,6 +6,7 @@ import tkinter as tk
 from tkinter import messagebox, ttk
 from pathlib import Path
 
+import yaml
 from dialbb.util.logger import get_logger
 from mm_client.asr.google_stt_client import run_stt_worker
 from mm_client.main.dialbb_client import run_dialbb_worker
@@ -18,7 +19,6 @@ from mm_client.main.messages import (
     TtsResult,
 )
 from mm_client.tts.speech_synthesizer import run_tts_worker
-import yaml
 
 
 logger = get_logger(__name__)
@@ -36,7 +36,8 @@ def _resolve_path(base_dir: Path, value: str | None) -> str | None:
 
 def _load_runtime_paths(
     config_file: Path,
-) -> tuple[str | None, str | None]:
+) -> tuple[str | None, str | None, float, float, float]:
+    # YAML 設定ファイルを読み込む（存在しない場合は空辞書で継続）。
     config_data: dict = {}
     if config_file.exists():
         with config_file.open(encoding="utf-8") as fp:
@@ -45,20 +46,23 @@ def _load_runtime_paths(
         logger.warning("[SYSTEM] 設定ファイルが見つかりません: %s", config_file)
 
     base_dir = config_file.parent
+    # STT 認証キーファイルと DialBB 設定ファイルのパスを解決する。
     stt_default = (config_data.get("stt") or {}).get("key_file")
     dialbb_default = (config_data.get("dialbb") or {}).get("config_file")
 
     stt_key_file = _resolve_path(base_dir, stt_default)
     dialbb_config = _resolve_path(base_dir, dialbb_default)
-    return stt_key_file, dialbb_config
 
+    # メインループの周期とユーザ発話待ちタイムアウトを読む。
+    main_cfg = config_data.get("main") or {}
+    loop_period = float(main_cfg.get("loop_period", 0.1))
+    max_user_wait_time = float(main_cfg.get("max_user_wait_time", 30.0))
 
-def _clear_queue(target_queue: queue.Queue) -> None:
-    while True:
-        try:
-            target_queue.get_nowait()
-        except queue.Empty:
-            return
+    # マイクゲイン値を読む（1.0=原音、小さくするとマイクの感度を下げられる）。
+    stt_cfg = config_data.get("stt") or {}
+    mic_gain = float(stt_cfg.get("mic_gain", 1.0))
+
+    return stt_key_file, dialbb_config, loop_period, max_user_wait_time, mic_gain
 
 
 def _log_thread_shutdown_result(workers: list[threading.Thread], source: str) -> None:
@@ -86,7 +90,9 @@ class MultimodalGuiController:
         tts_result_queue: "queue.Queue[TtsResult]",
         workers: list[threading.Thread],
         chat_queue: "queue.Queue[tuple[str, str]]",
+        status_queue: "queue.Queue[str]",
         error_queue: "queue.Queue[str]",
+        gui_command_queue: "queue.Queue[str]",
     ) -> None:
         self.root = root
         self.stop_event = stop_event
@@ -99,7 +105,9 @@ class MultimodalGuiController:
         self.tts_result_queue = tts_result_queue
         self.workers = workers
         self.chat_queue = chat_queue
+        self.status_queue = status_queue
         self.error_queue = error_queue
+        self.gui_command_queue = gui_command_queue
         self.is_closing = False
         self._ui_dialogue_active = False
 
@@ -107,6 +115,7 @@ class MultimodalGuiController:
         self._build_ui()
         self.root.protocol("WM_DELETE_WINDOW", self.close_gui)
         self.root.after(250, self._refresh_worker_state)
+        self.root.after(100, self._poll_status_queue)
         self.root.after(100, self._poll_chat_queue)
 
     def _build_ui(self) -> None:
@@ -158,8 +167,8 @@ class MultimodalGuiController:
             state=tk.DISABLED,
             wrap=tk.WORD,
             font=("Yu Gothic UI", 10),
-            background="#1e1e1e",
-            foreground="#d4d4d4",
+            background="#212121",
+            foreground="#ffffff",
             relief=tk.FLAT,
         )
         scrollbar = ttk.Scrollbar(chat_frame, orient=tk.VERTICAL, command=self.chat_text.yview)
@@ -167,29 +176,40 @@ class MultimodalGuiController:
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         self.chat_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
-        # ユーザー発話用タグ（右寄せ、水色）。
+        # ユーザー発話用タグ（右寄せ、青系）。
         self.chat_text.tag_configure(
             "user",
-            foreground="#4ec9b0",
+            foreground="#66d9ef",
             justify=tk.RIGHT,
             lmargin1=60,
             lmargin2=60,
         )
-        # システム応答用タグ（左寄せ、黄色）。
+        # システム応答用タグ（左寄せ、緑系）。
         self.chat_text.tag_configure(
             "system",
-            foreground="#dcdcaa",
+            foreground="#7CFC00",
             justify=tk.LEFT,
             rmargin=60,
         )
-        # ラベル用タグ（グレー、小フォント）。
+        # ラベル用タグ（role ごとに寄せ方向を分ける）。
         self.chat_text.tag_configure(
-            "label",
-            foreground="#888888",
+            "label_user",
+            foreground="#ffffff",
             font=("Yu Gothic UI", 8),
+            justify=tk.RIGHT,
+            lmargin1=60,
+            lmargin2=60,
+        )
+        self.chat_text.tag_configure(
+            "label_system",
+            foreground="#ffffff",
+            font=("Yu Gothic UI", 8),
+            justify=tk.LEFT,
+            rmargin=60,
         )
 
     def _set_dialogue_ui_state(self, active: bool) -> None:
+        # 対話アクティブ状態に合わせてボタンの有効・無効とステータス文言を切り替える。
         self._ui_dialogue_active = active
         if active:
             self.start_button.configure(state=tk.DISABLED)
@@ -204,21 +224,13 @@ class MultimodalGuiController:
         if self.stop_event.is_set() or self.conversation_active_event.is_set():
             return
 
-        # 前回対話の残キューを消してから開始要求を送る。
-        _clear_queue(self.stt_event_queue)
-        _clear_queue(self.dialbb_request_queue)
-        _clear_queue(self.dialbb_response_queue)
-        _clear_queue(self.tts_request_queue)
-        _clear_queue(self.tts_result_queue)
-
         # チャットウィンドウをクリアする。
         self._clear_chat()
 
+        # UI の即時反映のため conversation_active_event をここでもセットする。
+        # 実際の対話開始処理（DialBB init 等）は main_module が "start" コマンドで行う。
         self.conversation_active_event.set()
-        self.stt_enabled_event.clear()
-        self.dialbb_request_queue.put(
-            DialbbRequest(session_id="", user_text="", is_initial=True)
-        )
+        self.gui_command_queue.put("start")
         logger.info("[GUI] 対話開始ボタン押下")
         self._set_dialogue_ui_state(active=True)
 
@@ -226,15 +238,8 @@ class MultimodalGuiController:
         if not self.conversation_active_event.is_set():
             return
 
-        self.conversation_active_event.clear()
-        self.stt_enabled_event.clear()
-
-        # 対話停止時は待機復帰のため未処理メッセージを破棄する。
-        _clear_queue(self.stt_event_queue)
-        _clear_queue(self.dialbb_request_queue)
-        _clear_queue(self.dialbb_response_queue)
-        _clear_queue(self.tts_request_queue)
-        _clear_queue(self.tts_result_queue)
+        # TTS キャンセルと状態リセットは main_module が "end" コマンドで行う。
+        self.gui_command_queue.put("end")
 
         logger.info("[GUI] 対話終了ボタン押下")
         self._set_dialogue_ui_state(active=False)
@@ -262,10 +267,11 @@ class MultimodalGuiController:
         if self.is_closing:
             return
 
-        # ワーカーがまだ起動していない場合は監視をスキップする。
+        # まだ起動していないワーカーは監視をスキップする。
         started = [w for w in self.workers if w.ident is not None]
         dead_workers = [w.name for w in started if not w.is_alive()]
         if dead_workers:
+            # 一つでもワーカーが死んでいればエラーとみなして終了処理を行う。
             self.status_var.set(f"異常終了: {', '.join(dead_workers)}")
             logger.error("[GUI] ワーカー異常終了を検知: %s", ", ".join(dead_workers))
             # エラーキューにメッセージがあればポップアップで通知する。
@@ -284,6 +290,7 @@ class MultimodalGuiController:
             self.close_gui()
             return
 
+        # 対話アクティブ状態が外部から変化した場合は UI に反映する。
         active = self.conversation_active_event.is_set()
         if active != self._ui_dialogue_active:
             self._ui_dialogue_active = active
@@ -299,13 +306,15 @@ class MultimodalGuiController:
     def _append_chat(self, role: str, text: str) -> None:
         """role='user' or 'system' のメッセージをチャットウィンドウに追記する。"""
         label = "User" if role == "user" else "System"
+        label_tag = "label_user" if role == "user" else "label_system"
         self.chat_text.configure(state=tk.NORMAL)
-        self.chat_text.insert(tk.END, f"{label}\n", "label")
-        self.chat_text.insert(tk.END, f"{text}\n\n", role)
+        self.chat_text.insert(tk.END, f"{label}\n", label_tag)
+        self.chat_text.insert(tk.END, f"{text}\n", role)
         self.chat_text.configure(state=tk.DISABLED)
         self.chat_text.see(tk.END)
 
     def _poll_chat_queue(self) -> None:
+        # チャットキューをポーリングし、メッセージがあればウィンドウへ追記する。
         if self.is_closing:
             return
         while True:
@@ -314,7 +323,22 @@ class MultimodalGuiController:
                 self._append_chat(role, text)
             except queue.Empty:
                 break
+        # 100ms 後に再度ポーリングをスケジュールする。
         self.root.after(100, self._poll_chat_queue)
+
+    def _poll_status_queue(self) -> None:
+        # ステータスキューをポーリングし、最新状態をステータスバーへ反映する。
+        if self.is_closing:
+            return
+        latest_status: str | None = None
+        while True:
+            try:
+                latest_status = self.status_queue.get_nowait()
+            except queue.Empty:
+                break
+        if latest_status:
+            self.status_var.set(latest_status)
+        self.root.after(100, self._poll_status_queue)
 
 
 def main() -> None:
@@ -327,12 +351,16 @@ def main() -> None:
     )
     args = parser.parse_args()
 
+    # ----------------------------------------------------------------
+    # 設定ファイルの読み込みと環境変数の設定
+    # ----------------------------------------------------------------
     config_file = Path(args.config_file).expanduser().resolve()
-    stt_key_file, dialbb_config = _load_runtime_paths(
+    stt_key_file, dialbb_config, loop_period, max_user_wait_time, mic_gain = _load_runtime_paths(
         config_file=config_file,
     )
 
     if stt_key_file:
+        # Google Cloud STT の認証情報を環境変数へ渡す。
         os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = stt_key_file
         logger.info("[SYSTEM] STTキー設定: %s", stt_key_file)
     else:
@@ -361,10 +389,14 @@ def main() -> None:
     tts_result_queue: "queue.Queue[TtsResult]" = queue.Queue()
     # GUIチャット表示用キュー (role: str, text: str) のタプルを受け取る。
     chat_queue: "queue.Queue[tuple[str, str]]" = queue.Queue()
+    # Main -> GUI の状態表示キュー。
+    status_queue: "queue.Queue[str]" = queue.Queue()
     # ワーカーからGUIへのエラー通知キュー。
     error_queue: "queue.Queue[str]" = queue.Queue()
     # main_module から TTS ワーカーへの再生キャンセル通知キュー。
     tts_cancel_queue: "queue.Queue[str]" = queue.Queue()
+    # GUI → main_module へのコマンドキュー ("start" / "end")。
+    gui_command_queue: "queue.Queue[str]" = queue.Queue()
 
     main_module = MultimodalMainModule()
 
@@ -380,6 +412,7 @@ def main() -> None:
                 "sample_rate": 16000,
                 "chunk_ms": 100,
                 "language_code": "ja-JP",
+                "mic_gain": mic_gain,
             },
             name="stt-worker",
             daemon=False,
@@ -422,8 +455,12 @@ def main() -> None:
                 "conversation_active_event": conversation_active_event,
                 "stt_enabled_event": stt_enabled_event,
                 "stop_event": stop_event,
+                "gui_command_queue": gui_command_queue,
                 "chat_queue": chat_queue,
+                "status_queue": status_queue,
                 "tts_cancel_queue": tts_cancel_queue,
+                "loop_period": loop_period,
+                "max_user_wait_time": max_user_wait_time,
             },
             name="main-module-worker",
             daemon=False,
@@ -431,7 +468,7 @@ def main() -> None:
     ]
 
     root = tk.Tk()
-    controller = MultimodalGuiController(
+    _controller = MultimodalGuiController(
         root=root,
         stop_event=stop_event,
         conversation_active_event=conversation_active_event,
@@ -443,10 +480,13 @@ def main() -> None:
         tts_result_queue=tts_result_queue,
         workers=workers,
         chat_queue=chat_queue,
+        status_queue=status_queue,
         error_queue=error_queue,
+        gui_command_queue=gui_command_queue,
     )
 
     def _start_workers() -> None:
+        # GUI が描画された後にワーカーを起動する（ローディングスクリーン回避）。
         for worker in workers:
             worker.start()
         logger.info("[SYSTEM] 全ワーカー起動完了")
@@ -454,9 +494,13 @@ def main() -> None:
     # GUI を先に描画してからワーカーを起動する。
     root.after(0, _start_workers)
 
+    # ----------------------------------------------------------------
+    # Tkinter イベントループを開始する
+    # ----------------------------------------------------------------
     try:
         root.mainloop()
     except KeyboardInterrupt:
+        # Ctrl+C を受けた場合は全ワーカーへ停止シグナルを送る。
         logger.info("[SYSTEM] Ctrl+C を受信。終了処理を開始します。")
         stop_event.set()
         for worker in workers:

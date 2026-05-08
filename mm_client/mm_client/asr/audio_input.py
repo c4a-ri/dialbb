@@ -1,3 +1,4 @@
+import audioop
 import queue
 
 try:
@@ -9,9 +10,11 @@ except ImportError:  # Windows fallback
 class MicrophoneAudioInput:
     """Capture microphone input and provide PCM16 chunks via generator."""
 
-    def __init__(self, sample_rate: int = 16000, chunk_ms: int = 100) -> None:
+    def __init__(self, sample_rate: int = 16000, chunk_ms: int = 100, gain: float = 1.0) -> None:
         self.sample_rate = sample_rate
         self.chunk_size = int(sample_rate * chunk_ms / 1000)
+        # gain: 1.0=原音, <1.0=減衰, >1.0=増幅。例: 0.3 で約70%減衰。
+        self._gain = max(0.0, gain)
         self._buffer: "queue.Queue[bytes | None]" = queue.Queue()
         self.closed = True
 
@@ -58,7 +61,10 @@ class MicrophoneAudioInput:
                         return
                     data.append(chunk)
                 except queue.Empty:
-                    # 現時点で取り出せる分をまとめたら返却する。
                     break
 
-            yield b"".join(data)
+            raw = b"".join(data)
+            # gain が 1.0 以外のときだけスケーリングする（PCM16 = 2 bytes/sample）。
+            if self._gain != 1.0:
+                raw = audioop.mul(raw, 2, self._gain)
+            yield raw
