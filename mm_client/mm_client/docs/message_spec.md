@@ -10,7 +10,7 @@
 
 - GUIスレッド（Tkinter）: 対話開始/対話終了/終了ボタンで実行状態を制御する。
 - MAINスレッド: 全体の司令塔。認識結果を受けて対話要求を作り、応答をTTSへ渡す。
-- STTスレッド: 音声認識結果を生成する（RecognitionEvent）。
+- STTスレッド: 音声認識（Google STT）結果を生成する（RecognitionEvent）。
 - DialBBスレッド: DialogueProcessor を呼び出してシステム応答を生成する。
 - TTSスレッド: 音声合成（Google TTS）と再生（pygame）を実行する。
 
