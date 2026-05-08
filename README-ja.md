@@ -72,7 +72,7 @@ $ dialbb-server sample_apps/parrot/config.yml
   $ curl -X POST -H "Content-Type: application/json" \
     -d '{"user_id":"user1"}' http://localhost:8080/init
   ```
-   以下のレスポンスが帰ります．
+   以下のレスポンスが返ります．
   
   ```json
   {"aux_data":null, 
@@ -88,7 +88,7 @@ $ dialbb-server sample_apps/parrot/config.yml
     -d '{"user_utterance": "こんにちは", "user_id":"user1", "session_id":"dialbb_session1"}' \
     http://localhost:8080/dialogue
   ```
-   以下のレスポンスが帰ります．
+   以下のレスポンスが返ります．
 
   ```json
   {"aux_data":null,
@@ -177,12 +177,12 @@ http://<hostname>:8080/test
 
 ### 実験アプリケーション
 
-`sample_apps/lab_app_ja/` （日本語）`sample_apps/lab_app_en/` （英語）に実験的なアプリケーションがあります（日本語）．組み込みブロックの様々な機能を試すためのアプリケーションです．以下の組み込みブロックを用いています．
+`sample_apps/lab_app_ja/` （日本語）`sample_apps/lab_app_en/` （英語）に実験的なアプリケーションがあります．組み込みブロックの様々な機能を試すためのアプリケーションです．以下の組み込みブロックを用いています．
 
 
 - 日本語アプリケーション
 
-  -  Japanese Canonicalizer Block 
+  - Japanese Canonicalizer Block 
   - ChatGPT Understander Block
   - ChatGPT NER Block
   - STN Manager Block
