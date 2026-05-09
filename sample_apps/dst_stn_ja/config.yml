@@ -22,10 +22,10 @@ blocks:  # ブロックのリスト
     function_definitions: scenario_functions  # 知識記述の中で用いる関数の定義ファイル
     scenario_graph: yes
     input:
-      sentence: user_utterance
+      # sentence: user_utterance
       dialogue_history: dialogue_history
       dst_result: dst_result
-      user_id: user_id
+      # user_id: user_id
       aux_data: aux_data
     output:
       output_text: system_utterance
