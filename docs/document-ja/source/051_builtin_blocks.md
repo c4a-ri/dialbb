@@ -8,7 +8,7 @@
 
 (`dialbb.builtin_blocks.understanding_with_chatgpt.chatgpt_understander.Understander`）
 
-大規模言語モデルを用いて，対話履歴からのスロットの抽出、すなわち対話状態追跡（Dialogue State Tracking: DST)を行います。
+大規模言語モデルを用いて，対話履歴からのスロットの抽出，すなわち対話状態追跡（Dialogue State Tracking: DST)を行います．
 
 コンフィギュレーションの`language`要素が`ja`の場合は日本語，`en`の場合は英語のスロット抽出を行います．
 
@@ -22,7 +22,7 @@
 
   - `dialogue_history`: 対話履歴
 
-    メインモジュールが保持している対話履歴です。
+    メインモジュールが保持している対話履歴です．
 
 - 出力
 
@@ -174,7 +174,7 @@
   - `dialogue_history`: メインモジュールから送られてくる対話履歴（任意）
   - `sentence`: ユーザ発話（文字列）（`dialogue_history`があればなくても良い）
   - `nlu_result`: 言語理解結果（辞書型または辞書型のリスト）（任意）
-  - `dst_result`: スロット抽出結果（辞書型）（任意）`nlu_result`がある場合は無視される。
+  - `dst_result`: スロット抽出結果（辞書型）（任意）`nlu_result`がある場合は無視される．
   - `user_id`: ユーザID（文字列）（`dialogue_history`があればなくても良い）
   - `aux_data`: 補助データ（辞書型）（任意：クライアントから補助データを受け取る場合には必要）
 
@@ -258,7 +258,7 @@
 - `user utterance type`
 
   ユーザ発話を言語理解した結果得られるユーザ発話のタイプ．遷移の条件となります．
-  このブロックの入力に`nlu_result`がない場合、この列はなくても構いません。
+  このブロックの入力に`nlu_result`がない場合，この列はなくても構いません．
 
 - `conditions`
 
@@ -524,7 +524,7 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
 
 - ブロックコンフィギュレーションの`llm`要素 (`chatgpt`要素でも良いですが非推奨です）に以下の要素を加える
 
-  - `model` （文字列） （`gpt_model`も使えますが非推奨です。）
+  - `model` （文字列） （`gpt_model`も使えますが非推奨です．）
 
     モデル指定文字列です．
 
