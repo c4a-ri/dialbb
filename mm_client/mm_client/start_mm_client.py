@@ -1,8 +1,10 @@
 import argparse
 import os
+import platform
 import queue
 import threading
 import tkinter as tk
+import tkinter.font as tkfont
 from tkinter import messagebox, ttk
 from pathlib import Path
 
@@ -23,6 +25,27 @@ from mm_client.tts.speech_synthesizer import run_tts_worker
 
 logger = get_logger(__name__)
 DEFAULT_CONFIG_FILE = Path(__file__).resolve().parent / "config" / "config.yml"
+
+# OS ごとの日本語フォント候補。
+_FONT_CANDIDATES: dict[str, list[str]] = {
+    "Windows": ["Yu Gothic UI", "Meiryo UI", "MS Gothic"],
+    "Darwin": ["Hiragino Sans", "Hiragino Kaku Gothic ProN", "Osaka"],
+    "Linux": ["Noto Sans CJK JP", "IPAexGothic", "VL Gothic"],
+}
+
+
+def _pick_font(size: int) -> tuple[str, int]:
+    """実行環境に応じた日本語フォントを選んで (family, size) を返す。
+    利用可能なフォントが見つからない場合は Tk デフォルトを使う。
+    """
+    available = set(tkfont.families())
+    candidates = _FONT_CANDIDATES.get(platform.system(), [])
+    for name in candidates:
+        if name in available:
+            return (name, size)
+    # フォールバック: Tk デフォルトフォントのファミリを流用する。
+    default_family = tkfont.nametofont("TkDefaultFont").cget("family")
+    return (default_family, size)
 
 
 def _resolve_path(base_dir: Path, value: str | None) -> str | None:
@@ -144,7 +167,7 @@ class MultimodalGuiController:
         )
         self.end_button.pack(side=tk.LEFT)
 
-        status_label = ttk.Label(top_frame, textvariable=self.status_var, font=("Yu Gothic UI", 11))
+        status_label = ttk.Label(top_frame, textvariable=self.status_var, font=_pick_font(11))
         status_label.pack(side=tk.RIGHT)
 
         # 終了ボタンを先にpackしてチャット領域より優先的にスペースを確保する。
@@ -166,7 +189,7 @@ class MultimodalGuiController:
             chat_frame,
             state=tk.DISABLED,
             wrap=tk.WORD,
-            font=("Yu Gothic UI", 10),
+            font=_pick_font(10),
             background="#212121",
             foreground="#ffffff",
             relief=tk.FLAT,
@@ -195,7 +218,7 @@ class MultimodalGuiController:
         self.chat_text.tag_configure(
             "label_user",
             foreground="#ffffff",
-            font=("Yu Gothic UI", 8),
+            font=_pick_font(8),
             justify=tk.RIGHT,
             lmargin1=60,
             lmargin2=60,
@@ -203,7 +226,7 @@ class MultimodalGuiController:
         self.chat_text.tag_configure(
             "label_system",
             foreground="#ffffff",
-            font=("Yu Gothic UI", 8),
+            font=_pick_font(8),
             justify=tk.LEFT,
             rmargin=60,
         )

@@ -45,14 +45,34 @@ Queue の get_nowait を使ってブロックを抑えたループ実装。
 ## 5. インストール方法
 
 1. `pip install ./dialbb-x.x.x-py3-none-any.whl`  
-site-packages\にはdialbb, mm_client をインストール
+dialbb, mm_client の2つがインストールされる
 1. `pip show dialbb`  
 インストールしたdialbbのバージョンが表示されること
+
+### 5.1 macOS 固有の前提条件
+
+macOS で動作させる場合は、以下を事前に準備してください。
+
+1. PortAudio（pyaudio のバックエンド）  
+PortAudio は pyaudio のバックエンドです。未導入の場合、起動時にエラーで落ちます。  
+以下のコマンドでインストールしてください。
+	```sh
+	brew install portaudio
+	```
+2. Tk 対応 Python
+macOS 標準の Python は Tkinter が付属していない場合があります。
+Homebrew や python.org からインストールした Python を使ってください。
+	```sh
+	brew install python-tk  # Homebrew Python を使っている場合
+	```
+3. マイク権限
+macOS はマイクへのアクセス権限を **システム設定 → プライバシーとセキュリティ → マイク** で許可する必要があります。
+権限なしで起動すると STT ワーカーがエラー終了し、GUI に「異常終了」と表示されます。
 
 ## 6. 起動方法
 ### 6.1 起動コマンド
 
-1. `dialbb-mm-client`
+1. `dialbb-mm-client 　※default以外のconfigファイルを使用する場合は引数にパスを指定する`
 
 ### 6.2 GUI操作
 

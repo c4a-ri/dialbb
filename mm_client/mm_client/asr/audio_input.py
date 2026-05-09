@@ -1,10 +1,22 @@
 import audioop
+import platform
 import queue
 
 try:
     import pyaudio
-except ImportError:  # Windows fallback
-    import pyaudiowpatch as pyaudio
+except ImportError as pyaudio_import_error:
+    if platform.system() == "Windows":
+        try:
+            import pyaudiowpatch as pyaudio
+        except ImportError as windows_fallback_error:
+            raise ImportError(
+                "Audio input backend is missing. Install 'pyaudiowpatch' on Windows."
+            ) from windows_fallback_error
+    else:
+        raise ImportError(
+            "Audio input backend is missing. Install 'pyaudio'. "
+            "On macOS, install PortAudio first (e.g. 'brew install portaudio')."
+        ) from pyaudio_import_error
 
 
 class MicrophoneAudioInput:
