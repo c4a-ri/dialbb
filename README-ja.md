@@ -75,7 +75,7 @@ $ dialbb-server sample_apps/parrot/config.yml
   $ curl -X POST -H "Content-Type: application/json" \
     -d '{"user_id":"user1"}' http://localhost:8080/init
   ```
-   以下のレスポンスが帰ります．
+   以下のレスポンスが返ります．
   
   ```json
   {"aux_data":null, 
@@ -91,7 +91,7 @@ $ dialbb-server sample_apps/parrot/config.yml
     -d '{"user_utterance": "こんにちは", "user_id":"user1", "session_id":"dialbb_session1"}' \
     http://localhost:8080/dialogue
   ```
-   以下のレスポンスが帰ります．
+   以下のレスポンスが返ります．
 
   ```json
   {"aux_data":null,
@@ -152,14 +152,9 @@ $ dialbb-server sample_apps/llm_dialogue/config_en.yml
   ```
 
 
-#### Graphvizのインストール
-
-[Graphvizのサイト](https://graphviz.org/download/)などを参考にGraphvizをインストールします．ただ，Graphvizがなくてもアプリケーションを動作させることは**可能**です．
-
 ### DST-STNアプリケーション
 
-`sample_apps/dst_st_ja/` （日本語）`sample_apps/dst_st_en/` （英語）に以下の組み込みブロックを用いたアプリケーションがあります．様々な機能を試すためのアプリケーションです．以下の組み込みブロックを用いています．
-
+`sample_apps/dst_st_ja/` （日本語）`sample_apps/dst_st_en/` （英語）に以下の組み込みブロックを用いたアプリケーションがあります．様々な機能を試すためのアプリケーションです．以下の組み込みブロックを用いています
 
 - LLMを用いたスロット抽出ブロック
 - 状態遷移ネットワークベースの対話管理ブロック
@@ -167,6 +162,10 @@ $ dialbb-server sample_apps/llm_dialogue/config_en.yml
 #### 環境変数の設定
 
  本アプリケーションでもデフォルトでOpenAIのChatGPTを使います．LLM対話アプリケーションと同様にOpenAIのAPIキーを環境変数にセットしてください．
+
+#### Graphvizのインストール
+
+[Graphvizのサイト](https://graphviz.org/download/)などを参考にGraphvizをインストールします．ただ，Graphvizがなくてもアプリケーションを動作させることは**可能**です．
 
 #### 起動方法
 
