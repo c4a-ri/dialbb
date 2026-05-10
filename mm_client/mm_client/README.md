@@ -53,26 +53,24 @@ dialbb, mm_client の2つがインストールされる
 
 macOS で動作させる場合は、以下を事前に準備してください。
 
-1. PortAudio（pyaudio のバックエンド）  
-PortAudio は pyaudio のバックエンドです。未導入の場合、起動時にエラーで落ちます。  
+1. PortAudioが必要  
+PortAudio は pyaudio のバックエンドです。未導入の環境ではpyaudioでエラーになる場合があります。  
 以下のコマンドでインストールしてください。
 	```sh
 	brew install portaudio
 	```
 2. Tk 対応 Python
-macOS 標準の Python は Tkinter が付属していない場合があります。
-Homebrew や python.org からインストールした Python を使ってください。
+macOS 標準の Python は Tkinter が付属していない場合があります。  その場合は、Homebrew や python.org からインストールした Python を使ってください。
 	```sh
 	brew install python-tk  # Homebrew Python を使っている場合
 	```
 3. マイク権限
-macOS はマイクへのアクセス権限を **システム設定 → プライバシーとセキュリティ → マイク** で許可する必要があります。
-権限なしで起動すると STT ワーカーがエラー終了し、GUI に「異常終了」と表示されます。
+macOS はマイクへのアクセス権限を許可する必要があります。  確認ダイアログで「許可」 または ［システム設定 → プライバシーとセキュリティ → マイク］で設定してください。
 
 ## 6. 起動方法
 ### 6.1 起動コマンド
 
-1. `dialbb-mm-client 　※default以外のconfigファイルを使用する場合は引数にパスを指定する`
+1. `dialbb-mm-client [config.yml]　※default以外のconfigファイルを使用する場合は引数にパスを指定する`
 
 ### 6.2 GUI操作
 
