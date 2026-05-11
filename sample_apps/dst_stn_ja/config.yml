@@ -9,8 +9,9 @@ blocks:  # ブロックのリスト
     block_class: dialbb.builtin_blocks.dst_with_llm.dst_with_llm.DST
     input:
       dialogue_history: dialogue_history
+      aux_data: aux_data
     output: 
-      dst_result: dst_result
+      aux_data: aux_data
     knowledge_file: dst_knowledge_ja.xlsx  # 知識記述ファイル
     gpt_model: gpt-4o-mini
     flags_to_use: 

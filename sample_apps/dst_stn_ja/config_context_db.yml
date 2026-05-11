@@ -10,16 +10,18 @@ context_db:
   user: admin
   password: password
 
+
 blocks:  # ブロックのリスト
   - name: dst
     block_class: dialbb.builtin_blocks.dst_with_llm.dst_with_llm.DST
     input:
       dialogue_history: dialogue_history
-    output: 
-      dst_result: dst_result
+      aux_data: aux_data
+    output:
+      aux_data: aux_data
     knowledge_file: dst_knowledge_ja.xlsx  # 知識記述ファイル
     gpt_model: gpt-4o-mini
-    flags_to_use: 
+    flags_to_use:
       - 'Y'
       - 'T'
   - name: manager
@@ -28,14 +30,15 @@ blocks:  # ブロックのリスト
     function_definitions: scenario_functions  # 知識記述の中で用いる関数の定義ファイル
     scenario_graph: yes
     input:
-      sentence: user_utterance
+      # sentence: user_utterance
+      dialogue_history: dialogue_history
       dst_result: dst_result
-      user_id: user_id
+      # user_id: user_id
       aux_data: aux_data
     output:
       output_text: system_utterance
       final: final
-      aux_data: aux_data      
+      aux_data: aux_data
     repeat_when_no_available_transitions: yes
     input_confidence_threshold: 0.5
     confirmation_request:
@@ -72,5 +75,3 @@ blocks:  # ブロックのリスト
       cautions:
         - 長い発話は禁止
         - 発話の最後には「。」をつけない
-
-    

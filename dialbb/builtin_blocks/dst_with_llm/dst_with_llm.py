@@ -55,7 +55,7 @@ CONFIG_KEY_GPT_MODEL: str = "gpt_model"
 CONFIG_KEY_TEMPERATURE: str = "temperature"
 
 KEY_DIALOGUE_HISTORY: str = "dialogue_history"
-KEY_DST_RESULT: str = "dst_result"
+KEY_AUX_DATA: str = "aux_data"
 
 DEFAULT_LLM_MODEL: str = "gpt-4o-mini"
 DEFAULT_TEMPERATURE: float = 0.0
@@ -180,6 +180,9 @@ class DST(AbstractBlock):
 
     def process(self, input_data: Dict[str, Any], session_id: str) -> Dict[str, Any]:
         session_id = input_data.get(KEY_SESSION_ID, session_id or "undecided")
+        aux_data = input_data.get(KEY_AUX_DATA, {})
+        if aux_data is None:
+            aux_data = {}
         self.log_debug("input: " + str(input_data), session_id=session_id)
 
         dialogue_history: List[Dict[str, Any]] = input_data.get(KEY_DIALOGUE_HISTORY, [])
@@ -189,9 +192,11 @@ class DST(AbstractBlock):
             dialogue_history_string: str = self._stringify_dialogue_history(dialogue_history)
             dst_result = self._extract_slots(dialogue_history_string)
 
-        output = {KEY_DST_RESULT: dst_result}
-        self.log_debug("output: " + str(output), session_id=session_id)
-        return output
+        self.log_debug("DST result obtained: " + str(dst_result), session_id=session_id)
+        for slot_name, slot_value in dst_result.items():
+            aux_data[slot_name] = slot_value
+        self.log_debug("aux_data updated: " + str(aux_data), session_id=session_id)
+        return {KEY_AUX_DATA: aux_data}
 
     def _get_entity(self, expression: str) -> str:
         """
@@ -246,14 +251,13 @@ class DST(AbstractBlock):
             content = ''.join(parts)
         return str(content).strip()
 
-    @staticmethod
-    def _parse_llm_result(result_text: str) -> Dict[str, Any]:
+    def _parse_llm_result(self, result_text: str) -> Dict[str, Any]:
         match = CODE_BLOCK_PATTERN.match(result_text)
         if match:
             result_text = match.group(1).strip()
         result: Any = json.loads(result_text)
-        if isinstance(result, dict) and isinstance(result.get(KEY_DST_RESULT), dict):
-            result = result[KEY_DST_RESULT]
         if not isinstance(result, dict):
-            raise ValueError("LLM output must be a JSON object")
-        return result
+            self.log_warning(f"LLM output must be a JSON object: {str(result)}")
+            return {}
+        else:
+            return result

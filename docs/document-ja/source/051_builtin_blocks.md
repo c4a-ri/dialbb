@@ -14,20 +14,14 @@
 ### 入出力
 
 - 入力
-  - `user_utterance`: 入力文字列（文字列）
   - `aux_data`: 補助データ（辞書型）
-  - `user_id`: ユーザID （文字列）
   - `dialogue_history`: 対話履歴 （辞書型のリスト）
-  
 - 出力
   - `system_utterance`: 入力文字列（文字列）
   - `aux_data`: 補助データ（辞書型）
   - `final`: 対話終了かどうかのフラグ（ブール値）
 
 
-入力の`user_id`は利用せしません．出力の`aux_data`は入力の`aux_data`と同じもので，`final`は常に`False`です．
-
-これらのブロックを使う時には，環境変数`OPENAI_API_KEY`にOpenAIのライセンスキーを設定する必要があります．
 
 ### ブロックコンフィギュレーションのパラメータ
 
@@ -49,7 +43,8 @@
 
 - `model` （文字列，デフォルト値は`gpt-4o-mini`）
 
-  モデル指定文字列です．`provider:model_name` の形式で指定します．例：`google_genai:gemini-2.0-flash-001`．ただし，`gpt-4o` や `gpt-4o-mini` のようなOpenAIのGPTモデルは `openai:` を省略できます．
+  モデル指定文字列です．`provider:model_name` の形式で指定します（langchainの[init_chat_modelで指定する形式](https://reference.langchain.com/python/langchain/chat_models/base/init_chat_model)です）．例：`google_genai:gemini-2.0-flash-001`．ただし，`gpt-4o` や `gpt-4o-mini` のようなOpenAIのGPTモデルは `openai:` を省略できます．
+  モデルによっては環境変数でキーを指定する必要があります。例えば`gpt-4o` や `gpt-4o-mini` のようなOpenAIのGPTモデルを用いる場合は、`OPENAI_API_KEY`を指定します。
 
 - `temperature` （float，デフォルト値は`0.7`）
 
@@ -58,6 +53,28 @@
 - `instruction` (文字列, デフォルト値は[このファイル](https://github.com/c4a-ri/dialbb/blob/main/dialbb/util/globals.py)を参照．)
 
    システムロールのメッセージとしてLLMに送られる指示です．
+
+### 処理内容
+
+- 対話の最初はブロックコンフィギュレーションの`first_system_utterance`の値をシステム発話として返します．
+
+- 2回目以降のターンでは，プロンプトテンプレートの末尾に対話履歴を与えてLLMに発話を生成させ，返ってきた文字列をシステム発話として返します．プロンプトテンプレートにプレースホルダが含まれている場合の処理は後述します。
+
+  - 対話履歴の形式は以下です。
+
+    ```
+    <コンフィギュレーションのsystem_name>: <システム発話＞
+    <コンフィギュレーションのuser_name>: <ユーザ発話＞
+    ...
+    <コンフィギュレーションのsystem_name>: <システム発話＞
+    <コンフィギュレーションのuser_name>: <ユーザ発話＞
+    ```
+
+    
+
+- `aux_data`は基本的に出力と同じものが出力されますが、{numref}`extract_aux_data`で述べるようにシステム発話文字列にaux_dataをアップデートする内容が含まれている場合は、それに従ってアップデートされます。
+
+- 出力の`final`は常に`False`です．
 
 ### プロンプトテンプレート内のプレースホルダ
 
@@ -77,16 +94,18 @@
 
 - `{dialogue_history}`をテンプレートに記述する必要はありません．
 
+(extract_aux_data)=
 
+### システム発話からのaux_dataの抽出
 
-### 処理内容
+出力のシステム発話文字列の最後に `(<key_1>: <value_1>,  <key_2>: <value_2>, ... <key_n>: <value_n>)`の形の文字列があるとき，この部分は発話文字列から削除され，出力の`aux_data`に`{”<key_1>”: ”<value_1>”,  ”<key_2>”: ”<value_2>”, ... ”<key_n>”: ”<value_n>”}`が付け加わります．（実際にはupdateされるので，同じキーがあれば値が上書きされます．）クライアントの制御に用いることができます．
 
-- 対話の最初はブロックコンフィギュレーションの`first_system_utterance`の値をシステム発話として返します．
-- 2回目以降のターンでは，プロンプトテンプレートを与えてChatGPTに発話を生成させ，返ってきた文字列をシステム発話として返します．
+例：
 
-### システム発話からの出力aux_dataの抽出
+- システム発話文字列 ：`"こんにちは (emotion:happy)"`
+- 最終的なシステム発話：`"こんにちは"`， `aux_data`のアップデート：`{"emotion": "happy"}`
 
-{numref}`extract_aux_data`と同じです．
+キーはアルファベット，数字，アンダースコアの並びでないといけません．
 
 
 
@@ -498,6 +517,10 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
 
 関数呼び出しの場合，関数は条件やアクションで用いる関数と同じように上記の引数を取ることができます．返り値は文字列でないといけません．
 
+### システム発話からのaux_dataの抽出
+
+{numref}`extract_aux_data`と同様に、システム発話文字列から情報を抽出して`aux_data`に追加することができます。
+
 
 ### 関数定義
 
@@ -880,19 +903,6 @@ def get_ramen_location(ramen: str, variable: str, context: Dict[str, Any]) -> No
 
 - `dialbb.builtin_blocks.stn_management.util.scenario_function_log_error(message: str)`
   errorレベルのログが書き出されます．デバッグモードの時にはExceptionを投げます．
-
-(extract_aux_data)=
-
-### システム発話からの出力aux_dataの抽出
-
-出力のシステム発話文字列の最後に `(<key_1>: <value_1>,  <key_2>: <value_2>, ... <key_n>: <value_n>)`の形の文字列があるとき，この部分は発話文字列から削除され，出力の`aux_data`に`{”<key_1>”: ”<value_1>”,  ”<key_2>”: ”<value_2>”, ... ”<key_n>”: ”<value_n>”}`が付け加わります．（実際にはupdateされるので，同じキーがあれば値が上書きされます．）クライアントの制御に用いることができます．
-
-例：
-
-- システム発話文字列 ：`"こんにちは (emotion:happy)"`
-- 最終的なシステム発話：`"こんにちは"`， `aux_data`のアップデート：`{"emotion": "happy"}`
-
-キーはアルファベット，数字，アンダースコアの並びでないといけません．
 
 ### 連続遷移
 

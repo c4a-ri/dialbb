@@ -3,8 +3,116 @@
 
 Built-in block classes are block classes that are included in DialBB in advance.
 
-(chatgpt_understander)=
-## LLM with DST (DST Block using an LLM)
+(llm_dialogue)=
+
+## LLM Dialogue (LLM-based Dialogue Block)
+
+(`dialbb.builtin_blocks.llm_dialogue.llm_dialogue.LLMDialogue`)
+
+Engages in dialogue using an LLM (Large Language Model).
+
+### Input/Output
+
+- Input
+
+  - `aux_data`: Auxiliary data (dictionary)
+  - `dialogue_history`: Dialogue history (list of dictionaries)
+- Output
+
+  - `system_utterance`: Input string (string)
+  - `aux_data`: auxiliary data (dictionary type)
+  - `final`: Boolean flag indicating whether the dialog is finished or not.
+
+`final` is always `False`.
+
+When using these blocks, you need to set the OpenAI license key in the environment variable `OPENAI_API_KEY`.
+
+### Block Configuration Parameters
+
+- `first_system_utterance` (string, default value is `""`)
+
+  This is the first system utterance of the dialog.
+
+- `user_name` (string, default value is `"User"`.)
+
+  This string is used when providing conversation history to the LLM prompt.
+
+- `system_name` (string, default value is "System")
+
+  This string is used when providing conversation history to the LLM prompt.
+
+- `prompt_template` (string)
+
+  This specifies the file of the prompt for making LLM generate a system utterance as a relative path from the configuration file directory.
+
+- `temperature` (float, default value is `0.7`)
+
+  The temperature parameter when calling LLM.
+
+- `model` (string, default value is `gpt-4o-mini`)
+
+  Model specifier. Use `provider:model_name` such as `google_genai:gemini-2.0-flash-001`（langchainの[init_chat_modelで指定する形式](https://reference.langchain.com/python/langchain/chat_models/base/init_chat_model)です）. OpenAI GPT models such as `gpt-4o` and `gpt-4o-mini` may omit the `openai:` prefix.
+  モデルによっては環境変数でキーを指定する必要があります。例えば`gpt-4o` や `gpt-4o-mini` のようなOpenAIのGPTモデルを用いる場合は、`OPENAI_API_KEY`を指定します。
+
+- `instruction` (string, see [this](https://github.com/c4a-ri/dialbb/blob/main/dialbb/util/globals.py)default for the default value.)
+
+  The instruction to LLM as system role message.
+
+
+### Process Details
+
+- At the beginning of the dialog, the value of `first_system_utterance` in the block configuration is returned as system utterance.
+
+- In the second and subsequent turns, the prompt template with the dialogue history is given to the LLM and the returned string is returned as the system utterance. プロンプトテンプレートにプレースホルダが含まれている場合の処理は後述します。
+
+  - 対話履歴の形式は以下です。
+
+    ```
+    <コンフィギュレーションのsystem_name>: <システム発話＞
+    <コンフィギュレーションのuser_name>: <ユーザ発話＞
+    ...
+    <コンフィギュレーションのsystem_name>: <システム発話＞
+    <コンフィギュレーションのuser_name>: <ユーザ発話＞
+    ```
+
+
+- `aux_data`は基本的に出力と同じものが出力されますが、{numref}`extract_aux_data`で述べるようにシステム発話文字列にaux_dataをアップデートする内容が含まれている場合は、それに従ってアップデートされます。
+- 出力の`final`は常に`False`です．
+
+### Place Holders in Prompt Templates
+
+- The following place holders can be used in prompt templates.
+
+  - `{current_time}`
+    Replaced with a string representing the current date, day of the week, and time (hour, minute, second) at which the dialogue is taking place.
+
+  - `{<a string consisting only of alphabets, digits, and underscores>}`
+
+    If the string exists as a key in aux_data, it is replaced with the corresponding value converted to a string.
+
+- Placeholder removal
+
+  If an unreplaced placeholder remains and is enclosed in `[[[` and `]]]`, that portion will be removed.
+
+- `{dialogue_history}` does not need to be specified in the templates.
+
+(extract_aux_data)=
+
+### Extraction of aux_data from System Utterances
+
+When the output system utterance string ends with a segment in the format `(<key_1>: <value_1>,  <key_2>: <value_2>, ... <key_n>: <value_n>)`, this part is removed from the utterance string, and the corresponding data is added to the output’s `aux_data` as: `{"<key_1>": "<value_1>",  "<key_2>": "<value_2>", ... "<key_n>": "<value_n>"} (If a key already exists, the value is updated.) This mechanism can be used for client-side control.
+
+Example:
+
+- System utterance string: `"Hello! (emotion:happy)"`
+- Final system utterance: `"Hello"`,  Update to `aux_data`: `{"emotion": "happy"}`
+
+Each key must consist of a combination of letters, numbers, and underscores.
+
+
+
+(dst_with_llm)=
+## DST with LLM  (DST Block using an LLM)
 
 (`dialbb.builtin_blocks.understanding_with_chatgpt.chatgpt_understander.Understander`)
 
@@ -37,7 +145,7 @@ At runtime, the dialogue history is added to the prompt to make an LLM perform D
 	    ```
 
 	    The following is an example.	  
-	  
+	
 	    ```json
 	     {
 	       "user-name": "John",
@@ -131,7 +239,7 @@ Each row consists of the following columns
 
   ```
   user_name=Linda, favorite_sandwich=roast beef sandwiches
-
+  
   ```
 
 The sheets that this block uses, including the utterance sheets, can have other columns than these.
@@ -374,11 +482,11 @@ The arguments of the functions used in conditions and actions are of the followi
 
 
   - `#sentence` 
-  
+
     Immediate previous user utterance (canonicalized)
     
   - `#user_id` 
-  
+
     User ID string
 
 
@@ -403,6 +511,12 @@ In system utterances, parts enclosed in `{` and `}` are variables or function ca
 Variables that start with `#` are special variables mentioned above. Other variables are normal variables, which are supposed to be present in the context information. If these variables do not exist, the variable names are used as is without replacement.
 
 For function calls, the functions can take arguments explained above as functions used for conditions or actions. The return value must be a string.
+
+
+
+### Extraction of aux_data from System Utterances
+
+{numref}`extract_aux_data`と同様に、システム発話文字列から情報を抽出して`aux_data`に追加することができます。
 
 ### Function Definitions
 
@@ -452,19 +566,19 @@ The built-in functions are as follows:
     e.g., `_not_member_of(*favorite_food, "ramen:fried_han:dumpling")`
     
   - `_num_turns_exceeds(n)`
-  
+
 	Returns `True` when the number of user turns exceeds the integer represented by the string `n`. 
 	
     e.g.: `_num_turns_exceeds("10")`
 
   - `_num_turns_in_state_exceeds(n)`
-  
+
 	Returns `True` when the number of user turns in the current state exceeds the integer represented by the string `n`. 
 	
     e.g.: `_num_turns_in_state_exceeds("5")`
 
   - `_check_with_llm(task)` and `_check_with_prompt_template(prompt_template)`
-  
+
      Makes the judgment using a large language model. More details follow.
 
 
@@ -514,7 +628,7 @@ The functions `_check_with_llm(task)` and `_generate_with_llm(task)` use a large
 
 To use these functions, the following settings are required:
 
-  
+
 - Add the following elements to the `llm` element (`chatgpt` element is possible but deprecated) in the block configuration:
 
   - `model` (string) (`gpt_model` can also be used but deprecated.)
@@ -792,18 +906,7 @@ In an action function, setting a string to `_reaction` in the context informatio
 
 For example, if the action function `_set(&_reaction, "I agree.")` is executed and the system's response in the subsequent state is "How was the food?", then the system will return the response "I agree. How was the food?".
 
-(extract_aux_data)=
 
-### Extraction of aux_data from System Utterances
-
-When the output system utterance string ends with a segment in the format `(<key_1>: <value_1>,  <key_2>: <value_2>, ... <key_n>: <value_n>)`, this part is removed from the utterance string, and the corresponding data is added to the output’s `aux_data` as: `{"<key_1>": "<value_1>",  "<key_2>": "<value_2>", ... "<key_n>": "<value_n>"} (If a key already exists, the value is updated.) This mechanism can be used for client-side control.
-
-Example:
-
-- System utterance string: `"Hello! (emotion:happy)"`
-- Final system utterance: `"Hello"`,  Update to `aux_data`: `{"emotion": "happy"}`
-
-Each key must consist of a combination of letters, numbers, and underscores.
 
 ### Continuous Transition
 
@@ -909,89 +1012,4 @@ Any changes to the dialog context due to actions taken during the previous respo
 This function is used when a user utterance is accidentally split in the middle during speech recognition and only the first half of the utterance is responded to.
 
 Note that the context information is reverted, but not if you have changed the value of a global variable in an action function or the contents of an external database.
-
-(chatgpt_dialogue)=
-## LLM Dialogue (LLM-based Dialogue Block)
-
-(`dialbb.builtin_blocks.llm_dialogue.llm_dialogue.LLMDialogue`)
-
-Engages in dialogue using an LLM (Large Language Model).
-
-### Input/Output
-
-- Input
-
-  - `user_utterance`: Input string (string)
-  - `aux_data`: Auxiliary data (dictionary).
-  - `user_id`: User ID (string)
-  - `dialogue_history`: Dialogue history (list of dictionaries)
-
-- Output
-
-  - `system_utterance`: Input string (string)
-  - `aux_data`: auxiliary data (dictionary type)
-  - `final`: Boolean flag indicating whether the dialog is finished or not.
-
-The input `user_id` is not used. The output `aux_data` is the same as the input `aux_data` and `final` is always `False`.
-
-When using these blocks, you need to set the OpenAI license key in the environment variable `OPENAI_API_KEY`.
-
-### Block Configuration Parameters
-
-- `first_system_utterance` (string, default value is `""`)
-
-   This is the first system utterance of the dialog.
-
-- `user_name` (string, default value is `"User"`.)
-
-   This string is used when providing conversation history to the LLM prompt.
-
-- `system_name` (string, default value is "System")
-
-   This string is used when providing conversation history to the LLM prompt.
-
-- `prompt_template` (string)
-
-  This specifies the file of the prompt for making LLM generate a system utterance as a relative path from the configuration file directory.
-
-- `temperature` (float, default value is `0.7`)
-
-  The temperature parameter when calling LLM.
-
-- `model` (string, default value is `gpt-4o-mini`)
-
-   Model specifier. Use `provider:model_name` such as `google_genai:gemini-2.0-flash-001`. OpenAI GPT models such as `gpt-4o` and `gpt-4o-mini` may omit the `openai:` prefix.
-
-- `instruction` (string, see [this](https://github.com/c4a-ri/dialbb/blob/main/dialbb/util/globals.py)default for the default value.)
-
-   The instruction to LLM as system role message.
-
-
-### Place Holders in Prompt Templates
-
-- The following place holders can be used in prompt templates.
-
-  - `{current_time}`
-    Replaced with a string representing the current date, day of the week, and time (hour, minute, second) at which the dialogue is taking place.
-
-  - `{<a string consisting only of alphabets, digits, and underscores>}`
-
-     If the string exists as a key in aux_data, it is replaced with the corresponding value converted to a string.
-
-- Placeholder removal
-
-  If an unreplaced placeholder remains and is enclosed in `[[[` and `]]]`, that portion will be removed.
-
-- `{dialogue_history}` does not need to be specified in the templates.
-
-
-### Process Details
-
-- At the beginning of the dialog, the value of `first_system_utterance` in the block configuration is returned as system utterance.
-- In the second and subsequent turns, the prompt template is given to LLM and the returned string is returned as the system utterance.
-
-### Extraction of aux_data from System Utterances
-
-Same as {numref}`extract_aux_data`.
-
 

@@ -1,13 +1,11 @@
 # configuration file for an LLM-based Japanese application
 
 blocks:
-  - name: chatgpt
+  - name: llm_dialogue
     block_class: dialbb.builtin_blocks.llm_dialogue.llm_dialogue.LLMDialogue
     input:
-      user_id: user_id
-      user_utterance: user_utterance
-      aux_data: aux_data
       dialogue_history: dialogue_history
+      aux_data: aux_data
     output:
       system_utterance: system_utterance
       aux_data: aux_data

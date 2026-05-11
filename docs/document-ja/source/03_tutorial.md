@@ -66,7 +66,7 @@ output_text: system_utterance
 以下のように，環境変数`DIALBB_DEBUG`に`yes`を設定することにより，ログレベルがデバッグモードになります．
 
 ```sh
-export DIALBB_DEBUG=yes;python run_server.py sample_apps/parrot/config.yml
+export DIALBB_DEBUG=yes;dialbb_server.py sample_apps/parrot/config.yml
 ```
 
 これにより，コンソールに詳しいログが出力されますので，それを見ることで理解が深まると思います．
@@ -83,7 +83,7 @@ export DIALBB_DEBUG=yes;python run_server.py sample_apps/parrot/config.yml
 
 ```yaml
 blocks:
-  - name: chatgpt
+  - name: llm_dialogue
     block_class: dialbb.builtin_blocks.llm_dialogue.llm_dialogue.LLMDialogue
     input:
       user_id: user_id
