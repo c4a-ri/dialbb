@@ -60,78 +60,6 @@ $ python <DialBBのディレクトリ>/run_server.py [--port <port>] <config fil
 
 
 
-(sim_tester)=
-## ユーザシミュレータを用いたテスタ
-
-LLM (ChatGPT) を用いたユーザシミュレータを用いたテスタが付属しています．
-
-### サンプルの動かし方
-
-以下bashの例で説明します．Windows コマンドプロンプトの場合は適宜読み替えてください．
-
-- DialBBをインストールし，サンプルアプリケーションをダウンロードして展開します．
-
-- 環境変数`OPENAI_API_KEY`にOpenAI APIのキーを設定します．
-
-  ```sh
-  export OPENAI_KEY=<OPENAIのAPIキー>
-  ```
-
-- サンプルアプリケーションを展開したディレクトリ（`sample_apps`）で以下のコマンドを実行します．
-
-  ```sh
-  dialbb-sim-tester --app_config lab_app_ja/config.yml --test_config lab_app_ja/simulation/config.yml --output _output.txt
-  ```
-  
-- `_output.txt`に結果が記述されます．
-
-- プログラムの中でテスタを起動するには以下のようにします
-
-  ```python
-  from dialbb.sim_tester.main import test_by_simulation
-  
-  test_by_simulation("lab_app_ja/config.yml", 
-                     "lab_app_ja/simulation/config.yml", output="_output.txt")
-  ```
-
-
-### 仕様
-
-- 起動オプション
-
-  ```sh
-  dialbb-sim-tester --app_config <DialBBアプリケーションのコンフィギュレーションファイル> --test_config <テストコンフィギュレーションファイル> --output <出力ファイル>
-  ```
-  
-- テストコンフィギュレーションファイル
-
-  以下のキーをもつYAML
-  
-  - `model`: （文字列．必須）モデル指定文字列．`provider:model_name` の形式で指定します．例：`google_genai:gemini-2.0-flash-001`．ただし，`gpt-4o` や `gpt-4o-mini` のようなOpenAIのGPTモデルは `openai:` を省略できます．
-  - `settings`（オブジェクトのリスト．必須）設定のリスト．以下の要素を持つことができる
-  
-    - `prompt_templates`: （文字列のリスト．必須）プロンプトテンプレートを記述したテキストファイルのパスのリスト．ファイルパスはコンフィギュレーションファイルからの相対パス．
-  
-    - `initial_aux_data`（文字列．任意）対話の最初にDialBBアプリケーションにアクセスする際に，`aux_data`に入れる内容を書いたJSONファイルのパス．パスはコンフィギュレーションファイルからの相対パス．
-  - `temperatures`: （浮動小数点数のリスト．任意）GPTの温度パラメータのリスト．デフォルト値は0.7の一要素のみのリスト．`prompt_templates`のリストの長さ×このリストの長さのセッションが行われます．
-  - `max_turns`: (整数．任意）セッションあたりの最大ターン数．デフォルト値15．
-  
-- 関数仕様
-
-  - `dialbb.sim_test.main.test_by_simulation(test_config_file: str, app_config_file: str, output_file: str=None, json_output: bool=False, prompt_params: Dict[str, str])`
-
-    パラメータ
-    
-    - `test_config_file`: テストコンフィギュレーション
-
-    - `app_config_file`: DialBBアプリケーションファイル
-
-    - `output_file`: 対話ログ出力ファイル
-  
-    - `json_output`: 出力ファイルのフォーマットがJSONかどうか．Falseならテキストファイル．
-
-    - `prompt_params`: プロンプトに埋め込む情報を辞書型で記述したもの．プロンプトテンプレートに`{<key>}`があれば，`<value>`で置き換えられる．
-
 ## 廃止された機能
 
 ### Snips Understander組み込みブロック
@@ -146,3 +74,10 @@ ver. 0.9で廃止されました．LR-CRF UnderstanderやChatGPT Understanderを
 
 ver. 0.9で廃止されました．
 
+### シンプルアプリケーション
+
+ver. 2.0で廃止されました．
+
+### 実験アプリケーション
+
+ver. 2.0で廃止されました．

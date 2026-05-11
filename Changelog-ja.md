@@ -2,7 +2,7 @@
 
 ## 2.0.0 (2026.5.12)
 
-- 
+- context DBを使わないときsession_idをdialbb_session1, dialbb_session2, ...に
 
 - .envから環境変数設定を読み込む 
 
@@ -12,7 +12,7 @@
   
   - dialogue_historyをinputとして取れる 
 
-- DST組み込みブロックを新設 todo ドキュメント
+- DST with LLM組み込みブロックを新設 
 
 - LLM対話組み込みブロックを新設
 
