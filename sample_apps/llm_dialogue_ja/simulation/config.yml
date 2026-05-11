@@ -1,0 +1,10 @@
+model: gpt-4o-mini
+max_turns: 10
+
+settings:
+  - prompt_template: prompt_template1.txt
+    initial_aux_data: aux_data1.json
+  - prompt_template: prompt_template2.txt
+temperatures:
+  - 0.7
+

@@ -189,6 +189,14 @@ The following commands allow you to test various features.
   $ dialbb-send-test-requests sample_apps/dst_stn_ja/config.yml sample_apps/dst_stn_ja/test_requests.json # for Japanese app
   ```
 
+### No-code Tool
+
+The following command invokes the English version of the no-code tool.
+
+```sh
+$ dialbb-nc en
+```
+
 ### Uninstalling DialBB
 
 Do the following

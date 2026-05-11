@@ -183,6 +183,16 @@ $ dialbb-server sample_apps/llm_dialogue_en/config.yml
   $ dialbb-send-test-requests sample_apps/dst_stn_en/config.yml sample_apps/dst_stn_ja/test_requests.json # 英語アプリ
   ```
 
+### ノーコードツール
+
+以下のコマンドでノーコードツールを起動できます。
+
+```sh
+$ dialbb-nc
+```
+
+ノーコードツールの使い方は、[docs/no-code/index-ja.md](docs/no-code/index-ja.md)を参照してください。
+
 ### DialBBのアンインストール
 
 以下でアンインストールできます．
