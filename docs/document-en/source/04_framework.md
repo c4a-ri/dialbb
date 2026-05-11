@@ -101,7 +101,7 @@ JSON in the following form.
   }
 
   ```
-  - `<session id>` is the ID of the dialog session. A new session ID is generated when new session starts.
+  - `<session id>` is the ID of the dialog session. A new session ID is generated when new session starts. 後述の外部DBを使う場合には、ハッシュ値が使われます。
   - `<system utterance string>` is the utterance of the system.
   - `<user id>` is the ID of the user sent in the request.
   - `<end-of-dialog flag>` is a boolean value indicating whether the dialog has ended or not.

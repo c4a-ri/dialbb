@@ -41,7 +41,6 @@ from dialbb.util.error_handlers import abort_during_building
 from dialbb.util.logger import get_logger
 
 
-session_count = 0  # used in generating session id's
 ANY_FLAG: str = "Any"
 CONFIG_KEY_FLAGS_TO_USE: str = "flags_to_use"
 CONFIG_KEY_LANGUAGE: str = "language"
@@ -151,6 +150,8 @@ class DialogueProcessor:
             # for rewinding  状態を元に戻す時のため
             # session_id -> context
 
+        self._session_count = 0
+
         self._logger = get_logger("main")
 
     def _add_history(self, session_id: str, history: List[Dict[str, Any]]) -> None:
@@ -171,16 +172,20 @@ class DialogueProcessor:
     def get_config(cls):
         return cls.config
 
-    @staticmethod
-    def _generate_session_id() -> str:
+
+    def _generate_session_id(self) -> str:
         """
         create new session id string by hashing
         :return: session id string
         """
 
-        data = str(time.time())
-        hash_object = hashlib.sha256(data.encode())
-        session_id = hash_object.hexdigest()
+        if self._use_context_db:
+            data = str(time.time())
+            hash_object = hashlib.sha256(data.encode())
+            session_id = hash_object.hexdigest()
+        else:
+            self._session_count += 1
+            session_id = "dialbb_session" + str(self._session_count)
         return session_id
 
     def process(self, request: Dict[str, Any], initial: bool = False) -> Dict[str, Any]:
@@ -198,8 +203,6 @@ class DialogueProcessor:
         blackboard: Dict[str, Any] = copy.deepcopy(request)
 
         if initial:  # first turn
-            global session_count
-            session_count += 1
             # create session id string
             session_id = self._generate_session_id()
             self._log_info(f"new session started.", session_id=session_id)
