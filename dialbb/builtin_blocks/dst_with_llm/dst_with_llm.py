@@ -190,7 +190,10 @@ class DST(AbstractBlock):
             dst_result: Dict[str, str] = {}
         else:
             dialogue_history_string: str = self._stringify_dialogue_history(dialogue_history)
-            dst_result = self._extract_slots(dialogue_history_string)
+            if not dialogue_history_string:
+                dst_result: Dict[str, str] = {}
+            else:
+                dst_result = self._extract_slots(dialogue_history_string)
 
         self.log_debug("DST result obtained: " + str(dst_result), session_id=session_id)
         for slot_name, slot_value in dst_result.items():

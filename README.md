@@ -147,13 +147,13 @@ You can also use other LLMs by modifiying the configuration files. In that case,
   English version:
 
   ```sh
-$ dialbb-server sample_apps/llm_dialogue/config_en.yml
+$ dialbb-server sample_apps/llm_dialogue_en/config.yml
   ```
 
   Japanese version:
 
   ```sh
-$ dialbb-server sample_apps/llm_dialogue/config_en.yml
+$ dialbb-server sample_apps/llm_dialogue_ja/config_ja.yml
   ```
 
 

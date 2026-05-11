@@ -66,7 +66,7 @@ output_text: system_utterance
 以下のように，環境変数`DIALBB_DEBUG`に`yes`を設定することにより，ログレベルがデバッグモードになります．
 
 ```sh
-export DIALBB_DEBUG=yes;dialbb_server.py sample_apps/parrot/config.yml
+export DIALBB_DEBUG=yes;dialbb_server sample_apps/parrot/config.yml
 ```
 
 これにより，コンソールに詳しいログが出力されますので，それを見ることで理解が深まると思います．
@@ -77,30 +77,30 @@ export DIALBB_DEBUG=yes;dialbb_server.py sample_apps/parrot/config.yml
 
 {ref}`llm_dialogue`を用い，単一プロンプトテンプレートと大規模言語モデル（LLM)を使って対話を行います．
 
-`sample_apps/llm_dialgoue/`にあります．
+`sample_apps/llm_dialgoue_ja/`にあります．
 
-`sample_apps/llm_dialgoue/config_ja.yml`の内容は以下のようになっています．
+`sample_apps/llm_dialgoue_ja/config.yml`の内容は以下のようになっています．
 
 ```yaml
+# configuration file for an LLM-based Japanese application
+
 blocks:
   - name: llm_dialogue
     block_class: dialbb.builtin_blocks.llm_dialogue.llm_dialogue.LLMDialogue
     input:
-      user_id: user_id
-      user_utterance: user_utterance
-      aux_data: aux_data
       dialogue_history: dialogue_history
+      aux_data: aux_data
     output:
       system_utterance: system_utterance
       aux_data: aux_data
       final: final
     user_name: ユーザ
     system_name: システム
-    first_system_utterance: "こんにちは．私の名前は由衣．少しお話させてね．スイーツって好き？"
-    prompt_template: prompt_template_ja.txt
+    first_system_utterance: "こんにちは。私の名前は由衣。少しお話させてね。スイーツって好き？"
+    prompt_template: prompt_template.txt
     model: gpt-4o-mini
+    #model: google_genai:gemini-2.5-flash
     temperature: 0.7
-    
 ```
 メインモジュールとの情報の授受を図示すると以下のようになります．
 
@@ -111,7 +111,7 @@ blocks:
 
 `prompt_template`は，システム発話のプロンプトのテンプレートを指定します．
 
-プロンプトテンプレート`sample_apps/llm_dialogue/prompt_template_ja.txt`の中身は以下のようになっています．
+プロンプトテンプレート`sample_apps/llm_dialogue_ja/prompt_template.txt`の中身は以下のようになっています．
 
 ```txt
 # タスク説明
@@ -198,10 +198,10 @@ blocks:
 
 `sample_apps/dst_stn_ja/`（日本語）、`sample_apps/dst_stn_ja/`（英語）にあります．
 
-`sample_apps/dst_stn_ja//config.yml`の内容は以下のようになっています．
+`sample_apps/dst_stn_ja/config.yml`の内容は以下のようになっています．
 
 ```yaml
-# 日本語実験アプリケーションのコンフィギュレーションファイル
+# 日本語DST+STNアプリケーションのコンフィギュレーションファイル
 
 language: ja   # 言語を指定
 
@@ -212,8 +212,9 @@ blocks:  # ブロックのリスト
     block_class: dialbb.builtin_blocks.dst_with_llm.dst_with_llm.DST
     input:
       dialogue_history: dialogue_history
+      aux_data: aux_data
     output: 
-      dst_result: dst_result
+      aux_data: aux_data
     knowledge_file: dst_knowledge_ja.xlsx  # 知識記述ファイル
     gpt_model: gpt-4o-mini
     flags_to_use: 
@@ -225,10 +226,7 @@ blocks:  # ブロックのリスト
     function_definitions: scenario_functions  # 知識記述の中で用いる関数の定義ファイル
     scenario_graph: yes
     input:
-      # sentence: user_utterance
       dialogue_history: dialogue_history
-      dst_result: dst_result
-      # user_id: user_id
       aux_data: aux_data
     output:
       output_text: system_utterance
@@ -270,6 +268,9 @@ blocks:  # ブロックのリスト
       cautions:
         - 長い発話は禁止
         - 発話の最後には「。」をつけない
+
+    
+
 ```
 
 メインモジュールとの情報の授受を図示すると以下のようになります．
