@@ -30,12 +30,18 @@ http://<ホスト>:<ポート番号>/test
 
 
 
-## DialBBをpipでインストールせずに利用する方法
+## DialBBのソースコードを変更する方法
 
 GitHubリポジトリからcloneします．cloneしたディレクトリを<DialBBのディレクトリ>とします．
 
 ```sh
 git clone git@github.com:c4a-ri/dialbb.git <DialBBのディレクトリ>
+```
+
+pipでdialbbパッケージをインストールします．
+
+```sh
+pip install dist/dialbb-*-py3-none-any.whl
 ```
 
 環境変数`PYTHONPATH`を設定します．
@@ -44,20 +50,21 @@ git clone git@github.com:c4a-ri/dialbb.git <DialBBのディレクトリ>
 export PYTHONPATH=<DialBBのディレクトリ>:$PYTHONPATH
 ```
 
-クラスAPIで利用する場合，Pythonを立ち上げた後`dialbb`から必要なモジュールやクラスをimportします．
+このようにすることで，<DialBBのディレクトリ>の下のプログラムが使われます．
 
-```python
-from dialbb.main import DialogueProcessor
+あとは以下のように通常通りに起動するか，
+
+
+```sh
+$ dialbb-server [--port <port>] <config file>
 ```
 
-WebAPIで利用する場合，コンフィギュレーションファイルを指定してサーバを起動します．
+pythonファイルを指定して起動することもできます（PyCharmやVSCodeなどのIDEを用いる場合はこちらが必要です）．
+
 
 ```sh
 $ python <DialBBのディレクトリ>/run_server.py [--port <port>] <config file>
 ```
-
-`port`（ポート番号）のデフォルトは8080です．
-
 
 
 ## 廃止された機能
