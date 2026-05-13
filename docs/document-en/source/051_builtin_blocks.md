@@ -1,7 +1,7 @@
 (builtin_blocks)=
 # Built-in Block Classes
 
-Built-in block classes are block classes that are included in DialBB in advance.
+This chapter describes the built-in block classes included with DialBB.
 
 (llm_dialogue)=
 
@@ -9,7 +9,7 @@ Built-in block classes are block classes that are included in DialBB in advance.
 
 (`dialbb.builtin_blocks.llm_dialogue.llm_dialogue.LLMDialogue`)
 
-Engages in dialogue using an LLM (Large Language Model).
+This block uses a large language model (LLM) to generate system utterances.
 
 ### Input/Output
 
@@ -19,13 +19,11 @@ Engages in dialogue using an LLM (Large Language Model).
   - `dialogue_history`: Dialogue history (list of dictionaries)
 - Output
 
-  - `system_utterance`: Input string (string)
-  - `aux_data`: auxiliary data (dictionary type)
-  - `final`: Boolean flag indicating whether the dialog is finished or not.
+  - `system_utterance`: System utterance string
+  - `aux_data`: Auxiliary data (dictionary)
+  - `final`: Boolean flag indicating whether the dialogue has ended
 
 `final` is always `False`.
-
-When using these blocks, you need to set the OpenAI license key in the environment variable `OPENAI_API_KEY`.
 
 ### Block Configuration Parameters
 
@@ -51,44 +49,48 @@ When using these blocks, you need to set the OpenAI license key in the environme
 
 - `model` (string, default value is `gpt-4o-mini`)
 
-  Model specifier. Use `provider:model_name` such as `google_genai:gemini-2.0-flash-001`（langchainの[init_chat_modelで指定する形式](https://reference.langchain.com/python/langchain/chat_models/base/init_chat_model)です）. OpenAI GPT models such as `gpt-4o` and `gpt-4o-mini` may omit the `openai:` prefix.
-  モデルによっては環境変数でキーを指定する必要があります。例えば`gpt-4o` や `gpt-4o-mini` のようなOpenAIのGPTモデルを用いる場合は、`OPENAI_API_KEY`を指定します。
+  Model specifier. Use the form `provider:model_name`, which matches LangChain's `init_chat_model` format, for example `google_genai:gemini-2.0-flash-001`. OpenAI GPT models such as `gpt-4o` and `gpt-4o-mini` may omit the `openai:` prefix.
 
-- `instruction` (string, see [this](https://github.com/c4a-ri/dialbb/blob/main/dialbb/util/globals.py)default for the default value.)
+  Some models require API keys to be set through environment variables. For example, when using OpenAI GPT models such as `gpt-4o` or `gpt-4o-mini`, set `OPENAI_API_KEY`.
 
-  The instruction to LLM as system role message.
+- `instruction` (string, see [this](https://github.com/c4a-ri/dialbb/blob/main/dialbb/util/globals.py) for the default value)
+
+  Instruction sent to the LLM as the system-role message.
 
 
 ### Process Details
 
 - At the beginning of the dialog, the value of `first_system_utterance` in the block configuration is returned as system utterance.
 
-- In the second and subsequent turns, the prompt template with the dialogue history is given to the LLM and the returned string is returned as the system utterance. プロンプトテンプレートにプレースホルダが含まれている場合の処理は後述します。
+- At the beginning of the dialogue, the value of `first_system_utterance` in the block configuration is returned as the system utterance.
 
-  - 対話履歴の形式は以下です。
+- From the second turn onward, the dialogue history is appended to the prompt template and the LLM generates the next system utterance. Processing of placeholders in the prompt template is described below.
 
-    ```
-    <コンフィギュレーションのsystem_name>: <システム発話＞
-    <コンフィギュレーションのuser_name>: <ユーザ発話＞
+  - The dialogue history has the following format.
+
+    ```text
+    <system_name in the configuration>: <system utterance>
+    <user_name in the configuration>: <user utterance>
     ...
-    <コンフィギュレーションのsystem_name>: <システム発話＞
-    <コンフィギュレーションのuser_name>: <ユーザ発話＞
+    <system_name in the configuration>: <system utterance>
+    <user_name in the configuration>: <user utterance>
     ```
 
+- `aux_data` is usually returned unchanged, but if the generated system utterance contains update instructions as described in {numref}`extract_aux_data`, it is updated accordingly.
 
-- `aux_data`は基本的に出力と同じものが出力されますが、{numref}`extract_aux_data`で述べるようにシステム発話文字列にaux_dataをアップデートする内容が含まれている場合は、それに従ってアップデートされます。
-- 出力の`final`は常に`False`です．
+- The output value of `final` is always `False`.
 
 ### Place Holders in Prompt Templates
 
 - The following place holders can be used in prompt templates.
 
   - `{current_time}`
-    Replaced with a string representing the current date, day of the week, and time (hour, minute, second) at which the dialogue is taking place.
+
+    Replaced with a string representing the current date, day of the week, and time.
 
   - `{<a string consisting only of alphabets, digits, and underscores>}`
 
-    If the string exists as a key in aux_data, it is replaced with the corresponding value converted to a string.
+    If the string exists as a key in `aux_data`, it is replaced with the corresponding value converted to a string.
 
 - Placeholder removal
 
@@ -100,12 +102,12 @@ When using these blocks, you need to set the OpenAI license key in the environme
 
 ### Extraction of aux_data from System Utterances
 
-When the output system utterance string ends with a segment in the format `(<key_1>: <value_1>,  <key_2>: <value_2>, ... <key_n>: <value_n>)`, this part is removed from the utterance string, and the corresponding data is added to the output’s `aux_data` as: `{"<key_1>": "<value_1>",  "<key_2>": "<value_2>", ... "<key_n>": "<value_n>"} (If a key already exists, the value is updated.) This mechanism can be used for client-side control.
+When the generated system utterance ends with a segment in the form `(<key_1>: <value_1>, <key_2>: <value_2>, ... <key_n>: <value_n>)`, that segment is removed from the utterance and the corresponding entries are added to the output `aux_data`. If a key already exists, its value is overwritten. This can be used to control client-side behavior.
 
 Example:
 
 - System utterance string: `"Hello! (emotion:happy)"`
-- Final system utterance: `"Hello"`,  Update to `aux_data`: `{"emotion": "happy"}`
+- Final system utterance: `"Hello!"`, update to `aux_data`: `{"emotion": "happy"}`
 
 Each key must consist of a combination of letters, numbers, and underscores.
 
@@ -114,45 +116,44 @@ Each key must consist of a combination of letters, numbers, and underscores.
 (dst_with_llm)=
 ## DST with LLM  (DST Block using an LLM)
 
-(`dialbb.builtin_blocks.understanding_with_chatgpt.chatgpt_understander.Understander`)
+(`dialbb.builtin_blocks.dst_with_llm.dst_with_llm.DST`)
 
-This uses a large language model to perform slot extraction from dialogue history, namely Dialogue State Tracking (DST).
+This block uses a large language model to extract slots from dialogue history, that is, to perform Dialogue State Tracking (DST).
 
-It performs DST in Japanese if the `language` element of the configuration is `ja`, and language understanding in English if it is `en`. 
+If the `language` element of the configuration is `ja`, it performs slot extraction in Japanese. If it is `en`, it performs slot extraction in English.
 
-At startup, this block reads the knowledge for DST in Excel, and converts it into the list of slots, and the few shot examples to be embedded in the prompt.
+At startup, this block reads slot extraction knowledge written in Excel and converts it into slot definitions and few-shot examples for the prompt.
 
-At runtime, the dialogue history is added to the prompt to make an LLM perform DST.
+At runtime, the dialogue history is added to the prompt and the LLM performs slot extraction.
 
 ### Input/Output
 
-- input
+- Input
 
   - `dialogue_history`: dialogue history
 
-    This is the dialogue history retained by the main module.
-  
-- output 
+    This is the dialogue history retained by the main module up to the latest user utterance.
 
-  - `nlu_result`: language understanding result (dict)
-	
-	    ```json
-	     {
-	       <slot name>: <slot value>, 
-		   ... , 
-		   <slot name>: <slot value>
-	     }
-	    ```
+  - `aux_data`: Auxiliary data (dictionary)
 
-	    The following is an example.	  
-	
-	    ```json
-	     {
-	       "user-name": "John",
-	       "favorite-sandwich": "roast beef sandwich"
-	     }
-	    ```
-	
+    If the main module does not yet have `aux_data`, an empty dictionary is used.
+
+- Output
+
+  - `aux_data`: Auxiliary data (dictionary)
+
+    This includes the slot extraction result.
+
+### Process Details
+
+The block extracts slots from the dialogue history and updates `aux_data` with the extracted values.
+
+For example, if the slot value of `favorite-sandwich` is `roast beef sandwich` and the slot value of `user-name` is `John`, the following update is performed.
+
+```python
+aux_data["favorite-sandwich"] = "roast beef sandwich"
+aux_data["user-name"] = "John"
+```
 
 ### Block Configuration Parameters
 
@@ -176,24 +177,25 @@ At runtime, the dialogue history is added to the prompt to make an LLM perform D
 
        Specify the key file to access the Google Sheet API as a relative path from the configuration file directory.
 
-- `model` (string. The default value is `gpt-4o-mini`.)
+- `model` (string, default value `gpt-4o-mini`)
 
-   Specifies the LLM. 
+   Specifies the LLM.
 
 - `prompt_template`
 
   This specifies the prompt template file as a relative path from the configuration file directory.
   
-  When this is not specified, `dialbb.builtin_blocks.dst_with_llm.prompt_templates_ja .PROMPT_TEMPLATE_JA` (for Japanese) or `dialbb.builtin_blocks.dst_with_llm.prompt_templates_en .PROMPT_TEMPLATE_EN` (for English) is used.
+  When this is not specified, `dialbb.builtin_blocks.dst_with_llm.prompt_template_ja.PROMPT_TEMPLATE_JA` (for Japanese) or `dialbb.builtin_blocks.dst_with_llm.prompt_template_en.PROMPT_TEMPLATE_EN` (for English) is used.
   
-  A prompt template is a template of prompts for making the LLM extract slots, and it can contain the following place holders.
+  A prompt template is used to make the LLM extract slots and can contain the following placeholders.
   
-  - `{slot_definitions}` The list of slot definitions.
-  - `{examples}` So-called few shot examples each of which has an utterances example, its utterance type, and its slots. 
-  - `{dialogue_history}` input utterance.
+  - `{slot_definitions}`: The list of slot definitions.
+  - `{examples}`: Few-shot examples consisting of dialogues and correct slot values.
+  - `{dialogue_history}`: Dialogue history.
   
   Values are assigned to these variables at runtime.
 
+(dst_knowledge)=
 ### DST Knowledge
 
 DST knowledge consists of the following two sheets.
@@ -205,7 +207,7 @@ DST knowledge consists of the following two sheets.
 
 The sheet name can be changed in the block configuration, but since it is unlikely to be changed, a detailed explanation is omitted.
 
-#### utterances sheet
+#### dialogues sheet
 
 Each row consists of the following columns
 
@@ -214,35 +216,32 @@ Each row consists of the following columns
   Flags to be used or not. `Y` (yes), `T` (test), etc. are often written. Which flag's rows to use is specified in the configuration. In the configuration of the sample application, all rows are used.
 
 
-- `dialogue` 
+- `dialogue`
 
   Example dialogue.
 
   The following is an example:
   
-  ```
-  System: Can I have your name?
-  User: Linda. Nice to meet you.
-  System: Nice to meet you, too. Let's talk about food. Do you like sandwiches?
-  User: Yes, I like roast beef sandwiches
+  ```text
+  System: What kind of sandwich do you like?
+  User: I like roast beef sandwiches.
   ```
 
-- `slots` 
+- `slots`
 
-  Slots that should be extracte from the dialogue. They are written in the following form:
+  Slots that should be extracted from the dialogue. They are written in the following form:
 
-  ```
+  ```text
   <slot name>=<slot value>, <slot name>=<slot value>, ... <slot name>=<slot value> 
   ```
 
   The following is an example.
 
-  ```
-  user_name=Linda, favorite_sandwich=roast beef sandwiches
-  
+  ```text
+  favorite-sandwich=roast beef sandwich
   ```
 
-The sheets that this block uses, including the utterance sheets, can have other columns than these.
+The sheets used by this block may also contain additional columns.
 
 #### slots sheet
 
@@ -252,13 +251,13 @@ Each row consists of the following columns.
 
   Same as on the utterance sheet.
 
-- `slot name` 
+- `slot name`
 
-  Slot name. It is used in the example utterances in the utterances sheet. Also used in the language understanding results.
+  Slot name. It is used in the example dialogues in the `dialogues` sheet and in the slot extraction results.
 
 - `entity`
 
-  The name of the dictionary entry. It is also included in language understanding results.
+  Canonical entity value. It is also included in the slot extraction results.
 
 - `synonyms`
 
@@ -268,7 +267,7 @@ Each row consists of the following columns.
 (stn_manager)=
 ## STN Manager (State Transition Network-based Dialogue Management Block)
 
-(`dialbb.builtin_blocks.stn_manager.stn_management`)  
+(`dialbb.builtin_blocks.stn_management.stn_manager.Manager`)  
 
 It perfomrs dialogue management using a state-transition neetwork.
 
@@ -308,7 +307,7 @@ It perfomrs dialogue management using a state-transition neetwork.
 
 - `function_definitions` (string)
 
-  The name of the module that defines the scenario function (see {ref}`dictionary_function`). If there are multiple modules, connect them with `':'`. The module must be in the Python module search path. (The directory containing the configuration file is in the module search path.)
+  The name of the module that defines scenario functions (see {ref}`custom_functions`). If there are multiple modules, join them with `':'`. The module must be on the Python module search path. The directory containing the configuration file is added to the module search path automatically.
 
 - `flags_to_use` (list of strings)
 
@@ -328,7 +327,7 @@ It perfomrs dialogue management using a state-transition neetwork.
 
 - `multi_party` (Boolean. Deafault value is `false`)
 
-   When this value is set to `true`, the value of `user_id` is included in the conversation history for {numref}`context_information` and in the prompts for built-in functions using large language models described in {numref}`llm_functions`.
+  When this value is set to `true`, the value of `user_id` is included in the conversation history for {numref}`context_information` and in the prompts for built-in functions using large language models described in {numref}`llm_functions`.
 
 
 (scenario)=
@@ -608,7 +607,7 @@ The built-in functions are as follows:
      Generates a string using a large language model (currently only OpenAI's ChatGPT). More details follow.
 
 
-(llm_functinos)=
+(llm_functions)=
 #### Built-in functions using large language models
 
 The functions `_check_with_llm(task)` and `_generate_with_llm(task)` use a large language model (currently only OpenAI's ChatGPT) along with dialogue history to perform condition checks and text generation. Here are some examples:

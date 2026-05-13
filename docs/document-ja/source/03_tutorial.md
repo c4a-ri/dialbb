@@ -66,7 +66,7 @@ output_text: system_utterance
 以下のように，環境変数`DIALBB_DEBUG`に`yes`を設定することにより，ログレベルがデバッグモードになります．
 
 ```sh
-export DIALBB_DEBUG=yes;dialbb_server sample_apps/parrot/config.yml
+export DIALBB_DEBUG=yes; dialbb-server sample_apps/parrot/config.yml
 ```
 
 これにより，コンソールに詳しいログが出力されますので，それを見ることで理解が深まると思います．
@@ -77,9 +77,9 @@ export DIALBB_DEBUG=yes;dialbb_server sample_apps/parrot/config.yml
 
 {ref}`llm_dialogue`を用い，単一プロンプトテンプレートと大規模言語モデル（LLM)を使って対話を行います．
 
-`sample_apps/llm_dialgoue_ja/`にあります．
+`sample_apps/llm_dialogue_ja/`にあります．
 
-`sample_apps/llm_dialgoue_ja/config.yml`の内容は以下のようになっています．
+`sample_apps/llm_dialogue_ja/config.yml`の内容は以下のようになっています．
 
 ```yaml
 # configuration file for an LLM-based Japanese application
@@ -113,7 +113,7 @@ blocks:
 
 プロンプトテンプレート`sample_apps/llm_dialogue_ja/prompt_template.txt`の中身は以下のようになっています．
 
-```txt
+```text
 # タスク説明
 
 - あなたは対話システムで，ユーザと食べ物に関して雑談をしています．あなたの次の発話を50文字以内で生成してください．
@@ -173,9 +173,9 @@ blocks:
 
 このアプリケーションを流用して新しいアプリケーションを作るには以下のようにします．
 
-- `sample_apps/llm_dialogue`をディレクトリごとコピーします．DialBBのディレクトリとは全く関係ないディレクトリで構いません．
+- `sample_apps/llm_dialogue_ja`をディレクトリごとコピーします．DialBBのディレクトリとは全く関係ないディレクトリで構いません．
 
-- `config_ja.yml`や`prompt_template_ja.txt`をを編集します．これらのファイルの名前を変更しても構いません．
+- `config.yml`や`prompt_template.txt`を編集します．これらのファイルの名前を変更しても構いません．
 
 - 以下のコマンドで起動します．
 
@@ -196,7 +196,7 @@ blocks:
 - {ref}`stn_manager`
 
 
-`sample_apps/dst_stn_ja/`（日本語），`sample_apps/dst_stn_ja/`（英語）にあります．
+`sample_apps/dst_stn_ja/`（日本語），`sample_apps/dst_stn_en/`（英語）にあります．
 
 `sample_apps/dst_stn_ja/config.yml`の内容は以下のようになっています．
 
@@ -216,7 +216,7 @@ blocks:  # ブロックのリスト
     output: 
       aux_data: aux_data
     knowledge_file: dst_knowledge_ja.xlsx  # 知識記述ファイル
-    gpt_model: gpt-4o-mini
+    model: gpt-4o-mini
     flags_to_use: 
       - 'Y'
       - 'T'
@@ -279,7 +279,7 @@ blocks:  # ブロックのリスト
 
 ### アプリケーションを構成するファイル
 
-本アプリケーションを構成するファイルは`sample_apps/llm_stn_ja`ディレクトリ（フォルダ）にあります．そのディレクトリには以下のファイル/ディレクトリが含まれています．
+本アプリケーションを構成するファイルは`sample_apps/dst_stn_ja`ディレクトリ（フォルダ）にあります．そのディレクトリには以下のファイル/ディレクトリが含まれています．
 
 - `config.yml`
 
@@ -289,7 +289,7 @@ blocks:  # ブロックのリスト
 
   DST with LLMブロックで用いる知識を記述したものです．
 
-- `lab_app_scenario_ja.xlsx`
+- `dst_stn_ja_scenario.xlsx`
 
   STN Managerブロックで用いる知識を記述したものです．
 

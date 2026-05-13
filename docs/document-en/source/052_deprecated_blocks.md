@@ -1,9 +1,37 @@
-(builtin_blocks)=
+(deprecated_builtin_blocks)=
 # Deprecated Built-in Block Classes
 
 The following built-in blocks have been deprecated in ver. 2.0.
 
 Even if the DialBB package is installed, the libraries required for these blocks may not be installed.
+
+(japanese_canonicalizer)=
+## Japanese Canonicalizer (Japanese String Canonicalizer Block)
+
+(`dialbb.builtin_blocks.preprocess.japanese_canonicalizer.JapaneseCanonicalizer`)
+
+Canonicalizes input strings. This block is mainly intended for Japanese.
+
+### Input/Output
+
+- Input
+  - `input_text`: Input string (string)
+    - Example: `"ＣＵＰ Noodle 好き"`
+
+- Output
+  - `output_text`: Canonicalized string (string)
+    - Example: `"cupnoodle好き"`
+
+### Process Details
+
+The following processing is applied to the input string.
+
+- Remove leading and trailing spaces.
+- Convert uppercase alphabetic characters to lowercase.
+- Remove line breaks.
+- Convert full-width characters to half-width characters except Katakana.
+- Remove spaces.
+- Apply Unicode normalization (NFKC).
 
 (simple_canonicalizer)=
 ## Simple Canonicalizer (Simple String Canonicalizer Block)
@@ -57,7 +85,7 @@ At runtime, it uses the trained models for language understanding.
     
 	  - If the parameter `num_candidates` of the block configuration described below is 1, the language understanding result is a dictionary type in the following format.
 	
-	    ```json
+      ```text
 	     {
 	         "type": <user utterance type (intent)>,. 
 	         "slots": {<slot name>: <slot value>, ... , <slot name>: <slot value>}
@@ -75,7 +103,7 @@ At runtime, it uses the trained models for language understanding.
 	  
 	  - If `num_candidates` is greater than 1, it is a list of multiple candidate comprehension results.
 	  
-	    ```json
+      ```text
 	     [{"type": <user utterance type (intent)>, 
 	       "slots": {<slot name>: <slot value>, ... , <slot name>: <slot value>}}, ...
 	      {"type": <user utterance type (intent)>,. 
@@ -326,7 +354,7 @@ During execution, the input utterance is added to the prompt, and ChatGPT is use
 
     The extracted named entities follow this format:
 
-    ```json
+    ```text
     {"NE_<Label>": "<Named Entity>", "NE_<Label>": "<Named Entity>", ...}
     ```
 
@@ -465,7 +493,7 @@ Performs named entity recognition using [spaCy](https://spacy.io) and [GiNZA](ht
 
 The result of named entity recognition is as follows.
 
-```json
+```text
 { 
   "NE_<label>": "<named entity>", 
   "NE_<label>": "<named entity>", 
