@@ -24,7 +24,11 @@ from mm_client.tts.speech_synthesizer import run_tts_worker
 
 
 logger = get_logger(__name__)
-DEFAULT_CONFIG_FILE = Path(__file__).resolve().parent / "config" / "config.yml"
+DEFAULT_CONFIG_FILE = Path.cwd() / "config" / "mm_client_config.yml"
+MISSING_CONFIG_GUIDANCE = (
+    "Configファイルが見つかりません、コマンド引数で指定するかconfig/mm_client_config.ym"
+    "があるディレクトリでコマンドを実行してください"
+)
 
 # OS ごとの日本語フォント候補。
 _FONT_CANDIDATES: dict[str, list[str]] = {
@@ -378,6 +382,9 @@ def main() -> None:
     # 設定ファイルの読み込みと環境変数の設定
     # ----------------------------------------------------------------
     config_file = Path(args.config_file).expanduser().resolve()
+    if not config_file.exists():
+        raise SystemExit(MISSING_CONFIG_GUIDANCE)
+
     stt_key_file, dialbb_config, loop_period, max_user_wait_time, mic_gain = _load_runtime_paths(
         config_file=config_file,
     )
@@ -387,12 +394,12 @@ def main() -> None:
         os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = stt_key_file
         logger.info("[SYSTEM] STTキー設定: %s", stt_key_file)
     else:
-        logger.warning("[SYSTEM] STTキー未設定: config.yml を確認してください。")
+        logger.warning("[SYSTEM] STTキー未設定: mm_client_config.yml を確認してください。")
 
     if dialbb_config:
         logger.info("[SYSTEM] DialBB設定: %s", dialbb_config)
     else:
-        logger.warning("[SYSTEM] DialBB設定未指定: config.yml を確認してください。")
+        logger.warning("[SYSTEM] DialBB設定未指定: mm_client_config.yml を確認してください。")
 
     logger.info("[SYSTEM] 起動: 4スレッド構成 (Main / STT / DialBB / TTS)")
     logger.info("[SYSTEM] GUIの『対話開始』で初回発話から対話を開始します。")
