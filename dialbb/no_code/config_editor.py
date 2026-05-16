@@ -50,11 +50,7 @@ class ConfigManager:
         except (FileNotFoundError, IOError, ruamel.yaml.YAMLError):
             logger.exception("can't read config file: %s", file_path)
 
-        self.search_pattern = {
-            "dst": "dialbb.builtin_blocks.ner_with_chatgpt",
-        }
-
-        # read nlu and ner block descriptions from templates
+        # read dst descriptions from templates
         self.block_dst: Dict[str, Dict[str, Any]] = {}
         for language in ("ja", "en"):
             block_config_file = os.path.join(template_path, "blocks", "dst.yml")
@@ -87,17 +83,17 @@ class ConfigManager:
     def get_llm_model(self) -> str:
         result = ""
         # managerのchatgptモデルを参照
-        chatgpt = self.get_block("manager").get("llm")
-        if chatgpt:
-            result = chatgpt.get("model", "")
+        llm_desc = self.get_block("manager").get("llm")
+        if llm_desc:
+            result = llm_desc.get("model", "")
         return result
 
     # ChatGPTのsituation, persona, cautionsを取得
     def get_prompt_elements(self, name) -> str:
         result = ""
-        chatgpt: Dict[str, Any] = self.get_block("manager").get("llm")
-        if chatgpt:
-            result = chatgpt.get(name)
+        llm_desc: Dict[str, Any] = self.get_block("manager").get("llm")
+        if llm_desc:
+            result = llm_desc.get(name)
         if result:
             return "\n".join(result)
         else:
@@ -114,32 +110,21 @@ class ConfigManager:
 
         return result
 
-    # block要素の変更
+    # add/del block config
     def change_block_ele(self, op: str, name: str) -> None:
-        find_f = False  # 検出有無
 
-        # 対象nameを検索
-        for idx, block in enumerate(self.config.get("blocks", "")):
-            if block.get("name") == name:
-                find_f = True
-                # 追加
-                if op == "add":
-                    # 対象classが違う場合は上書き
-                    if not self.search_pattern[name] in block.get("block_class", ""):
-                        # 要素を変更
-                        self.config.get("blocks")[idx] = self.get_fixed_element(name)
-                # 削除
-                elif op == "del":
-                    # 対象classが有れば削除
-                    if self.search_pattern[name] in block.get("block_class", ""):
-                        del self.config.get("blocks")[idx]
+        target_index = -1
 
-        # block要素に対象nameが無く＆追加操作の場合
-        if not find_f and op == "add":
-            # 要素をmanagerの前に追加
-            self.config["blocks"].insert(-1, self.get_fixed_element(name))
-
-        self.yaml.dump(self.config, sys.stdout)
+        block_descs: List[Dict[str, Any]] = self.config["blocks"]
+        for idx in range(len(block_descs)):
+            if block_descs[idx].get("name") == name:
+                target_index = idx
+                break
+        if target_index >= 0:
+            if op == "del":
+                del block_descs[target_index]
+        elif op == "add":
+            block_descs.insert(-1, self.get_fixed_element(name))
 
     # ChatGPT blockの編集
     def set_dst(self, kind: str) -> None:
@@ -171,11 +156,14 @@ class ConfigManager:
         with open(self.file_path, mode="w", encoding="utf-8") as file:
             self.yaml.dump(self.config, stream=file)
 
+    def print(self) -> None:
+        self.yaml.dump(self.config, sys.stdout)
+
 
 # アプリConfig編集の処理
 def edit_app_config(parent, file_path, template_path, settings):
 
-    config = ConfigManager(file_path, template_path)
+    config_manager = ConfigManager(file_path, template_path)
 
     # 編集画面を表示
     sub_menu = tk.Toplevel(parent)
@@ -205,7 +193,7 @@ def edit_app_config(parent, file_path, template_path, settings):
 
     # LLM Radio Button
     dst_val = tk.StringVar()
-    dst_val.set("use" if config.if_use_dst() else "not_use")
+    dst_val.set("use" if config_manager.if_use_dst() else "not_use")
     dst_rb1 = ttk.Radiobutton(
         dst_fr, text=gui_text("btn_yes"), value="use", variable=dst_val
     )
@@ -269,7 +257,7 @@ def edit_app_config(parent, file_path, template_path, settings):
     horiz_scrollbar1 = tk.Scrollbar(llm_mng_fr, orient=tk.HORIZONTAL, command=stt.xview)
     stt.config(xscrollcommand=horiz_scrollbar1.set)
     # configの値を設定
-    stt.insert(0.0, config.get_prompt_elements("situation"))
+    stt.insert(0.0, config_manager.get_prompt_elements("situation"))
     label2.grid(column=0, row=2)
     stt.grid(column=1, row=2, columnspan=2, sticky=tk.NSEW, padx=5, pady=5)
     horiz_scrollbar1.grid(column=1, row=3, columnspan=2, sticky=tk.NSEW)
@@ -281,7 +269,7 @@ def edit_app_config(parent, file_path, template_path, settings):
     horiz_scrollbar2 = tk.Scrollbar(llm_mng_fr, orient=tk.HORIZONTAL, command=psn.xview)
     psn.config(xscrollcommand=horiz_scrollbar2.set)
     # configの値を設定
-    psn.insert(0.0, config.get_prompt_elements("persona"))
+    psn.insert(0.0, config_manager.get_prompt_elements("persona"))
     # ラベルを作成
     label2.grid(column=0, row=4)
     psn.grid(column=1, row=4, columnspan=2, sticky=tk.NSEW, padx=5, ipady=8)
@@ -294,7 +282,7 @@ def edit_app_config(parent, file_path, template_path, settings):
     horiz_scrollbar3 = tk.Scrollbar(llm_mng_fr, orient=tk.HORIZONTAL, command=ctn.xview)
     ctn.config(xscrollcommand=horiz_scrollbar3.set)
     # configの値を設定
-    ctn.insert(0.0, config.get_prompt_elements("cautions"))
+    ctn.insert(0.0, config_manager.get_prompt_elements("cautions"))
     # ラベルを作成
     label2.grid(column=0, row=6)
     ctn.grid(column=1, row=6, columnspan=2, sticky=tk.NSEW, padx=5, ipady=3)
@@ -326,7 +314,7 @@ def edit_app_config(parent, file_path, template_path, settings):
 
     # ウィンドウが表示された後にコンボボックスの値を設定する
     def on_window_shown():
-        model = config.get_llm_model()
+        model = config_manager.get_llm_model()
         if model in models:
             combobox.current(newindex=models.index(model))
 
@@ -389,14 +377,15 @@ def edit_app_config(parent, file_path, template_path, settings):
         cautions = ctn.get(1.0, tk.END)
 
         # change config data (overwrite even if there's no change)
-        config.set_dst(if_use_dst)
-        config.set_llm_model(model)
-        config.set_llm_list("situation", situation)
-        config.set_llm_list("persona", persona)
-        config.set_llm_list("cautions", cautions)
+        config_manager.set_dst(if_use_dst)
+        config_manager.set_llm_model(model)
+        config_manager.set_llm_list("situation", situation)
+        config_manager.set_llm_list("persona", persona)
+        config_manager.set_llm_list("cautions", cautions)
 
         # write config.yml
-        config.write()
+        config_manager.write()
+        config_manager.print()
 
         # 画面を閉じる
         sub_menu.destroy()

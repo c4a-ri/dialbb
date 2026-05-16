@@ -1,0 +1,11 @@
+name: dst
+block_class: dialbb.builtin_blocks.dst_with_llm.dst_with_llm.DST
+input:
+  dialogue_history: dialogue_history
+output: 
+  dst_result: dst_result
+knowledge_file: dst-knowledge.xlsx  # knowledge description file
+gpt_model: gpt-4o-mini
+flags_to_use: 
+  - 'Y'
+  - 'T'
