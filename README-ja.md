@@ -1,6 +1,6 @@
 # [DialBB](https://c4a-ri.github.io/dialbb/index-ja.html): 対話システム構築フレームワーク
 
-ver. 1.2.2
+ver. 1.2.3
 
 [English](README.md)
 
@@ -76,7 +76,7 @@ $ dialbb-server sample_apps/parrot/config.yml
   
   ```json
   {"aux_data":null, 
-   "session_id":"dialbb_session1", 
+   "session_id":<長い文字列>, 
    "system_utterance":"I'm a parrot. You can say anything.", 
    "user_id":"user1"}
   ```
@@ -85,7 +85,7 @@ $ dialbb-server sample_apps/parrot/config.yml
 
   ```sh
   $ curl -X POST -H "Content-Type: application/json" \
-    -d '{"user_utterance": "こんにちは", "user_id":"user1", "session_id":"dialbb_session1"}' \
+    -d '{"user_utterance": "こんにちは", "user_id":"user1", "session_id": <レスポンスのsession_idの値>}' \
     http://localhost:8080/dialogue
   ```
    以下のレスポンスが返ります．
@@ -93,7 +93,7 @@ $ dialbb-server sample_apps/parrot/config.yml
   ```json
   {"aux_data":null,
    "final":false,
-   "session_id":"dialbb_session1",
+   "session_id": <送ったsession_id>,
    "system_utterance":"You said \"こんにちは\"",
    "user_id":"user1"}
   ```

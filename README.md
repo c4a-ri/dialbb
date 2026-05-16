@@ -1,6 +1,6 @@
 # [DialBB](https://c4a-ri.github.io/dialbb/): A Framework for Building Dialogue Systems
 
-ver. 1.2.2
+ver. 1.2.3
 
 [<img src="./docs/images/japan_national_flag.jpg" width="5%">日本語](README-ja.md)
 
@@ -79,7 +79,7 @@ Execute the following on another terminal. If you do not have curl installed, te
 
   ```json
   {"aux_data":null, 
-   "session_id":"dialbb_session1", 
+   "session_id": <a long string>", 
    "system_utterance":"I'm a parrot. You can say anything.", 
    "user_id":"user1"}
   ```
@@ -88,7 +88,7 @@ Execute the following on another terminal. If you do not have curl installed, te
 
   ```sh
   $ curl -X POST -H "Content-Type: application/json" \
-    -d '{"user_utterance": "Hello", "user_id":"user1", "session_id":"dialbb_session1"}' \
+    -d '{"user_utterance": "Hello", "user_id":"user1", "session_id": <sesion_id in the response}' \
     http://localhost:8080/dialogue
   ```
 
@@ -97,7 +97,7 @@ Execute the following on another terminal. If you do not have curl installed, te
   ```json
   {"aux_data":null,
    "final":false,
-   "session_id":"dialbb_session1",
+   "session_id": <sent session_id>,
    "system_utterance":"You said \"Hello\"",
    "user_id":"user1"}
   ```
