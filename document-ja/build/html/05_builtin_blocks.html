@@ -580,7 +580,7 @@
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">system</span> <span class="pre">utterance</span></code></p>
 <p><code class="docutils literal notranslate"><span class="pre">state</span></code>の状態で生成されるシステム発話の候補．</p>
-<p>システム発話文字列に含まれる<code class="docutils literal notranslate"><span class="pre">{&lt;変数&gt;}</span></code>または{&lt;関数呼び出し&gt;}<code class="docutils literal notranslate"><span class="pre">は，対話中にその変数に代入された値や関数呼び出しの結果で置き換えられます．これについては，以下の{numref}</span></code>realization_in_system_utterance`で詳しく説明します．</p>
+<p>システム発話文字列に含まれる<code class="docutils literal notranslate"><span class="pre">{&lt;変数&gt;}</span></code>または<code class="docutils literal notranslate"><span class="pre">{&lt;関数呼び出し&gt;}</span></code>は，対話中にその変数に代入された値や関数呼び出しの結果で置き換えられます．これについては，以下の<a class="reference internal" href="#realization-in-system-utterance"><span class="std std-numref">5.5.5 章</span></a>で詳しく説明します．</p>
 <p><code class="docutils literal notranslate"><span class="pre">state</span></code>が同じ行は複数あり得ますが，同じ<code class="docutils literal notranslate"><span class="pre">state</span></code>の行の<code class="docutils literal notranslate"><span class="pre">system</span> <span class="pre">utterance</span></code>すべてが発話の候補となり，ランダムに生成されます．</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">user</span> <span class="pre">utterance</span> <span class="pre">example</span></code></p>
@@ -1010,11 +1010,11 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">$&lt;タスク文字列&gt;$</span></code></p>
 <p>条件として使われた時は，<code class="docutils literal notranslate"><span class="pre">_check_with_llm(&quot;&lt;タスク文字列&gt;&quot;)</span></code>の意味で，システム発話中で使われた時は，<code class="docutils literal notranslate"><span class="pre">{_generate_with_llm(&quot;&lt;タスク文字列&gt;&quot;)}</span></code>の意味です．</p>
 <p>条件の例：</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$&quot;ユーザが理由を言ったかどうか判断してください．&quot;
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ユーザが理由を言ったかどうか判断してください．$
 </pre></div>
 </div>
 <p>文字列生成を含むシステム発話の例：</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>わかりました．{$&quot;それまでの会話につづけて，対話を終わらせる発話を50文字以内で生成してください．&quot;}今日はお時間ありがとうございました．
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>わかりました．$それまでの会話につづけて，対話を終わらせる発話を50文字以内で生成してください．$今日はお時間ありがとうございました．
 </pre></div>
 </div>
 <p>以前は<code class="docutils literal notranslate"><span class="pre">$&quot;&lt;タスク文字列&gt;&quot;</span></code>の形でしたが推奨されません．</p>
