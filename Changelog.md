@@ -7,6 +7,8 @@
   - Fixed a bug where changes made in the scenario editor were not reflected immediately after saving.
   - Fixed a bug where user nodes were not arranged in priority order when aligning them in the scenario editor.
 
+  - Fixed a bug in LLM settings
+
 ## 1.2.1 (2026.4.21)
 
 - Simulation-based tester's bug fixed

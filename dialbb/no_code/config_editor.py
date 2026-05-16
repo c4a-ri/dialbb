@@ -107,7 +107,7 @@ class ConfigManager:
         # managerのchatgptモデルを参照
         chatgpt = self.get_block("manager").get("chatgpt")
         if chatgpt:
-            result = chatgpt.get("model", "")
+            result = chatgpt.get("gpt_model", "")
         return result
 
     # ChatGPTのsituation, persona, cautionsを取得
@@ -181,12 +181,12 @@ class ConfigManager:
         # understanderのchatgptモデル設定
         understander = self.get_block("understander")
         if understander:
-            understander["model"] = model
+            understander["gpt_model"] = model
 
         # managerのchatgptモデル設定
         chatgpt = self.get_block("manager").get("chatgpt")
         if chatgpt:
-            chatgpt["model"] = model
+            chatgpt["gpt_model"] = model
 
     # situationの設定
     def set_chatgpt_list(self, label: str, data: str) -> None:
