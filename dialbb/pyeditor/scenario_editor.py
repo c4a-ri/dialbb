@@ -6,6 +6,7 @@ import json
 import uuid
 from collections import deque
 from PySide6 import QtCore, QtGui, QtWidgets
+from dialbb.no_code.tools.scenario_converter2excel import convert_json_to_excel
 
 from constants import (
     CONNECTOR_OUTSIDE,
@@ -1138,24 +1139,19 @@ class GraphScene(QtWidgets.QGraphicsScene):
         if warning:
             msg = gui_text("scn_msg_export_warning_with_detail").format(detail=warning)
             QtWidgets.QMessageBox.warning(None, gui_text("scn_title_export_warning"), msg)
-            return
+            return False
 
         # --- validation: certain System node kinds must not appear more than once ---
         dup_warn = check_kind_duplicates(data, ["prep", "initial", "error"])
         if dup_warn:
             msg = gui_text("scn_msg_export_aborted_with_detail").format(detail=dup_warn)
             QtWidgets.QMessageBox.warning(None, gui_text("scn_title_export_warning"), msg)
-            return
+            return False
 
         # write JSON only if validation passed
         with open(file_path, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
-
-        QtWidgets.QMessageBox.information(
-            None,
-            gui_text("scn_title_export"),
-            gui_text("scn_msg_export_done").format(path=os.path.abspath(file_path)),
-        )
+        return True
 
     def import_json(self, path):
         """JSONから復元（インポートも履歴に乗せる）"""
@@ -1210,7 +1206,7 @@ class GraphScene(QtWidgets.QGraphicsScene):
 
     # ---------- layout helpers：部分整列 / 全体整列 ----------
     def align_users_under_system(self, system_node: NodeItem):
-        """Systemの接続先Userを priority（昇順）で縦整列（System右側へ配置）"""
+        """Systemの接続先Userを priority（降順）で縦整列（System右側へ配置）"""
         if system_node.node_type != NODE_TYPE_SYSTEM:
             return
 
@@ -1232,7 +1228,7 @@ class GraphScene(QtWidgets.QGraphicsScene):
             except ValueError:
                 return 0
 
-        users.sort(key=priority_of, reverse=False)
+        users.sort(key=priority_of, reverse=True)
 
         # System右側に等間隔で並べる（中心合わせ）
         base_x = system_node.x() + LAYOUT_DX
@@ -1315,7 +1311,7 @@ class GraphScene(QtWidgets.QGraphicsScene):
             nodes = levels[lv]
             x = base_x + lv * LAYOUT_DX
 
-            # User層は priority、その他は現Y順（元の上下関係を維持）
+            # User層は priority降順、その他は現在のY座標順（元の上下関係を維持
             if all(n.node_type == NODE_TYPE_USER for n in nodes):
                 def priority_of(node: NodeItem) -> int:
                     """User層整列用の priority 値を返す。"""
@@ -1323,7 +1319,7 @@ class GraphScene(QtWidgets.QGraphicsScene):
                         return int(node.get_field("priority") or 0)
                     except ValueError:
                         return 0
-                nodes_sorted = sorted(nodes, key=priority_of, reverse=False)
+                nodes_sorted = sorted(nodes, key=priority_of, reverse=True)
             else:
                 nodes_sorted = sorted(nodes, key=lambda n: n.y())
 
@@ -1470,11 +1466,12 @@ class GraphicsView(QtWidgets.QGraphicsView):
 class MainWindow(QtWidgets.QMainWindow):
     """PyEditor のメインウィンドウ。"""
 
-    def __init__(self):
+    def __init__(self, excel_path=None):
         """メインウィンドウとツールバーを初期化する。"""
         super().__init__()
         self.setWindowTitle(gui_text("scn_main_title"))
         self.resize(900, 600)
+        self.excel_path = excel_path
 
         # Undoスタック（Ctrl+Z/Y）
         self.undo_stack = QtGui.QUndoStack(self)
@@ -1496,7 +1493,7 @@ class MainWindow(QtWidgets.QMainWindow):
         toolbar.addWidget(spacer)
 
         # toolbar.addAction("保存 (PNG)", lambda: self.scene.save_png("state_graph_qt.png"))
-        toolbar.addAction(gui_text("scn_toolbar_save"), lambda: self.scene.export_json("state_graph.json"))
+        toolbar.addAction(gui_text("scn_toolbar_save"), self.save_json_and_excel)
         toolbar.addAction(gui_text("scn_toolbar_load"), self.confirm_and_load_json)
         toolbar.addAction(gui_text("scn_toolbar_align"), self.scene.auto_layout)
 
@@ -1543,6 +1540,29 @@ class MainWindow(QtWidgets.QMainWindow):
         statusbar = self.statusBar()
         statusbar.setStyleSheet("background: #4682b4;")
         statusbar.addWidget(hint)
+
+    def save_json_and_excel(self):
+        """JSON保存後、指定があれば scenario.xlsx へ反映する。"""
+        saved = self.scene.export_json("state_graph.json")
+        if not saved or not self.excel_path:
+            return
+
+        json_file = os.path.join(DATA_PATH, "state_graph.json")
+        try:
+            convert_json_to_excel(json_file, self.excel_path)
+        except (OSError, RuntimeError, ValueError) as exc:
+            QtWidgets.QMessageBox.critical(
+                self,
+                gui_text("scn_title_export_warning"),
+                str(exc),
+            )
+            return
+
+        QtWidgets.QMessageBox.information(
+            self,
+            gui_text("scn_title_export"),
+            gui_text("msg_saved"),
+        )
 
     def load_json_file(self, path: str):
         """外部起動用JSONロード（例外は呼び元に投げる）"""
@@ -1593,6 +1613,12 @@ def main():
         default="ja",
         help="Language type: ja/en",
     )
+    parser.add_argument(
+        "--excel-path",
+        type=str,
+        default=None,
+        help="Path to scenario.xlsx to update on save",
+    )
     args = parser.parse_args()
 
     app = QtWidgets.QApplication(sys.argv)
@@ -1605,7 +1631,7 @@ def main():
     # -----------------------------
     json_path = args.json_path
 
-    w = MainWindow()
+    w = MainWindow(excel_path=args.excel_path)
 
     # -----------------------------
     #  JSON引数が来ていれば自動ロード

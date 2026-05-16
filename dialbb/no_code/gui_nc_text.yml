@@ -478,8 +478,8 @@ scn_title_export:
   en: "Export"
 
 scn_msg_export_done:
-  ja: "{path} にエクスポートしました"
-  en: "Exported to {path}"
+  ja: "保存しました"
+  en: "Saved"
 
 scn_title_import_error:
   ja: "インポートエラー"
@@ -492,10 +492,6 @@ scn_title_save:
 scn_msg_nothing_to_save:
   ja: "保存する内容がありません"
   en: "There is nothing to save."
-
-scn_msg_saved_to_path:
-  ja: "{path} に保存しました"
-  en: "Saved to {path}"
 
 scn_main_title:
   ja: "DialBBシナリオエディタ"

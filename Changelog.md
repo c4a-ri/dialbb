@@ -1,10 +1,11 @@
 # Changelog
 
-## 1.2.2 (2026.5.2)
+## 1.2.3 (2026.5.16)
 
 - No-code tool
 
-  - Fixed a bug where language understanding and named entity extraction could not be used.
+  - Fixed a bug where changes made in the scenario editor were not reflected immediately after saving.
+  - Fixed a bug where user nodes were not arranged in priority order when aligning them in the scenario editor.
 
 ## 1.2.1 (2026.4.21)
 

@@ -37,9 +37,6 @@ from dataclasses import dataclass
 from dialbb.no_code.tools.scenario_converter2json import (
     convert_excel_to_json as scenario_convert_excel_to_json,
 )
-from dialbb.no_code.tools.scenario_converter2excel import (
-    convert_json_to_excel as scenario_convert_json_to_excel,
-)
 from dialbb.no_code.config_editor import edit_app_config, edit_test_config
 from dialbb.no_code.function_editor import edit_scenario_functions
 from dialbb.no_code.gui_utils import (
@@ -129,7 +126,11 @@ def exec_editor(file_path, parent, button) -> None:
 
         PROCESS_STATE.editor_process = ProcessManager(
             PYEDITOR_EDITOR_SCRIPT,
-            [PYEDITOR_STATE_GRAPH_JSON, arg_lang],
+            [
+                PYEDITOR_STATE_GRAPH_JSON,
+                arg_lang,
+                f"--excel-path={file_path}",
+            ]
         )
         ret = PROCESS_STATE.editor_process.start()
         if not ret:
@@ -154,18 +155,6 @@ def exec_editor(file_path, parent, button) -> None:
         # no: 終了しない
         if not save_confirm:
             return
-
-        # エディタ終了処理
-        try:
-            scenario_convert_json_to_excel(PYEDITOR_STATE_GRAPH_JSON, file_path)
-        except (OSError, RuntimeError, ValueError) as e:
-            logger.error("JSON->Excel conversion failed: %s", e)
-            messagebox.showerror(
-                gui_text("msg_editor_err_title"),
-                gui_text("msg_editor_err_msg"),
-                detail=f"{e}",
-                parent=parent,
-            )
 
         # pyEditorプロセス停止
         PROCESS_STATE.editor_process.stop()
