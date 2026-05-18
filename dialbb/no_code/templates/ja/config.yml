@@ -6,9 +6,7 @@ blocks:  # ブロックのリスト
     knowledge_file: scenario.xlsx # 知識記述ファイル
     function_definitions: scenario_functions
     input:
-      sentence: user_utterance
-      nlu_result: nlu_result
-      user_id: user_id
+      dialogue_history: dialogue_history
       aux_data: aux_data
     output:
       output_text: system_utterance

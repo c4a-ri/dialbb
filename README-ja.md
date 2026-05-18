@@ -138,7 +138,7 @@ OPENAI_API_KEY=<OpenAI's API key>
 
 コンフィギュレーションファイルを変更して他のLLMを使うこともできます．その場合は，必要なキーを環境変数に設定するか`.env`に書いてください．
 
-#### 起動方法
+#### サーバ起動方法
 
   日本語版
 
@@ -151,6 +151,27 @@ $ dialbb-server sample_apps/llm_dialogue_ja/config.yml
   ```sh
 $ dialbb-server sample_apps/llm_dialogue_en/config.yml 
   ```
+
+ブラウザから`http://<hostname>:8080` または`http://<hostname>:8080/test`にアクセスしてください。
+
+#### ユーザシミュレーションによるテスト
+
+LLMを用いたユーザシミュレーションによる動作確認も行えます。
+
+ 日本語版
+
+```sh
+$ dialbb-sim-tester --app_config sample_apps/llm_dialogue_ja/config.yml \
+  --test_config sample_apps/llm_dialogue_ja/simulation/config.yml
+```
+
+英語版
+
+```sh
+$ dialbb-sim-tester --app_config sample_apps/llm_dialogue_en/config.yml \
+  --test_config sample_apps/llm_dialogue_en/simulation/config.yml
+```
+
 
 
 ### DST-STNアプリケーション
@@ -175,9 +196,29 @@ $ dialbb-server sample_apps/llm_dialogue_en/config.yml
   $ dialbb-server sample_apps/dst_stn_en/config.yml # 英語アプリ
   ```
 
-#### テスト方法
+ブラウザから`http://<hostname>:8080` または`http://<hostname>:8080/test`にアクセスしてください。
 
-  以下のコマンドで，様々な機能をテストすることができます．
+#### ユーザシミュレーションによるテスト
+
+LLMを用いたユーザシミュレーションによる動作確認も行えます。
+
+ 日本語版
+
+```sh
+$ dialbb-sim-tester --app_config sample_apps/dst_stn_ja/config.yml \
+  --test_config sample_apps/dst_stn_ja/simulation/config.yml
+```
+
+英語版
+
+```sh
+$ dialbb-sim-tester --app_config sample_apps/dst_stn_en/config.yml \
+  --test_config sample_apps/llm_dialogue_en/dst_stn_en/config.yml
+```
+
+#### 補助データを送信するテスト
+
+  以下のコマンドで，ユーザ発話と共に補助データを送信して様々な機能をテストすることができます．
 
   ```sh
   $ dialbb-send-test-requests sample_apps/dst_stn_ja/config.yml sample_apps/dst_stn_ja/test_requests.json # 日本語アプリ

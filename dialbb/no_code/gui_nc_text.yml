@@ -103,6 +103,10 @@ btn_configuration:
 
 
 # ----- 表示メッセージ -----
+msg_convert_ver1_app:
+  ja: "読み込まれたアプリはDialBBのver.1用です。ver.2用に変換しました。言語理解と固有表現抽出は使えません。"
+  en: "The imported App was for DialBB ver. 1. Converted into ver. 2. Named entity extraction and language understanding are no longer possible."
+
 msg_saved:
   ja: "保存しました。"
   en: "Saved."

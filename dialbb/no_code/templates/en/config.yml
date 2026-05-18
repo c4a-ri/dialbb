@@ -6,9 +6,7 @@ blocks:  # list of blocks
     knowledge_file: scenario.xlsx # scenario file
     function_definitions: scenario_functions
     input:
-      sentence: user_utterance
-      nlu_result: nlu_result
-      user_id: user_id
+      dialogue_history: dialogue_history
       aux_data: aux_data
     output:
       output_text: system_utterance
@@ -29,7 +27,7 @@ blocks:  # list of blocks
         - Male
         - You like sandwiches
         - You don't drink alcohol
-        - A colledge student
+        - A college student
         - Single
         - You talk very friendly
         - Diplomatic and cheerful

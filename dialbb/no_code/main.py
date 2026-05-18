@@ -31,8 +31,9 @@ from tkinter import filedialog
 import subprocess
 import shutil
 import zipfile
-from typing import Dict, Optional, Any
+from typing import Dict, Optional, Any, List
 from dataclasses import dataclass
+import yaml
 
 from dialbb.no_code.tools.scenario_converter2json import (
     convert_excel_to_json as scenario_convert_excel_to_json,
@@ -350,8 +351,42 @@ def import_application_file(edit_box, settings, _file_type_list) -> None:
         # アプリケーション名の保存
         file_name, _ = os.path.splitext(os.path.basename(file_path))
         settings.set_appname(file_name)
-
+        convert_ver1_config()
         messagebox.showinfo("Import", f"{file_name}" + gui_text("msg_info_appload"))
+
+
+def convert_ver1_config() -> None:
+    """
+    convert ver1 config into ver2 config
+    :return: None
+    """
+
+    with open(os.path.join(APP_DIR, "config.yml"), encoding='utf-8') as fp:
+        config: Dict[str, Any] = yaml.safe_load(fp)
+
+    ver1: bool = False
+    block_configs: List[Dict[str, Any]] = config["blocks"]
+    new_block_configs: List[Dict[str, Any]] = []
+    for block_config in block_configs:
+        if block_config["name"] == "manager":
+            if "chatgpt" in block_config:
+                ver1 = True
+                llm_config: Dict[str, Any] = block_config["chatgpt"]
+                if llm_config.get("gpt_model"):
+                    model: str = llm_config["gpt_model"]
+                    del llm_config["gpt_model"]
+                    llm_config["model"] = model
+                del block_config["chatgpt"]
+                block_config["llm"] = llm_config
+            new_block_configs.append(block_config)
+        elif block_config["name"] not in ("canonicalizer", "understander", "ner"):
+            new_block_configs.append(block_config)
+    if ver1:
+        config["blocks"] = new_block_configs
+        with open(os.path.join(APP_DIR, "config.yml"), 'w', encoding='utf-8') as fp:
+            yaml.safe_dump(config, fp, allow_unicode=True)
+        messagebox.showinfo("Convert ver. 1 app", gui_text("msg_convert_ver1_app"))
+
 
 
 # [create]ボタンの処理。templateファイルをコピーする。

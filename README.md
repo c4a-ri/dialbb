@@ -37,7 +37,7 @@ The following instructions assume that you are working with bash on Ubuntu. If y
 
   ```sh
   $ python -m venv venv  # Create a virtual environment named venv
-  $ venv/bin/activate   # Enter the virtual environment
+  $ source venv/bin/activate   # Enter the virtual environment
   ```
 
 - Download `dialbb-*-py3-none-any.whl` file from [distribution directory](dist).
