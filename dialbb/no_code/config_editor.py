@@ -222,7 +222,6 @@ def edit_app_config(parent, file_path, template_path, settings):
             "gpt-4o-mini",
             "gpt-5.4-mini",
             "gpt-5.4",
-            "google_genai:gemini-3-flash",
             "google_genai:gemini-2.5-flash",
             "google_genai:gemini-2.5-flash-lite",
             "anthropic:claude-haiku-4-5"
@@ -463,7 +462,6 @@ def edit_test_config(parent, file_path: str, settings) -> None:
             "gpt-4o-mini",
             "gpt-5.4-mini",
             "gpt-5.4",
-            "google_genai:gemini-3-flash",
             "google_genai:gemini-2.5-flash",
             "google_genai:gemini-2.5-flash-lite",
             "anthropic:claude-haiku-4-5"

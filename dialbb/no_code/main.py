@@ -656,13 +656,17 @@ def set_main_frame(root_frame) -> None:
     # OPENAI_KEY環境変数の設定
     if settings.get_openai_api_key():
         os.environ["OPENAI_API_KEY"] = settings.get_openai_api_key()
+    if settings.get_google_api_key():
+        os.environ["GOOGLE_API_KEY"] = settings.get_google_api_key()
+    if settings.get_anthropic_api_key():
+        os.environ["ANTHROPIC_API_KEY"] = settings.get_anthropic_api_key()
 
     # App file Label 作成
     application_frame = ttk.Labelframe(
         root_frame, text=gui_text("main_title_1"), padding=10
     )
 
-    # ファイル選択エリア作成（ファイルの拡張子を指定）
+    # create file selection area ファイル選択エリア作成（ファイルの拡張子を指定）
     file_frame = set_file_frame(
         application_frame,
         settings,
@@ -672,7 +676,7 @@ def set_main_frame(root_frame) -> None:
     # file_frame.pack(fill=tk.BOTH)
     file_frame.grid(row=0, column=0, columnspan=3, sticky="ew")
 
-    # ---(2025/10)Added Edit frame buttons ---
+    # --- (2025/10) Added Edit frame buttons ---
     edit_frame = ttk.Labelframe(
         application_frame, text=gui_text("main_title_3"), padding=5
     )
@@ -930,7 +934,7 @@ def main() -> None:
         choices=["ja", "en"],
         nargs="?",
         default="ja",
-        help="Language type: ja/en",
+        help="Display language: ja/en",
     )
     args = parser.parse_args()
 
