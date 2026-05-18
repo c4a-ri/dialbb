@@ -12,7 +12,11 @@ include = [
 ]
 exclude = [
     "dialbb/builtin_blocks/stn_management/context_db/",
+    "dialbb/util/context_db/",
     "dialbb/no_code/gui_editor",
+    "dialbb/no_code/app",
+    "dialbb/no_code/data",
+    "dialbb/no_code/settings.dat",
     "**/__pycache__/"
 ]
 
