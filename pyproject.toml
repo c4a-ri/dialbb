@@ -16,6 +16,7 @@ exclude = [
     "dialbb/no_code/gui_editor",
     "dialbb/no_code/app",
     "dialbb/no_code/data",
+    "dialbb/pyeditor/data",
     "dialbb/no_code/settings.dat",
     "**/__pycache__/"
 ]
@@ -82,7 +83,7 @@ tqdm = "4.67.1"
 typing-extensions = "4.12.2"
 tzdata = "2025.1"
 urllib3 = "2.3.0"
-werkzeug = "3.1.3"
+werkzeug = "3.1.8"
 zipp = "3.17.0"
 ruamel-yaml = "^0.18.10"
 cryptography = "44.0.0"
