@@ -176,7 +176,7 @@ The following commands can be used to test the sequential processing and interac
   - Japanese
 
     ```sh
-    $ diabb-test sample_apps/simple_ja/config.yml \
+    $ dialbb-test sample_apps/simple_ja/config.yml \
       sample_apps/simple_ja/test_inputs.txt --output \
       sample_apps/simple_ja/_test_outputs.txt
     ```
@@ -236,14 +236,6 @@ Only the following builtin block is used.
 
 - ChatGPT Dialogue Block
 
-
-#### Installing Python libraries
-
-  Do the following
-
-  ```sh
-  $ pip install -r sample_apps/chatgpt/requirements.txt
-  ```
 
 #### Setting environment variables
 
