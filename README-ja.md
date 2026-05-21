@@ -1,6 +1,6 @@
 # [DialBB](https://c4a-ri.github.io/dialbb/index-ja.html): 対話システム構築フレームワーク
 
-ver. 1.2.3
+ver. 1.2.4
 
 [English](README.md)
 
