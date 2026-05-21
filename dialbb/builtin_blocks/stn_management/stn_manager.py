@@ -141,6 +141,7 @@ class Manager(AbstractBlock):
                 imported_module = importlib.import_module(function_definition_module)  # developer specified
                 self._function_modules.append(imported_module)
         imported_module = importlib.import_module(BUILTIN_FUNCTION_MODULE)  # builtin
+        imported_module = importlib.reload(imported_module)  # reload (for key setting in no-code)
         self._function_modules.append(imported_module)
 
         # whether to repeat when there are no available transitions (instead of default transition)

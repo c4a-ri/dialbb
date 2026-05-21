@@ -98,10 +98,12 @@ class AppFileFrame(ttk.Frame):
     edit_box: tk.Entry
 
 
-# -------- GUI Editor -------------------------------------
-# Start GUI Editor GUIエディタ起動/停止
+# -------- Scenario Editor -------------------------------------
+# Start Scenario Editor シナリオエディタ起動/停止
 def exec_editor(file_path, parent, button) -> None:
-    """シナリオエディタの起動/停止と保存連携を行う。"""
+    """
+    Start/stop scenario editor
+    """
     if not PROCESS_STATE.editor_process:
         # エディタ起動処理
         # convert excel to JSON（PyEditor入力）
