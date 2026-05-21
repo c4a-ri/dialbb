@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright 2024 C4A Research Institute, Inc.
+# Copyright 2026 C4A Research Institute, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 #   main dialogue processor
 #   メイン対話処理
 
-__version__ = '1.2.0'
+__version__ = '1.2.4'
 __author__ = 'Mikio Nakano'
 __copyright__ = 'C4A Research Institute, Inc.'
 
