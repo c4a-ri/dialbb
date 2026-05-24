@@ -8,8 +8,8 @@ from google.auth.exceptions import GoogleAuthError
 from google.cloud import speech
 
 from dialbb.util.logger import get_logger
-from mm_client.asr.audio_input import MicrophoneAudioInput
-from mm_client.main.messages import RecognitionEvent, RecognitionEventType
+from .audio_input import MicrophoneAudioInput
+from ..main.messages import RecognitionEvent, RecognitionEventType
 
 logger = get_logger(__name__)
 

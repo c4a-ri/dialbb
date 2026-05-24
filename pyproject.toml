@@ -7,7 +7,6 @@ readme = "README.md"
 
 packages = [
     { include = "dialbb" },
-    { include = "mm_client", from = "mm_client" },
 ]
 include = [
 ]
@@ -102,6 +101,9 @@ sounddevice = "^0.5.2"
 websocket-client = "^1.9.0"
 google-cloud-texttospeech = "^2.36.0"
 pygame = "^2.6.1"
+fastapi = "^0.115.0"
+uvicorn = {version = "^0.32.0", extras = ["standard"]}
+websockets = "^16.0"
 
 [build-system]
 requires = ["poetry-core"]
@@ -115,4 +117,5 @@ dialbb-test = 'dialbb.util.test:main'
 dialbb-send-test-requests = 'dialbb.util.send_test_requests:main'
 dialbb-uninstall = 'dialbb.uninstall:main'
 dialbb-sim-tester = 'dialbb.sim_tester.main:main'
-dialbb-mm-client = 'mm_client.start_mm_client:main'
+dialbb-mm-client = 'dialbb.multimodal.start_mm_client:main'
+dialbb-mm-client-server = 'dialbb.multimodal.server:run_server'

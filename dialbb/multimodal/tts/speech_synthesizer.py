@@ -7,7 +7,7 @@ from google.api_core.exceptions import GoogleAPICallError, RetryError
 from google.cloud import texttospeech
 
 from dialbb.util.logger import get_logger
-from mm_client.main.messages import TtsRequest, TtsResult
+from ..main.messages import TtsRequest, TtsResult
 
 
 logger = get_logger(__name__)

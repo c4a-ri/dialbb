@@ -8,7 +8,7 @@ from typing import Any
 
 from dialbb.util.logger import get_logger
 from dialbb.main import DialogueProcessor
-from mm_client.main.messages import DialbbRequest, DialbbResponse
+from .messages import DialbbRequest, DialbbResponse
 
 
 logger = get_logger(__name__)

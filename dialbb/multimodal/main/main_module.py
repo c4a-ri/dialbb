@@ -4,7 +4,7 @@ from threading import Event
 from typing import Optional
 
 from dialbb.util.logger import get_logger
-from mm_client.main.messages import (
+from .messages import (
     DialbbRequest,
     DialbbResponse,
     RecognitionEvent,
