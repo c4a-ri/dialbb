@@ -231,6 +231,12 @@ blocks:
 ```JSON
 [
   {
+     "speaker": "user",
+     "user_id": <入力のuser_id. user_idが入力にない場合は””>
+     "aux_data": <入力のaux_data. aux_dataが入力にない場合は{}>,
+     "utterance": ""
+  },
+  {
     "speaker": "system",
     "aux_data": <出力のaux_data. aux_dataが出力にない場合は{}>,
     "utterance": <システム発話文字列>
