@@ -311,6 +311,12 @@ then what can be referenced by <code class="docutils literal notranslate"><span 
 <p>The <code class="docutils literal notranslate"><span class="pre">dialogue_history</span></code> element of <code class="docutils literal notranslate"><span class="pre">blackboard</span></code> stores dialogue history in the following format through internal processing of the main process:</p>
 <div class="highlight-JSON notranslate"><div class="highlight"><pre><span></span>[
   {
+    &quot;speaker&quot;: &quot;user&quot;,
+    &quot;user_id&quot;: &lt;input user_id, or &quot;&quot; if none is included&gt;,
+    &quot;aux_data&quot;: &lt;input aux_data, or {} if none is included&gt;,
+    &quot;utterance&quot;: &quot;&quot;
+  },
+  {
     &quot;speaker&quot;: &quot;system&quot;,
     &quot;aux_data&quot;: &lt;aux_data of the output. {} if aux_data is not included in the output&gt;,
     &quot;utterance&quot;: &lt;system utterance string&gt;

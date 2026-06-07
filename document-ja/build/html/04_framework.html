@@ -308,6 +308,12 @@
 <p><code class="docutils literal notranslate"><span class="pre">blackboard</span></code>の<code class="docutils literal notranslate"><span class="pre">dialogue_histroy</span></code>要素には、メインプロセス内部の処理により、以下の形式の対話履歴が保持されます。</p>
 <div class="highlight-JSON notranslate"><div class="highlight"><pre><span></span>[
   {
+     &quot;speaker&quot;: &quot;user&quot;,
+     &quot;user_id&quot;: &lt;入力のuser_id. user_idが入力にない場合は””&gt;
+     &quot;aux_data&quot;: &lt;入力のaux_data. aux_dataが入力にない場合は{}&gt;,
+     &quot;utterance&quot;: &quot;&quot;
+  },
+  {
     &quot;speaker&quot;: &quot;system&quot;,
     &quot;aux_data&quot;: &lt;出力のaux_data. aux_dataが出力にない場合は{}&gt;,
     &quot;utterance&quot;: &lt;システム発話文字列&gt;
