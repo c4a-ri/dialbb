@@ -1,0 +1,40 @@
+# configuration file for a Japanese RAG application
+
+language: ja
+
+blocks:
+  - name: passage_retrieval
+    block_class: dialbb.builtin_blocks.passage_retrieval.Retriever
+    input:
+      dialogue_history: dialogue_history
+      aux_data: aux_data
+    output:
+      aux_data: aux_data
+    vector_db_dir: vector_db
+    collection: rag_docs
+    chunk_size: 800
+    chunk_overlap: 100
+    top_k: 5
+    seperator: "\n\n---\n\n"
+    extensions:
+      - ".md"
+    sources:
+      - docs
+  - name: llm_dialogue
+    block_class: dialbb.builtin_blocks.llm_dialogue.llm_dialogue.LLMDialogue
+    input:
+      dialogue_history: dialogue_history
+      aux_data: aux_data
+    output:
+      system_utterance: system_utterance
+      aux_data: aux_data
+      final: final
+    user_name: ユーザ
+    system_name: システム
+    first_system_utterance: "こちらはブルーラインレンタカーです。どのようなご用件でしょうか？"
+    prompt_template: prompt_template.txt
+    model: gpt-4o-mini
+    temperature: 0.7
+    
+    
+
