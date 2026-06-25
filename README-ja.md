@@ -172,8 +172,6 @@ $ dialbb-sim-tester --app_config sample_apps/llm_dialogue_en/config.yml \
   --test_config sample_apps/llm_dialogue_en/simulation/config.yml
 ```
 
-
-
 ### DST-STNアプリケーション
 
 `sample_apps/dst_st_ja/` （日本語）`sample_apps/dst_st_en/` （英語）に以下の組み込みブロックを用いたアプリケーションがあります．様々な機能を試すためのアプリケーションです．以下の組み込みブロックを用いています

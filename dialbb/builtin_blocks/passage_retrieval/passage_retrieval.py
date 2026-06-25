@@ -23,6 +23,7 @@ __author__ = 'Mikio Nakano'
 __copyright__ = 'C4A Research Institute, Inc.'
 
 import os
+import shutil
 from typing import List, Iterable, Dict, Any, Union, Tuple
 
 import unicodedata
@@ -37,6 +38,7 @@ from langchain_core.documents import Document
 from langchain_community.vectorstores.utils import filter_complex_metadata
 from langchain_unstructured.document_loaders import UnstructuredLoader
 
+from dialbb.util.globals import DEBUG
 
 DEFAULT_EXTENSIONS = {
     ".pdf",
@@ -60,6 +62,7 @@ class Retriever(AbstractBlock):
         # for ingest
         self._vector_db_dir: Path = Path(self.config_dir) / self.block_config.get('vector_db_dir', "vector_db")
         self._collection: str = self.block_config.get('collection', "rag_docs")
+        self._clear_before_ingest: bool = self.block_config.get('clear_before_ingest', True)
         chunk_size: int = self.block_config.get('chunk_size', 800)
         chunk_overlap: int = self.block_config.get('chunk_overlap', 100)
         sources: List[str] = self.block_config.get('sources')
@@ -74,6 +77,8 @@ class Retriever(AbstractBlock):
 
         self._separator: str = self.block_config.get('separator', "\n\n---\n\n")
         self._embeddings = self._get_embeddings()
+        if self._clear_before_ingest:
+            self._reset_vector_db()
         self._vector_db = self._get_chroma()
 
         # ingest
@@ -140,10 +145,11 @@ class Retriever(AbstractBlock):
         splitter = self._build_splitter(chunk_size, chunk_overlap)
         chunks: List[Document] = splitter.split_documents(raw_docs)
         chunks = filter_complex_metadata(chunks)
-        print(str(chunks))
+        if DEBUG:
+            for chunk in chunks:
+                print(str(chunk))
 
-        vectordb = self._get_chroma()
-        vectordb.add_documents(chunks)
+        self._vector_db.add_documents(chunks)
 
     @staticmethod
     def _load_documents(files: List[Path]) -> List:
@@ -180,6 +186,10 @@ class Retriever(AbstractBlock):
         if not os.getenv("OPENAI_API_KEY"):
             abort_during_building("OPENAI_API_KEY environment variable is not set.")
         return OpenAIEmbeddings()
+
+    def _reset_vector_db(self) -> None:
+        if self._vector_db_dir.exists():
+            shutil.rmtree(self._vector_db_dir)
 
     def _get_chroma(self) -> Chroma:
         self._vector_db_dir.mkdir(parents=True, exist_ok=True)

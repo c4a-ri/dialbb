@@ -6,7 +6,7 @@ system_name: "sandwich bot"
 
 blocks:  # list of blocks
   - name: dst
-    block_class: dialbb.builtin_blocks.dst_with_llm.dst_with_llm.DST
+    block_class: dialbb.builtin_blocks.dst_with_llm.DST
     input:
       dialogue_history: dialogue_history
       aux_data: aux_data
@@ -18,7 +18,7 @@ blocks:  # list of blocks
       - 'Y'
       - 'T'
   - name: manager
-    block_class: dialbb.builtin_blocks.stn_management.stn_manager.Manager
+    block_class: dialbb.builtin_blocks.stn_management.Manager
     knowledge_file: dst_stn_en_senario.xlsx # knowledge description file
     function_definitions: scenario_functions  # definition of functions used in the scenario
     scenario_graph: yes
