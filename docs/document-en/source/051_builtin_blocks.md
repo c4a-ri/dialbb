@@ -596,7 +596,7 @@ For function calls, the functions can take arguments explained above as function
 
 ### Extraction of aux_data from System Utterances
 
-{numref}`extract_aux_data`と同様に、システム発話文字列から情報を抽出して`aux_data`に追加することができます。
+As with {numref}`extract_aux_data`, you can extract information from system utterance strings and add it to `aux_data`.
 
 ### Function Definitions
 

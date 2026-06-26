@@ -5,33 +5,6 @@ The following built-in blocks have been deprecated in ver. 2.0.
 
 Even if the DialBB package is installed, the libraries required for these blocks may not be installed.
 
-(japanese_canonicalizer)=
-## Japanese Canonicalizer (Japanese String Canonicalizer Block)
-
-(`dialbb.builtin_blocks.preprocess.japanese_canonicalizer.JapaneseCanonicalizer`)
-
-Canonicalizes input strings. This block is mainly intended for Japanese.
-
-### Input/Output
-
-- Input
-  - `input_text`: Input string (string)
-    - Example: `"ＣＵＰ Noodle 好き"`
-
-- Output
-  - `output_text`: Canonicalized string (string)
-    - Example: `"cupnoodle好き"`
-
-### Process Details
-
-The following processing is applied to the input string.
-
-- Remove leading and trailing spaces.
-- Convert uppercase alphabetic characters to lowercase.
-- Remove line breaks.
-- Convert full-width characters to half-width characters except Katakana.
-- Remove spaces.
-- Apply Unicode normalization (NFKC).
 
 (simple_canonicalizer)=
 ## Simple Canonicalizer (Simple String Canonicalizer Block)
@@ -320,9 +293,9 @@ The description format of the language understanding knowledge in this block is 
 
 Engages in dialogue using OpenAI's ChatGPT.
 
-OpenAI社のChatGPTを用いて対話を行います．
+This block uses OpenAI's ChatGPT to conduct dialogue.
 
-LLM Dialogueと同じですが，ChatGPTのモデルしか使えません．コンフィギュレーションのモデル指定のパラメータは`model`ではなく，`gpt_model`です．
+This block is similar to LLM Dialogue, but only ChatGPT models can be used. The configuration parameter for selecting the model is `gpt_model`, not `model`.
 
 
 (chatgpt_ner)=
