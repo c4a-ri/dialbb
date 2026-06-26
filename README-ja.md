@@ -172,7 +172,52 @@ $ dialbb-sim-tester --app_config sample_apps/llm_dialogue_en/config.yml \
   --test_config sample_apps/llm_dialogue_en/simulation/config.yml
 ```
 
+### RAGアプリケーション
 
+`sample_apps/rag_ja/`（日本語）と`sample_apps/rag_en/`（英語）にRAGアプリケーションがあります．FAQ文書から関連パッセージを検索し，その内容をLLMに渡して応答します．以下の組み込みブロックを用いています．
+
+- パッセージ検索ブロック
+- LLM対話ブロック
+
+#### 環境変数の設定
+
+本アプリケーションでもデフォルトでOpenAIのChatGPTと埋め込みモデルを使います．LLM対話アプリケーションと同様に，環境変数`OPENAI_API_KEY`にOpenAIのAPIキーをセットするか，`.env`に記述してください．
+
+#### サーバ起動方法
+
+  日本語版
+
+  ```sh
+$ dialbb-server sample_apps/rag_ja/config.yml
+  ```
+
+  英語版
+
+  ```sh
+$ dialbb-server sample_apps/rag_en/config.yml
+  ```
+
+起動時にパッセージ検索ブロックが`docs/`配下のファイルを読み込み，必要に応じて`vector_db/`以下にベクトルDBを構築します．ベクトルDBを毎回作り直したい場合は，アプリケーション設定で`clear_before_ingest: True`を有効にしてください．
+
+ブラウザから`http://<hostname>:8080` または`http://<hostname>:8080/test`にアクセスしてください。
+
+#### ユーザシミュレーションによるテスト
+
+LLMを用いたユーザシミュレーションによる動作確認も行えます。
+
+ 日本語版
+
+```sh
+$ dialbb-sim-tester --app_config sample_apps/rag_ja/config.yml \
+  --test_config sample_apps/rag_ja/simulation/config.yml
+```
+
+英語版
+
+```sh
+$ dialbb-sim-tester --app_config sample_apps/rag_en/config.yml \
+  --test_config sample_apps/rag_en/simulation/config.yml
+```
 
 ### DST-STNアプリケーション
 

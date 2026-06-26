@@ -6,7 +6,7 @@ system_name: ラーメンボット
 
 blocks:  # ブロックのリスト
   - name: dst
-    block_class: dialbb.builtin_blocks.dst_with_llm.dst_with_llm.DST
+    block_class: dialbb.builtin_blocks.dst_with_llm.DST
     input:
       dialogue_history: dialogue_history
       aux_data: aux_data
@@ -18,7 +18,7 @@ blocks:  # ブロックのリスト
       - 'Y'
       - 'T'
   - name: manager
-    block_class: dialbb.builtin_blocks.stn_management.stn_manager.Manager
+    block_class: dialbb.builtin_blocks.stn_management.Manager
     knowledge_file: dst_stn_ja_scenario.xlsx # 知識記述ファイル
     function_definitions: scenario_functions  # 知識記述の中で用いる関数の定義ファイル
     scenario_graph: yes

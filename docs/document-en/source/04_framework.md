@@ -230,6 +230,12 @@ The `dialogue_history` element of `blackboard` stores dialogue history in the fo
 ```text
 [
   {
+    "speaker": "user",
+    "user_id": <input user_id, or "" if none is included>,
+    "aux_data": <input aux_data, or {} if none is included>,
+    "utterance": ""
+  },
+  {
     "speaker": "system",
     "aux_data": <output aux_data, or {} if none is included>,
     "utterance": <system utterance string>

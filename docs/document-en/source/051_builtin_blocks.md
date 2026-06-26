@@ -7,7 +7,7 @@ This chapter describes the built-in block classes included with DialBB.
 
 ## LLM Dialogue (LLM-based Dialogue Block)
 
-(`dialbb.builtin_blocks.llm_dialogue.llm_dialogue.LLMDialogue`)
+(`dialbb.builtin_blocks.llm_dialogue.LLMDialogue`)
 
 This block uses a large language model (LLM) to generate system utterances.
 
@@ -112,11 +112,88 @@ Example:
 Each key must consist of a combination of letters, numbers, and underscores.
 
 
+(passage_retrieval)=
+
+## Passage Retrieval (Passage Retrieval Block for RAG)
+
+(`dialbb.builtin_blocks.passage_retrieval.Retriever`)
+
+This block retrieves passages related to the user's utterance from a document collection for RAG (Retrieval-Augmented Generation).
+
+At startup, it reads the specified document files and builds a vector database. At runtime, it performs similarity search using the latest user utterance as the query and stores the retrieved result in `aux_data["passages"]`.
+
+### Input/Output
+
+- Input
+
+  - `dialogue_history`: dialogue history
+
+    This is the dialogue history retained by the main module. The latest user utterance is used as the retrieval query.
+
+  - `aux_data`: Auxiliary data (dictionary)
+
+    If the main module does not yet have `aux_data`, an empty dictionary is used.
+
+- Output
+
+  - `aux_data`: Auxiliary data (dictionary)
+
+    This is the input `aux_data` with an added or overwritten `"passages"` key whose value is the concatenated retrieval result.
+
+### Block Configuration Parameters
+
+- `sources` (list of strings)
+
+  Specifies the files or directories that contain the source documents to be searched. Paths are written relative to the directory containing the configuration file. If a directory is specified, it is searched recursively.
+
+- `extensions` (list of strings; default values are `.pdf`, `.txt`, `.md`, `.docx`, `.pptx`, `.html`, `.htm`, `.json`, `.csv`)
+
+  A list of file extensions to be ingested.
+
+- `vector_db_dir` (string; default value is `"vector_db"`)
+
+  The directory name used to store the vector database. It is specified relative to the directory containing the configuration file.
+
+- `collection` (string; default value is `"rag_docs"`)
+
+  The collection name in Chroma DB.
+
+- `clear_before_ingest` (boolean; default value is `True`)
+
+  If `True`, the existing vector database directory is deleted at startup before the documents are ingested again. Use this when you want to rebuild the vector database every time the source documents change.
+
+- `chunk_size` (integer; default value is `800`)
+
+  The chunk size used when splitting documents.
+
+- `chunk_overlap` (integer; default value is `100`)
+
+  The overlap size between chunks when splitting documents. This must be smaller than `chunk_size`.
+
+- `top_k` (integer; default value is `5`)
+
+  The number of passages returned by similarity search.
+
+- `separator` (string; default value is `"\n\n---\n\n"`)
+
+  The separator string used when concatenating multiple retrieved passages into a single string.
+
+### Process Details
+
+- At startup, the block checks the `OPENAI_API_KEY` environment variable and initializes the OpenAI embedding model.
+
+- It reads the files specified by `sources`, normalizes and splits them as needed, and ingests them into the vector database.
+
+- At runtime, it performs similarity search using the last user utterance in `dialogue_history` as the query.
+
+- It concatenates the body text of the retrieved passages using `separator`, stores the result in `aux_data["passages"]`, and returns it.
+
+
 
 (dst_with_llm)=
 ## DST with LLM  (DST Block using an LLM)
 
-(`dialbb.builtin_blocks.dst_with_llm.dst_with_llm.DST`)
+(`dialbb.builtin_blocks.dst_with_llm.DST`)
 
 This block uses a large language model to extract slots from dialogue history, that is, to perform Dialogue State Tracking (DST).
 
@@ -267,7 +344,7 @@ Each row consists of the following columns.
 (stn_manager)=
 ## STN Manager (State Transition Network-based Dialogue Management Block)
 
-(`dialbb.builtin_blocks.stn_management.stn_manager.Manager`)  
+(`dialbb.builtin_blocks.stn_management.Manager`)  
 
 It perfomrs dialogue management using a state-transition neetwork.
 

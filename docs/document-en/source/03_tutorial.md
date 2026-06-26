@@ -86,7 +86,7 @@ The contents of `sample_apps/llm_dialogue_en/config.yml` are as follows.
 
 blocks:
   - name: llm_dialogue
-    block_class: dialbb.builtin_blocks.llm_dialogue.llm_dialogue.LLMDialogue
+    block_class: dialbb.builtin_blocks.llm_dialogue.LLMDialogue
     input:
       dialogue_history: dialogue_history
       aux_data: aux_data
@@ -174,6 +174,91 @@ To build a new application by reusing this application, do the following.
   dialbb-server <configuration file>
   ```
 
+## RAG Application
+
+### Description
+
+This application combines {ref}`passage_retrieval` and {ref}`llm_dialogue` to provide document-grounded dialogue. It retrieves relevant passages from FAQ documents and passes them to the LLM to generate a response.
+
+It is located in `sample_apps/rag_en`.
+
+The contents of `sample_apps/rag_en/config.yml` are as follows.
+
+```yaml
+# configuration file for an English RAG application
+
+language: en
+
+blocks:
+  - name: passage_retrieval
+    block_class: dialbb.builtin_blocks.passage_retrieval.Retriever
+    input:
+      dialogue_history: dialogue_history
+      aux_data: aux_data
+    output:
+      aux_data: aux_data
+    # vector_db_dir: vector_db
+    # collection: rag_docs
+    # chunk_size: 800
+    # chunk_overlap: 100
+    # top_k: 5
+    # clear_before_ingest: True
+    # seperator: "\n\n---\n\n"
+    extensions:
+      - ".md"
+    sources:
+      - docs
+  - name: llm_dialogue
+    block_class: dialbb.builtin_blocks.llm_dialogue.LLMDialogue
+    input:
+      dialogue_history: dialogue_history
+      aux_data: aux_data
+    output:
+      system_utterance: system_utterance
+      aux_data: aux_data
+      final: final
+    user_name: User
+    system_name: System
+    first_system_utterance: "Thank you for calling Blue Ocean Rent-A-Car. How may I help you today?"
+    prompt_template: prompt_template.txt
+    model: gpt-4o-mini
+    temperature: 0.7
+```
+
+In this application, the first `passage_retrieval` block performs vector search using the user's utterance and stores the retrieved results in `aux_data["passages"]`. The following `llm_dialogue` block inserts those `passages` into the prompt template and generates a response.
+
+In the `passage_retrieval` block, `sources` specifies the document directories to ingest. In this example, the target files are the Markdown files under `sample_apps/rag_en/docs/`. At startup, these documents are read and the vector database is created or updated. By default, the vector database is stored under `vector_db/`. If you want to rebuild the vector database from scratch whenever the documents change, enable `clear_before_ingest: True`.
+
+The contents of `sample_apps/rag_en/prompt_template.txt` are as follows.
+
+```text
+# Task Description
+
+- You are a phone support representative for Blue Ocean Rent-A-Car. Answer the customer's questions concisely based on the information below. If the information below does not cover the answer, say, "I'm sorry, but I can't answer that right now."
+
+# Source Information
+
+{passages}
+```
+
+The retrieved FAQ passages are inserted into `{passages}`. As a result, this becomes a RAG application that answers questions within the scope of the FAQ. The FAQ text itself is stored in `sample_apps/rag_en/docs/rent-a-car-faq.md`.
+
+### Building an Application by Reusing the RAG Application
+
+To build a new application by reusing this application, do the following.
+
+- Copy the entire `sample_apps/rag_en` directory. It may be copied to a directory completely unrelated to the DialBB directory.
+
+- Edit the documents under `docs/`, `config.yml`, and `prompt_template.txt`. You may also rename these files.
+
+- If you want to rebuild the vector database after updating the documents, enable `clear_before_ingest: True` in `config.yml` before startup.
+
+- Start it with the following command.
+
+  ```sh
+  dialbb-server <configuration file>
+  ```
+
 ## DST-STN Application
 
 ### Description
@@ -196,7 +281,7 @@ system_name: "sandwich bot"
 
 blocks:
   - name: dst
-    block_class: dialbb.builtin_blocks.dst_with_llm.dst_with_llm.DST
+    block_class: dialbb.builtin_blocks.dst_with_llm.DST
     input:
       dialogue_history: dialogue_history
       aux_data: aux_data
@@ -208,7 +293,7 @@ blocks:
       - 'Y'
       - 'T'
   - name: manager
-    block_class: dialbb.builtin_blocks.stn_management.stn_manager.Manager
+    block_class: dialbb.builtin_blocks.stn_management.Manager
     knowledge_file: dst_stn_en_senario.xlsx
     function_definitions: scenario_functions
     scenario_graph: yes

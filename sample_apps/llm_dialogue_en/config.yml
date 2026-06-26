@@ -2,7 +2,7 @@
 
 blocks:
   - name: llm_dialogue
-    block_class: dialbb.builtin_blocks.llm_dialogue.llm_dialogue.LLMDialogue
+    block_class: dialbb.builtin_blocks.llm_dialogue.LLMDialogue
     input:
       dialogue_history: dialogue_history
       aux_data: aux_data

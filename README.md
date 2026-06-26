@@ -157,6 +157,54 @@ $ dialbb-server sample_apps/llm_dialogue_ja/config_ja.yml
   ```
 
 
+### RAG Applications
+
+Sample RAG applications are available at `sample_apps/rag_en/` (English) and `sample_apps/rag_ja/` (Japanese). These applications retrieve relevant passages from the FAQ documents and pass them to the LLM. They use the following built-in blocks.
+
+- Passage Retrieval Block
+- LLM Dialogue Block
+
+#### Setting environment variables
+
+These applications also use OpenAI's ChatGPT and embeddings by default. As with the LLM Dialogue Applications, set the OpenAI API key in the environment variable `OPENAI_API_KEY` or write it in `.env`.
+
+#### Startup
+
+  English version:
+
+  ```sh
+$ dialbb-server sample_apps/rag_en/config.yml
+  ```
+
+  Japanese version:
+
+  ```sh
+$ dialbb-server sample_apps/rag_ja/config.yml
+  ```
+
+At startup, the passage retrieval block reads the files under `docs/` and builds a vector database under `vector_db/` as needed. If you want to rebuild the vector database from scratch, enable `clear_before_ingest: True` in the application configuration.
+
+Access `http://<hostname>:8080` or `http://<hostname>:8080/test` from a browser.
+
+#### Testing with user simulation
+
+You can also test these applications with LLM-based user simulation.
+
+  English version:
+
+  ```sh
+$ dialbb-sim-tester --app_config sample_apps/rag_en/config.yml \
+  --test_config sample_apps/rag_en/simulation/config.yml
+  ```
+
+  Japanese version:
+
+  ```sh
+$ dialbb-sim-tester --app_config sample_apps/rag_ja/config.yml \
+  --test_config sample_apps/rag_ja/simulation/config.yml
+  ```
+
+
 ### DST+STN Applications
 
 Sample applications using DST (dialogue state tracking) and STN (State-transition network) are available at `sample_apps/dst_stn_ja/` (Japanese) and `sample_apps/dst_stn_en/` (English) . These applications are used to test various functions of the built-in blocks. They use the following built-in blocks.
