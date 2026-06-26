@@ -57,6 +57,10 @@ This block uses a large language model (LLM) to generate system utterances.
 
   Instruction sent to the LLM as the system-role message.
 
+- `multi_party` (boolean. Default value: `false`)
+
+  When this value is `true`, the `user_id` value is used in the conversation history included in the prompt. This allows the LLM to distinguish between utterances from multiple users.
+
 
 ### Process Details
 

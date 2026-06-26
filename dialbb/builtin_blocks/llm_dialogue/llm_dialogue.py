@@ -57,6 +57,7 @@ class LLMDialogue(AbstractBlock):
         self._instruction = self.block_config.get("instruction", CHATGPT_INSTRUCTIONS[self._language])
         self.user_name: str = self.block_config.get("user_name", 'ユーザ' if self._language == 'ja' else "User")
         self.system_name: str = self.block_config.get("system_name", 'システム' if self._language == 'ja' else "System")
+        self._multi_party: str = self.block_config.get("multi_party", False)
         prompt_template_file: str = self.block_config.get("prompt_template", "")
         if not prompt_template_file:
             abort_during_building("prompt template file is not specified")
@@ -129,8 +130,13 @@ class LLMDialogue(AbstractBlock):
         prompt = prompt.replace(']]]', "")
         dialogue_history_string: str = ""
         for turn in dialogue_history:
+            if turn['utterance'] == '':
+                continue
             if turn["speaker"] == 'user':
-                dialogue_history_string += f"{self.user_name}: {turn['utterance']}\n"
+                if self._multi_party:
+                    dialogue_history_string += f"{turn.get('user_id', self.user_name)}: {turn['utterance']}\n"
+                else:
+                    dialogue_history_string += f"{self.user_name}: {turn['utterance']}\n"
             else:
                 dialogue_history_string += f"{self.system_name}: {turn['utterance']}\n"
         if prompt.find(DIALOGUE_HISTORY_TAG) >= 0:

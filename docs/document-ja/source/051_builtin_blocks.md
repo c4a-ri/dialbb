@@ -54,6 +54,11 @@
 
    システムロールのメッセージとしてLLMに送られる指示です．
 
+- `multi_party` （ブール値．デフォルト値: `false`）
+
+  この値が`true`のとき，プロンプトに入る対話履歴で`user_id`の値が用いられます．これにより複数のユーザの発話の区別がLLMにつくようになります．
+
+
 ### 処理内容
 
 - 対話の最初はブロックコンフィギュレーションの`first_system_utterance`の値をシステム発話として返します．
@@ -393,15 +398,15 @@ aux_data["ユーザの名前"] = "健二"
 
   DST with LLMブロックと同じです．
 
-- `scenario_graph`: (ブール値．デフォルト値`False`）
+- `scenario_graph`: (ブール値．デフォルト値 `false`）
 
   この値が`true`の場合，シナリオシートの`system utterance`カラムと`user utterance example`カラムの値を使って，グラフを作成します．これにより，シナリオ作成者が直感的に状態遷移ネットワークを確認できます．
 
-- `repeat_when_no_available_transitions` （ブール値．デフォルト値`False`．ver. 0.4.0で追加）
+- `repeat_when_no_available_transitions` （ブール値．デフォルト値 `false`．ver. 0.4.0で追加）
 
   この値が`True`のとき，条件に合う遷移がないとき，遷移せず同じ発話を繰り返します．
 
-- `multi_party` （ブール値．デフォルト値`False`．ver. 0.10.0で追加）
+- `multi_party` （ブール値．デフォルト値 `false`．ver. 0.10.0で追加）
 
   この値が`true`のとき，{numref}`context_information`の対話履歴の内容，および，{numref}`llm_functinos`の大規模言語モデルを用いる組み込み関数のプロンプトに入る対話履歴で，`user_id`の値が用いられます．
 
