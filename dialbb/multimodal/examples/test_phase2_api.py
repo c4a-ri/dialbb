@@ -3,9 +3,10 @@
 mm_client Phase 1/2 動作確認スクリプト
 """
 import json
+import asyncio
 import sys
-import time
-from pathlib import Path
+import base64
+import os
 
 try:
     import requests
@@ -15,18 +16,18 @@ except ImportError:
     sys.exit(1)
 
 try:
-    from socketio import Client
+    import websockets
 except ImportError:
-    print("Error: python-socketio ライブラリが必要です")
-    print("  pip install python-socketio")
+    print("Error: websockets ライブラリが必要です")
+    print("  pip install websockets")
     sys.exit(1)
 
 
 BASE_URL = "http://localhost:5000"
-SOCKETIO_URL = "http://localhost:5000"
+WS_BASE_URL = "ws://localhost:5000"
 
 
-def test_health():
+def test_health() -> bool:
     """ヘルスチェック"""
     print("\n=== ヘルスチェック ===")
     try:
@@ -39,7 +40,7 @@ def test_health():
         return False
 
 
-def test_rest_api():
+def test_rest_api() -> str | None:
     """REST API テスト"""
     print("\n=== REST API テスト ===")
     
@@ -108,50 +109,78 @@ def test_rest_api():
     
     return session_id
 
+AUDIO_DATA = ["testUser-taro.wav", "testUser-yes.wav", "testUser-yes.wav",
+              "testUser-syou.wav", "testUser-no.wav"]
 
-def test_websocket():
-    """WebSocket API テスト"""
+async def test_websocket() -> None:
+    """FastAPI ネイティブ WebSocket API テスト"""
     print("\n=== WebSocket API テスト ===")
-    
-    sio = Client()
-    
-    @sio.event(namespace="/dialogue")
-    def connect():
-        print("✓ WebSocket 接続成功")
-        # セッション作成
-        print("\n1. セッション作成")
-        resp = requests.post(f"{BASE_URL}/sessions", timeout=5)
-        session_id = resp.json()["session_id"]
-        print(f"Session ID: {session_id}")
-        
-        # セッション参加
-        print("\n2. セッション参加")
-        sio.emit("join_session", {"session_id": session_id}, namespace="/dialogue")
-    
-    @sio.event(namespace="/dialogue")
-    def joined_session(data):
-        print(f"✓ セッション参加成功: {data}")
-    
-    @sio.event(namespace="/dialogue")
-    def dialogue_event(data):
-        print(f"📨 イベント受信: {data['event_type']}")
-        if data['event_type'] in ('status', 'chat', 'error'):
-            print(f"   → {data['data']}")
-    
-    @sio.on("error", namespace="/dialogue")
-    def on_error(data):
-        print(f"❌ エラー: {data}")
-    
+
+    print("\n1. セッション作成")
+    resp = requests.post(f"{BASE_URL}/sessions", timeout=5)
+    print(f"Status: {resp.status_code}")
+    if resp.status_code != 201:
+        print(f"❌ セッション作成失敗: {resp.status_code} {resp.text}")
+        return
+    session_id = resp.json()["session_id"]
+    print(f"✓ Session ID: {session_id}")
+
+    ws_url = f"{WS_BASE_URL}/dialogue/ws/{session_id}"
+    print(f"\n2. WebSocket 接続: {ws_url}")
+    current_dir = os.path.dirname(os.path.abspath(__file__))
     try:
-        sio.connect(SOCKETIO_URL, namespaces=["/dialogue"], wait_timeout=10)
-        time.sleep(3)
-        sio.disconnect()
+        async with websockets.connect(ws_url) as ws:
+            joined_raw = await ws.recv()
+            joined = json.loads(joined_raw)
+            print(f"✓ 接続イベント: {joined}")
+
+            print("\n3. 対話開始")
+            await ws.send(json.dumps({"action": "start_dialogue"}))
+
+            print("\n4. テキスト発話送信")
+            await ws.send(
+                json.dumps({"action": "send_text_utterance", "text": "テストメッセージです"})
+            )
+
+            print("\n5. サーバイベント受信(最大10件 / 各15秒待ち)")
+            for _ in range(50):
+                try:
+                    message = await asyncio.wait_for(ws.recv(), timeout=15)
+                except TimeoutError:
+                    print("  - (timeout) 追加イベントなし")
+                    break
+                event = json.loads(message)
+                if event.get("event") == "audio_data":
+                    print(f"📨 {event.get('event')}: audio: AAAAA...")
+                else:
+                    print(f"📨 {event.get('event')}: {event.get('payload')}")
+                print(f"  - 発話: {event.get('payload', {}).get('data', {}).get('message')}")
+
+                # 'role': 'system'なら音声データ送信
+                data = event.get("payload", {}).get("data", {})
+                if event.get("event") == "dialogue_event" and data.get('message', '') == "音声入力待ち":
+                    print("  - 音声データ送信")
+                    # test.wav の内容を base64 エンコードして送信する
+                    if AUDIO_DATA:
+                        audio_file = AUDIO_DATA.pop(0)
+                        file_path = os.path.join(current_dir, "data", audio_file)
+                        print(f"  - 音声ファイル: {audio_file}")
+                        with open(file_path, "rb") as f:
+                            audio_data = f.read()
+                        # base64 PCM16kHz 16bit mono 形式でエンコードする
+                        audio_base64 = base64.b64encode(audio_data).decode("utf-8")
+                        print(f"  - 音声データサイズ: {len(audio_data)} bytes, base64サイズ: {len(audio_base64)} chars")
+                        await ws.send(json.dumps({"action": "send_audio_chunk", "audio_data": audio_base64}))
+
+            print("\n6. 対話終了")
+            await ws.send(json.dumps({"action": "end_dialogue"}))
+
         print("\n✓ WebSocket テスト完了")
     except Exception as e:
         print(f"❌ エラー: {e}")
 
 
-def main():
+def main() -> None:
     print("=" * 60)
     print("mm_client Phase 1/2 動作確認")
     print("=" * 60)
@@ -164,14 +193,10 @@ def main():
         sys.exit(1)
     
     # 2. REST API テスト
-    test_rest_api()
+    # test_rest_api()
     
     # 3. WebSocket API テスト
-    try:
-        test_websocket()
-    except ImportError:
-        print("\n⚠️ WebSocket テスト: python-socketio がインストールされていません")
-        print("  pip install python-socketio")
+    asyncio.run(test_websocket())
     
     print("\n" + "=" * 60)
     print("✓ 動作確認完了")

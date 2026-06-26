@@ -47,6 +47,44 @@ The following instructions assume that you are working with bash on Ubuntu. If y
   $ pip install <downloaded whl file>
   ```
 
+### Debug Environment With uv
+
+If you want to use uv instead of Poetry for debugging in this repository, use the following setup.
+
+If uv is not installed yet:
+
+- Windows (PowerShell)
+
+  ```powershell
+  powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+  ```
+
+- Linux / macOS (bash)
+
+  ```sh
+  curl -LsSf https://astral.sh/uv/install.sh | sh
+  ```
+
+- Windows (PowerShell)
+
+  ```powershell
+  .\scripts\setup-uv-debug-env.ps1
+  .\.venv\Scripts\Activate.ps1
+  ```
+
+- Linux / macOS (bash)
+
+  ```sh
+  ./scripts/setup-uv-debug-env.sh
+  source .venv/bin/activate
+  ```
+
+After activation, you can run commands such as:
+
+```sh
+dialbb-mm-client-server --config dialbb/multimodal/config/mm_client_config.yml
+```
+
 ### Download the Sample Applications
 
 Download the sample applications file by clicking [https://c4a-ri.github.io/dialbb/files/sample_apps.zip](https://c4a-ri.github.io/dialbb/files/sample_apps.zip) and extract them in an appropriate directory.

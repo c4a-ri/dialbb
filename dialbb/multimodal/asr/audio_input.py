@@ -1,6 +1,7 @@
 import audioop
 import platform
 import queue
+from threading import Event
 
 try:
     import pyaudio
@@ -30,7 +31,7 @@ class MicrophoneAudioInput:
         self._buffer: "queue.Queue[bytes | None]" = queue.Queue()
         self.closed = True
 
-    def __enter__(self):
+    def __enter__(self) -> "MicrophoneAudioInput":
         # 非同期コールバックで受けた音声データを内部キューへ積む。
         self._audio_interface = pyaudio.PyAudio()
         # input=True でマイク入力ストリームを開く。
@@ -80,3 +81,37 @@ class MicrophoneAudioInput:
             if self._gain != 1.0:
                 raw = audioop.mul(raw, 2, self._gain)
             yield raw
+
+
+class WebSocketAudioInput:
+    """WebSocket 経由で受信した PCM16 音声チャンクを STT へ供給するアダプタ。
+
+    クライアント（スマホ/ブラウザ）から送られてきた音声バイト列を
+    audio_queue 経由で受け取り、STT ストリームへ逐次供給する。
+    enabled_event または stop_event がセットされた場合はストリームを終了する。
+    """
+
+    def __init__(
+        self,
+        audio_queue: "queue.Queue[bytes | None]",
+        enabled_event: "Event | None" = None,
+        stop_event: "Event | None" = None,
+    ) -> None:
+        self._queue = audio_queue
+        self._enabled_event = enabled_event
+        self._stop_event = stop_event
+
+    def chunks(self) -> "Generator[bytes, None, None]":
+        """音声チャンクを逐次 yield する。停止条件を満たしたら終了。"""
+        while True:
+            if self._stop_event and self._stop_event.is_set():
+                return
+            if self._enabled_event and not self._enabled_event.is_set():
+                return
+            try:
+                chunk = self._queue.get(timeout=0.1)
+            except queue.Empty:
+                continue
+            if chunk is None:
+                return
+            yield chunk

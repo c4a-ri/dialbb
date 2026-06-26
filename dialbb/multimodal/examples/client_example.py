@@ -14,7 +14,6 @@ import asyncio
 import json
 import sys
 import websockets
-from datetime import datetime
 
 
 async def run_client(session_id: str, server_url: str = "ws://localhost:5000") -> None:
@@ -34,7 +33,7 @@ async def run_client(session_id: str, server_url: str = "ws://localhost:5000") -
             
             # 対話開始
             print("Starting dialogue...")
-            await websocket.send(json.stringify({"action": "start_dialogue"}))
+            await websocket.send(json.dumps({"action": "start_dialogue"}))
             
             # バックグラウンドタスク：サーバイベントを受信して表示
             async def listen_to_server():

@@ -27,6 +27,9 @@ class SessionConfig:
     mic_gain: float = 1.0
     sample_rate: int = 16000
     language_code: str = "ja-JP"
+    # True: クライアント音声モード（WebSocket 経由でマイク/スピーカをクライアント側で処理）
+    # False: デスクトップモード（PyAudio/pygame によるサーバローカル処理）
+    use_client_audio: bool = False
 
 
 @dataclass
@@ -42,6 +45,8 @@ class DialogueSession:
     tts_result_queue: "queue.Queue" = field(default_factory=queue.Queue)
     tts_cancel_queue: "queue.Queue" = field(default_factory=queue.Queue)
     command_queue: "queue.Queue" = field(default_factory=queue.Queue)
+    # WebSocket 音声入力キュー（クライアントからの PCM16 チャンクを STT へ渡す）
+    audio_chunk_queue: "queue.Queue" = field(default_factory=queue.Queue)
     # イベント制御
     stop_event: threading.Event = field(default_factory=threading.Event)
     conversation_active_event: threading.Event = field(default_factory=threading.Event)
@@ -59,10 +64,12 @@ class DialogueEngineManager:
         self,
         default_config: SessionConfig,
         event_callback: Optional[Callable[[str, DialogueEvent], None]] = None,
+        tts_audio_callback: Optional[Callable[[str, bytes], None]] = None,
     ) -> None:
         self.default_config = default_config
         self.sessions: Dict[str, DialogueSession] = {}
         self.event_callback = event_callback
+        self.tts_audio_callback = tts_audio_callback
         self._lock = threading.Lock()
 
     def create_session(self) -> str:
@@ -108,6 +115,14 @@ class DialogueEngineManager:
 
     def _start_workers(self, session: DialogueSession, config: SessionConfig) -> list:
         """セッションのワーカースレッドを起動"""
+        # クライアント音声モード時: audio_chunk_queue を STT へ渡す
+        stt_audio_q = session.audio_chunk_queue if config.use_client_audio else None
+        # クライアント音声モード時: TTS 音声データをコールバック経由で返送
+        tts_audio_cb = None
+        if config.use_client_audio and self.tts_audio_callback:
+            _cb = self.tts_audio_callback
+            _sid = session.session_id
+            tts_audio_cb = lambda audio_bytes: _cb(_sid, audio_bytes)  # noqa: E731
         workers = [
             # STT ワーカー
             threading.Thread(
@@ -120,6 +135,7 @@ class DialogueEngineManager:
                     "chunk_ms": 100,
                     "language_code": config.language_code,
                     "mic_gain": config.mic_gain,
+                    "audio_chunk_queue": stt_audio_q,
                 },
                 name=f"stt-worker-{session.session_id[:8]}",
                 daemon=False,
@@ -146,6 +162,7 @@ class DialogueEngineManager:
                     "stop_event": session.stop_event,
                     "conversation_active_event": session.conversation_active_event,
                     "tts_cancel_queue": session.tts_cancel_queue,
+                    "audio_send_callback": tts_audio_cb,
                 },
                 name=f"tts-worker-{session.session_id[:8]}",
                 daemon=False,
@@ -191,6 +208,8 @@ class DialogueEngineManager:
             session.command_queue.put("end")
             # 全ワーカーに停止シグナルを送る
             session.stop_event.set()
+            # audio_chunk_queue のブロックを解除する（WebSocket音声モード時）
+            session.audio_chunk_queue.put(None)
             # ワーカーの終了を待つ
             for worker in session.workers:
                 worker.join(timeout=3.0)
@@ -224,7 +243,7 @@ class DialogueEngineManager:
         session.command_queue.put(command)
         return True
 
-    def send_stt_event(self, session_id: str, event) -> bool:
+    def send_stt_event(self, session_id: str, event: dict) -> bool:
         """STT イベントを送る（音声ストリーム API 用）"""
         session = self.sessions.get(session_id)
         if not session:

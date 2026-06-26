@@ -41,12 +41,14 @@ def get_logger(name) -> logging.Logger:
     # set loglevel
     if DEBUG:
         logger.setLevel(logging.DEBUG)
+        format_string = '%(funcName)s: %(message)s'
     else:
         logger.setLevel(logging.INFO)
+        format_string = '%(asctime)s %(name)s:%(lineno)s %(funcName)s [%(levelname)s]: %(message)s'
 
     if not any(isinstance(h, logging.StreamHandler) for h in logger.handlers):
         handler = logging.StreamHandler(sys.stdout)
-        formatter = logging.Formatter('%(asctime)s %(name)s:%(lineno)s %(funcName)s [%(levelname)s]: %(message)s')
+        formatter = logging.Formatter(format_string)
         handler.setFormatter(formatter)
         handler.setLevel(logging.DEBUG)
         logger.addHandler(handler)

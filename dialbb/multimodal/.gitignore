@@ -1,3 +1,4 @@
 config/*.json
 config/config-dbg.yml
 *.ps1
+examples/

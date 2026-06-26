@@ -123,6 +123,26 @@
             color: #666;
             margin-top: 12px;
         }
+        .mic-controls {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            align-items: center;
+        }
+        .mic-status {
+            font-size: 13px;
+            color: #555;
+            padding: 4px 8px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            flex: 1;
+        }
+        #micBtn.active {
+            background: #dc3545;
+        }
+        #micBtn.active:hover {
+            background: #a71d2a;
+        }
     </style>
 </head>
 <body>
@@ -151,6 +171,11 @@
             <button id="endBtn" onclick="endDialogue()" disabled>対話終了</button>
             <button id="closeBtn" onclick="closeConnection()" disabled>切断</button>
         </div>
+
+        <div class="mic-controls">
+            <button id="micBtn" onclick="toggleMic()" disabled>🎤 マイク開始</button>
+            <span class="mic-status" id="micStatus">マイク 停止中</span>
+        </div>
         
         <div class="info">
             <strong>使用方法:</strong><br>
@@ -164,6 +189,37 @@
     <script>
         let socket = null;
         let sessionId = '';
+
+        function normalizeServerUrl(rawUrl) {
+            const input = (rawUrl || '').trim();
+            if (!input) {
+                return new URL('http://localhost:5000');
+            }
+            if (/^[a-zA-Z][a-zA-Z\d+.-]*:\/\//.test(input)) {
+                return new URL(input);
+            }
+            return new URL(`http://${input}`);
+        }
+
+        function toHttpBaseUrl(rawUrl) {
+            const url = normalizeServerUrl(rawUrl);
+            if (url.protocol === 'ws:') {
+                url.protocol = 'http:';
+            } else if (url.protocol === 'wss:') {
+                url.protocol = 'https:';
+            }
+            return url.origin;
+        }
+
+        function toWsBaseUrl(rawUrl) {
+            const url = normalizeServerUrl(rawUrl);
+            if (url.protocol === 'http:') {
+                url.protocol = 'ws:';
+            } else if (url.protocol === 'https:') {
+                url.protocol = 'wss:';
+            }
+            return url.origin;
+        }
 
         function log(message, type = 'system') {
             const chatArea = document.getElementById('chatArea');
@@ -184,6 +240,7 @@
                 document.getElementById('startBtn').disabled = false;
                 document.getElementById('closeBtn').disabled = false;
                 document.getElementById('connectBtn').disabled = true;
+                document.getElementById('micBtn').disabled = false;
             } else {
                 status.className = 'status disconnected';
                 status.textContent = '✗ 未接続';
@@ -193,13 +250,16 @@
                 document.getElementById('endBtn').disabled = true;
                 document.getElementById('closeBtn').disabled = true;
                 document.getElementById('connectBtn').disabled = false;
+                document.getElementById('micBtn').disabled = true;
+                stopMic();
             }
         }
 
         async function createSession() {
-            const serverUrl = document.getElementById('serverUrl').value || 'http://localhost:5000';
+            const serverUrl = document.getElementById('serverUrl').value;
+            const httpBaseUrl = toHttpBaseUrl(serverUrl);
             try {
-                const resp = await fetch(`${serverUrl}/sessions`, { method: 'POST' });
+                const resp = await fetch(`${httpBaseUrl}/sessions`, { method: 'POST' });
                 const data = await resp.json();
                 sessionId = data.session_id;
                 document.getElementById('sessionId').value = sessionId;
@@ -217,8 +277,9 @@
                 return;
             }
 
-            const serverUrl = document.getElementById('serverUrl').value || 'ws://localhost:5000';
-            const wsUrl = `${serverUrl}/dialogue/ws/${sessionId}`;
+            const serverUrl = document.getElementById('serverUrl').value;
+            const wsBaseUrl = toWsBaseUrl(serverUrl);
+            const wsUrl = `${wsBaseUrl}/dialogue/ws/${sessionId}`;
 
             log(`Connecting to ${wsUrl}...`);
             document.getElementById('status').className = 'status connecting';
@@ -237,6 +298,13 @@
                 if (message.event === 'dialogue_event') {
                     const { event_type, data } = message.payload;
                     log(`Server: ${event_type} - ${JSON.stringify(data)}`, 'system');
+                    if (event_type === 'chat' && data.role === 'system') {
+                        log(`🤖 ${data.text}`, 'system');
+                    }
+                } else if (message.event === 'audio_data') {
+                    // TTS 音声データを受信して再生キューに追加
+                    enqueueAudio(message.payload.audio, message.payload.format);
+                    log('🔊 音声データ受信');
                 } else if (message.event === 'joined_session') {
                     log(`✓ Joined session: ${message.payload.session_id}`);
                 } else if (message.event === 'error') {
@@ -295,6 +363,176 @@
         document.getElementById('messageInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') sendMessage();
         });
+
+        // ===== マイク入力 (PCM16 / 16kHz) =====
+        let micActive = false;
+        let audioCtx = null;
+        let micStream = null;
+        let scriptProcessor = null;
+        let micSampleRate = 16000;
+        let sentAudioChunks = 0;
+
+        function setMicStatus(text) {
+            const st = document.getElementById('micStatus');
+            if (st) st.textContent = text;
+        }
+
+        function downsampleTo16k(input, sourceRate) {
+            const targetRate = 16000;
+            if (sourceRate === targetRate) return input;
+            if (sourceRate < targetRate) {
+                throw new Error(`Unsupported mic sample rate: ${sourceRate}Hz`);
+            }
+
+            const ratio = sourceRate / targetRate;
+            const outLength = Math.floor(input.length / ratio);
+            const output = new Float32Array(outLength);
+            let outOffset = 0;
+            let inOffset = 0;
+
+            while (outOffset < outLength) {
+                const nextInOffset = Math.round((outOffset + 1) * ratio);
+                let sum = 0;
+                let count = 0;
+                for (let i = inOffset; i < nextInOffset && i < input.length; i++) {
+                    sum += input[i];
+                    count += 1;
+                }
+                output[outOffset] = count > 0 ? (sum / count) : 0;
+                outOffset += 1;
+                inOffset = nextInOffset;
+            }
+            return output;
+        }
+
+        function float32ToBase64Pcm16(float32Audio) {
+            const i16 = new Int16Array(float32Audio.length);
+            for (let i = 0; i < float32Audio.length; i++) {
+                const s = Math.max(-1, Math.min(1, float32Audio[i]));
+                i16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+            }
+            const u8 = new Uint8Array(i16.buffer);
+            let bin = '';
+            for (let j = 0; j < u8.length; j++) bin += String.fromCharCode(u8[j]);
+            return btoa(bin);
+        }
+
+        async function toggleMic() {
+            log(`🎤 マイクボタン押下 (active=${micActive})`);
+            if (micActive) {
+                stopMic();
+            } else {
+                await startMic();
+            }
+        }
+
+        async function startMic() {
+            try {
+                setMicStatus('マイク 起動中...');
+                if (!socket || socket.readyState !== WebSocket.OPEN) {
+                    setMicStatus('マイク開始失敗: WebSocket未接続');
+                    log('✗ WebSocket未接続のためマイクを開始できません', 'error');
+                    return;
+                }
+                if (document.getElementById('endBtn').disabled) {
+                    startDialogue();
+                    log('ℹ️ マイク開始に合わせて対話を開始しました');
+                }
+
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    throw new Error('このブラウザ/配信元では getUserMedia が利用できません（https または localhost で開いてください）');
+                }
+
+                // ブラウザが許可するサンプルレートで取得し、送信前に 16kHz へ変換する
+                audioCtx = new AudioContext();
+                micSampleRate = audioCtx.sampleRate;
+                if (audioCtx.state === 'suspended') {
+                    await audioCtx.resume();
+                }
+                micStream = await navigator.mediaDevices.getUserMedia({
+                    audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true }
+                });
+                const source = audioCtx.createMediaStreamSource(micStream);
+                scriptProcessor = audioCtx.createScriptProcessor(4096, 1, 1);
+                sentAudioChunks = 0;
+                scriptProcessor.onaudioprocess = (e) => {
+                    if (!socket || socket.readyState !== WebSocket.OPEN) return;
+                    const input = e.inputBuffer.getChannelData(0);
+                    const pcm16k = downsampleTo16k(input, micSampleRate);
+                    if (!pcm16k.length) return;
+                    socket.send(JSON.stringify({
+                        action: 'send_audio_chunk',
+                        audio_data: float32ToBase64Pcm16(pcm16k)
+                    }));
+                    sentAudioChunks += 1;
+                    if (sentAudioChunks % 20 === 0) {
+                        log(`🎙️ 音声送信中... (${sentAudioChunks} chunks)`);
+                    }
+                };
+                source.connect(scriptProcessor);
+                scriptProcessor.connect(audioCtx.destination); // 活性化のために必要
+                micActive = true;
+                document.getElementById('micBtn').textContent = '🎤 マイク停止';
+                document.getElementById('micBtn').classList.add('active');
+                setMicStatus('⚫ 録音中...');
+                log(`🎤 マイク入力開始 (${micSampleRate}Hz → 16kHz PCM16)`);
+            } catch (err) {
+                setMicStatus(`マイク開始失敗: ${err.message}`);
+                log(`✗ マイクエラー: ${err.message}`, 'error');
+            }
+        }
+
+        function stopMic() {
+            if (scriptProcessor) { scriptProcessor.disconnect(); scriptProcessor = null; }
+            if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
+            if (audioCtx) { audioCtx.close(); audioCtx = null; }
+            micActive = false;
+            const btn = document.getElementById('micBtn');
+            if (btn) {
+                btn.textContent = '🎤 マイク開始';
+                btn.classList.remove('active');
+            }
+            setMicStatus('マイク 停止中');
+            log('🎤 マイク入力停止');
+        }
+
+        // ===== TTS 音声再生キュー =====
+        const ttsQueue = [];
+        let ttsPlaying = false;
+        const ttsCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function enqueueAudio(base64Audio, format) {
+            ttsQueue.push(base64Audio);
+            if (!ttsPlaying) drainTtsQueue();
+        }
+
+        async function drainTtsQueue() {
+            if (ttsQueue.length === 0) { ttsPlaying = false; return; }
+            ttsPlaying = true;
+            const b64 = ttsQueue.shift();
+            try {
+                const binary = atob(b64);
+                const bytes = new Uint8Array(binary.length);
+                for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+                // ttsCtx が suspended の場合は再開（iOS Safari 対策）
+                if (ttsCtx.state === 'suspended') await ttsCtx.resume();
+                const audioBuf = await ttsCtx.decodeAudioData(bytes.buffer);
+                const src = ttsCtx.createBufferSource();
+                src.buffer = audioBuf;
+                src.connect(ttsCtx.destination);
+                src.onended = drainTtsQueue;
+                src.start();
+            } catch (err) {
+                log(`⚠️ 音声再生エラー: ${err.message}`, 'error');
+                drainTtsQueue();
+            }
+        }
+
+        function cancelTts() {
+            ttsQueue.length = 0;
+            ttsPlaying = false;
+            log('🔇 TTS 再生キャンセル');
+        }
     </script>
 </body>
 </html>

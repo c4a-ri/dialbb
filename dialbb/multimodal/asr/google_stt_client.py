@@ -8,7 +8,7 @@ from google.auth.exceptions import GoogleAuthError
 from google.cloud import speech
 
 from dialbb.util.logger import get_logger
-from .audio_input import MicrophoneAudioInput
+from .audio_input import MicrophoneAudioInput, WebSocketAudioInput
 from ..main.messages import RecognitionEvent, RecognitionEventType
 
 logger = get_logger(__name__)
@@ -108,8 +108,13 @@ def run_stt_worker(
     chunk_ms: int = 100,
     language_code: str = "ja-JP",
     mic_gain: float = 1.0,
+    audio_chunk_queue: "Queue[bytes | None] | None" = None,
 ) -> None:
-    """Speech activity detection + STT worker thread."""
+    """Speech activity detection + STT worker thread.
+
+    audio_chunk_queue が指定された場合は WebSocket 経由で受信した音声を STT に流す。
+    未指定の場合は PyAudio でサーバローカルのマイクを使用するデスクトップモード。
+    """
     try:
         recognizer = GoogleStreamingSttClient(
             sample_rate=sample_rate,
@@ -125,6 +130,45 @@ def run_stt_worker(
         )
         return
 
+    # --- WebSocket 音声モード（クライアントから音声チャンクを受信） ---
+    if audio_chunk_queue is not None:
+        import queue as _q
+        while not stop_event.is_set():
+            if listening_enabled_event and not listening_enabled_event.is_set():
+                time.sleep(0.1)
+                continue
+            # 新セッション開始前にキューの古いデータを消去
+            while not audio_chunk_queue.empty():
+                try:
+                    audio_chunk_queue.get_nowait()
+                except _q.Empty:
+                    break
+            logger.info("[STT] WebSocket audio mode: waiting for audio chunks...")
+            ws_audio = WebSocketAudioInput(audio_chunk_queue, listening_enabled_event, stop_event)
+            try:
+                for recognition_event in recognizer.stream(ws_audio.chunks()):
+                    if stop_event.is_set():
+                        break
+                    if listening_enabled_event and not listening_enabled_event.is_set():
+                        break
+                    stt_event_queue.put(recognition_event)
+            except (GoogleAPICallError, RetryError, OSError) as exc:
+                if stop_event.is_set():
+                    break
+                logger.warning("[STT] WS接続エラー(リトライ): %s", exc)
+                time.sleep(1.0)
+            except Exception as exc:  # noqa: BLE001
+                stt_event_queue.put(
+                    RecognitionEvent(
+                        event_type=RecognitionEventType.ERROR,
+                        text=f"Unexpected STT error: {exc}",
+                        raw=exc,
+                    )
+                )
+                break
+        return
+
+    # --- PyAudio モード（サーバローカルのマイク入力） ---
     while not stop_event.is_set():
         if listening_enabled_event and not listening_enabled_event.is_set():
             # 音声受付OFF時はマイクを開かず待機する。

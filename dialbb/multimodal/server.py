@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import base64
 from concurrent.futures import Future as ConcurrentFuture
 import os
 from dataclasses import dataclass, field
@@ -122,7 +123,19 @@ def create_app(
         session_hub.emit_from_thread(session_id, "dialogue_event", emit_data)
         logger.debug("[SERVER] Event emitted: session=%s, type=%s", session_id, event.event_type)
 
-    engine_manager = DialogueEngineManager(default_config, event_callback=on_event)
+    def on_tts_audio(session_id: str, audio_bytes: bytes) -> None:
+        """TTS 合成音声を Base64 エンコードして WebSocket でクライアントへ送信する。"""
+        audio_b64 = base64.b64encode(audio_bytes).decode("utf-8")
+        session_hub.emit_from_thread(
+            session_id,
+            "audio_data",
+            {"audio": audio_b64, "format": "mp3"},
+        )
+        logger.debug("[SERVER] TTS audio emitted: session=%s bytes=%d", session_id, len(audio_bytes))
+
+    engine_manager = DialogueEngineManager(
+        default_config, event_callback=on_event, tts_audio_callback=on_tts_audio
+    )
     app.state.engine_manager = engine_manager
     app.state.session_hub = session_hub
 
@@ -203,7 +216,18 @@ def create_app(
                     _enqueue_utterance(engine_manager, session_id, text)
                     logger.info("[WEBSOCKET] Text utterance: session=%s, text=%s", session_id, text)
                 elif action == "send_audio_chunk":
-                    logger.debug("[WEBSOCKET] Audio chunk received: session=%s", session_id)
+                    audio_b64 = str(payload.get("audio_data") or "")
+                    if audio_b64:
+                        try:
+                            audio_bytes = base64.b64decode(audio_b64)
+                            _session = engine_manager.get_session(session_id)
+                            logger.info("[WEBSOCKET] Audio chunk received: session=%s, bytes=%d", session_id, len(audio_bytes))
+                            if _session:
+                                _session.audio_chunk_queue.put(audio_bytes)
+                        except Exception:
+                            logger.warning("[WEBSOCKET] Invalid audio chunk: session=%s", session_id)
+                    else:
+                        logger.debug("[WEBSOCKET] Audio chunk received (empty): session=%s", session_id)
                 else:
                     await websocket.send_json(
                         {"event": "error", "payload": {"message": "Unsupported action"}}
@@ -284,12 +308,20 @@ def _load_config(config_file: str | None = None) -> SessionConfig:
             stt_key_path = config_path.parent / stt_key_path
         os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = str(stt_key_path.resolve())
 
+    dialbb_config = dialbb_cfg.get("config_file")
+    if dialbb_config:
+        dialbb_config_path = Path(dialbb_config).expanduser()
+        if not dialbb_config_path.is_absolute():
+            dialbb_config_path = config_path.parent / dialbb_config_path
+        dialbb_config = str(dialbb_config_path.resolve())
+
     return SessionConfig(
-        dialbb_config=dialbb_cfg.get("config_file"),
+        dialbb_config=dialbb_config,
         stt_key_file=stt_cfg.get("key_file"),
         loop_period=float(main_cfg.get("loop_period", 0.1)),
         max_user_wait_time=float(main_cfg.get("max_user_wait_time", 30.0)),
         mic_gain=float(stt_cfg.get("mic_gain", 1.0)),
+        use_client_audio=True,  # サーバモードは常にクライアント音声モード
     )
 
 
@@ -305,7 +337,8 @@ def run_server(
     uvicorn.run(app, host=host, port=port, reload=debug)
 
 
-if __name__ == "__main__":
+def main() -> None:
+    """CLI entry point for mm_client server."""
     parser = argparse.ArgumentParser(description="DialBB mm_client server")
     parser.add_argument("--host", default="0.0.0.0", help="Server host")
     parser.add_argument("--port", type=int, default=5000, help="Server port")
@@ -319,3 +352,7 @@ if __name__ == "__main__":
         config_file=args.config,
         debug=args.debug,
     )
+
+
+if __name__ == "__main__":
+    main()

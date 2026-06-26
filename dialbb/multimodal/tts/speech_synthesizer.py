@@ -1,6 +1,7 @@
 import io
 from queue import Empty, Queue
 from threading import Event
+from typing import Callable
 
 import pygame
 from google.api_core.exceptions import GoogleAPICallError, RetryError
@@ -100,11 +101,15 @@ def run_tts_worker(
     stop_event: Event,
     conversation_active_event: "Event | None" = None,
     tts_cancel_queue: "Queue | None" = None,
+    audio_send_callback: "Callable[[bytes], None] | None" = None,
 ) -> None:
-    """Google Cloud TTS + pygame による音声合成・再生ワーカースレッド。
+    """Google Cloud TTS による音声合成ワーカースレッド。
 
-    テキストを句点「。」で分割して逐次合成・再生し、
-    stop_event / conversation_active_event / tts_cancel_queue で再生を中断できる。
+    audio_send_callback が指定された場合は pygame ではなくコールバックで音声データを渡す。
+    未指定の場合は pygame でサーバローカルに再生するデスクトップモード。
+
+    テキストを句点「。」で分割して逐次合成・配信（デスクトップ時は再生）し、
+    stop_event / conversation_active_event / tts_cancel_queue で途中を中断できる。
     """
     client = texttospeech.TextToSpeechClient()
     # conversation_active_event が渡されない場合は常に active とみなす。
@@ -113,9 +118,10 @@ def run_tts_worker(
         active_event.set()
 
     # ワーカースレッド開始時にミキサ初期化を試みる（失敗してもワーカーは継続）。
-    mixer_available = _ensure_mixer_initialized()
-    if not mixer_available:
-        logger.error("[TTS] 音声出力初期化に失敗。再生要求時に再試行します。")
+    if audio_send_callback is None:
+        mixer_available = _ensure_mixer_initialized()
+        if not mixer_available:
+            logger.error("[TTS] 音声出力初期化に失敗。再生要求時に再試行します。")
 
     while not stop_event.is_set():
         try:
@@ -167,34 +173,40 @@ def run_tts_worker(
                 completed = False
                 break
 
-            finished = _play_audio(
-                audio_bytes,
-                stop_event,
-                active_event,
-                tts_cancel_queue,
-                audio_format="mp3",
-            )
-            if not finished:
-                # MP3 デコード不可環境向けに LINEAR16(WAV) で再合成して再生を試みる。
-                logger.warning("[TTS] MP3再生失敗。LINEAR16(WAV)へフォールバックします。")
-                try:
-                    wav_audio = _synthesize_with_encoding(
-                        client,
-                        segment,
-                        texttospeech.AudioEncoding.LINEAR16,
-                    )
-                except (GoogleAPICallError, RetryError, OSError):
-                    logger.exception("[TTS] WAVフォールバック合成エラー: %s", segment)
-                    completed = False
-                    break
-
+            if audio_send_callback is not None:
+                # コールバックモード: クライアントへ音声データを送信（fire-and-forget）
+                audio_send_callback(audio_bytes)
+                finished = True
+            else:
+                # pygame 再生モード（デスクトップ）
                 finished = _play_audio(
-                    wav_audio,
+                    audio_bytes,
                     stop_event,
                     active_event,
                     tts_cancel_queue,
-                    audio_format="wav",
+                    audio_format="mp3",
                 )
+                if not finished:
+                    # MP3 デコード不可環境向けに LINEAR16(WAV) で再合成して再生を試みる。
+                    logger.warning("[TTS] MP3再生失敗。LINEAR16(WAV)へフォールバックします。")
+                    try:
+                        wav_audio = _synthesize_with_encoding(
+                            client,
+                            segment,
+                            texttospeech.AudioEncoding.LINEAR16,
+                        )
+                    except (GoogleAPICallError, RetryError, OSError):
+                        logger.exception("[TTS] WAVフォールバック合成エラー: %s", segment)
+                        completed = False
+                        break
+
+                    finished = _play_audio(
+                        wav_audio,
+                        stop_event,
+                        active_event,
+                        tts_cancel_queue,
+                        audio_format="wav",
+                    )
             if not finished:
                 logger.debug("[TTS] 再生中断: %s", segment)
                 completed = False
