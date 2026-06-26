@@ -6,7 +6,7 @@
 
 ## LLM Dialogue （大規模言語モデルベースの対話ブロック）
 
-(`dialbb.builtin_blocks.llm_dialogue.llm_dialogue.LLMDialogue`)
+(`dialbb.builtin_blocks.llm_dialogue.LLMDialogue`)
 
 大規模言語モデル（LLM）を用いて対話を行います．
 
@@ -108,11 +108,88 @@
 キーはアルファベット，数字，アンダースコアの並びでないといけません．
 
 
+(passage_retrieval)=
+
+## Passage Retrieval （RAG用のパッセージ検索ブロック）
+
+(`dialbb.builtin_blocks.passage_retrieval.Retriever`)
+
+RAG（Retrieval-Augmented Generation）のために，文書集合からユーザ発話に関連するパッセージを検索します．
+
+起動時に指定された文書ファイル群を読み込み，ベクトルDBを構築します．実行時には直近のユーザ発話を検索クエリとして類似検索を行い，検索結果を`aux_data["passages"]`に格納します．
+
+### 入出力
+
+- 入力
+
+  - `dialogue_history`: 対話履歴
+
+    メインモジュールが保持している対話履歴です．直近のユーザ発話が検索クエリとして使われます．
+
+  - `aux_data`: 補助データ（辞書型）
+
+    メインモジュールに`aux_data`がない時は，`{}`になります．
+
+- 出力
+
+  - `aux_data`: 補助データ（辞書型）
+
+    入力の`aux_data`に，検索結果を連結した文字列を`"passages"`というキーで追加または上書きしたものです．
+
+### ブロックコンフィギュレーションのパラメータ
+
+- `sources`（文字列のリスト）
+
+  検索対象文書が入っているファイルまたはディレクトリを指定します．コンフィギュレーションファイルのあるディレクトリからの相対パスで記述します．ディレクトリを指定した場合は，その配下を再帰的に走査します．
+
+- `extensions`（文字列のリスト，デフォルト値は`.pdf`, `.txt`, `.md`, `.docx`, `.pptx`, `.html`, `.htm`, `.json`, `.csv`）
+
+  読み込み対象とする拡張子のリストです．
+
+- `vector_db_dir`（文字列，デフォルト値は`"vector_db"`）
+
+  ベクトルDBを保存するディレクトリ名です．コンフィギュレーションファイルのあるディレクトリからの相対パスで指定します．
+
+- `collection`（文字列，デフォルト値は`"rag_docs"`）
+
+  Chroma DB内のコレクション名です．
+
+- `clear_before_ingest`（ブール値，デフォルト値は`True`）
+
+  `True`のとき，起動時に既存のベクトルDBディレクトリを削除してから文書を再投入します．文書変更後に毎回ベクトルDBを作り直したい場合に使います．
+
+- `chunk_size`（整数，デフォルト値は`800`）
+
+  文書を分割するときのチャンクサイズです．
+
+- `chunk_overlap`（整数，デフォルト値は`100`）
+
+  文書分割時のチャンクの重なりサイズです．`chunk_size`より小さくする必要があります．
+
+- `top_k`（整数，デフォルト値は`5`）
+
+  類似検索で取得するパッセージ数です．
+
+- `separator`（文字列，デフォルト値は`"\n\n---\n\n"`）
+
+  検索された複数パッセージを1つの文字列に連結するときの区切り文字列です．
+
+### 処理内容
+
+- 起動時に`OPENAI_API_KEY`環境変数を確認し，OpenAIの埋め込みモデルを初期化します．
+
+- `sources`で指定されたファイル群を読み込み，必要に応じて正規化と分割を行ってベクトルDBに投入します．
+
+- 実行時には`dialogue_history`の最後のユーザ発話を検索クエリとして類似検索を行います．
+
+- 検索結果の各パッセージ本文を`separator`で連結し，`aux_data["passages"]`に格納して返します．
+
+
 
 (dst_with_llm)=
 ## DST with LLM （LLMを用いたスロット抽出ブロック）
 
-(`dialbb.builtin_blocks.dst_with_llm.dst_with_llm.DST`）
+(`dialbb.builtin_blocks.dst_with_llm.DST`）
 
 大規模言語モデルを用いて，対話履歴からのスロットの抽出，すなわち対話状態追跡（Dialogue State Tracking: DST)を行います．
 
@@ -268,7 +345,7 @@ aux_data["ユーザの名前"] = "健二"
 (stn_manager)=
 ## STN manager （状態遷移ネットワークベースの対話管理ブロック）
 
-(`dialbb.builtin_blocks.stn_manager.stn_management`)  
+(`dialbb.builtin_blocks.stn_manager.stn_management.Manager`)  
 
 状態遷移ネットワーク(State-Transition Network)を用いて対話管理を行います．
 

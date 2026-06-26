@@ -86,7 +86,7 @@ export DIALBB_DEBUG=yes; dialbb-server sample_apps/parrot/config.yml
 
 blocks:
   - name: llm_dialogue
-    block_class: dialbb.builtin_blocks.llm_dialogue.llm_dialogue.LLMDialogue
+    block_class: dialbb.builtin_blocks.llm_dialogue.LLMDialogue
     input:
       dialogue_history: dialogue_history
       aux_data: aux_data
@@ -184,6 +184,92 @@ blocks:
   ```
 
 
+## RAGアプリケーション
+
+### 説明
+
+{ref}`passage_retrieval` と {ref}`llm_dialogue` を組み合わせて，文書検索付きの対話を行うアプリケーションです．FAQ文書から関連パッセージを検索し，その結果をLLMに渡して応答を生成します．
+
+`sample_apps/rag_ja/`にあります．
+
+`sample_apps/rag_ja/config.yml`の内容は以下のようになっています．
+
+```yaml
+# configuration file for a Japanese RAG application
+
+language: ja
+
+blocks:
+  - name: passage_retrieval
+    block_class: dialbb.builtin_blocks.passage_retrieval.Retriever
+    input:
+      dialogue_history: dialogue_history
+      aux_data: aux_data
+    output:
+      aux_data: aux_data
+    # vector_db_dir: vector_db
+    # collection: rag_docs
+    # chunk_size: 800
+    # chunk_overlap: 100
+    # top_k: 5
+    # clear_before_ingest: True
+    # seperator: "\n\n---\n\n"
+    extensions:
+      - ".md"
+    sources:
+      - docs
+  - name: llm_dialogue
+    block_class: dialbb.builtin_blocks.llm_dialogue.LLMDialogue
+    input:
+      dialogue_history: dialogue_history
+      aux_data: aux_data
+    output:
+      system_utterance: system_utterance
+      aux_data: aux_data
+      final: final
+    user_name: ユーザ
+    system_name: システム
+    first_system_utterance: "こちらはブルーオーシャンレンタカーです。どのようなご用件でしょうか？"
+    prompt_template: prompt_template.txt
+    model: gpt-4o-mini
+    temperature: 0.7
+```
+
+このアプリケーションでは最初の`passage_retrieval`ブロックがユーザ発話を用いてベクトル検索を行い，検索結果を`aux_data["passages"]`に格納します．次の`llm_dialogue`ブロックは，その`passages`をプロンプトテンプレートに埋め込んで応答を生成します．
+
+`passage_retrieval`ブロックでは，`sources`で検索対象の文書ディレクトリを指定します．この例では`sample_apps/rag_ja/docs/`以下のMarkdownファイルが対象です．起動時には，これらの文書を読み込んでベクトルDBを作成または更新します．ベクトルDBはデフォルトで`vector_db/`に保存されます．現状では毎回ベクトルDBを作り直しますが，追記したい場合は，`clear_before_ingest: False`を設定します．
+
+`sample_apps/rag_ja/prompt_template.txt`の中身は以下のようになっています．
+
+```text
+# タスク説明
+
+- あなたはブルーラインレンタカーの電話応対係です。以下の情報をもとに、お客様の質問に簡潔に答えてください。以下の情報に書いてないことは、「申し訳ありません、今はお答えできません」と言って下さい。
+
+# 元となる情報
+
+{passages}
+```
+
+`{passages}`の部分に検索されたFAQの断片が埋め込まれます．そのため，FAQに書かれている範囲で質問に答えるRAGアプリケーションになります．FAQ本文は`sample_apps/rag_ja/docs/rent-a-car-faq.md`にあります．
+
+### RAGアプリケーションを流用したアプリケーション作成
+
+このアプリケーションを流用して新しいアプリケーションを作るには以下のようにします．
+
+- `sample_apps/rag_ja`をディレクトリごとコピーします．DialBBのディレクトリとは全く関係ないディレクトリで構いません．
+
+- `docs/`以下の文書，`config.yml`，`prompt_template.txt`を編集します．ファイル名を変更しても構いません．
+
+- ベクトルDBを再構築せず、追記させたい場合は，`config.yml`で`clear_before_ingest: False`を指定して起動します．
+
+- 以下のコマンドで起動します．
+
+  ```sh
+  dialbb-server <コンフィギュレーションファイル>
+  ```
+
+
 
 ## DST-STNアプリケーション
 
@@ -209,7 +295,7 @@ system_name: ラーメンボット
 
 blocks:  # ブロックのリスト
   - name: dst
-    block_class: dialbb.builtin_blocks.dst_with_llm.dst_with_llm.DST
+    block_class: dialbb.builtin_blocks.dst_with_llm.DST
     input:
       dialogue_history: dialogue_history
       aux_data: aux_data
@@ -221,7 +307,7 @@ blocks:  # ブロックのリスト
       - 'Y'
       - 'T'
   - name: manager
-    block_class: dialbb.builtin_blocks.stn_management.stn_manager.Manager
+    block_class: dialbb.builtin_blocks.stn_management.Manager
     knowledge_file: dst_stn_ja_scenario.xlsx # 知識記述ファイル
     function_definitions: scenario_functions  # 知識記述の中で用いる関数の定義ファイル
     scenario_graph: yes
