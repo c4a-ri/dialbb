@@ -38,32 +38,24 @@ GitHubリポジトリからcloneします．cloneしたディレクトリを<Dia
 git clone git@github.com:c4a-ri/dialbb.git <DialBBのディレクトリ>
 ```
 
-pipでdialbbパッケージをインストールします．
+`uv`で依存関係をインストールします．このとき，DialBB本体も編集可能な形で環境に入るため，ソースコードを変更するとそのまま反映されます．
 
 ```sh
-pip install dist/dialbb-*-py3-none-any.whl
+cd <DialBBのディレクトリ>
+uv sync
 ```
 
-環境変数`PYTHONPATH`を設定します．
+起動時は`uv run`を付けて実行します．
 
 ```sh
-export PYTHONPATH=<DialBBのディレクトリ>:$PYTHONPATH
-```
-
-このようにすることで，<DialBBのディレクトリ>の下のプログラムが使われます．
-
-あとは以下のように通常通りに起動するか，
-
-
-```sh
-$ dialbb-server [--port <port>] <config file>
+uv run dialbb-server [--port <port>] <config file>
 ```
 
 pythonファイルを指定して起動することもできます（PyCharmやVSCodeなどのIDEを用いる場合はこちらが必要です）．
 
 
 ```sh
-$ python <DialBBのディレクトリ>/run_server.py [--port <port>] <config file>
+uv run python <DialBBのディレクトリ>/run_server.py [--port <port>] <config file>
 ```
 
 

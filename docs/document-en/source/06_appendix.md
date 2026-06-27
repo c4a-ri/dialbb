@@ -36,30 +36,23 @@ Clone the GitHub repository. Let the cloned directory be `<DialBB directory>`.
 git clone git@github.com:c4a-ri/dialbb.git <DialBB directory>
 ```
 
-Install the `dialbb` package.
+Install the dependencies with `uv`. This also installs DialBB in editable mode, so changes to the source code are reflected immediately.
 
 ```sh
-pip install dist/dialbb-*-py3-none-any.whl
+cd <DialBB directory>
+uv sync
 ```
 
-Set the `PYTHONPATH` environment variable.
+When starting DialBB, run it with `uv run`.
 
 ```sh
-export PYTHONPATH=<DialBB directory>:$PYTHONPATH
-```
-
-This makes Python use the programs under `<DialBB directory>`.
-
-After that, you can start DialBB in the usual way:
-
-```sh
-dialbb-server [--port <port>] <config file>
+uv run dialbb-server [--port <port>] <config file>
 ```
 
 You can also start it by specifying the Python file directly. This is useful when using an IDE such as PyCharm or VS Code.
 
 ```sh
-python <DialBB directory>/run_server.py [--port <port>] <config file>
+uv run python <DialBB directory>/run_server.py [--port <port>] <config file>
 ```
 
 ## Discontinued Features
