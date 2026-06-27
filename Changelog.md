@@ -1,11 +1,18 @@
 # Changelog
 
+## 1.2.4 (2026.5.21)
+
+- No-code tool
+
+  - Fixed an issue where API key settings were sometimes not applied immediately.
+
 ## 1.2.3 (2026.5.16)
 
 - No-code tool
 
   - Fixed a bug where changes made in the scenario editor were not reflected immediately after saving.
   - Fixed a bug where user nodes were not arranged in priority order when aligning them in the scenario editor.
+  - Fixed a bug in LLM settings
 
 ## 1.2.1 (2026.4.21)
 
