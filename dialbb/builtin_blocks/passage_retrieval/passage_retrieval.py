@@ -54,6 +54,7 @@ DEFAULT_EXTENSIONS = {
 
 
 class Retriever(AbstractBlock):
+
     def __init__(self, *args):
         super().__init__(*args)
 

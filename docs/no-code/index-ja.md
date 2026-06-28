@@ -20,13 +20,13 @@ Windows11，MacOSで動作します．
   - Pythonがインストールされていない場合，以下の手順でPythonをインストールします．
 
     - ブラウザのアドレスバーに https://www.python.org/downloads/windows/ を打ち込んでEnterキーを押します．
-    - 表示されている中から以下の部分を探します．以下は3.10.11ですが，3.10.x-3.13.xであれば，別のバージョンでも構いません．
+    - 表示されている中から以下の部分を探します．以下は3.11.9ですが，3.11.x-3.13.xであれば，別のバージョンでも構いません．**Ver2.0から3.10.xは利用できなくなりました。3.14.xや3.15.xも利用できません**。
 
     ![python-install-win-ja](images/python-download-win.png)
 
-    - 64bit OSの場合は，[Windows installer (64-bit)](https://www.python.org/ftp/python/3.10.11/python-3.10.11-amd64.exe)を，32bit OSの場合は[Windows installer (32 -bit)](https://www.python.org/ftp/python/3.10.11/python-3.10.11.exe)をクリックします．
+    - お持ちのPCが64bit OSの場合は，[Windows installer (64-bit)](https://www.python.org/ftp/python/3.10.11/python-3.10.11-amd64.exe)を，32bit OSの場合は[Windows installer (32 -bit)](https://www.python.org/ftp/python/3.10.11/python-3.10.11.exe)をクリックします．
 
-    - 「ダウンロード」フォルダに `python-3.10.11-amd64.exe`または`python-3.10.11-amd32.exe`というファイルができるので，ダブルクリックします．
+    - 「ダウンロード」フォルダに `python-3.12.10-amd64.exe`または`python-3.12.10-amd32.exe`というファイルができるので，ダブルクリックします．
 
     - 以下の画面が現れます．
 
@@ -74,12 +74,12 @@ Windows11，MacOSで動作します．
 
 ### Pythonのインストール
 
-Windowsの場合と同様，Python3.10-3.12がインストールされていれば，新たにインストールする必要はありません．
+Windowsの場合と同様，Python3.11-3.13がインストールされていれば，新たにインストールする必要はありません．
 
 Pythonがインストールされていない場合，以下の手順でインストールしてください．
 
 - [Pythonの公式ダウンロードサイト](https://www.python.org/downloads/mac-osx/)にアクセスしてください．
-- 適当なバージョン（例:3.10.11）の下の，`macOS 64-bit universal2 installer`をクリックし，ファイルをダウンロードします．
+- 適当なバージョン（例:3.13.14）の下の，`macOS 64-bit universal2 installer`をクリックし，ファイルをダウンロードします．
 - ダウンロードした `.pkg` ファイルを開いて，画面に表示される指示に従いインストールを進めてください．
 
 ### DialBBのインストール
