@@ -103,6 +103,12 @@ dialbb-sim-tester = "dialbb.sim_tester.main:main"
 [tool.setuptools]
 include-package-data = false
 
+[tool.setuptools.package-data]
+dialbb = ["**/*.yml", "**/*.txt", "**/*.xlsx"]
+
+[tool.setuptools.exclude-package-data]
+dialbb = ["no_code/settings.dat"]
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["dialbb*"]
