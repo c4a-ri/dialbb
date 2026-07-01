@@ -96,7 +96,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'dialbb-document-ja.tex', 'DialBB 2.0 ドキュメント',
+    (master_doc, 'dialbb-document-ja.tex', 'DialBB 1.2 ドキュメント',
      '', 'manual'),
 ]
 
