@@ -229,7 +229,7 @@ class Manager(AbstractBlock):
                 abort_during_building(
                     f"Neither knowledge file nor google sheet info is not specified for the block {self.name}.")
             scenario_df = self.get_dfs_from_excel(excel_file, sheet_name)
-        scenario_df.fillna('', inplace=True)
+        scenario_df = scenario_df.astype(object).fillna('')
         scenario_df = scenario_df.map(lambda x: x.strip() if isinstance(x, str) else x)  # strip
         flags_to_use = self.block_config.get(CONFIG_KEY_FLAGS_TO_USE, [ANY_FLAG])
         self._network: StateTransitionNetwork = create_stn(scenario_df, flags_to_use)
@@ -275,7 +275,7 @@ class Manager(AbstractBlock):
         excel_file_path = os.path.join(self.config_dir, excel_file)
         print(f"reading excel file: {excel_file_path}", file=sys.stderr)
         try:
-            df_all: Dict[str, DataFrame] = pd.read_excel(excel_file_path, sheet_name=None)  # read all sheets
+            df_all: Dict[str, DataFrame] = pd.read_excel(excel_file_path, sheet_name=None, dtype=str)  # read all sheets
         except Exception as e:
             abort_during_building(f"failed to read excel file: {excel_file_path}. {str(e)}")
         # reading slots sheet

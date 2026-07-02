@@ -84,7 +84,7 @@ def convert_ner_knowledge(utterances_df: DataFrame, classes_df: DataFrame,
     else:
         # converting slots dataframe
         # slots dataframeの変換
-        classes_df.fillna('', inplace=True)
+        classes_df = classes_df.fillna('')
         classes_df = classes_df.map(lambda x: x.strip() if isinstance(x, str) else x)  # strip
         check_columns([COLUMN_FLAG, COLUMN_CLASS, COLUMN_EXPLANATION, COLUMN_EXAMPLES], classes_df, "classes")
         for index, row in classes_df.iterrows():
@@ -102,7 +102,7 @@ def convert_ner_knowledge(utterances_df: DataFrame, classes_df: DataFrame,
     if utterances_df is None:  # no utterance sheet
         abort_during_building(f"Warning: no utterances sheet.")
     else:
-        utterances_df.fillna('', inplace=True)
+        utterances_df = utterances_df.fillna('')
         utterances_df = utterances_df.map(lambda x: x.strip() if isinstance(x, str) else x)  # strip
         check_columns([COLUMN_FLAG, COLUMN_UTTERANCE, COLUMN_ENTITIES], utterances_df, "utterances")
         for index, row in utterances_df.iterrows():

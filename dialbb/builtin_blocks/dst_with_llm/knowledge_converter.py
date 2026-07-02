@@ -66,7 +66,7 @@ def convert_dst_knowledge(
 
     if slots_df is None:
         abort_during_building("Warning: no slots sheet.")
-    slots_df.fillna('', inplace=True)
+    slots_df = slots_df.fillna('')
     slots_df = slots_df.map(lambda x: x.strip() if isinstance(x, str) else x)
     check_columns([COLUMN_FLAG, COLUMN_SLOT_NAME, COLUMN_ENTITY, COLUMN_SYNONYMS], slots_df, "slots")
     for _, row in slots_df.iterrows():
@@ -80,7 +80,7 @@ def convert_dst_knowledge(
 
     if dialogues_df is None:
         abort_during_building("Warning: no dialogues sheet.")
-    dialogues_df.fillna('', inplace=True)
+    dialogues_df = dialogues_df.fillna('')
     check_columns([COLUMN_FLAG, COLUMN_DIALOGUE, COLUMN_SLOTS], dialogues_df, "dialogues")
     for _, row in dialogues_df.iterrows():
         if row[COLUMN_FLAG].strip() not in flags and ANY_FLAG not in flags:
