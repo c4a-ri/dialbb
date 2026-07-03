@@ -107,7 +107,12 @@ include-package-data = false
 dialbb = ["**/*.yml", "**/*.txt", "**/*.xlsx"]
 
 [tool.setuptools.exclude-package-data]
-dialbb = ["no_code/settings.dat"]
+dialbb = [
+    "no_code/settings.dat",
+    "no_code/app/*",
+    "no_code/app/**",
+    "no_code/app/**/*",
+]
 
 [tool.setuptools.packages.find]
 where = ["."]
