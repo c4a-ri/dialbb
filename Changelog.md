@@ -1,5 +1,39 @@
 # Changelog
 
+## 2.0.0 (2026.7.6)
+
+- Created a RAG sample app
+
+- Added a new passage search block for RAG
+
+- Changed automatically generated `session_id` values to shorter strings when not using the context DB
+
+- Changed the system to support loading environment variable settings from `.env`
+
+- Built-in STN Manager block
+
+  - Changed LLM calls to use LangChain
+
+  - Changed the block to accept `dialogue_history` as input
+
+- Added a new built-in DST with LLM block
+
+- Added a new built-in LLM Dialogue block
+
+- Deprecated the built-in ChatGPT Dialogue block
+
+- Deprecated the built-in Japanese canonicalizer block
+
+- Deprecated the built-in Simple Canonicalizer block
+
+- Deprecated the built-in LR-CRF Understander block
+
+- Deprecated the built-in ChatGPT Understander block
+
+- Deprecated the built-in ChatGPT NER block
+
+- Deprecated the builtin spaCy-Based NER block
+
 ## 1.2.4 (2026.5.21)
 
 - No-code tool

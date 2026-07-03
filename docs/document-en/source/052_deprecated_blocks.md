@@ -287,7 +287,7 @@ The description format of the language understanding knowledge in this block is 
 
 
 (chatgpt_dialogue)=
-## ChatGPT Dialogue (ChatGPT-based Dialogue Block) (Deprecated)
+## ChatGPT Dialogue (ChatGPT-based Dialogue Block) 
 
 (`dialbb.builtin_blocks.chatgpt.chatgpt.ChatGPT`) 
 

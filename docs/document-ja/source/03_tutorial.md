@@ -102,7 +102,7 @@ blocks:
     #model: google_genai:gemini-2.5-flash
     temperature: 0.7
 ```
-メインモジュールとの情報の授受を図示すると以下のようになります．
+メインモジュールとブロックの情報の授受を図示すると以下のようになります．
 
 ![sample-arch](../../images/llm-dialogue-arch-ja.jpg)
 
@@ -162,8 +162,6 @@ blocks:
 ]]]
 ```
 の部分は通常使われずに削除されます．詳細な説明は省略します．
-
-
 
 
 
@@ -229,11 +227,15 @@ blocks:
       final: final
     user_name: ユーザ
     system_name: システム
-    first_system_utterance: "こちらはブルーオーシャンレンタカーです。どのようなご用件でしょうか？"
+    first_system_utterance: "こちらはブルーオーシャンレンタカーです．どのようなご用件でしょうか？"
     prompt_template: prompt_template.txt
     model: gpt-4o-mini
     temperature: 0.7
 ```
+
+メインモジュールと各ブロックの情報の授受を図示すると以下のようになります．
+
+
 
 このアプリケーションでは最初の`passage_retrieval`ブロックがユーザ発話を用いてベクトル検索を行い，検索結果を`aux_data["passages"]`に格納します．次の`llm_dialogue`ブロックは，その`passages`をプロンプトテンプレートに埋め込んで応答を生成します．
 
@@ -244,7 +246,7 @@ blocks:
 ```text
 # タスク説明
 
-- あなたはブルーラインレンタカーの電話応対係です。以下の情報をもとに、お客様の質問に簡潔に答えてください。以下の情報に書いてないことは、「申し訳ありません、今はお答えできません」と言って下さい。
+- あなたはブルーラインレンタカーの電話応対係です．以下の情報をもとに，お客様の質問に簡潔に答えてください．以下の情報に書いてないことは，「申し訳ありません，今はお答えできません」と言って下さい．
 
 # 元となる情報
 
@@ -261,7 +263,7 @@ blocks:
 
 - `docs/`以下の文書，`config.yml`，`prompt_template.txt`を編集します．ファイル名を変更しても構いません．
 
-- ベクトルDBを再構築せず、追記させたい場合は，`config.yml`で`clear_before_ingest: False`を指定して起動します．
+- ベクトルDBを再構築せず，追記させたい場合は，`config.yml`で`clear_before_ingest: False`を指定して起動します．
 
 - 以下のコマンドで起動します．
 

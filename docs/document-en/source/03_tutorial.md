@@ -102,7 +102,7 @@ blocks:
     temperature: 0.7
 ```
 
-The exchange of information with the main module is illustrated as follows.
+The exchange of information between the main module and the block is illustrated as follows.
 
 ![sample-arch](../../images/llm-dialogue-arch-en.jpg)
 
@@ -225,7 +225,9 @@ blocks:
     temperature: 0.7
 ```
 
-In this application, the first `passage_retrieval` block performs vector search using the user's utterance and stores the retrieved results in `aux_data["passages"]`. The following `llm_dialogue` block inserts those `passages` into the prompt template and generates a response.
+The exchange of information between the main module and the blocks is illustrated as follows.
+
+![sample-arch](../../images/rag-arch-en.jpg)In this application, the first `passage_retrieval` block performs vector search using the user's utterance and stores the retrieved results in `aux_data["passages"]`. The following `llm_dialogue` block inserts those `passages` into the prompt template and generates a response.
 
 In the `passage_retrieval` block, `sources` specifies the document directories to ingest. In this example, the target files are the Markdown files under `sample_apps/rag_en/docs/`. At startup, these documents are read and the vector database is created or updated. By default, the vector database is stored under `vector_db/`. If you want to rebuild the vector database from scratch whenever the documents change, enable `clear_before_ingest: True`.
 
@@ -340,6 +342,10 @@ blocks:
         - Do not generate long sentences
         - Do not put period at the end of sentences
 ```
+
+The exchange of information between the main module and the block is illustrated as follows.
+
+![sample-arch](../../images/dst_stn_en_arch.jpg)
 
 ### Files That Make Up the Application
 
