@@ -159,9 +159,73 @@ $ dialbb-server sample_apps/llm_dialogue_en/config.yml
   Japanese version:
 
   ```sh
-$ dialbb-server sample_apps/llm_dialogue_ja/config_ja.yml
+  $ dialbb-server sample_apps/llm_dialogue_ja/config.yml
   ```
 
+#### Testing with user simulation
+
+You can also test these applications with LLM-based user simulation.
+
+Japanese version:
+
+```sh
+$ dialbb-sim-tester --app_config sample_apps/llm_dialogue_ja/config.yml \
+  --test_config sample_apps/llm_dialogue_ja/simulation/config.yml
+```
+
+English version:
+
+```sh
+$ dialbb-sim-tester --app_config sample_apps/llm_dialogue_en/config.yml \
+  --test_config sample_apps/llm_dialogue_en/simulation/config.yml
+```
+
+
+### DST+STN Applications
+
+Sample applications using DST (dialogue state tracking) and STN (State-transition network) are available at `sample_apps/dst_stn_ja/` (Japanese) and `sample_apps/dst_stn_en/` (English) . These applications are used to test various functions of the built-in blocks. They use the following built-in blocks.
+
+
+- DST with LLM Block
+- STN Manager Block
+
+#### Installing Graphviz
+
+Install Graphviz by referring to the [Graphviz website](https://graphviz.org/). However, Graphviz is **not necessary** to run the application.
+
+#### Setting environment variables
+
+These application also use OpenAI's ChatGPT. In the same way as LLM Dialogue Applications, set the OpenAI's API key to the environment variable.
+
+#### Startup
+
+  ```sh
+  $ dialbb-server sample_apps/dst_stn_en/config.yml # English app
+  $ dialbb-server sample_apps/dst_stn_ja/config.yml # Japanese app
+  ```
+
+#### Testing with user simulation
+
+You can also test these applications with LLM-based user simulation.
+
+Japanese version:
+
+    $ dialbb-sim-tester --app_config sample_apps/dst_stn_ja/config.yml \
+      --test_config sample_apps/dst_stn_ja/simulation/config.yml
+
+English version:
+
+    $ dialbb-sim-tester --app_config sample_apps/dst_stn_en/config.yml \
+      --test_config sample_apps/dst_stn_en/simulation/config.yml
+
+#### Testing by sending auxiliary data
+
+The following commands allow you to test various features by sending auxiliary data.
+
+  ```sh
+$ dialbb-send-test-requests sample_apps/dst_stn_en/config.yml sample_apps/dst_stn_en/test_requests.json # for English app
+$ dialbb-send-test-requests sample_apps/dst_stn_ja/config.yml sample_apps/dst_stn_ja/test_requests.json # for Japanese app
+  ```
 
 ### RAG Applications
 
@@ -169,6 +233,15 @@ Sample RAG applications are available at `sample_apps/rag_en/` (English) and `sa
 
 - Passage Retrieval Block
 - LLM Dialogue Block
+
+#### Installing additional libraries
+
+To run this application, you need to install additional libraries. Please run the following:
+
+```sh
+$ pip install <downloaded dialbb-*.whl file>[rag]
+（e.g., pip install dialbb-2.0.0-py3-none-any.whl[rag]）
+```
 
 #### Setting environment variables
 
@@ -210,39 +283,6 @@ $ dialbb-sim-tester --app_config sample_apps/rag_en/config.yml \
   ```sh
 $ dialbb-sim-tester --app_config sample_apps/rag_ja/config.yml \
   --test_config sample_apps/rag_ja/simulation/config.yml
-  ```
-
-
-### DST+STN Applications
-
-Sample applications using DST (dialogue state tracking) and STN (State-transition network) are available at `sample_apps/dst_stn_ja/` (Japanese) and `sample_apps/dst_stn_en/` (English) . These applications are used to test various functions of the built-in blocks. They use the following built-in blocks.
-
-
-- DST with LLM Block
-- STN Manager Block
-
-#### Installing Graphviz
-
-Install Graphviz by referring to the [Graphviz website](https://graphviz.org/). However, Graphviz is **not necessary** to run the application.
-
-#### Setting environment variables
-
-These application also use OpenAI's ChatGPT. In the same way as LLM Dialogue Applications, set the OpenAI's API key to the environment variable.
-
-#### Startup
-
-  ```sh
-  $ dialbb-server sample_apps/dst_stn_en/config.yml # English app
-  $ dialbb-server sample_apps/dst_stn_ja/config.yml # Japanese app
-  ```
-
-#### Test Method
-
-The following commands allow you to test various features.
-
-  ```sh
-  $ dialbb-send-test-requests sample_apps/dst_stn_ja/config.yml sample_apps/dst_stn_ja/test_requests.json # for English app
-  $ dialbb-send-test-requests sample_apps/dst_stn_ja/config.yml sample_apps/dst_stn_ja/test_requests.json # for Japanese app
   ```
 
 ### No-code Tool

@@ -153,7 +153,7 @@ def test_by_simulation(test_config_file: str, app_config_file: str, output_file:
             file: str = os.path.join(test_config_dir, initial_aux_data_file)
             try:
                 with open(file, encoding='utf-8') as fp:
-                    initial_aux_data: Dict[str, any] = json.load(fp)
+                    initial_aux_data: dict[str, object] = json.load(fp)
             except Exception as e:
                 print(traceback.format_exc())
                 print("problem with reading json file: " + file)
