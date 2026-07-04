@@ -108,7 +108,7 @@ dialbb-sim-tester = "dialbb.sim_tester.main:main"
 include-package-data = false
 
 [tool.setuptools.package-data]
-dialbb = ["**/*.yml", "**/*.txt", "**/*.xlsx"]
+dialbb = ["**/*.yml", "**/*.txt", "**/*.xlsx", "**/*.jsd"]
 
 [tool.setuptools.exclude-package-data]
 dialbb = [
