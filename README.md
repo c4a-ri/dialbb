@@ -48,6 +48,12 @@ The following instructions assume that you are working with bash on Ubuntu. If y
   $ pip install <downloaded whl file>
   ```
 
+- If you use the RAG passage retrieval block, also install the optional document loader dependencies.
+
+  ```sh
+  $ pip install '<downloaded whl file>[rag]'
+  ```
+
 ### Download the Sample Applications
 
 Download the sample applications file at [docs/files/sample_apps.zip](docs/files/sample_apps.zip) and extract them in an appropriate directory.
@@ -167,6 +173,8 @@ Sample RAG applications are available at `sample_apps/rag_en/` (English) and `sa
 #### Setting environment variables
 
 These applications also use OpenAI's ChatGPT and embeddings by default. As with the LLM Dialogue Applications, set the OpenAI API key in the environment variable `OPENAI_API_KEY` or write it in `.env`.
+
+The passage retrieval block also requires the optional document loader dependencies. If you installed the base wheel only, run `pip install 'dialbb[rag]'` additionally.
 
 #### Startup
 

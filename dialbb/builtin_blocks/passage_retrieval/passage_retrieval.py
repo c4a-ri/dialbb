@@ -36,7 +36,11 @@ from langchain_openai import OpenAIEmbeddings
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
 from langchain_community.vectorstores.utils import filter_complex_metadata
-from langchain_unstructured.document_loaders import UnstructuredLoader
+
+try:
+    from langchain_unstructured.document_loaders import UnstructuredLoader
+except ImportError:
+    UnstructuredLoader = None
 
 from dialbb.util.globals import DEBUG
 
@@ -154,6 +158,12 @@ class Retriever(AbstractBlock):
 
     @staticmethod
     def _load_documents(files: List[Path]) -> List:
+        if UnstructuredLoader is None:
+            abort_during_building(
+                "passage_retrieval requires optional dependencies. "
+                "Install dialbb with `pip install dialbb[unstructured]` or install "
+                "`langchain-unstructured` and `unstructured[docx,md,pdf,pptx]`."
+            )
         docs = []
         for fp in files:
             loader = UnstructuredLoader(str(fp))
