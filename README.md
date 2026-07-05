@@ -27,7 +27,7 @@ DialBB is released under Apache License 2.0.
 
 ### Execution Environment
 
-We have confirmed that the following procedure works on Python 3.10.13 on Ubuntu 20.04/Windows 11.  We haven't heard that application dosn't work with Python 3.10-3.13 and on Windows 11 and MacOS (including Apple Silicon), though we haven't completely confirmed. 
+We have confirmed that the following procedure works on Python 3.13 on Ubuntu 20.04/Windows 11.  We haven't heard that application dosn't work with Python 3.11-3.13 and on Windows 11 and MacOS (including Apple Silicon), though we haven't completely confirmed. 
 
 The following instructions assume that you are working with bash on Ubuntu. If you are using other shells or the Windows command prompt, please read the following instructions accordingly.
 

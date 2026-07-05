@@ -6,10 +6,26 @@ build-backend = "setuptools.build_meta"
 name = "dialbb"
 version = "2.0.0"
 description = "A dialogue system development framework"
-readme = "README.md"
+readme = { file = "README.md", content-type = "text/markdown" }
 requires-python = ">=3.11"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
 authors = [
     { name = "Mikio Nakano", email = "mikio.nakano@c4a.jp" }
+]
+keywords = ["chatbot", "conversational-ai", "dialogue-system", "llm", "rag"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Education",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
     "annotated-types>=0.7.0",
@@ -96,6 +112,13 @@ rag = [
     "unstructured[docx,md,pdf,pptx]>=0.23.1",
 ]
 
+[project.urls]
+Homepage = "https://c4a-ri.github.io/dialbb/"
+Documentation = "https://c4a-ri.github.io/dialbb/document-en/build/html/"
+Repository = "https://github.com/c4a-ri/dialbb"
+Issues = "https://github.com/c4a-ri/dialbb/issues"
+Discussions = "https://github.com/c4a-ri/dialbb/discussions"
+
 [project.scripts]
 dialbb-nc = "dialbb.no_code.main:main"
 dialbb-server = "dialbb.server.run_server:main"
@@ -129,4 +152,10 @@ exclude = [
     "dialbb.no_code.gui_editor*",
     "dialbb.no_code.app*",
     "dialbb.no_code.data*",
+]
+
+[dependency-groups]
+dev = [
+    "build>=1.5.0",
+    "twine>=6.2.0",
 ]
