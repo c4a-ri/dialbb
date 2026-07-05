@@ -25,7 +25,7 @@ if "%PKG%"=="" (
 
 :: install dialbb pakcage.
 echo Installing dialbb package:%PKG%
-pip install --force-reinstall %PKG%
+pip install --force-reinstall "%PKG%"
 if %errorlevel% neq 0 (
     echo Failed to install dialbb package. Please check Python or pip environment.
 ) else (
