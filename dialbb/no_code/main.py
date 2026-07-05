@@ -501,6 +501,8 @@ def export_app_file(file_path, settings):
         with zipfile.ZipFile(zip_file, "w", compression=zipfile.ZIP_DEFLATED) as zf:
             for root, _, files in os.walk(APP_FILE_DIR):
                 for fn in files:
+                    if fn == ".gitkeep":
+                        continue
                     fullpath = os.path.join(root, fn)
                     # zip 内のパスは APP_FILE_DIR を基準とした相対パスにする
                     arcname = os.path.relpath(fullpath, APP_FILE_DIR)
