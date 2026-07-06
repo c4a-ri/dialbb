@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright 2025 C4A Research Institute, Inc.
+# Copyright C4A Research Institute, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,8 +18,6 @@
 # editor_main.py
 #   dialbb GUI scenario editor main routine.
 
-__version__ = "0.1"
-__author__ = "Mikio Nakano"
 
 import os
 import tkinter as tk

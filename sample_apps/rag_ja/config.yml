@@ -34,8 +34,8 @@ blocks:
     system_name: システム
     first_system_utterance: "こちらはブルーオーシャンレンタカーです。どのようなご用件でしょうか？"
     prompt_template: prompt_template.txt
-    model: gpt-4o-mini
-    temperature: 0.7
+    model: gpt-5.4-nano
+    # temperature: 0.7
     
     
 

@@ -43,15 +43,15 @@ This block uses a large language model (LLM) to generate system utterances.
 
   This specifies the file of the prompt for making LLM generate a system utterance as a relative path from the configuration file directory.
 
-- `temperature` (float, default value is `0.7`)
+- `temperature` (float, default value is `0.7`) 
 
-  The temperature parameter when calling LLM.
+  The temperature parameter when calling LLM. It is ignored when the LLM is `gpt-5x`.
 
-- `model` (string, default value is `gpt-4o-mini`)
+- `model` (string, default value is `gpt-5.4-nano`)
 
-  Model specifier. Use the form `provider:model_name`, which matches LangChain's `init_chat_model` format, for example `google_genai:gemini-2.0-flash-001`. OpenAI GPT models such as `gpt-4o` and `gpt-4o-mini` may omit the `openai:` prefix.
+  Model specifier. Use the form `provider:model_name`, which matches LangChain's `init_chat_model` format, for example `google_genai:gemini-2.0-flash-001`. OpenAI GPT models such as `gpt-5.4-nano` may omit the `openai:` prefix.
 
-  Some models require API keys to be set through environment variables. For example, when using OpenAI GPT models such as `gpt-4o` or `gpt-4o-mini`, set `OPENAI_API_KEY`.
+  Some models require API keys to be set through environment variables. For example, when using OpenAI GPT models such as `gpt-5.4-nano`, set `OPENAI_API_KEY`.
 
 - `instruction` (string, see [this](https://github.com/c4a-ri/dialbb/blob/main/dialbb/util/globals.py) for the default value)
 
@@ -258,7 +258,7 @@ aux_data["user-name"] = "John"
 
        Specify the key file to access the Google Sheet API as a relative path from the configuration file directory.
 
-- `model` (string, default value `gpt-4o-mini`)
+- `model` (string, default value `gpt-5.4-nano`)
 
    Specifies the LLM.
 
@@ -685,13 +685,13 @@ The built-in functions are as follows:
 
   - `_generate_with_llm(task)` and `_generate_with_prompt_template(prompt_template)`
   
-     Generates a string using a large language model (currently only OpenAI's ChatGPT). More details follow.
+     Generates a string using a large language model. More details follow.
 
 
 (llm_functions)=
 #### Built-in functions using large language models
 
-The functions `_check_with_llm(task)` and `_generate_with_llm(task)` use a large language model (currently only OpenAI's ChatGPT) along with dialogue history to perform condition checks and text generation. Here are some examples:
+The functions `_check_with_llm(task)` and `_generate_with_llm(task)` use a large language model  along with dialogue history to perform condition checks and text generation. Here are some examples:
 
 
 - Example of a condition check:
@@ -717,31 +717,31 @@ To use these functions, the following settings are required:
 
   - `instruction` (string)
 
-    This is used as the system role message when calling the ChatGPT API. It is only used during text generation. See [this](https://github.com/c4a-ri/dialbb/blob/main/dialbb/util/globals.py)default for the default value.
+    This is used as the system role message when calling the LLM. It is only used during text generation. See [this](https://github.com/c4a-ri/dialbb/blob/main/dialbb/util/globals.py)default for the default value.
 
   - `temperature` (float)
 
-    This specifies the temperature parameter for GPT. The default value is `0.7`.
+    This specifies the temperature parameter for LLM. The default value is `0.7`. It is ignored when the LLM is `gpt-5x`.
 
   - `temperature_for_checking` (float)
 
-    This is the temperature parameter of the GPT used during conditional evaluation. If this is not specified, the value of `temperature` will be used instead.
+    This is the temperature parameter of the LLM used during conditional evaluation. If this is not specified, the value of `temperature` will be used instead. It is ignored when the LLM is `gpt-5x`.
 
   - `situation` (list of strings)
 
-    A list that enumerates the scenarios to be written in the GPT prompt. If this element is absent, no specific situation is specified.
+    A list that enumerates the scenarios to be written in the LLM prompt. If this element is absent, no specific situation is specified.
 
 
   - `persona` (lis of strings)
 
-    A list that enumerates the system persona to be written in the GPT prompt.
+    A list that enumerates the system persona to be written in the LLM prompt.
 
     If this element is absent, no specific persona is specified.
 
 
   - `cautions` (list of strings)
 
-    A list of cautionary notes or warnings intended for the system to be written in the GPT prompt.
+    A list of cautionary notes or warnings intended for the system to be written in the LLM prompt.
 
     If this element is not present, no cautions are specified.
 
@@ -752,9 +752,9 @@ To use these functions, the following settings are required:
   e.g.:
 
   ```yaml
-    chatgpt:
-      gpt_model: gpt-4-turbo
-      temperature: 0.7
+    llm:
+      model: gpt-5.4-nano
+      # temperature: 0.7
       situation:
         - You are a dialogue system and chatting with the user.
         - You met the user for the first time.
@@ -778,7 +778,7 @@ To use these functions, the following settings are required:
 `_check_with_prompt_template(prompt_template)` and `_generate_with_llm(prompt_template)` perform condition checking and text generation by providing prompts to a large language model.
 The prompts are created by replacing the placeholders in the specified prompt template with actual values.
 
-To use these functions, you must set the environment variable `OPENAI_API_KEY` and configure the `chatgpt` element in the block configuration.
+To use these functions, you must set an API key to the appropriate variable and configure the `llm` element in the block configuration.
 
 Here are some examples:
 
@@ -850,13 +850,13 @@ Here are some examples:
     Replaced with the dialogue up to that point, including the latest user utterance.
 
   - `{situation}`
-    Replaced with the value of `situation` from the `chatgpt` element in the block configuration.
+    Replaced with the value of `situation` from the `llm` element in the block configuration.
 
   - `{persona}`
-    Replaced with the value of `persona` from the `chatgpt` element in the block configuration.
+    Replaced with the value of `persona` from the `llm` element in the block configuration.
 
   - `{cautions}`
-    Replaced with the value of `cautions` from the `chatgpt` element in the block configuration.
+    Replaced with the value of `cautions` from the `llm` element in the block configuration.
 
   - `{current_time}`
     Replaced with a string representing the current date, day of the week, and time (hour, minute, second) at which the dialogue is taking place.

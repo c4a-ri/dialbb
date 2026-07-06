@@ -98,8 +98,8 @@ blocks:
     system_name: System
     first_system_utterance: "Hello! Let's talk about food. What kind of cuisine do you like?"
     prompt_template: prompt_template.txt
-    model: gpt-4o-mini
-    temperature: 0.7
+    model: gpt-5.4-nano
+    # temperature: 0.7
 ```
 
 The exchange of information between the main module and the block is illustrated as follows.
@@ -221,8 +221,8 @@ blocks:
     system_name: System
     first_system_utterance: "Thank you for calling Blue Ocean Rent-A-Car. How may I help you today?"
     prompt_template: prompt_template.txt
-    model: gpt-4o-mini
-    temperature: 0.7
+    model: gpt-5.4-nano
+    # temperature: 0.7
 ```
 
 The exchange of information between the main module and the blocks is illustrated as follows.
@@ -290,7 +290,7 @@ blocks:
     output:
       aux_data: aux_data
     knowledge_file: dst_knowledge_en.xlsx
-    gpt_model: gpt-4o-mini
+    gpt_model: gpt-5.4-nano
     flags_to_use:
       - 'Y'
       - 'T'
@@ -321,8 +321,8 @@ blocks:
       - 'Y'
       - 'T'
     llm:
-      model: gpt-4o-mini
-      temperature: 0.7
+      model: gpt-5.4-nano
+      # temperature: 0.7
       situation:
         - You are a dialogue system and chatting with the user.
         - You met the user for the first time.
@@ -537,8 +537,8 @@ The sample application configures the `llm` section of the STN Manager block so 
 
 ```yaml
 llm:
-  model: gpt-4o-mini
-  temperature: 0.7
+  model: gpt-5.4-nano
+  # temperature: 0.7
   situation:
     - You are a dialogue system and chatting with the user.
     - You met the user for the first time.
@@ -608,7 +608,7 @@ reaction_to_silence:
 
 If Graphviz is installed, when the application starts it outputs a graph file named `_scenario_graph.jpg` using the system utterances in the `system utterance` column and the user utterance examples in the `user utterance example` column. The following is the scenario graph for this application.
 
-![scenario_graph_simple_en](../../images/scenario_graph_simple_en.jpg)
+![scenario_graph_en](../../images/scenario_graph_en.jpg)
 
 ### Building an Application by Reusing the DST-STN Application
 

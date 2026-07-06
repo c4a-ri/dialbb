@@ -5,7 +5,7 @@ input:
 output: 
   dst_result: dst_result
 knowledge_file: dst-knowledge.xlsx  # knowledge description file
-gpt_model: gpt-4o-mini
+gpt_model: gpt-5.4-nano
 flags_to_use: 
   - 'Y'
   - 'T'

@@ -38,7 +38,7 @@ from dialbb.util.globals import CHATGPT_INSTRUCTIONS
 REMAINING_TAGS_PATTERN = re.compile( r"\[\[\[(?=.*\{[A-Za-z0-9_]+\})(?:[^\{\]]|\{[A-Za-z0-9_]+\})*\]\]\]",
                                      re.DOTALL)
 
-DEFAULT_LLM = 'gpt-4o-mini'
+DEFAULT_LLM = 'gpt-5.4-nano'
 LLM_TIMEOUT = 10
 
 if not os.environ.get('OPENAI_API_KEY') and os.environ.get('OPENAI_KEY'):

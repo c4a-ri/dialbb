@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright 2025 C4A Research Institute, Inc.
+# Copyright, C4A Research Institute, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,9 +18,6 @@
 # config_editor.py
 #   edit configuration
 #   コンフィギュレーションの編集
-
-__version__ = "0.1"
-__author__ = "Mikio Nakano"
 
 import os
 import sys
@@ -220,6 +217,7 @@ def edit_app_config(parent, file_path, template_path, settings):
         models = [
             "gpt-4o",
             "gpt-4o-mini",
+            "gpt-5.4-nano",
             "gpt-5.4-mini",
             "gpt-5.4",
             "google_genai:gemini-2.5-flash",
@@ -460,6 +458,7 @@ def edit_test_config(parent, file_path: str, settings) -> None:
         models = [
             "gpt-4o",
             "gpt-4o-mini",
+            "gpt-5.4-nano",
             "gpt-5.4-mini",
             "gpt-5.4",
             "google_genai:gemini-2.5-flash",

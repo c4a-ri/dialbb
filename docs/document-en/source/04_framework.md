@@ -521,7 +521,7 @@ The following example uses the English LLM dialogue sample application.
 
   - `model` (string, required)
 
-    Model specifier. Use the form `provider:model_name`, for example `google_genai:gemini-2.0-flash-001`. OpenAI GPT models such as `gpt-4o` and `gpt-4o-mini` may omit the `openai:` prefix.
+    Model specifier. Use the form `provider:model_name`, for example `google_genai:gemini-2.0-flash-001`. OpenAI GPT models such as `gpt-5.4-nano` may omit the `openai:` prefix.
 
   - `settings` (list of objects, required)
 

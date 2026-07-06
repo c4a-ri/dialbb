@@ -57,7 +57,7 @@ CONFIG_KEY_TEMPERATURE: str = "temperature"
 KEY_DIALOGUE_HISTORY: str = "dialogue_history"
 KEY_AUX_DATA: str = "aux_data"
 
-DEFAULT_LLM_MODEL: str = "gpt-4o-mini"
+DEFAULT_LLM_MODEL: str = "gpt-5.4-nano"
 DEFAULT_TEMPERATURE: float = 0.0
 LLM_TIMEOUT: int = 10
 

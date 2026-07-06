@@ -261,7 +261,7 @@ At runtime, input utterance is added to the prompt to make ChatGPT perform langu
 
        Specify the key file to access the Google Sheet API as a relative path from the configuration file directory.
 
-- `gpt_model` (string. The default value is `gpt-4o-mini`.)
+- `gpt_model` (string. The default value is `gpt-5.4-nano`.)
 
    Specifies the ChatGPT model. `gpt-4o` can be specified. `gpt-4` cannot be used.
 
@@ -361,7 +361,7 @@ During execution, the input utterance is added to the prompt, and ChatGPT is use
 
     Specifies the key file for accessing the Google Sheet API. The file path should be relative to the configuration file directory.
 
-- `gpt_model` (String, default: `gpt-4o-mini`)  
+- `gpt_model` (String, default: `gpt-5.4-nano`)  
 
   Specifies the ChatGPT model. Options include `gpt-4o`, etc.
 

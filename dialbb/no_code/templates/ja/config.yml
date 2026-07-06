@@ -14,7 +14,7 @@ blocks:  # ブロックのリスト
       aux_data: aux_data
     repeat_when_no_available_transitions: yes
     llm:
-      model: gpt-4o-mini
+      model: gpt-5.4-nano
       temperature: 0.7
       situation:
         - あなたは対話システムで、ユーザと食べ物に関して雑談をしています。

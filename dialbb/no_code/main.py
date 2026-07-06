@@ -18,8 +18,7 @@
 # main.py
 #   dialbb no_code GUI main program
 #
-__version__ = "0.1"
-__author__ = "Mikio Nakano"
+
 
 import os
 import sys

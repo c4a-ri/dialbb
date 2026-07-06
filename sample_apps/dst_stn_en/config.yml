@@ -13,7 +13,7 @@ blocks:  # list of blocks
     output: 
       aux_data: aux_data
     knowledge_file: dst_knowledge_en.xlsx  # knowledge description file
-    model: gpt-4o-mini
+    model: gpt-5.4-nano
     flags_to_use: 
       - 'Y'
       - 'T'
@@ -47,7 +47,7 @@ blocks:  # list of blocks
       - 'Y'
       - 'T'
     llm:
-      model: gpt-4o-mini
+      model: gpt-5.4-nano
       temperature: 0.7
       situation:
         - You are a dialogue system and chatting with the user.
