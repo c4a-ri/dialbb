@@ -31,7 +31,9 @@ DialBBはApache License 2.0の下で公開されています．
 
 ### 実行環境
 
-Ubuntu 20.04/Windows 11上のpython 3.13で，以下の手順で動作することを確認しています．すべての組み合わせを完全に確かめたわけではありませんが，Windows 11やMacOS（アップルシリコンを含む）の上で，Python 3.11-3.13を使って動かせなかったという報告は得ていません．
+Windows/MacOS/Ubuntu上のPython 3.11-3.14で動作しますが、すべての組み合わせを完全に確かめたわけではありません。(Python 3.10では使えなくなりました。）
+
+なお、後述のRAGアプリケーションはPython 3.11-3.13でしか動作しません。
 
 以下の説明はUbuntu上のbashで作業することを仮定しています．他のシェルやWindowsコマンドプロンプトを用いる場合は，適宜読み替えてください．
 
@@ -238,6 +240,8 @@ $ dialbb-sim-tester --app_config sample_apps/dst_stn_en/config.yml \
 $ pip install <ダウンロードしたdialbb-*.whlファイル>[rag]
 （例：pip install dialbb-2.0.0-py3-none-any.whl[rag]）
 ```
+
+これはPython 3.11-3.13でしかインストールできません。
 
 #### 環境変数の設定
 

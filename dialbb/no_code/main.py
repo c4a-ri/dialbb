@@ -340,14 +340,34 @@ def set_file_path_command(edit_box, _settings, title, file_type_list) -> None:
         edit_box.insert(tk.END, file_path)
 
 
+def clear_app_dir_except_gitignore() -> None:
+    """APP_FILE_DIR 配下を .gitignore 以外すべて削除する。"""
+    os.makedirs(APP_FILE_DIR, exist_ok=True)
+
+    for name in os.listdir(APP_FILE_DIR):
+        if name == ".gitignore":
+            continue
+
+        path = os.path.join(APP_FILE_DIR, name)
+        if os.path.isdir(path):
+            shutil.rmtree(path)
+        else:
+            os.unlink(path)
+
+
 def import_application_file(edit_box, settings, _file_type_list) -> None:
     """zip形式のアプリファイルを展開して設定へ反映する。"""
     file_path = edit_box.get()
     if file_path:
         logger.info("%s decompress to %s", file_path, APP_FILE_DIR)
-        # zipファイルをシステムエリアに展開する
-        with zipfile.ZipFile(file_path) as zf:
-            zf.extractall(APP_FILE_DIR)
+        try:
+            clear_app_dir_except_gitignore()
+            # zipファイルをシステムエリアに展開する
+            with zipfile.ZipFile(file_path) as zf:
+                zf.extractall(APP_FILE_DIR)
+        except (FileNotFoundError, PermissionError, shutil.Error, OSError, zipfile.BadZipFile) as e:
+            messagebox.showerror("Error", gui_text("msg_warn_no_file"), detail=f"{e}")
+            return
 
         # アプリケーション名の保存
         file_name, _ = os.path.splitext(os.path.basename(file_path))
@@ -433,17 +453,15 @@ def create_app_files(parent, settings) -> None:
             )
             return
 
-        # コピー先ディレクトリを作成（無ければ）
-        os.makedirs(APP_FILE_DIR, exist_ok=True)
-
-        # src_dir 内を再帰的にコピー（ディレクトリは merge、ファイルは上書き）
         try:
+            clear_app_dir_except_gitignore()
+
+            # src_dir 内を再帰的にコピーする
             for name in os.listdir(src_dir):
                 s = os.path.join(src_dir, name)
                 d = os.path.join(APP_FILE_DIR, name)
                 if os.path.isdir(s):
-                    # dirs_exist_ok=True 既に存在する場合に上書き
-                    shutil.copytree(s, d, dirs_exist_ok=True)
+                    shutil.copytree(s, d)
                 else:
                     shutil.copy2(s, d)
         except (FileNotFoundError, PermissionError, shutil.Error, OSError) as e:
