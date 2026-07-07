@@ -6,13 +6,12 @@ main:
   loop_period: 0.1
   # ユーザ発話待ちタイムアウト (秒)  T.Oで "user_silence"通知
   max_user_wait_time: 10.0
+  # 音声ログ保存の有無
+  audio_logging: false
 
 stt:
   # Google Speech-to-Text and Text-to-Speech サービスアカウントキー(json)
   key_file: 
-  # マイク入力のソフトウェアゲイン。1.0=原音, 0.5=半分, 2.0=2倍。
-  # スピーカー音がマイクに回り込む場合は 0.3〜0.5 程度に下げる。
-  mic_gain: 1.0
 
 dialbb:
   # DialBB application config used by DialogueProcessor

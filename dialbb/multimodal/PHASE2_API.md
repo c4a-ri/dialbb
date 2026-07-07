@@ -70,22 +70,6 @@ POST /sessions/<session_id>/start
 }
 ```
 
-### テキスト発話送信（REST）
-```
-POST /sessions/<session_id>/utterance
-Content-Type: application/json
-
-{
-  "text": "こんにちは"
-}
-```
-**レスポンス:**
-```json
-{
-  "status": "sent"
-}
-```
-
 ### セッション停止（対話終了）
 ```
 POST /sessions/<session_id>/stop
@@ -153,15 +137,6 @@ socket.send(JSON.stringify({
 }));
 ```
 
-#### `send_text_utterance`
-テキスト発話（WebSocket 経由）
-```javascript
-socket.send(JSON.stringify({
-  action: 'send_text_utterance',
-  text: 'こんにちは'
-}));
-```
-
 #### `send_audio_chunk`
 音声チャンク送信（Phase 3 で実装予定）
 ```javascript
@@ -173,35 +148,7 @@ socket.send(JSON.stringify({
 
 ### サーバ → クライアント（受信）
 
-サーバは `{ event, payload, ... }` 形式で送信します。
-
-#### `dialogue_event`
-会話状態・チャット内容の更新通知
-```javascript
-socket.onmessage = (event) => {
-  const message = JSON.parse(event.data);
-  
-  if (message.event === 'dialogue_event') {
-    const { event_type, data, timestamp } = message.payload;
-    
-    if (event_type === 'status') {
-      console.log('Status:', data.message);
-    }
-    
-    if (event_type === 'chat') {
-      console.log(`${data.role}: ${data.text}`);
-    }
-    
-    if (event_type === 'final') {
-      console.log('Dialogue finished');
-    }
-    
-    if (event_type === 'error') {
-      console.error(`Error: ${data.message}`);
-    }
-  }
-};
-```
+サーバは `{ event, payload, ... }` 形式で送信します。音声専用クライアントでは、`joined_session` / `audio_data` / `error` を扱います。
 
 #### `joined_session`
 セッション参加確認（接続時に自動送信）
@@ -316,14 +263,14 @@ sequenceDiagram
   C->>W: action start_dialogue
   W->>E: start_session(session_id)
 
-  C->>W: action send_text_utterance with text
-  W->>E: _enqueue_utterance(...)
+  C->>W: action send_audio_chunk with base64 PCM16
+  W->>E: audio_chunk_queue.put(...)
   E->>D: DialbbRequest(user_text)
   D-->>E: DialogueEvent(chat/status/...)
 
-  E->>H: emit_from_thread dialogue_event
+  E->>H: emit_from_thread audio_data
   H->>W: emit_to_session(...)
-  W-->>C: dialogue_event payload
+  W-->>C: audio_data payload
 
   C->>W: action end_dialogue
   W->>E: stop_session(session_id)
@@ -333,9 +280,8 @@ sequenceDiagram
 
 ### 送受信メッセージの観点
 
-- クライアント -> サーバ: `{"action": "start_dialogue" | "end_dialogue" | "send_text_utterance" | "send_audio_chunk", ...}`
-- サーバ -> クライアント: `{"event": "joined_session" | "dialogue_event" | "error", "payload": {...}}`
-- `dialogue_event.payload.event_type`: `status` / `chat` / `final` / `error`
+- クライアント -> サーバ: `{"action": "start_dialogue" | "end_dialogue" | "send_audio_chunk" | "cancel_tts" | "tts_segment_playback_done", ...}`
+- サーバ -> クライアント: `{"event": "joined_session" | "audio_data" | "error", "payload": {...}}`
 
 ---
 
@@ -367,24 +313,6 @@ manager.start_session(session_id)
 manager.stop_session(session_id)
 manager.delete_session(session_id)
 ```
-
-### カスタムコマンド送信
-```python
-# テキスト発話を直接送信
-from dialbb.multimodal.main.messages import DialbbRequest
-
-session = manager.get_session(session_id)
-if session:
-    session.dialbb_request_queue.put(
-        DialbbRequest(
-            session_id=session.engine.session_id,
-            user_text='ユーザの発話',
-            aux_data={},
-        )
-    )
-```
-
----
 
 ## 7. 設定ファイル（mm_client_config.yml）
 
@@ -422,7 +350,7 @@ dialbb-mm-client-server --config config/mm_client_config.yml
 
 2. Web UI（Vue.js など）から接続:
 ```javascript
-// セッション作成 → start_dialogue → send_text_utterance
+// セッション作成 → start_dialogue → send_audio_chunk
 ```
 
 ### バックエンド統合

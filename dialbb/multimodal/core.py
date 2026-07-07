@@ -4,6 +4,7 @@ mm_client Core Engine
 Queue 依存を抽象化し、異なるUIやサーバから再利用可能
 """
 import time
+import threading
 from dataclasses import dataclass, field
 from queue import Empty, Queue
 from threading import Event
@@ -89,6 +90,7 @@ class CoreDialogueEngine:
         tts_cancel_queue: Optional[Queue] = None,
     ) -> None:
         """対話開始コマンドを処理"""
+        del tts_request_queue
         logger.info("[CORE] start コマンド受信")
         self._emit_event(DialogueEvent(event_type="status", data={"message": "対話初期化中"}))
         self._reset_state()
@@ -154,6 +156,7 @@ class CoreDialogueEngine:
         elif stt_event.event_type == RecognitionEventType.PARTIAL_TRANSCRIPT:
             logger.debug("[CORE] 認識中... %s", stt_event.text)
             self._emit_event(DialogueEvent(event_type="status", data={"message": "音声認識中"}))
+            logger.debug("[CORE] STT->CORE system_speaking: %s, is_final_response: %s, tts_cancel_queue: %s, _barge_in_sent: %s", self.system_speaking, self.is_final_response, tts_cancel_queue, self._barge_in_sent)
             if (
                 self.system_speaking
                 and not self.is_final_response
@@ -162,11 +165,11 @@ class CoreDialogueEngine:
             ):
                 tts_cancel_queue.put("cancel")
                 self._barge_in_sent = True
-                logger.info("[CORE] CORE->TTS cancel 送信（barge-in）")
+                logger.info("[CORE] CORE->TTS cancel 送信（★barge-in）")
 
         elif stt_event.event_type == RecognitionEventType.FINAL_TRANSCRIPT:
             text = stt_event.text.strip()
-            logger.info("[CORE] STT->CORE final: %s", text)
+            logger.info("[CORE] STT->CORE final: ★ %s", text)
             self._emit_event(DialogueEvent(event_type="status", data={"message": "応答生成中"}))
             self.user_speaking = False
             self.user_waiting = False
@@ -230,7 +233,7 @@ class CoreDialogueEngine:
 
         self.system_speaking = True
         self._emit_event(DialogueEvent(event_type="chat", data={"role": "system", "text": system_text}))
-        logger.info("[CORE] CORE->TTS 合成要求送信")
+        logger.info("[CORE] CORE->TTS 合成要求送信. system_speaking=%s, is_final_response=%s", self.system_speaking, self.is_final_response)
         self._emit_event(DialogueEvent(event_type="status", data={"message": "音声合成中"}))
         tts_request_queue.put(TtsRequest(session_id=self.session_id, text=system_text))
         if self.is_final_response:
@@ -318,84 +321,96 @@ class CoreDialogueEngine:
         max_user_wait_time: float = 30.0,
     ) -> None:
         """メインループ（既存 MultimodalMainModule.run と同じロジック）"""
-        while not stop_event.is_set():
-            loop_start = time.monotonic()
+        logger.info("[CORE] run start: thread=%s", threading.current_thread().name)
+        try:
+            while not stop_event.is_set():
+                loop_start = time.monotonic()
 
-            # 1. コマンド処理
-            try:
-                cmd = command_queue.get_nowait()
-                if cmd == "start":
-                    self.process_start_command(
-                        stt_event_queue,
-                        dialbb_request_queue,
-                        dialbb_response_queue,
-                        tts_request_queue,
-                        tts_result_queue,
-                        conversation_active_event,
-                        stt_enabled_event,
-                        tts_cancel_queue,
-                    )
-                elif cmd == "end":
-                    self.process_end_command(
-                        stt_event_queue,
-                        dialbb_request_queue,
-                        dialbb_response_queue,
-                        tts_request_queue,
-                        tts_result_queue,
-                        conversation_active_event,
-                        stt_enabled_event,
-                        tts_cancel_queue,
-                    )
-            except Empty:
-                pass
-
-            # 2. STT イベント処理
-            while True:
+                # 1. コマンド処理
                 try:
-                    stt_event = stt_event_queue.get_nowait()
+                    cmd = command_queue.get_nowait()
+                    if cmd == "start":
+                        self.process_start_command(
+                            stt_event_queue,
+                            dialbb_request_queue,
+                            dialbb_response_queue,
+                            tts_request_queue,
+                            tts_result_queue,
+                            conversation_active_event,
+                            stt_enabled_event,
+                            tts_cancel_queue,
+                        )
+                    elif cmd == "end":
+                        self.process_end_command(
+                            stt_event_queue,
+                            dialbb_request_queue,
+                            dialbb_response_queue,
+                            tts_request_queue,
+                            tts_result_queue,
+                            conversation_active_event,
+                            stt_enabled_event,
+                            tts_cancel_queue,
+                        )
                 except Empty:
-                    break
-                self.process_stt_event(
-                    stt_event,
+                    pass
+
+                # 2. STT イベント処理
+                while True:
+                    try:
+                        stt_event = stt_event_queue.get_nowait()
+                    except Empty:
+                        break
+                    self.process_stt_event(
+                        stt_event,
+                        conversation_active_event,
+                        dialbb_request_queue,
+                        tts_cancel_queue,
+                    )
+
+                # 3. DialBB 応答処理
+                while True:
+                    try:
+                        dialbb_response = dialbb_response_queue.get_nowait()
+                    except Empty:
+                        break
+                    self.process_dialbb_response(
+                        dialbb_response,
+                        conversation_active_event,
+                        tts_request_queue,
+                        stt_enabled_event,
+                    )
+
+                # 4. TTS 完了処理
+                while True:
+                    try:
+                        tts_result = tts_result_queue.get_nowait()
+                    except Empty:
+                        break
+                    self.process_tts_result(
+                        tts_result,
+                        conversation_active_event,
+                        stt_enabled_event,
+                    )
+
+                # 5. ユーザ発話待ちタイムアウト
+                self.check_user_wait_timeout(
                     conversation_active_event,
                     dialbb_request_queue,
-                    tts_cancel_queue,
+                    max_user_wait_time,
                 )
 
-            # 3. DialBB 応答処理
-            while True:
-                try:
-                    dialbb_response = dialbb_response_queue.get_nowait()
-                except Empty:
-                    break
-                self.process_dialbb_response(
-                    dialbb_response,
-                    conversation_active_event,
-                    tts_request_queue,
-                    stt_enabled_event,
-                )
-
-            # 4. TTS 完了処理
-            while True:
-                try:
-                    tts_result = tts_result_queue.get_nowait()
-                except Empty:
-                    break
-                self.process_tts_result(
-                    tts_result,
-                    conversation_active_event,
-                    stt_enabled_event,
-                )
-
-            # 5. ユーザ発話待ちタイムアウト
-            self.check_user_wait_timeout(
-                conversation_active_event,
-                dialbb_request_queue,
-                max_user_wait_time,
+                # ループ周期制御
+                loop_end = time.monotonic()
+                sleep_time = max(0, loop_period - (loop_end - loop_start))
+                if sleep_time > 0:
+                    time.sleep(sleep_time)
+        finally:
+            logger.info(
+                "[CORE] run exit: thread=%s session_id=%s stop_event=%s active=%s system_speaking=%s user_waiting=%s",
+                threading.current_thread().name,
+                self.session_id,
+                stop_event.is_set(),
+                conversation_active_event.is_set(),
+                self.system_speaking,
+                self.user_waiting,
             )
-
-            # ループ周期制御
-            loop_end = time.monotonic()
-            sleep_time = max(0, loop_period - (loop_end - loop_start))
-            if sleep_time > 0:
-                time.sleep(sleep_time)

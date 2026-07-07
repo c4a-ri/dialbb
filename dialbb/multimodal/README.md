@@ -11,7 +11,7 @@ MAINスレッド/STTスレッド/DialBBスレッド/TTSスレッド
 
 ## 1.1. 使っている技術
 - 音声認識: Google Cloud Speech-to-Text（STT） ストリーミング API  
-- 音声合成: Google Cloud Text-to-Speech (TTS) と pygame  
+- 音声合成: Google Cloud Text-to-Speech (TTS) 
 - 対話エンジン接続: DialBB の DialogueProcessor を呼び出して応答を生成  
 
 　※Google Cloud STT/TTSを使用するためにサービスアカウントキーが必要です。  
@@ -26,9 +26,9 @@ MAINスレッド/STTスレッド/DialBBスレッド/TTSスレッド
 | start_mm_client.py | クライアント全体の起動エントリポイント。GUIと各ワーカスレッド、Queue、Eventを初期化して実行を開始する。 |
 | main/main_module.py | メインモジュール。STT/DialBB/TTS間のメッセージを中継し、対話状態を制御する。 |
 | asr/google_stt_client.py | 音声認識ワーカ。Google Cloud STT を使ったストリーミング音声認識を担当する。 |
-| asr/audio_input.py | PyAudio を使って マイク音声を非同期で取得し、PCM16のバイト列として逐次取り出す。 |
+| asr/audio_input.py | Websocket を使って マイク音声を非同期で取得し、PCM16のバイト列として逐次取り出す。 |
 | main/dialbb_client.py | DialBB連携ワーカー。対話開始要求時に初回応答を生成し、以降の対話を処理する。 |
-| tts/speech_synthesizer.py | 音声合成ワーカー。Google Cloud TTS で合成した音声を pygame で再生する、再生キャンセルに対応。 |
+| tts/speech_synthesizer.py | 音声合成ワーカー。Google Cloud TTS で合成した音声データにする、再生キャンセルに対応。 |
 | main/messages.py | スレッド間でやり取りするメッセージ型（dataclass/enum）を定義する。 |
 
 ## 3. 主要アーキテクチャ
@@ -49,33 +49,13 @@ dialbb, mm_client の2つがインストールされる
 1. `pip show dialbb`  
 インストールしたdialbbのバージョンが表示されること
 
-### 5.1 macOS 固有の前提条件
-
-macOS で動作させる場合は、以下を事前に準備してください。
-
-1. PortAudioが必要  
-PortAudio は pyaudio のバックエンドです。未導入の環境ではpyaudioでエラーになる場合があります。  
-以下のコマンドでインストールしてください。
-	```sh
-	brew install portaudio
-	```
-2. Tk 対応 Python
-macOS 標準の Python は Tkinter が付属していない場合があります。  その場合は、Homebrew や python.org からインストールした Python を使ってください。
-	```sh
-	brew install python-tk  # Homebrew Python を使っている場合
-	```
-3. マイク権限
-macOS はマイクへのアクセス権限を許可する必要があります。  確認ダイアログで「許可」 または ［システム設定 → プライバシーとセキュリティ → マイク］で設定してください。
-
-
-### 5.2 設定ファイル（mm_client_config.yml）
+### 5.1 設定ファイル（mm_client_config.yml）
 - dialbbリポジトリのテンプレート `dialbb/multimodal/config/mm_client_config.yml` を使用して作成してください
 - `config/mm_client_config.yml` があるディレクトリで起動コマンドを投入するとdefaultのConfigとして読み込みます
 
 | 設定項目 | 概要 |
 |---|---|
 | `stt.key_file` | Google STT サービスアカウントキー(JSON)へのパス
-| `stt.mic_gain` | マイクゲイン（`1.0`=原音、`<1.0`=減衰、`>1.0`=増幅）
 | `dialbb.config_file` | DialBB のアプリ設定(`config.yml`)へのパス
 | `main.loop_period` | Main ループ周期（秒）
 | `main.max_user_wait_time` | ユーザ発話待ちタイムアウト（秒、超過で `user_silence` を送信）

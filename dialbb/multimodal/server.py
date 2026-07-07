@@ -8,28 +8,25 @@ from __future__ import annotations
 import argparse
 import asyncio
 import base64
+import binascii
 from concurrent.futures import Future as ConcurrentFuture
 import os
+import threading
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import uvicorn
 import yaml
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 
 from dialbb.util.logger import get_logger
 from .core import DialogueEvent
 from .engine import DialogueEngineManager, SessionConfig
-from .main.messages import DialbbRequest
+from .tts.speech_synthesizer import split_tts_segments
 
 logger = get_logger(__name__)
-
-
-class TextUtteranceRequest(BaseModel):
-    text: str
 
 
 @dataclass
@@ -115,26 +112,80 @@ def create_app(
     session_hub = WebSocketSessionHub()
 
     def on_event(session_id: str, event: DialogueEvent) -> None:
-        emit_data = {
-            "event_type": event.event_type,
-            "data": event.data,
-            "timestamp": event.timestamp,
-        }
-        session_hub.emit_from_thread(session_id, "dialogue_event", emit_data)
-        logger.debug("[SERVER] Event emitted: session=%s, type=%s", session_id, event.event_type)
+        if event.event_type == "chat" and event.data.get("role") == "system":
+            utterance_id = engine_manager.begin_tts_utterance(session_id, str(event.data.get("text") or ""))
+            logger.info(
+                "[SERVER] system utterance start: session=%s utterance_id=%s segments=%d text=%s",
+                session_id,
+                utterance_id,
+                len(split_tts_segments(str(event.data.get("text") or ""))),
+                event.data.get("text"),
+            )
+        logger.debug("[SERVER] Event handled: session=%s, type=%s", session_id, event.event_type)
 
-    def on_tts_audio(session_id: str, audio_bytes: bytes) -> None:
-        """TTS 合成音声を Base64 エンコードして WebSocket でクライアントへ送信する。"""
+    def on_tts_audio(session_id: str, segment_index: int, segment_count: int, audio_bytes: bytes) -> None:
+        """TTS 合成音声を送信し、再生完了 ack まで待つ。"""
+        if engine_manager.is_tts_cancel_requested(session_id):
+            logger.debug(
+                "[SERVER] TTS audio dropped by cancel flag: session=%s segment=%d/%d bytes=%d",
+                session_id,
+                segment_index,
+                segment_count,
+                len(audio_bytes),
+            )
+            return
+        session = engine_manager.get_session(session_id)
+        utterance_id = 0
+        if session:
+            with session.tts_state_lock:
+                utterance_id = session.current_tts_utterance_id
         audio_b64 = base64.b64encode(audio_bytes).decode("utf-8")
         session_hub.emit_from_thread(
             session_id,
             "audio_data",
-            {"audio": audio_b64, "format": "mp3"},
+            {
+                "audio": audio_b64,
+                "format": "mp3",
+                "utterance_id": utterance_id,
+                "segment_index": segment_index,
+                "segment_count": segment_count,
+            },
         )
-        logger.debug("[SERVER] TTS audio emitted: session=%s bytes=%d", session_id, len(audio_bytes))
+        logger.debug(
+            "[SERVER] TTS audio emitted: session=%s utterance=%s segment=%d/%d bytes=%d",
+            session_id,
+            utterance_id,
+            segment_index,
+            segment_count,
+            len(audio_bytes),
+        )
+
+        if not engine_manager.wait_for_tts_segment_playback_done(
+            session_id,
+            utterance_id,
+            segment_index,
+        ):
+            logger.info(
+                "[SERVER] playback wait interrupted: session=%s utterance=%s segment=%d/%d",
+                session_id,
+                utterance_id,
+                segment_index,
+                segment_count,
+            )
+            return
+
+        logger.debug(
+            "[SERVER] playback ack confirmed: session=%s utterance=%s segment=%d/%d",
+            session_id,
+            utterance_id,
+            segment_index,
+            segment_count,
+        )
 
     engine_manager = DialogueEngineManager(
-        default_config, event_callback=on_event, tts_audio_callback=on_tts_audio
+        default_config,
+        event_callback=on_event,
+        tts_audio_callback=cast(Any, on_tts_audio),
     )
     app.state.engine_manager = engine_manager
     app.state.session_hub = session_hub
@@ -142,6 +193,22 @@ def create_app(
     @app.on_event("startup")
     async def on_startup() -> None:
         session_hub.attach_loop(asyncio.get_running_loop())
+
+    @app.on_event("shutdown")
+    async def on_shutdown() -> None:
+        logger.info("[SERVER] shutdown 開始")
+        active_sessions = engine_manager.list_sessions()
+        logger.info("[SERVER] shutdown 対象セッション: %s", active_sessions)
+        for session_id in active_sessions:
+            session = engine_manager.get_session(session_id)
+            if session and session.is_active:
+                logger.info("[SERVER] active session を停止: %s", session_id)
+                engine_manager.stop_session(session_id)
+        logger.info(
+            "[SERVER] shutdown 時の生存スレッド: %s",
+            ", ".join(thread.name for thread in threading.enumerate()),
+        )
+        logger.info("[SERVER] shutdown 完了")
 
     @app.get("/health")
     async def health() -> dict[str, str]:
@@ -177,16 +244,6 @@ def create_app(
     async def list_sessions() -> dict[str, list[str]]:
         return {"sessions": engine_manager.list_sessions()}
 
-    @app.post("/sessions/{session_id}/utterance")
-    async def send_utterance(session_id: str, body: TextUtteranceRequest) -> dict[str, str]:
-        text = body.text.strip()
-        if not text:
-            raise HTTPException(status_code=400, detail="text is required")
-
-        _enqueue_utterance(engine_manager, session_id, text)
-        logger.info("[SERVER] テキスト発話受信: session=%s, text=%s", session_id, text)
-        return {"status": "sent"}
-
     @app.websocket("/dialogue/ws/{session_id}")
     async def dialogue_socket(websocket: WebSocket, session_id: str) -> None:
         session = engine_manager.get_session(session_id)
@@ -206,28 +263,64 @@ def create_app(
                     await _handle_start_dialogue(websocket, engine_manager, session_id)
                 elif action == "end_dialogue":
                     await _handle_end_dialogue(websocket, engine_manager, session_id)
-                elif action == "send_text_utterance":
-                    text = str(payload.get("text") or "").strip()
-                    if not text:
-                        await websocket.send_json(
-                            {"event": "error", "payload": {"message": "text is required"}}
-                        )
-                        continue
-                    _enqueue_utterance(engine_manager, session_id, text)
-                    logger.info("[WEBSOCKET] Text utterance: session=%s, text=%s", session_id, text)
+                elif action == "cancel_tts":
+                    _request_tts_cancel(engine_manager, session_id)
+                    logger.info("[WEBSOCKET] TTS cancel requested: session=%s", session_id)
                 elif action == "send_audio_chunk":
                     audio_b64 = str(payload.get("audio_data") or "")
                     if audio_b64:
                         try:
                             audio_bytes = base64.b64decode(audio_b64)
                             _session = engine_manager.get_session(session_id)
-                            logger.info("[WEBSOCKET] Audio chunk received: session=%s, bytes=%d", session_id, len(audio_bytes))
+                            # logger.info("[WEBSOCKET] Audio chunk received: session=%s, bytes=%d", session_id, len(audio_bytes))
                             if _session:
                                 _session.audio_chunk_queue.put(audio_bytes)
-                        except Exception:
+                                if _session.audio_logging_enabled:
+                                    with _session.audio_lock:
+                                        _session.audio_frames.append(audio_bytes)
+                                # バージインは STT の partial/final で判定する。
+                                # 生の音声チャンク到着だけでは割り込みキャンセルしない。
+                        except (ValueError, binascii.Error):
                             logger.warning("[WEBSOCKET] Invalid audio chunk: session=%s", session_id)
                     else:
                         logger.debug("[WEBSOCKET] Audio chunk received (empty): session=%s", session_id)
+                elif action == "tts_segment_playback_done":
+                    utterance_id = int(payload.get("utterance_id") or 0)
+                    segment_index = int(payload.get("segment_index") or 0)
+                    segment_count = int(payload.get("segment_count") or 0)
+                    if utterance_id <= 0 or segment_index <= 0 or segment_count <= 0:
+                        await websocket.send_json(
+                            {"event": "error", "payload": {"message": "invalid tts playback ack"}}
+                        )
+                        continue
+
+                    result = engine_manager.record_tts_segment_playback_done(
+                        session_id,
+                        utterance_id,
+                        segment_index,
+                        segment_count,
+                    )
+                    if result is None:
+                        logger.info(
+                            "[WEBSOCKET] stale playback ack ignored: session=%s utterance=%s segment=%s/%s",
+                            session_id,
+                            utterance_id,
+                            segment_index,
+                            segment_count,
+                        )
+                        continue
+
+                    played_segments, total_segments, system_speaking = result
+                    logger.info(
+                        "[WEBSOCKET] playback done: session=%s utterance=%s segment=%d/%d played=%d/%d speaking=%s",
+                        session_id,
+                        utterance_id,
+                        segment_index,
+                        segment_count,
+                        played_segments,
+                        total_segments,
+                        system_speaking,
+                    )
                 else:
                     await websocket.send_json(
                         {"event": "error", "payload": {"message": "Unsupported action"}}
@@ -240,22 +333,13 @@ def create_app(
     return app, engine_manager, session_hub
 
 
-def _enqueue_utterance(
-    engine_manager: DialogueEngineManager,
-    session_id: str,
-    text: str,
-) -> None:
-    session = engine_manager.get_session(session_id)
-    if not session:
+def _request_tts_cancel(engine_manager: DialogueEngineManager, session_id: str) -> None:
+    if not engine_manager.set_tts_cancel_requested(session_id, True):
         raise HTTPException(status_code=404, detail="Session not found")
 
-    session.dialbb_request_queue.put(
-        DialbbRequest(
-            session_id=session.engine.session_id,
-            user_text=text,
-            aux_data={},
-        )
-    )
+    session = engine_manager.get_session(session_id)
+    if session:
+        session.tts_cancel_queue.put("cancel")
 
 
 async def _handle_start_dialogue(
@@ -321,7 +405,7 @@ def _load_config(config_file: str | None = None) -> SessionConfig:
         loop_period=float(main_cfg.get("loop_period", 0.1)),
         max_user_wait_time=float(main_cfg.get("max_user_wait_time", 30.0)),
         mic_gain=float(stt_cfg.get("mic_gain", 1.0)),
-        use_client_audio=True,  # サーバモードは常にクライアント音声モード
+        audio_logging=bool(main_cfg.get("audio_logging", False)),
     )
 
 

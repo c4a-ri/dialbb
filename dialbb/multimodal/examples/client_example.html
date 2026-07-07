@@ -7,7 +7,7 @@
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            max-width: 600px;
+            max-width: 800px;
             margin: 0 auto;
             padding: 20px;
             background: #f5f5f5;
@@ -87,11 +87,6 @@
             padding: 8px;
             border-radius: 4px;
         }
-        .message.user {
-            background: #e3f2fd;
-            color: #1565c0;
-            text-align: right;
-        }
         .message.system {
             background: #e8f5e9;
             color: #2e7d32;
@@ -99,13 +94,6 @@
         .message.error {
             background: #ffebee;
             color: #c62828;
-        }
-        .input-area {
-            display: flex;
-            gap: 8px;
-        }
-        input[type="text"].message-input {
-            flex: 1;
         }
         .buttons {
             display: flex;
@@ -161,11 +149,6 @@
         
         <div class="chat-area" id="chatArea"></div>
         
-        <div class="input-area">
-            <input type="text" id="messageInput" class="message-input" placeholder="メッセージを入力..." disabled>
-            <button id="sendBtn" onclick="sendMessage()" disabled>送信</button>
-        </div>
-        
         <div class="buttons">
             <button id="startBtn" onclick="startDialogue()" disabled>対話開始</button>
             <button id="endBtn" onclick="endDialogue()" disabled>対話終了</button>
@@ -176,13 +159,19 @@
             <button id="micBtn" onclick="toggleMic()" disabled>🎤 マイク開始</button>
             <span class="mic-status" id="micStatus">マイク 停止中</span>
         </div>
-        
+
+        <!-- ローカル環境の音声ファイルを選択して、sendAudioFile()へ渡す -->
+        <div class="buttons">
+            <input type="file" id="audioFileInput" accept="audio/*">
+            <button id="sendAudioFileBtn" onclick="sendAudioFile()" disabled>音声ファイル送信</button>
+        </div>
+
         <div class="info">
             <strong>使用方法:</strong><br>
             1. 「作成」でセッション ID を生成するか、既存の ID を入力<br>
             2. 「接続」で WebSocket サーバに接続<br>
             3. 「対話開始」で会話を開始<br>
-            4. メッセージを入力して「送信」
+            4. 「マイク開始」で音声を送信し、サーバからの音声応答を再生
         </div>
     </div>
 
@@ -235,22 +224,20 @@
             if (connected) {
                 status.className = 'status connected';
                 status.textContent = `✓ 接続済み (Session: ${sessionId})`;
-                document.getElementById('messageInput').disabled = false;
-                document.getElementById('sendBtn').disabled = false;
                 document.getElementById('startBtn').disabled = false;
                 document.getElementById('closeBtn').disabled = false;
                 document.getElementById('connectBtn').disabled = true;
                 document.getElementById('micBtn').disabled = false;
+                document.getElementById('sendAudioFileBtn').disabled = false;
             } else {
                 status.className = 'status disconnected';
                 status.textContent = '✗ 未接続';
-                document.getElementById('messageInput').disabled = true;
-                document.getElementById('sendBtn').disabled = true;
                 document.getElementById('startBtn').disabled = true;
                 document.getElementById('endBtn').disabled = true;
                 document.getElementById('closeBtn').disabled = true;
-                document.getElementById('connectBtn').disabled = false;
+                document.getElementById('connectBtn').disabled = true;
                 document.getElementById('micBtn').disabled = true;
+                document.getElementById('sendAudioFileBtn').disabled = true;
                 stopMic();
             }
         }
@@ -294,17 +281,17 @@
 
             socket.onmessage = (event) => {
                 const message = JSON.parse(event.data);
-                
-                if (message.event === 'dialogue_event') {
-                    const { event_type, data } = message.payload;
-                    log(`Server: ${event_type} - ${JSON.stringify(data)}`, 'system');
-                    if (event_type === 'chat' && data.role === 'system') {
-                        log(`🤖 ${data.text}`, 'system');
-                    }
-                } else if (message.event === 'audio_data') {
+
+                if (message.event === 'audio_data') {
                     // TTS 音声データを受信して再生キューに追加
-                    enqueueAudio(message.payload.audio, message.payload.format);
-                    log('🔊 音声データ受信');
+                    enqueueAudio(
+                        message.payload.audio,
+                        message.payload.format,
+                        message.payload.utterance_id,
+                        message.payload.segment_index,
+                        message.payload.segment_count,
+                    );
+                    log(`🔊 音声データ受信 (${message.payload.segment_index}/${message.payload.segment_count})`);
                 } else if (message.event === 'joined_session') {
                     log(`✓ Joined session: ${message.payload.session_id}`);
                 } else if (message.event === 'error') {
@@ -324,19 +311,6 @@
                 updateStatus(false);
                 socket = null;
             };
-        }
-
-        function sendMessage() {
-            const input = document.getElementById('messageInput');
-            const text = input.value.trim();
-            if (!text || !socket) return;
-
-            log(`You: ${text}`, 'user');
-            socket.send(JSON.stringify({
-                action: 'send_text_utterance',
-                text: text
-            }));
-            input.value = '';
         }
 
         function startDialogue() {
@@ -359,10 +333,23 @@
             }
         }
 
-        // Enter key で送信
-        document.getElementById('messageInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendMessage();
-        });
+        function sendAudioFile() {
+            const fileInput = document.getElementById('audioFileInput');
+            if (!fileInput.files.length || !socket) return;
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            reader.onload = () => {
+                const arrayBuffer = reader.result;
+                const base64Audio = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+                socket.send(JSON.stringify({
+                    action: 'send_audio_chunk',
+                    audio_data: base64Audio
+                }));
+                log(`🎵 Audio file sent: ${file.name}`);
+            };
+            reader.readAsArrayBuffer(file);
+        }
 
         // ===== マイク入力 (PCM16 / 16kHz) =====
         let micActive = false;
@@ -499,19 +486,26 @@
         // ===== TTS 音声再生キュー =====
         const ttsQueue = [];
         let ttsPlaying = false;
+        let ttsCurrentSource = null;
         const ttsCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-        function enqueueAudio(base64Audio, format) {
-            ttsQueue.push(base64Audio);
+        function enqueueAudio(base64Audio, format, utteranceId, segmentIndex, segmentCount) {
+            ttsQueue.push({
+                audio: base64Audio,
+                format,
+                utteranceId,
+                segmentIndex,
+                segmentCount,
+            });
             if (!ttsPlaying) drainTtsQueue();
         }
 
         async function drainTtsQueue() {
             if (ttsQueue.length === 0) { ttsPlaying = false; return; }
             ttsPlaying = true;
-            const b64 = ttsQueue.shift();
+            const item = ttsQueue.shift();
             try {
-                const binary = atob(b64);
+                const binary = atob(item.audio);
                 const bytes = new Uint8Array(binary.length);
                 for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
                 // ttsCtx が suspended の場合は再開（iOS Safari 対策）
@@ -520,7 +514,14 @@
                 const src = ttsCtx.createBufferSource();
                 src.buffer = audioBuf;
                 src.connect(ttsCtx.destination);
-                src.onended = drainTtsQueue;
+                ttsCurrentSource = src;
+                src.onended = () => {
+                    if (ttsCurrentSource === src) {
+                        ttsCurrentSource = null;
+                    }
+                    notifyPlaybackDone(item);
+                    drainTtsQueue();
+                };
                 src.start();
             } catch (err) {
                 log(`⚠️ 音声再生エラー: ${err.message}`, 'error');
@@ -528,10 +529,15 @@
             }
         }
 
-        function cancelTts() {
-            ttsQueue.length = 0;
-            ttsPlaying = false;
-            log('🔇 TTS 再生キャンセル');
+        function notifyPlaybackDone(item) {
+            if (!socket || socket.readyState !== WebSocket.OPEN) return;
+            socket.send(JSON.stringify({
+                action: 'tts_segment_playback_done',
+                utterance_id: item.utteranceId,
+                segment_index: item.segmentIndex,
+                segment_count: item.segmentCount,
+            }));
+            log(`✅ 音声再生完了通知 (${item.segmentIndex}/${item.segmentCount})`);
         }
     </script>
 </body>

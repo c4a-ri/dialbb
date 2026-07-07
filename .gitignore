@@ -155,6 +155,9 @@ sample_apps/*/_*
 *-sav.py
 *_sav.py
 
+# logs
+audio_logs/
+
 # debug tools
 /scripts/debug_generate_rows.py
 /scripts/print_rows.py
