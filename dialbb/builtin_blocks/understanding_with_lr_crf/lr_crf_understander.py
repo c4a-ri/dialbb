@@ -154,7 +154,7 @@ class Understander(AbstractBlock):
         excel_file_path = os.path.join(self.config_dir, excel_file)
         print(f"reading excel file: {excel_file_path}", file=sys.stderr)
         try:
-            df_all: Dict[str, DataFrame] = pd.read_excel(excel_file_path, sheet_name=None)  # read all sheets
+            df_all: Dict[str, DataFrame] = pd.read_excel(excel_file_path, sheet_name=None, dtype=str)  # read all sheets
             # reading slots sheet
             return df_all.get(utterances_sheet), df_all.get(slots_sheet)
         except Exception as e:

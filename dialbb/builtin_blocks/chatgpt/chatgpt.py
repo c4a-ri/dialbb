@@ -38,7 +38,7 @@ from dialbb.util.globals import CHATGPT_INSTRUCTIONS
 DIALOGUE_HISTORY_OLD_TAG: str = '@dialogue_history'
 DIALOGUE_HISTORY_TAG: str = '{dialogue_history}'
 CURRENT_TIME_TAG: str = '{current_time}'
-DEFAULT_GPT_MODEL: str = "gpt-4o-mini"
+DEFAULT_GPT_MODEL: str = "gpt-5.4-nano"
 DIALOGUE_UP_TO_NOW = {"ja": "現在までの対話", "en": "Dialogue up to now"}
 
 
@@ -122,7 +122,7 @@ class ChatGPT(AbstractBlock):
         chat_completion = None
         while True:
             try:
-                temperature = 1 if self._gpt_model == 'gpt-5' else self._temperature
+                temperature = 1 if self._gpt_model.startswith('gpt-5') else self._temperature
                 chat_completion = self._openai_client.with_options(timeout=10).chat.completions.create(
                     model=self._gpt_model,
                     messages=messages,

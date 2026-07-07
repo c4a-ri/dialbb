@@ -66,50 +66,54 @@ output_text: system_utterance
 以下のように，環境変数`DIALBB_DEBUG`に`yes`を設定することにより，ログレベルがデバッグモードになります．
 
 ```sh
-export DIALBB_DEBUG=yes;python run_server.py sample_apps/parrot/config.yml
+export DIALBB_DEBUG=yes; dialbb-server sample_apps/parrot/config.yml
 ```
 
 これにより，コンソールに詳しいログが出力されますので，それを見ることで理解が深まると思います．
 
-## ChatGPT対話アプリケーション
+## LLM対話アプリケーション
 
 ### 説明
 
-{ref}`chatgpt_dialogue`を用い，OpenAIのChatGPTを用いて対話を行います．
+{ref}`llm_dialogue`を用い，単一プロンプトテンプレートと大規模言語モデル（LLM)を使って対話を行います．
 
-`sample_apps/chatgpt/`にあります．
+`sample_apps/llm_dialogue_ja/`にあります．
 
-`sample_apps/chatgpt/config_ja.yml`の内容は以下のようになっています．
+`sample_apps/llm_dialogue_ja/config.yml`の内容は以下のようになっています．
 
 ```yaml
+# configuration file for an LLM-based Japanese application
+
 blocks:
-  - name: chatgpt
-    block_class: dialbb.builtin_blocks.chatgpt.chatgpt.ChatGPT
+  - name: llm_dialogue
+    block_class: dialbb.builtin_blocks.llm_dialogue.LLMDialogue
     input:
-      user_id: user_id
-      user_utterance: user_utterance
-      aux_data: aux_data
       dialogue_history: dialogue_history
+      aux_data: aux_data
     output:
       system_utterance: system_utterance
       aux_data: aux_data
       final: final
-    first_system_utterance: "こんにちは。私の名前は由衣。少しお話させてね。スイーツって好き？"
-    prompt_template: prompt_template_ja.txt
-    gpt_model: gpt-4o-mini
+    user_name: ユーザ
+    system_name: システム
+    first_system_utterance: "こんにちは．私の名前は由衣．少しお話させてね．スイーツって好き？"
+    prompt_template: prompt_template.txt
+    model: gpt-5.4-nano
+    #model: google_genai:gemini-2.5-flash
+    # temperature: 0.7
 ```
-メインモジュールとの情報の授受を図示すると以下のようになります．
+メインモジュールとブロックの情報の授受を図示すると以下のようになります．
 
-![sample-arch](../../images/chatgpt-dialogue-arch-ja.jpg)
+![sample-arch](../../images/llm-dialogue-arch-ja.jpg)
 
 
 ブロックコンフィギュレーションのパラメータとして，`input`，`output`以外にいくつか設定されています．
 
 `prompt_template`は，システム発話のプロンプトのテンプレートを指定します．
 
-プロンプトテンプレート`sample_apps/chatgpt/prompt_template_ja.txt`の中身は以下のようになっています．
+プロンプトテンプレート`sample_apps/llm_dialogue_ja/prompt_template.txt`の中身は以下のようになっています．
 
-```txt
+```text
 # タスク説明
 
 - あなたは対話システムで，ユーザと食べ物に関して雑談をしています．あなたの次の発話を50文字以内で生成してください．
@@ -142,156 +146,303 @@ blocks:
 
 # 注意事項
 
-- あなたの名前や「ユーザ」を発話の先頭に入れないでください。
-- 「」はつけないでください。
+- あなたの名前や「ユーザ」を発話の先頭に入れないでください．
+- 「」はつけないでください．
 [[[
 {notes}
 ]]]
 
 ```
 
-このプロンプトテンプレートにそれまでの対話の履歴をつけたものがChatGPTに送られてシステム発話が生成されます。
+このプロンプトテンプレートにそれまでの対話の履歴をつけたものがLLMに送られてシステム発話が生成されます．
 
 ```
 [[[
 {notes}
 ]]]
 ```
-の部分は通常使われずに削除されます。詳細な説明は省略します。
-
-
+の部分は通常使われずに削除されます．詳細な説明は省略します．
 
 
 
 (app_development_with_chatgpt_app)=
 
-### ChatGPTアプリケーションを流用したアプリケーション作成
+### LLM対話アプリケーションを流用したアプリケーション作成
 
 このアプリケーションを流用して新しいアプリケーションを作るには以下のようにします．
 
-- `sample_apps/chatgpt`をディレクトリ毎コピーします．DialBBのディレクトリとは全く関係ないディレクトリで構いません．
+- `sample_apps/llm_dialogue_ja`をディレクトリごとコピーします．DialBBのディレクトリとは全く関係ないディレクトリで構いません．
 
-- `config.yml`や`prompt_template_ja.txt`をを編集します．これらのファイルの名前を変更しても構いません．
+- `config.yml`や`prompt_template.txt`を編集します．これらのファイルの名前を変更しても構いません．
 
 - 以下のコマンドで起動します．
 
   ```sh
-  export PYTHONPATH=<DialBBディレクトリ>;python run_server.py <コンフィギュレーションファイル>
+  dialbb-server <コンフィギュレーションファイル>
   ```
 
-## シンプルアプリケーション
 
-以下の組み込みブロックを用いたサンプルアプリケーションです．
-(v0.9からSnips言語理解を使わないアプリケーションに置き換わりました）
+## RAGアプリケーション
 
-- {ref}`japanese_canonicalizer`
-- {ref}`lr_crf_understander`
+### 説明
+
+{ref}`passage_retrieval` と {ref}`llm_dialogue` を組み合わせて，文書検索付きの対話を行うアプリケーションです．FAQ文書から関連パッセージを検索し，その結果をLLMに渡して応答を生成します．
+
+`sample_apps/rag_ja/`にあります．
+
+`sample_apps/rag_ja/config.yml`の内容は以下のようになっています．
+
+```yaml
+# configuration file for a Japanese RAG application
+
+language: ja
+
+blocks:
+  - name: passage_retrieval
+    block_class: dialbb.builtin_blocks.passage_retrieval.Retriever
+    input:
+      dialogue_history: dialogue_history
+      aux_data: aux_data
+    output:
+      aux_data: aux_data
+    # vector_db_dir: vector_db
+    # collection: rag_docs
+    # chunk_size: 800
+    # chunk_overlap: 100
+    # top_k: 5
+    # clear_before_ingest: True
+    # seperator: "\n\n---\n\n"
+    extensions:
+      - ".md"
+    sources:
+      - docs
+  - name: llm_dialogue
+    block_class: dialbb.builtin_blocks.llm_dialogue.LLMDialogue
+    input:
+      dialogue_history: dialogue_history
+      aux_data: aux_data
+    output:
+      system_utterance: system_utterance
+      aux_data: aux_data
+      final: final
+    user_name: ユーザ
+    system_name: システム
+    first_system_utterance: "こちらはブルーオーシャンレンタカーです．どのようなご用件でしょうか？"
+    prompt_template: prompt_template.txt
+    model: gpt-5.4-nano
+    # temperature: 0.7
+```
+
+メインモジュールと各ブロックの情報の授受を図示すると以下のようになります．
+
+
+
+このアプリケーションでは最初の`passage_retrieval`ブロックがユーザ発話を用いてベクトル検索を行い，検索結果を`aux_data["passages"]`に格納します．次の`llm_dialogue`ブロックは，その`passages`をプロンプトテンプレートに埋め込んで応答を生成します．
+
+`passage_retrieval`ブロックでは，`sources`で検索対象の文書ディレクトリを指定します．この例では`sample_apps/rag_ja/docs/`以下のMarkdownファイルが対象です．起動時には，これらの文書を読み込んでベクトルDBを作成または更新します．ベクトルDBはデフォルトで`vector_db/`に保存されます．現状では毎回ベクトルDBを作り直しますが，追記したい場合は，`clear_before_ingest: False`を設定します．
+
+`sample_apps/rag_ja/prompt_template.txt`の中身は以下のようになっています．
+
+```text
+# タスク説明
+
+- あなたはブルーラインレンタカーの電話応対係です．以下の情報をもとに，お客様の質問に簡潔に答えてください．以下の情報に書いてないことは，「申し訳ありません，今はお答えできません」と言って下さい．
+
+# 元となる情報
+
+{passages}
+```
+
+`{passages}`の部分に検索されたFAQの断片が埋め込まれます．そのため，FAQに書かれている範囲で質問に答えるRAGアプリケーションになります．FAQ本文は`sample_apps/rag_ja/docs/rent-a-car-faq.md`にあります．
+
+### RAGアプリケーションを流用したアプリケーション作成
+
+このアプリケーションを流用して新しいアプリケーションを作るには以下のようにします．
+
+- `sample_apps/rag_ja`をディレクトリごとコピーします．DialBBのディレクトリとは全く関係ないディレクトリで構いません．
+
+- `docs/`以下の文書，`config.yml`，`prompt_template.txt`を編集します．ファイル名を変更しても構いません．
+
+- ベクトルDBを再構築せず，追記させたい場合は，`config.yml`で`clear_before_ingest: False`を指定して起動します．
+
+- 以下のコマンドで起動します．
+
+  ```sh
+  dialbb-server <コンフィギュレーションファイル>
+  ```
+
+
+
+## DST-STNアプリケーション
+
+### 説明
+
+以下の組み込みブロックを用い，様々な機能を含んでいるアプリケーションです．
+
+- {ref}`dst_with_llm`
+
 - {ref}`stn_manager`
 
-`sample_apps/simple_ja/`にあります．
 
-### システム構成
+`sample_apps/dst_stn_ja/`（日本語），`sample_apps/dst_stn_en/`（英語）にあります．
 
-本アプリケーションは以下のようなシステム構成をしています．
+`sample_apps/dst_stn_ja/config.yml`の内容は以下のようになっています．
 
-![sample-arch](../../images/simple-app-arch-ja.jpg)
+```yaml
+# 日本語DST+STNアプリケーションのコンフィギュレーションファイル
 
+language: ja   # 言語を指定
 
-本アプリケーションでは，以下の3つの組み込みブロックを利用しています．これらの組み込みブロックの詳細は，{numref}`builtin_blocks`で説明します．
+system_name: ラーメンボット
 
-- Japanese Canonicalizer: ユーザ入力文の正規化（大文字→小文字，全角→半角の変換，Unicode正規化など）を行います．
-- LR-CRF Understander: 言語理解を行います．ロジスティック回帰 (Logistic Regression) と条件付き確率場(Conditional Random Fields) を利用して，ユーザ発話タイプ（インテントとも呼びます）の決定とスロットの抽出を行います．
-- STN Manager: 対話管理と言語生成を行います．状態遷移ネットワーク(State Transition Network)を用いて対話管理を行い，システム発話を出力します．
+blocks:  # ブロックのリスト
+  - name: dst
+    block_class: dialbb.builtin_blocks.dst_with_llm.DST
+    input:
+      dialogue_history: dialogue_history
+      aux_data: aux_data
+    output: 
+      aux_data: aux_data
+    knowledge_file: dst_knowledge_ja.xlsx  # 知識記述ファイル
+    model: gpt-5.4-nano
+    flags_to_use: 
+      - 'Y'
+      - 'T'
+  - name: manager
+    block_class: dialbb.builtin_blocks.stn_management.Manager
+    knowledge_file: dst_stn_ja_scenario.xlsx # 知識記述ファイル
+    function_definitions: scenario_functions  # 知識記述の中で用いる関数の定義ファイル
+    scenario_graph: yes
+    input:
+      dialogue_history: dialogue_history
+      aux_data: aux_data
+    output:
+      output_text: system_utterance
+      final: final
+      aux_data: aux_data      
+    repeat_when_no_available_transitions: yes
+    input_confidence_threshold: 0.5
+    confirmation_request:
+      function_to_generate_utterance: generate_confirmation_request
+      acknowledgement_utterance_type: 肯定
+      denial_utterance_type: 否定
+    #utterance_to_ask_repetition: もう一度言って頂けますか？
+    ignore_out_of_context_barge_in: yes
+    reaction_to_silence:
+      action: repeat
+      #destination: state1
+    flags_to_use:
+      - 'Y'
+      - 'T'
+    llm:
+      model: gpt-5.4-nano
+      # temperature: 0.7
+      # temperature_for_checking: 0.0
+      instruction: あなたは雑談対話システムで，ユーザと食べ物に関して話しています．食べ物に関係ないことを答えてはいけません．
+      situation:
+        - ユーザとは初対面です
+        - ユーザとは同年代です
+        - ユーザとは親しい感じで話します
+      persona:
+        - 名前は由衣
+        - 28歳
+        - 女性
+        - ラーメン全般が好き
+        - お酒は飲まない
+        - IT会社のwebデザイナー
+        - 独身
+        - 非常にフレンドリーに話す
+        - 外交的で陽気
+      cautions:
+        - 長い発話は禁止
+        - 発話の最後には「．」をつけない
 
+    
+
+```
+
+メインモジュールとの情報の授受を図示すると以下のようになります．
+
+![sample-arch](../../images/dst_stn_ja_arch.jpg)
 
 ### アプリケーションを構成するファイル
 
-本アプリケーションを構成するファイルは`sample_apps/simple_ja`ディレクトリ（フォルダ）にあります．
-
-`sample_apps/simple_ja`には以下のファイルが含まれています．
+本アプリケーションを構成するファイルは`sample_apps/dst_stn_ja`ディレクトリ（フォルダ）にあります．そのディレクトリには以下のファイル/ディレクトリが含まれています．
 
 - `config.yml`
 
-  アプリケーションを規定するコンフィギュレーションファイルです．どのようなブロックを使うかや，各ブロックが読み込むファイルなどが指定されています．このファイルのフォーマットは{numref}`configuration`で詳細に説明します．
+  アプリケーションを規定するコンフィギュレーションファイルです．
 
-- `config_gs_template.yml`　
+- `dst_knowledge_ja.xlsx`
 
-  LR-CRF UnderstanderブロックとSTN Manageブロックで用いる知識をExcelではなく，Google Spreadsheetを用いる場合のコンフィギュレーションファイルのテンプレートです．これをコピーし，Google Spreadsheetにアクセスするための情報を加えることで使用できます．
+  DST with LLMブロックで用いる知識を記述したものです．
 
-- `simple-nlu-knowledge-ja.xlsx`
+- `dst_stn_ja_scenario.xlsx`
 
-  LR-CRF Understanderブロックで用いる知識（言語理解知識）を記述したものです．
-
-- `simple-scenario-ja.xlsx`
-
-  STN Managerブロックで用いる知識（シナリオ）を記述したものです．
+  STN Managerブロックで用いる知識を記述したものです．
 
 - `scenario_functions.py`
 
   STN Managerブロックで用いるプログラムです
 
-- `test_inputs.txt`
+- `test_requests.json`
 
-  システムテストで使うテストシナリオです．
+  テストリクエスト（{numref}`test_requests`）のファイルです．
 
-### LR-CRF Understanderブロック
+- `simulation`
 
-#### 言語理解結果
+  {ref}`sim_tester`のためのファイルを含むディレクトリです．
 
-LR-CRF Understanderブロックは，入力発話を解析し，言語理解結果を出力します．
-言語理解結果はタイプとスロットの集合からなります．
+### DST with LLMブロック
 
-例えば，「好きなのは醤油」の言語理解結果は次のようになります．
+#### スロット抽出結果
+
+DST with LLMブロックは，これまでの対話からスロットを抽出します．
+スロット抽出結果はスロット名とスロット値の組の集合からなります．
+
+例えば，
+
+```
+システム：好きなラーメンは何ですか？
+ユーザ：札幌ラーメンですね
+システム：味噌ラーメンですか？
+ユーザ：はい
+```
+
+のスロット抽出結果は次のようになります．
 
 ```json
 {
-  "type": "特定のラーメンが好き", 
-  "slots": {
-     "好きなラーメン": "醤油ラーメン"
-  }
+  "好きなラーメン": "味噌ラーメン",
+  "地方": "札幌"
 }
 ```
 
-`"特定のラーメンが好き"`がタイプで，`"favarite_ramen"`スロットの値が`"醤油ラーメン"`です．複数のスロットを持つような発話もあり得ます．
+`"好きなラーメン"`がスロット名で，その値が`"醤油ラーメン"`です．
 
-#### 言語理解知識
+#### スロット抽出知識
 
-LR-CRF Understanderブロックが用いる言語理解用の知識は，`simple-nlu-knowledge-ja.xlsx`に書かれています．言語理解知識の記述法の詳細は{numref}`nlu_knowledge`を参照してください．以下に簡単に説明します．
+DST with LLMブロックが用いる知識は，`dst_knowlege_ja.xlsx`に書かれています．記述法の詳細は{numref}`dst_knowledge`を参照してください．以下に簡単に説明します．
 
-言語理解知識は，以下の2つのシートからなります．
+スロット抽出知識は，以下の2つのシートからなります．
 
 | シート名   | 内容                                                     |
 | ---------- | -------------------------------------------------------- |
-| utterances | タイプ毎の発話例と，その発話例から抽出されるべきスロット |
-| slots      | スロットとエンティティの関係                             |
+| dialogues | 対話とスロット抽出結果の組の例 |
+| slots      | スロットとエンティティの関係および同義語のリスト     |
 
-utterancesシートの一部を以下に示します．
+dialoguesシートの一部を以下に示します．
 
-| flag | type                           | utterance                    | slots                                  |
-| ---- | ------------------------------ | ---------------------------- | -------------------------------------- |
-| Y    | 肯定                           | はい                         |                                        |
-| Y    | 否定                           | そうでもない                 |                                        |
-| Y    | 特定のラーメンが好き           | 豚骨ラーメンが好きです       | 好きなラーメン=豚骨ラーメン            |
-| Y    | 地方を言う                     | 荻窪                         | 地方=荻窪                              |
-| Y    | ある地方の特定のラーメンが好き | 札幌の味噌ラーメンが好きです | 地方=札幌, 好きなラーメン=味噌ラーメン |
+| flag | dialogue                                                     | slots                                  |
+| ---- | ------------------------------------------------------------ | -------------------------------------- |
+| Y    | システム：好きなラーメンは何ですか？     <br />ユーザ：豚骨ラーメンです | 好きなラーメン=豚骨ラーメン            |
+| Y    | システム：好きなラーメン教えて<br/>ユーザ：豚骨ラーメン<br/>システム：博多の？<br/>ユーザ：そう | 地方=博多，好きなラーメン=豚骨ラーメン |
 
-一行目は「はい」のタイプが「肯定」で，スロットはないことを示しています．「はい」の言語理解結果は以下のようになります．
+一行目は`diaolgue`列の対話からのスロット抽出結果が以下のようになることを意味しています．
 
 ```JSON
 {  
-   "type": "肯定"   
-}
-```
-
-「札幌の味噌ラーメンが好きです」の言語理解結果は以下のようになります．
-
-```JSON
-{
-  "type": "ある地方の特定のラーメンが好き", 
-  "slots": {
-     "好きなラーメン": "味噌ラーメン",
-     "地方": "札幌"
-  }
+  "好きなラーメン": "豚骨ラーメン"
 }
 ```
 
@@ -303,35 +454,35 @@ utterancesシートの一部を以下に示します．
 | ---- | -------------- | ------------ | -------------------------------------------- |
 | Y    | 好きなラーメン | 豚骨ラーメン | とんこつラーメン，豚骨スープのラーメン，豚骨 |
 | Y    | 好きなラーメン | 味噌ラーメン | みそらーめん，みそ味のラーメン，味噌         |
+| Y    | 地方           | 博多         |                                              |
+| Y    | ユーザの名前   | 太郎         |                                              |
 
 `slot name`列はスロット名，`entity`はスロット値，`synonyms`は同義語のリストです． 
 例えば，一行目は，`好きなラーメン`のスロット値として，`とんこつラーメン`や`豚骨`などが得られた場合，言語理解結果においては，`豚骨ラーメン`に置き換えられる，ということを表しています．
 
+アプリを立ち上げると，上記の知識から例（few-shot example）が作られてLLMのプロンプトに埋め込まれます．実行時にはプロンプトに対話履歴が付加され，スロット抽出が行われます．
 
-#### 言語理解モデルの構築と利用
+### STN Managerの機能
 
-アプリを立ち上げると，上記の知識から，ロジスティック回帰と条件付き確率場のモデルが作られ，実行時に用いられます．
-
-### STN Managerブロック
 
 #### 概要
 
-STN Managerブロックは，状態遷移ネットワーク（State-Transition Network）を用いて対話管理と言語生成を行います．状態遷移ネットワークのことをシナリオとも呼びます．シナリオは，`simple-scenario-ja.xlsx`ファイルの`scenario`シートに書かれています．このシートの書き方の詳細は{numref}`scenario`を参照してください．
+STN Managerブロックは，状態遷移ネットワーク（State-Transition Network）を用いて対話管理と言語生成を行います．状態遷移ネットワークのことをシナリオとも呼びます．シナリオは，`dst_stn_ja_scenario.xlsx`ファイルの`scenario`シートに書かれています．このシートの書き方の詳細は{numref}`scenario`を参照してください．
 
 #### シナリオ記述
 
 シナリオ記述の一部を以下に示します．
 
-| flag | state | system  utterance                                            | user utterance  example                | user utterance  type | conditions                            | actions                                                      | next state             |
-| ---- | ----- | ------------------------------------------------------------ | -------------------------------------- | -------------------- | ------------------------------------- | ------------------------------------------------------------ | ---------------------- |
-| Y    | 好き  | 豚骨ラーメンとか塩ラーメンなどいろんな種類のラーメンがありますが，どんなラーメンが好きですか？ | 豚骨ラーメンが好きです．               | 特定のラーメンが好き | _eq(#好きなラーメン,  "豚骨ラーメン") | _set(&topic_ramen,  #好きなラーメン)                         | 豚骨ラーメンが好き     |
-| Y    | 好き  |                                                              | 豚骨ラーメンが好きです．               | 特定のラーメンが好き | is_known_ramen(#好きなラーメン)       | _set(&topic_ramen,  #好きなラーメン); get_ramen_location(*topic_ramen, &location) | 特定のラーメンが好き   |
-| Y    | 好き  |                                                              |                                        | 特定のラーメンが好き | is_novel_ramen(#好きなラーメン)       | _set(&topic_ramen,  #好きなラーメン)                         | 知らないラーメンが好き |
-| Y    | 好き  |                                                              | 近所の街中華のラーメンが好きなんだよね |                      |                                       |                                                              | #final                 |
+| flag | state | system  utterance                                            | user utterance  example                                  | conditions                      | actions                                                      | next state             |
+| ---- | ----- | ------------------------------------------------------------ | -------------------------------------------------------- | ------------------------------- | ------------------------------------------------------------ | ---------------------- |
+| Y    | 好き  | 豚骨ラーメンと<br />か塩ラーメンな<br />どいろんな種類<br />のラーメンが<br />ありますが，<br />どんなラー<br />メンが好き<br />ですか？ | 豚骨ラーメン<br />が好きです．                           | #好きなラーメン=="豚骨ラーメン" | _set(&topic_ramen,  #好きなラーメン)                         | 豚骨ラーメンが好き     |
+| Y    | 好き  |                                                              | 豚骨ラーメン<br />が好きです．                           | is_known_ramen(#好きなラーメン) | _set(&topic_ramen,  #好きなラーメン); <br />get_ramen_location(*topic_ramen, &location) | 特定のラーメンが好き   |
+| Y    | 好き  |                                                              |                                                          | is_novel_ramen(#好きなラーメン) | _set(&topic_ramen,  #好きなラーメン)                         | 知らないラーメンが好き |
+| Y    | 好き  |                                                              | 近所の街中華<br />のラーメンが<br />好きなんだ<br />よね |                                 |                                                              | #final                 |
 
 各行が一つの遷移を示します．
 
-`flag`列はは言語理解知識と同じく，その行を使用するかどうかをコンフィギュレーションで規定するためのものです．
+`flag`列ははスロット抽出知識と同じく，その行を使用するかどうかをコンフィギュレーションで規定するためのものです．
 
 `state`列は遷移元の状態の名前，`next state`列は遷移先の状態の名前です．
 
@@ -339,14 +490,11 @@ STN Managerブロックは，状態遷移ネットワーク（State-Transition N
 
 `user utterance example`列は，その遷移で想定する発話の例です．実際には使いません．
 
-`user utterance type`列と`conditions`列はその遷移の条件を表します．以下の場合に遷移の条件が満たされます．
-
-- `user utterance type`列が空か，または，`user utterance type`列の値が言語理解結果のユーザ発話タイプがその値と同じで，かつ，
-- `conditions`列が空か，または，`conditions`列のすべての条件が満たされるとき
+`conditions`列はその遷移の条件を表します．`conditions`列が空か，または，`conditions`列のすべての条件が満たされるとき遷移の条件が満たされます．
 
 これらの条件は，上に書いてある遷移から順に，満たされるかどうかを調べて行きます．
 
-`user utterance type`列も`conditions`列も空のものをデフォルト遷移と呼びます．基本的に，一つのstateにデフォルト遷移が一つ必要で，そのstateが遷移元になっている行のうち一番下にないといけません．
+`conditions`列が空のものをデフォルト遷移と呼びます．基本的に，一つのstateにデフォルト遷移が一つ必要で，そのstateが遷移元になっている行のうち一番下にないといけません．
 
 #### 条件
 
@@ -358,7 +506,7 @@ STN Managerブロックは，状態遷移ネットワーク（State-Transition N
 
 `_eq`は二つの引数の値が同じ文字列なら，`True`を返す組み込み関数です．
 
-`#好きなラーメン`のように，`#`で始まる引数は特殊な引数です．例えば言語理解結果のスロット名に`#`をつけたものはスロット値を表す引数です．`#好きなラーメン`は`好きなラーメン`スロットの値です．
+`#好きなラーメン`のように，`#`で始まる引数は特殊な引数です．例えばスロット抽出結果のスロット名に`#`をつけたものはスロット値を表す引数です．`#好きなラーメン`は`好きなラーメン`スロットの値です．
 
 `"豚骨ラーメン"`のように，`""`で囲まれた引数はその中の文字列がその値になります．
 
@@ -376,13 +524,13 @@ STN Managerブロックは，状態遷移ネットワーク（State-Transition N
 
 条件関数と同様，`_`で始まる関数は，組み込み関数です．それ以外の関数は，開発者が作成する関数で，このアプリケーションの場合，`scenario_functions.py`で定義されています．
 
-`_set`は第2引数の値を第1引数に代入する処理を行います．`_set(&topic_ramen,  #好きなラーメン)`の第１引数&topic_ramenは，部文脈情報の`topic_ramen`キーの意味で，この関数呼び出しは文脈情報の`topic_ramen`に`#好きなラーメン`スロットの値をセットします．文脈情報の値は，`*<キー名>`で，条件やアクションの中で取り出せます．
+`_set`は第2引数の値を第1引数に代入する処理を行います．`_set(&topic_ramen,  #好きなラーメン)`の第１引数&topic_ramenは，文脈情報の`topic_ramen`キーの意味で，この関数呼び出しは文脈情報の`topic_ramen`に`#好きなラーメン`スロットの値をセットします．文脈情報の値は，`*<キー名>`で，条件やアクションの中で取り出せます．
 
 `get_ramen_location(*topic_ramen, &location)`は，開発者の作成した関数の呼び出しです．`get_ramen_location`は`scenario_functions.py`で定義されています．この関数は第1引数の値であるラーメンの種類が名物である場所を検索し，文脈情報の第2引数で指定されたキーの値にセットします．例えば`topic_ramen`キーの値が`味噌ラーメン`の場合，味噌ラーメンが名物である場所を検索し，その値が`札幌`であれば，文脈情報の`location`の値を札幌に設定する，という処理を行います．
 
 #### 遷移の記述のまとめ
 
-まとめると，1行目は，状態が`好き`の時，「豚骨ラーメンとか塩ラーメンなどいろんな種類のラーメンがありますが，どんなラーメンが好きですか？」を発話し，次のユーザの発話の言語理解結果のタイプが`特定のラーメンが好き`で，`好きなラーメン`スロットの値が`豚骨ラーメン`であれば，条件が満たされて遷移が行われ，`好きなラーメン`スロットの値，すなわち，`豚骨ラーメン`が，文脈情報の`topic_ramen`の値にセットされ，`豚骨ラーメンが好き`状態に移行します．条件が満たされない場合，2行目の条件が調べられます．
+まとめると，1行目は，状態が`好き`の時，「豚骨ラーメンとか塩ラーメンなどいろんな種類のラーメンがありますが，どんなラーメンが好きですか？」を発話し，次のユーザの発話のスロット抽出結果の`好きなラーメン`スロットの値が`豚骨ラーメン`であれば，条件が満たされて遷移が行われ，`好きなラーメン`スロットの値，すなわち，`豚骨ラーメン`が，文脈情報の`topic_ramen`の値にセットされ，`豚骨ラーメンが好き`状態に移行します．条件が満たされない場合，2行目の条件が調べられます．
 
 これを図示すると以下のようになります．
 
@@ -400,200 +548,19 @@ STN Managerブロックは，状態遷移ネットワーク（State-Transition N
 
 `#error`は，内部エラーが起きた場合に遷移する状態です．これもブロックの出力の`final`に`True`を入れて返します．
 
-#### シナリオグラフ
-
-Graphvizがインストールされていれば，アプリケーションを起動したとき，`system utterance`列のシステム発話と`user utterance  example`列のユーザ発話例を利用したグラフ(シナリオグラフ`_scenario_graph.jpg`)を出力します．以下が本アプリケーションのシナリオグラフです．
-
-![scenario_graph_simple_ja](../../images/scenario_graph_simple_ja.jpg)
-
-### N-Best言語理解結果の利用
-
-本アプリケーションでは，LR-CRF言語理解ブロックが5-Bestの理解結果を出力するようになっています．これは，コンフィギュレーションファイルの以下の`num_candidates`要素で指定されています．
-
-```yml
-blocks:  # bclock list
-  - ....
-  - name: understander
-    ....
-    num_candidates: 3
-  - ....
-```
-
-STN Managerブロックでは，遷移の条件を調べるときに上位の言語理解結果から順に調べ，条件を満たすものがあれば．その結果を用いてアクションを実行して，次の状態に遷移します．
-
-### シンプルアプリケーションを利用したアプリケーション構築
-
-#### 概要
-
-{}{numref}`app_development_with_chatgpt_app`と同様に，シンプルアプリケーションを利用したアプリケーション構築法を説明します．
-
-- `sample_apps/simple_ja`をディレクトリ毎コピーします．DialBBのディレクトリとは全く関係ないディレクトリで構いません．
-
-- 各ファイルを編集します．．これらのファイルの名前を変更しても構いません．
-
-- 以下のコマンドで起動します．
-
-  ```sh
-  export PYTHONPATH=<DialBBディレクトリ>;python run_server.py <コンフィギュレーションファイル>
-  ```
-
-#### 変更するファイル
-
-- `simple-nlu-knowledge-ja.xlsx`
-
-  LR-CRF言語理解ブロックで用いる知識を編集します．
-
-- `simple-scenario-ja.xlsx`
-
-  シナリオを編集します．
-
-- `scenario_functions.py`
-
-  シナリオに付け加えた関数（条件関数，アクション関数）の定義を行います．（{numref}`custom_functions`参照．）
-
-  各関数の定義では，シナリオで用いる引数にプラスして，文脈情報を表す辞書型の引数を付加する必要があります．一般的には，`context: Dict[str, Any]`とします．文脈情報には，あらかじめ登録されている情報と対話中にアクション関数によって登録される情報があります．詳細は{numref}`context_information`を見てください．
-
-- `config.yml`
-
-  基本的な機能のみを用いるならば，あまり変更する必要はないと思います．
-
-## 実験アプリケーション
-
-### 概要
-
-ChatGPTによる言語理解・固有表現抽出とネットワークベース対話管理を軸に，組み込みブロックの様々な機能を含んでいるものです．以下の組み込みブロックを用いています．
-
-- {ref}`japanese_canonicalizer`
-- {ref}`chatgpt_understander`
-- {ref}`chatgpt_ner`
-- {ref}`stn_manager`
-
-シンプルアプリケーションとの大きな違いは，ChatGPT言語理解ブロックとChatGPT固有表現抽出ブロックを用いているところと，STN Managerブロックの先進的な機能を用いているところです．
-
-### アプリケーションを構成するファイル
-
-本アプリケーションを構成するファイルは`sample_apps/simple_ja`ディレクトリ（フォルダ）にあります．そのディレクトリには以下のファイルが含まれています．
-
-- `config.yml`
-
-  アプリケーションを規定するコンフィギュレーションファイルです．
-
-- `lab_app_nlu_knowledge_ja.xlsx`
-
-  ChatGPT言語理解ブロックで用いる知識を記述したものです．
-
-- `lab_app_ner_knowledge_ja.xlsx`
-
-  ChatGPT固有表現抽出ブロックで用いる知識を記述したものです．
-
-- `lab_app_scenario_ja.xlsx`
-
-  STN Managerブロックで用いる知識を記述したものです．
-
-- `scenario_functions.py`
-
-  STN Managerブロックで用いるプログラムです
-
-- `test_requests.json`
-
-  テストリクエスト（{numref}`test_requests`）のファイルです．
-
-### ChatGPT言語理解ブロック
-
-ChatGPTのJSONモードを用いて言語理解を行います．言語理解用の知識はLR-CRF言語理解ブロックと同じ形式のものを用います．これをFew-shot learningに用いて，入力テキストに対して言語理解を行います．入出力LR-CRF言語理解ブロックも同じです．
-
-GPTのモデルは，ブロックコンフィギュレーションの`gpt_model`で指定しています．
-
-ChatGPTに言語理解を行わせる場合のプロンプトのテンプレートはデフォルトのものを用いていいます．詳細は{numref}`chatgpt_understander_params`を参照してください．
-
-### ChatGPT固有表現抽出ブロック
-
-ChatGPTを用いて固有表現抽出を行います．抽出した結果は，ブロックの出力の`aux_data`に入れて返します．以下が例です．
-
-```json
-{"NE_人名": "田中", "NE_地名": "札幌"}
-```
-
-`人名`や`地名`は以下に述べる固有表現抽出知識で定義されている固有表現のクラスです．この結果はSTN Managerブロックの中で，`#NE_人名`や`#NE_地名`という特殊変数で取り出すことができます．
-
-#### 固有表現抽出知識
-
-ChatGPT固有表現抽出ブロックが用いる知識は，`simple-ner-knowledge-ja.xlsx`に書かれています．固有表現抽出知識の記述法の詳細は{numref}`chatgpt_ner_knowledge`を参照してください．以下に簡単に説明します．
-
-固有表現抽出知識は，以下の2つのシートからなります．
-
-| シート名   | 内容                                                     |
-| ---------- | -------------------------------------------------------- |
-| utterances | 発話例と，その発話例から抽出されるべき固有表現 |
-| classes    | 固有表現のクラスの説明とそのクラスの固有表現の例                             |
-
-utterancesシートの一部を以下に示します．
-
-| flag | utterance                    | entities             |
-| ---- | ---------------------------- | -------------------- |
-| Y    | 札幌の味噌ラーメンが好きです | 地名=札幌            |
-| Y    | 田中です                     | 人名=田中            |
-| Y    | 太郎は東京に住んでます       | 人名=太郎，地名=東京 |
-
-
-- `flag`列は，その行を使用するかどうかをコンフィギュレーションで規定するためのものです．
-- `utterance`列は発話例です．
-- `entities`には，`<固有表現クラス名>=<固有表現>, ... ,<固有表現クラス名>=<固有表現>`の形で発話に含まれるスロットを書きます．カンマは全角でも読点でも構いません．
-
-
-以下は`classes`シートの例です．固有表現のクラス毎に1行記述します．
-
-| flag | class | explanation | examples                                 |
-| ---- | ----- | ----------- | ---------------------------------------- |
-| Y    | 人名  | 人の名前    | 田中，山田，太郎，花子，ジョン           |
-| Y    | 地名  | 場所の名前  | 札幌，東京，大阪，日本，アメリカ，北海道 |
-
-- `flag`列は，`utterances`シートと同じです．
-- `class`列には固有表現のクラスを書きます．
-- `explanation`列には固有表現の説明を書きます．
-- `examples`列には，そのクラスの固有表現の例をカンマまたは読点で並べて書きます．
-
-### STN Managerの機能
-
-実験アプリケーションでは，シンプルアプリケーションでは用いていない以下のSTN Managerの機能を使っています．
-
-#### システム発話中の関数呼び出し・特殊変数参照
-
-シンプルアプリケーションでは，システム発話中には，文脈情報の変数しか埋め込んでいませんでしたが，関数呼び出しや特殊変数も埋め込むことができます．
-
-例えば，
-
-```
-私は{get_system_name()}です．よろしければお名前を教えて頂けますか？
-```
-
-の場合，`scenario_fuctions.py`で定義されている`get_system_name(context)`が呼ばれ，その返り値（文字列）が`{get_system_name()}`に置き換わります．なお，`get_system_name`は，コンフィギュレーションファイルの`system_name`の値を返すように定義されています．
-
-```
-ありがとうございます．{#NE_人名}さん，今日はラーメンについて教えて下さい．ラーメンはよく食べますか？
-```
-
-の場合，`{#NE_人名}`は，特殊変数`#NE_人名`の値で置き換えられます．`#NE_人名`はaux_dataの`NE_人名`の値，すなわち固有表現抽出の人名の値になります．
-
 #### シンタクスシュガー
 
 シナリオ内で組み込み関数呼び出しを簡単に記述するためのシンタクスシュガーが用意されています．たとえば`confirmation_request="すみません．ラーメンってよく食べますか？"`は`_set(&confirmation_request, "すみません．ラーメンってよく食べますか？")`と同じです．
 
 `#好きなラーメン=="豚骨ラーメン"`は，`_eq(#好きなラーメン, "豚骨ラーメン")`と同じで，`#NE_人名!=""`は，`_ne(#NE_人名, "")`と同じです．
 
-#### リアクション発話生成
+#### LLMを用いた発話生成・条件判定
 
-シナリオのactions欄に`_reaction="そうなんですね．"`があります．_reactionは文脈情報の特殊な変数で，次のシステム発話の先頭にこの変数の値を付加します．たとえば，この後状態`好き`に遷移すると，システム発話`豚骨ラーメンとか塩ラーメンなどいろんな種類のラーメンがありますが，どんなラーメンが好きですか？`の先頭に，`そうなんですね．`が付加され，`そうなんですね．豚骨ラーメンとか塩ラーメンなどいろんな種類のラーメンがありますが，どんなラーメンが好きですか？`が発話されます．
+システム発話中にある，`$ユーザ発話に対する感想を言って対話を終わらせる短い発話を生成してください．$`は，組み込み関数呼び出し`{_generate_with_llm("それまでの会話につづけて，対話を終わらせる発話を50文字以内で生成してください．"}`のシンタクスシュガーで，LLMを用いて発話を生成します．
 
-このようにユーザ発話に対するリアクションを与えることで，ユーザの言ったことを聞いているよ，ということを示すことができ，ユーザ体験が良くなります．
+また，conditions欄にある`$ユーザが理由を言ったかどうか判断してください．$`は，組み込み関数呼び出し`_check_with_llm("ユーザが理由を言ったかどうか判断してください．")`のシンタクスシュガーで，これまでの対話からLLMを用いて判定を行い，bool値で返します．
 
-#### ChatGPTを用いた発話生成・条件判定
-
-システム発話中にある，`$ユーザ発話に対する感想を言って対話を終わらせる短い発話を生成してください．$"`は，組み込み関数呼び出し`{_generate_with_llm("それまでの会話につづけて，対話を終わらせる発話を50文字以内で生成してください．"}`のシンタクスシュガーで，ChatGPTを用いて発話を生成します．
-
-また，conditions欄にある`$ユーザが理由を言ったかどうか判断してください．$`は，組み込み関数呼び出し`_check_with_llm("ユーザが理由を言ったかどうか判断してください．")`のシンタクスシュガーで，これまでの対話からChatGPTを用いて判定を行い，bool値で返します．
-
-また，システム発話中にある以下の，`$$$...$$$`の囲まれた部分は，組み込み関数呼び出し`{_generate_with_prompt_template(...)}のシンタクスシュガーで，囲まれた部分をプロンプトテンプレートとし，`{..}`のプレースホルダを置き換えた上でChatGPTに発話生成をさせます．
+また，システム発話中にある以下の，`$$$...$$$`の囲まれた部分は，組み込み関数呼び出し`{_generate_with_prompt_template(...)}`のシンタクスシュガーで，囲まれた部分をプロンプトテンプレートとし，`{..}`のプレースホルダを置き換えた上でLLMに発話生成をさせます．
 
 ```
 $$$
@@ -616,12 +583,12 @@ $$$
 $$$
 ```
 
-発話を生成する際のChatGPTのモデルや温度パラメータ，状況設定，ペルソナはブロックコンフィギュレーションで以下のように指定されています．
+発話を生成する際のLLMのモデルや温度パラメータ，状況設定，ペルソナ，注意事項はブロックコンフィギュレーションで以下のように指定されています．
 
 ```yaml
-chatgpt:
-  gpt_model: gpt-4o-mini
-  temperature: 0.7
+llm:
+  model: gpt-5.4-nano
+  # temperature: 0.7
   situation:
     - あなたは対話システムで，ユーザと食べ物に関して雑談をしています．
     - ユーザとは初対面です
@@ -637,7 +604,35 @@ chatgpt:
     - 独身
     - 非常にフレンドリーに話す
     - 外交的で陽気
+  cautions:
+    - 長い発話は禁止
+    - 発話の最後には「．」をつけない
 ```
+
+
+#### システム発話中の関数呼び出し・特殊変数参照
+
+システム発話中には，文脈情報の変数，特殊変数，関数呼び出しを埋め込むことができます．
+
+例えば，
+
+```
+私は{get_system_name()}です．よろしければお名前を教えて頂けますか？
+```
+
+の場合，`scenario_fuctions.py`で定義されている`get_system_name(context)`が呼ばれ，その返り値（文字列）が`{get_system_name()}`に置き換わります．なお，`get_system_name`は，コンフィギュレーションファイルの`system_name`の値を返すように定義されています．
+
+```
+ありがとうございます．{#ユーザの名前}さん，今日はラーメンについて教えて下さい．ラーメンはよく食べますか？
+```
+
+の場合，`{#ユーザの名前}`は，特殊変数`#ユーザの名前`の値で置き換えられます．`#ユーザの名前`はスロット抽出結果の`ユーザの名前`スロットの値になります．
+
+#### リアクション発話生成
+
+シナリオの`actions`欄に`_reaction="そうなんですね．"`があります．`_reaction`は文脈情報の特殊な変数で，次のシステム発話の先頭にこの変数の値を付加します．たとえば，この後状態`好き`に遷移すると，システム発話`豚骨ラーメンとか塩ラーメンなどいろんな種類のラーメンがありますが，どんなラーメンが好きですか？`の先頭に，`そうなんですね．`が付加され，`そうなんですね．豚骨ラーメンとか塩ラーメンなどいろんな種類のラーメンがありますが，どんなラーメンが好きですか？`が発話されます．
+
+このようにユーザ発話に対するリアクションを与えることで，ユーザの言ったことを聞いているよ，ということを示すことができ，ユーザ体験が良くなります．
 
 #### サブダイアローグ
 
@@ -647,7 +642,7 @@ chatgpt:
 
 #### スキップ遷移
 
-system utterance欄に`$skip`があるとシステム発話を返さず，すぐに条件判定を行って次の遷移を行います．アクションの結果をもとにさらに遷移先を変えたいときなどに使います．
+`system utterance`欄に`$skip`があるとシステム発話を返さず，すぐに条件判定を行って次の遷移を行います．アクションの結果をもとにさらに遷移先を変えたいときなどに使います．
 
 #### リピート機能
 
@@ -673,4 +668,14 @@ reaction_to_silence:
 `test_requests.json`には音声入力に対応した入力の例が入っています．
 
 
+#### シナリオグラフ
+
+Graphvizがインストールされていれば，アプリケーションを起動したとき，`system utterance`列のシステム発話と`user utterance  example`列のユーザ発話例を利用したグラフ(シナリオグラフ`_scenario_graph.jpg`)を出力します．以下が本アプリケーションのシナリオグラフです．
+
+![scenario_graph_ja](../../images/scenario_graph_ja.jpg)
+
+
+### LLM-STNアプリケーションを流用したアプリケーション構築
+
+他のサンプルアプリケーションと同様，`sample_apps/dst_stn_ja`をディレクトリごとコピーして編集することで新しいアプリケーションを作ることができます．
 

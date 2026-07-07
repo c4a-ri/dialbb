@@ -1,7 +1,8 @@
-import audioop
 import platform
 import queue
 from threading import Event
+
+import numpy as np
 
 try:
     import pyaudio
@@ -79,7 +80,9 @@ class MicrophoneAudioInput:
             raw = b"".join(data)
             # gain が 1.0 以外のときだけスケーリングする（PCM16 = 2 bytes/sample）。
             if self._gain != 1.0:
-                raw = audioop.mul(raw, 2, self._gain)
+                samples = np.frombuffer(raw, dtype=np.int16).astype(np.float32)
+                samples *= self._gain
+                raw = np.clip(samples, -32768, 32767).astype(np.int16).tobytes()
             yield raw
 
 

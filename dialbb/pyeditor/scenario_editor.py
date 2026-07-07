@@ -1,3 +1,24 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#
+# Copyright, C4A Research Institute, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# scenario_editor.py
+#   gui scenario editor
+#
+
 import argparse
 import sys
 import os
@@ -6,12 +27,15 @@ import json
 import uuid
 from collections import deque
 from PySide6 import QtCore, QtGui, QtWidgets
+from dialbb.no_code.tools.scenario_converter2excel import convert_json_to_excel
 
 from constants import (
     CONNECTOR_OUTSIDE,
     CONNECTOR_R,
     DATA_PATH,
     DEFAULT_NODE_KINDS,
+    IMPORT_LAYOUT_BASE_X,
+    INITIAL_VIEW_SCALE,
     NODE_CORNER_R,
     NODE_H_SYSTEM,
     NODE_H_USER,
@@ -115,8 +139,8 @@ class NodeEditDialog(QtWidgets.QDialog):
             self.priority.setMinimumWidth(120)
 
             # ユーザ発話タイプ: Text
-            self.utterance_type = QtWidgets.QTextEdit()
-            self.utterance_type.setMinimumHeight(60)
+            #self.utterance_type = QtWidgets.QTextEdit()
+            #self.utterance_type.setMinimumHeight(60)
 
             # 遷移条件: Text
             self.condition = QtWidgets.QTextEdit()
@@ -127,7 +151,7 @@ class NodeEditDialog(QtWidgets.QDialog):
             self.action.setMinimumHeight(80)
 
             form.addRow(gui_text("scn_form_priority"), self.priority)
-            form.addRow(gui_text("scn_form_user_utterance_type"), self.utterance_type)
+            #form.addRow(gui_text("scn_form_user_utterance_type"), self.utterance_type)
             form.addRow(gui_text("scn_form_transition_condition"), self.condition)
             form.addRow(gui_text("scn_form_transition_action_advanced"), self.action)
 
@@ -149,7 +173,7 @@ class NodeEditDialog(QtWidgets.QDialog):
         if self.node.node_type == NODE_TYPE_SYSTEM:
             self.utterance.setTabChangesFocus(True)
         else:
-            self.utterance_type.setTabChangesFocus(True)
+            #self.utterance_type.setTabChangesFocus(True)
             self.condition.setTabChangesFocus(True)
             self.action.setTabChangesFocus(True)
 
@@ -158,7 +182,8 @@ class NodeEditDialog(QtWidgets.QDialog):
         if self.node.node_type == NODE_TYPE_SYSTEM:
             widgets = [self.node_kind, self.utterance]
         else:
-            widgets = [self.priority, self.utterance_type, self.condition, self.action]
+            # widgets = [self.priority, self.utterance_type, self.condition, self.action]
+            widgets = [self.priority, self.condition, self.action]
 
         for w in widgets:
             w.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)
@@ -173,8 +198,9 @@ class NodeEditDialog(QtWidgets.QDialog):
             QtWidgets.QWidget.setTabOrder(btn_cancel, btn_ok)
             self.node_kind.setFocus()  # 初期フォーカス
         else:
-            QtWidgets.QWidget.setTabOrder(self.priority, self.utterance_type)
-            QtWidgets.QWidget.setTabOrder(self.utterance_type, self.condition)
+            #QtWidgets.QWidget.setTabOrder(self.priority, self.utterance_type)
+            #QtWidgets.QWidget.setTabOrder(self.utterance_type, self.condition)
+            QtWidgets.QWidget.setTabOrder(self.priority, self.condition)
             QtWidgets.QWidget.setTabOrder(self.condition, self.action)
             QtWidgets.QWidget.setTabOrder(self.action, btn_cancel)
             QtWidgets.QWidget.setTabOrder(btn_cancel, btn_ok)
@@ -197,7 +223,7 @@ class NodeEditDialog(QtWidgets.QDialog):
             except ValueError:
                 self.priority.setValue(0)
 
-            self.utterance_type.setPlainText(self.node.get_field("utterance_type"))
+            # self.utterance_type.setPlainText(self.node.get_field("utterance_type"))
             self.condition.setPlainText(self.node.get_field("condition"))
             self.action.setPlainText(self.node.get_field("action"))
 
@@ -208,7 +234,7 @@ class NodeEditDialog(QtWidgets.QDialog):
             self.node.set_field("utterance", self.utterance.toPlainText())
         else:
             self.node.set_field("priority", str(self.priority.value()))
-            self.node.set_field("utterance_type", self.utterance_type.toPlainText())
+            # self.node.set_field("utterance_type", self.utterance_type.toPlainText())
             self.node.set_field("condition", self.condition.toPlainText())
             self.node.set_field("action", self.action.toPlainText())
 
@@ -521,7 +547,7 @@ class NodeItem(QtWidgets.QGraphicsItem):
             self._add_labeled_text(v, gui_text("scn_form_utterance_plain"), "", key="utterance", min_h=SYS_UTTERANCE_H)
         else:
             self._add_labeled_line(v, gui_text("scn_form_priority_plain"), "", key="priority")
-            self._add_labeled_line(v, gui_text("scn_form_user_utterance_type_plain"), "", key="utterance_type")
+            # self._add_labeled_line(v, gui_text("scn_form_user_utterance_type_plain"), "", key="utterance_type")
             self._add_labeled_text(v, gui_text("scn_form_transition_condition_plain"), "", key="condition", min_h=USR_CONDITION_H)
             self._add_labeled_line(v, gui_text("scn_form_transition_action_plain"), "", key="action")
 
@@ -698,6 +724,11 @@ LAYOUT_DY = NODE_H_USER + 50  # 縦並びの間隔（重なり防止）
 class GraphScene(QtWidgets.QGraphicsScene):
     """ノード編集操作全体を管理する Scene。"""
 
+    SCENE_MARGIN_X = 200
+    SCENE_MARGIN_Y = 140
+    MIN_SCENE_W = 1200
+    MIN_SCENE_H = 800
+
     def __init__(self, undo_stack: QtGui.QUndoStack | None = None, parent=None):
         """ノード編集用の Scene を初期化する。"""
         super().__init__(parent)
@@ -715,9 +746,41 @@ class GraphScene(QtWidgets.QGraphicsScene):
         self._dragging_nodes: bool = False
         self._drag_start: ConnectorItem | None = None
 
+        # 初期状態でもパン可能な最小範囲を確保
+        self.update_scene_rect_to_contents()
+
+    def update_scene_rect_to_contents(self):
+        """現在の内容に合わせてScene範囲を更新する（左右余白を最小化）。"""
+        rect = self.itemsBoundingRect()
+
+        if rect.isNull():
+            self.setSceneRect(
+                -self.MIN_SCENE_W / 2,
+                -self.MIN_SCENE_H / 2,
+                self.MIN_SCENE_W,
+                self.MIN_SCENE_H,
+            )
+            return
+
+        rect = rect.adjusted(
+            -self.SCENE_MARGIN_X,
+            -self.SCENE_MARGIN_Y,
+            self.SCENE_MARGIN_X,
+            self.SCENE_MARGIN_Y,
+        )
+
+        if rect.width() < self.MIN_SCENE_W:
+            pad = (self.MIN_SCENE_W - rect.width()) / 2
+            rect = rect.adjusted(-pad, 0, pad, 0)
+        if rect.height() < self.MIN_SCENE_H:
+            pad = (self.MIN_SCENE_H - rect.height()) / 2
+            rect = rect.adjusted(0, -pad, 0, pad)
+
+        self.setSceneRect(rect)
+
     def _find_ancestor_item(self, item):
-        """Proxy内の子Widget等からでも Node/Connector を拾うための親たどり"""
-        while item is not None and not isinstance(item, (NodeItem, ConnectorItem)):
+        """Proxy内の子Widget等からでも Node/Connector/Edge を拾うための親たどり"""
+        while item is not None and not isinstance(item, (NodeItem, ConnectorItem, EdgeItem)):
             item = item.parentItem()
         return item
 
@@ -859,6 +922,7 @@ class GraphScene(QtWidgets.QGraphicsScene):
                 before = self._drag_before_state
                 after = self._state_to_dict()
                 self.undo_stack.push(GraphHistoryCommand(self, before, after, "ノード移動"))
+                self.update_scene_rect_to_contents()
 
         # 後片付け
         self._dragging_nodes = False
@@ -915,6 +979,10 @@ class GraphScene(QtWidgets.QGraphicsScene):
         raw = self.itemAt(pos, QtGui.QTransform())
         item = self._find_ancestor_item(raw)
 
+        if isinstance(item, (NodeItem, EdgeItem)):
+            self.clearSelection()
+            item.setSelected(True)
+
         menu = QtWidgets.QMenu()
 
         # 空白：System/User追加
@@ -960,7 +1028,7 @@ class GraphScene(QtWidgets.QGraphicsScene):
                 self.align_users_under_system(item)
 
             elif chosen == act_del:
-                self.remove_node(item)
+                self._push_history("ノード削除", lambda: self.remove_node(item))
 
             event.accept()
             return
@@ -968,9 +1036,11 @@ class GraphScene(QtWidgets.QGraphicsScene):
         # エッジ：削除
         if isinstance(item, EdgeItem):
             act_del = menu.addAction(gui_text("scn_menu_delete"))
+            menu.addSeparator()
+            menu.addAction(gui_text("btn_cancel"))
             chosen = menu.exec(event.screenPos())
             if chosen == act_del:
-                self.remove_edge(item)
+                self._push_history("エッジ削除", lambda: self.remove_edge(item))
             event.accept()
             return
 
@@ -999,7 +1069,7 @@ class GraphScene(QtWidgets.QGraphicsScene):
                 node_data.update({
                     "priority": n.get_field("priority"),
                     "utterance_example": n.get_field("utterance_example"),
-                    "utterance_type": n.get_field("utterance_type"),
+                    # "utterance_type": n.get_field("utterance_type"),
                     "condition": n.get_field("condition"),
                     "action": n.get_field("action"),
                 })
@@ -1047,7 +1117,7 @@ class GraphScene(QtWidgets.QGraphicsScene):
             else:
                 node.set_field("priority", str(n.get("priority", "")))
                 node.set_field("utterance_example", n.get("utterance_example", ""))
-                node.set_field("utterance_type", n.get("utterance_type", ""))
+                # node.set_field("utterance_type", n.get("utterance_type", ""))
                 node.set_field("condition", n.get("condition", ""))
                 node.set_field("action", n.get("action", ""))
 
@@ -1063,15 +1133,18 @@ class GraphScene(QtWidgets.QGraphicsScene):
                 self._create_edge_raw(fc, tc)
 
         sync_short_id_counter([n.short_id for n in self.nodes])
+        self.update_scene_rect_to_contents()
 
     def _push_history(self, description: str, mutate_func):
         """操作前後のスナップショットを取り、UndoStackへ積む共通関数"""
         if self.undo_stack is None:
             mutate_func()
+            self.update_scene_rect_to_contents()
             return
 
         before = self._state_to_dict()
         mutate_func()
+        self.update_scene_rect_to_contents()
         after = self._state_to_dict()
 
         self.undo_stack.push(GraphHistoryCommand(self, before, after, description))
@@ -1087,24 +1160,20 @@ class GraphScene(QtWidgets.QGraphicsScene):
         if warning:
             msg = gui_text("scn_msg_export_warning_with_detail").format(detail=warning)
             QtWidgets.QMessageBox.warning(None, gui_text("scn_title_export_warning"), msg)
-            return
+            return False
 
         # --- validation: certain System node kinds must not appear more than once ---
         dup_warn = check_kind_duplicates(data, ["prep", "initial", "error"])
         if dup_warn:
             msg = gui_text("scn_msg_export_aborted_with_detail").format(detail=dup_warn)
             QtWidgets.QMessageBox.warning(None, gui_text("scn_title_export_warning"), msg)
-            return
+            return False
 
         # write JSON only if validation passed
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
         with open(file_path, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
-
-        QtWidgets.QMessageBox.information(
-            None,
-            gui_text("scn_title_export"),
-            gui_text("scn_msg_export_done").format(path=os.path.abspath(file_path)),
-        )
+        return True
 
     def import_json(self, path):
         """JSONから復元（インポートも履歴に乗せる）"""
@@ -1116,7 +1185,7 @@ class GraphScene(QtWidgets.QGraphicsScene):
             def do():
                 """JSONの内容をSceneへ反映して表示位置を整列する。"""
                 self._load_state_from_dict(data)
-                self._auto_layout_impl()
+                self._auto_layout_impl(base_x=IMPORT_LAYOUT_BASE_X)
 
             self._push_history("JSONインポート", do)
 
@@ -1159,7 +1228,7 @@ class GraphScene(QtWidgets.QGraphicsScene):
 
     # ---------- layout helpers：部分整列 / 全体整列 ----------
     def align_users_under_system(self, system_node: NodeItem):
-        """Systemの接続先Userを priority（昇順）で縦整列（System右側へ配置）"""
+        """Systemの接続先Userを priority（降順）で縦整列（System右側へ配置）"""
         if system_node.node_type != NODE_TYPE_SYSTEM:
             return
 
@@ -1181,7 +1250,7 @@ class GraphScene(QtWidgets.QGraphicsScene):
             except ValueError:
                 return 0
 
-        users.sort(key=priority_of, reverse=False)
+        users.sort(key=priority_of, reverse=True)
 
         # System右側に等間隔で並べる（中心合わせ）
         base_x = system_node.x() + LAYOUT_DX
@@ -1198,7 +1267,7 @@ class GraphScene(QtWidgets.QGraphicsScene):
         """全体整列（履歴つきの入口）"""
         self._push_history("自動整列", self._auto_layout_impl)
 
-    def _auto_layout_impl(self):
+    def _auto_layout_impl(self, base_x: float = 0.0):
         """全体整列：BFSでレベル付け→左→右へ層配置、各層内は縦に重ならないよう整列"""
         if not self.nodes:
             return
@@ -1257,7 +1326,6 @@ class GraphScene(QtWidgets.QGraphicsScene):
             levels.setdefault(lv, []).append(n)
 
         # 6) レベルを左→右に配置、レベル内は縦整列
-        base_x = 0.0
         base_y = 0.0
         dy = LAYOUT_DY
 
@@ -1265,7 +1333,7 @@ class GraphScene(QtWidgets.QGraphicsScene):
             nodes = levels[lv]
             x = base_x + lv * LAYOUT_DX
 
-            # User層は priority、その他は現Y順（元の上下関係を維持）
+            # User層は priority降順、その他は現在のY座標順（元の上下関係を維持
             if all(n.node_type == NODE_TYPE_USER for n in nodes):
                 def priority_of(node: NodeItem) -> int:
                     """User層整列用の priority 値を返す。"""
@@ -1273,7 +1341,7 @@ class GraphScene(QtWidgets.QGraphicsScene):
                         return int(node.get_field("priority") or 0)
                     except ValueError:
                         return 0
-                nodes_sorted = sorted(nodes, key=priority_of, reverse=False)
+                nodes_sorted = sorted(nodes, key=priority_of, reverse=True)
             else:
                 nodes_sorted = sorted(nodes, key=lambda n: n.y())
 
@@ -1290,6 +1358,9 @@ class GraphScene(QtWidgets.QGraphicsScene):
 # ==================================
 class GraphicsView(QtWidgets.QGraphicsView):
     """ホイールズーム、Ctrl+ドラッグ or 中ボタンでパン（通常操作はSceneへ渡す）"""
+
+    MIN_ZOOM_SCALE = 0.08
+    MAX_ZOOM_SCALE = 3.0
 
     def __init__(self, scene, parent=None):
         """ズーム・パン操作付きの View を初期化する。"""
@@ -1310,10 +1381,38 @@ class GraphicsView(QtWidgets.QGraphicsView):
 
         self.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)
 
+        # 初期表示時の倍率
+        self.scale(INITIAL_VIEW_SCALE, INITIAL_VIEW_SCALE)
+
+    def _effective_min_zoom_scale(self) -> float:
+        """シーン全体を表示できる倍率を考慮した最小倍率を返す。"""
+        scene = self.scene()
+        if scene is None:
+            return self.MIN_ZOOM_SCALE
+
+        rect = scene.sceneRect()
+        vp = self.viewport().rect()
+        if rect.isNull() or vp.width() <= 0 or vp.height() <= 0:
+            return self.MIN_ZOOM_SCALE
+
+        fit_scale = min(vp.width() / rect.width(), vp.height() / rect.height())
+        # 全体表示に必要な倍率より少しだけ小さい所まで許可して、操作の余裕を残す
+        return min(self.MIN_ZOOM_SCALE, fit_scale * 0.95)
+
     # ---------- Zoom ----------
     def wheelEvent(self, event: QtGui.QWheelEvent):
         """ホイールズーム"""
         zoom = 1.15 if event.angleDelta().y() > 0 else 1 / 1.15
+
+        current_scale = self.transform().m11()
+        target_scale = current_scale * zoom
+        min_scale = self._effective_min_zoom_scale()
+
+        if target_scale < min_scale:
+            zoom = min_scale / current_scale
+        elif target_scale > self.MAX_ZOOM_SCALE:
+            zoom = self.MAX_ZOOM_SCALE / current_scale
+
         self.scale(zoom, zoom)
 
     # ---------- Ctrl key ----------
@@ -1389,11 +1488,12 @@ class GraphicsView(QtWidgets.QGraphicsView):
 class MainWindow(QtWidgets.QMainWindow):
     """PyEditor のメインウィンドウ。"""
 
-    def __init__(self):
+    def __init__(self, excel_path=None):
         """メインウィンドウとツールバーを初期化する。"""
         super().__init__()
         self.setWindowTitle(gui_text("scn_main_title"))
         self.resize(900, 600)
+        self.excel_path = excel_path
 
         # Undoスタック（Ctrl+Z/Y）
         self.undo_stack = QtGui.QUndoStack(self)
@@ -1415,7 +1515,7 @@ class MainWindow(QtWidgets.QMainWindow):
         toolbar.addWidget(spacer)
 
         # toolbar.addAction("保存 (PNG)", lambda: self.scene.save_png("state_graph_qt.png"))
-        toolbar.addAction(gui_text("scn_toolbar_save"), lambda: self.scene.export_json("state_graph.json"))
+        toolbar.addAction(gui_text("scn_toolbar_save"), self.save_json_and_excel)
         toolbar.addAction(gui_text("scn_toolbar_load"), self.confirm_and_load_json)
         toolbar.addAction(gui_text("scn_toolbar_align"), self.scene.auto_layout)
 
@@ -1463,8 +1563,28 @@ class MainWindow(QtWidgets.QMainWindow):
         statusbar.setStyleSheet("background: #4682b4;")
         statusbar.addWidget(hint)
 
-        # キャンバス（パン可能範囲）
-        self.scene.setSceneRect(-5000, -5000, 10000, 10000)
+    def save_json_and_excel(self):
+        """JSON保存後、指定があれば scenario.xlsx へ反映する。"""
+        saved = self.scene.export_json("state_graph.json")
+        if not saved or not self.excel_path:
+            return
+
+        json_file = os.path.join(DATA_PATH, "state_graph.json")
+        try:
+            convert_json_to_excel(json_file, self.excel_path)
+        except (OSError, RuntimeError, ValueError) as exc:
+            QtWidgets.QMessageBox.critical(
+                self,
+                gui_text("scn_title_export_warning"),
+                str(exc),
+            )
+            return
+
+        QtWidgets.QMessageBox.information(
+            self,
+            gui_text("scn_title_export"),
+            gui_text("msg_saved"),
+        )
 
     def load_json_file(self, path: str):
         """外部起動用JSONロード（例外は呼び元に投げる）"""
@@ -1515,6 +1635,12 @@ def main():
         default="ja",
         help="Language type: ja/en",
     )
+    parser.add_argument(
+        "--excel-path",
+        type=str,
+        default=None,
+        help="Path to scenario.xlsx to update on save",
+    )
     args = parser.parse_args()
 
     app = QtWidgets.QApplication(sys.argv)
@@ -1527,7 +1653,7 @@ def main():
     # -----------------------------
     json_path = args.json_path
 
-    w = MainWindow()
+    w = MainWindow(excel_path=args.excel_path)
 
     # -----------------------------
     #  JSON引数が来ていれば自動ロード
