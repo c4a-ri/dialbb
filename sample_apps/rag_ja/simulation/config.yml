@@ -1,0 +1,9 @@
+model: gpt-5.4-nano
+max_turns: 5
+
+settings:
+  - prompt_template: prompt_template1.txt
+  - prompt_template: prompt_template2.txt
+temperatures:
+  - 0.7
+

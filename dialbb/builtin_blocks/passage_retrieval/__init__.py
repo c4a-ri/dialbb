@@ -1,0 +1,1 @@
+from .passage_retrieval import Retriever
