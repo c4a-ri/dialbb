@@ -48,7 +48,7 @@
 
 - `temperature` （float，デフォルト値は`0.7`）
 
-  LLM呼び出しの際の温度パラメータです．LLMが`gpt-5x`の場合は無視されます。
+  LLM呼び出しの際の温度パラメータです．LLMが`gpt-5x`の場合は無視されます．
 
 - `instruction` (文字列, デフォルト値は[このファイル](https://github.com/c4a-ri/dialbb/blob/main/dialbb/util/globals.py)を参照．)
 
@@ -722,11 +722,11 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
 
   - `temperature` (float)
 
-    LLMの温度パラメータです．デフォルト値は`0.7`です．LLMが`gpt-5x`の場合は無視されます。
+    LLMの温度パラメータです．デフォルト値は`0.7`です．LLMが`gpt-5x`の場合は無視されます．
 
   - `temperature_for_checking` (float)
 
-    条件判定の際に用いるLLMの温度パラメータです．これが指定されていない場合は，`temperature`の値が用いられます．LLMが`gpt-5x`の場合は無視されます。
+    条件判定の際に用いるLLMの温度パラメータです．これが指定されていない場合は，`temperature`の値が用いられます．LLMが`gpt-5x`の場合は無視されます．
 
   - `situation` （文字列のリスト）
 
