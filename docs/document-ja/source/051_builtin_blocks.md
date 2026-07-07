@@ -1008,14 +1008,14 @@ def get_ramen_location(ramen: str, variable: str, context: Dict[str, Any]) -> No
 
 subdialogueの中でsubdialogueに遷移することも可能です．
 
-(handling_speech_input)=
-
 ### 外部データベースへの文脈情報の保存
 
 コンフィギュレーションに`context_db`要素があるとき，文脈情報を外部DB（MongoDB)に保存します．`context_db`の指定の仕方は，{numref}`context_db`を見てください．
 
 (ver. 1.2でcontext_dbはブロックコンフィギュレーションではなく，コンフィグレーションのトップレベルでしていするように変更されました．)
 
+
+(handling_speech_input)=
 
 ### 音声入力を扱うための仕組み
 

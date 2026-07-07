@@ -933,7 +933,6 @@ dependencies = [
     { name = "jsonschema-specifications" },
     { name = "langchain" },
     { name = "langchain-anthropic" },
-    { name = "langchain-chroma" },
     { name = "langchain-community" },
     { name = "langchain-google-genai" },
     { name = "langchain-google-vertexai" },
@@ -979,6 +978,7 @@ dependencies = [
 
 [package.optional-dependencies]
 rag = [
+    { name = "langchain-chroma" },
     { name = "langchain-unstructured" },
     { name = "unstructured", extra = ["docx", "md", "pdf", "pptx"] },
 ]
@@ -1023,7 +1023,7 @@ requires-dist = [
     { name = "jsonschema-specifications", specifier = ">=2024.10.1" },
     { name = "langchain", specifier = ">=1.2.15" },
     { name = "langchain-anthropic", specifier = ">=1.4.1" },
-    { name = "langchain-chroma", specifier = ">=1.1.0" },
+    { name = "langchain-chroma", marker = "extra == 'rag'", specifier = ">=1.1.0" },
     { name = "langchain-community", specifier = ">=0.4.2" },
     { name = "langchain-google-genai", specifier = ">=4.2.2" },
     { name = "langchain-google-vertexai" },

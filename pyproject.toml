@@ -61,7 +61,6 @@ dependencies = [
     "jsonschema-specifications>=2024.10.1",
     "langchain>=1.2.15",
     "langchain-anthropic>=1.4.1",
-    "langchain-chroma>=1.1.0",
     "langchain-community>=0.4.2",
     "langchain-google-genai>=4.2.2",
     "langchain-google-vertexai",
@@ -107,6 +106,7 @@ dependencies = [
 
 [project.optional-dependencies]
 rag = [
+    "langchain-chroma>=1.1.0",
     "langchain-unstructured>=1.0.1",
     # HTML support is included in the base unstructured package; there is no upstream `html` extra.
     "unstructured[docx,md,pdf,pptx]>=0.23.1",

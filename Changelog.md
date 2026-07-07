@@ -1,8 +1,8 @@
 # Changelog
 
-## 2.0.0 (2026.7.7)
+## 2.0.0 (2026.7.8)
 
-- Default GPT model changed to gpt-5.4-nano
+- Default LLM changed to gpt-5.4-nano
 
 - Created a RAG sample app
 

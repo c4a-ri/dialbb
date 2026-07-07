@@ -174,93 +174,6 @@ To build a new application by reusing this application, do the following.
   dialbb-server <configuration file>
   ```
 
-## RAG Application
-
-### Description
-
-This application combines {ref}`passage_retrieval` and {ref}`llm_dialogue` to provide document-grounded dialogue. It retrieves relevant passages from FAQ documents and passes them to the LLM to generate a response.
-
-It is located in `sample_apps/rag_en`.
-
-The contents of `sample_apps/rag_en/config.yml` are as follows.
-
-```yaml
-# configuration file for an English RAG application
-
-language: en
-
-blocks:
-  - name: passage_retrieval
-    block_class: dialbb.builtin_blocks.passage_retrieval.Retriever
-    input:
-      dialogue_history: dialogue_history
-      aux_data: aux_data
-    output:
-      aux_data: aux_data
-    # vector_db_dir: vector_db
-    # collection: rag_docs
-    # chunk_size: 800
-    # chunk_overlap: 100
-    # top_k: 5
-    # clear_before_ingest: True
-    # seperator: "\n\n---\n\n"
-    extensions:
-      - ".md"
-    sources:
-      - docs
-  - name: llm_dialogue
-    block_class: dialbb.builtin_blocks.llm_dialogue.LLMDialogue
-    input:
-      dialogue_history: dialogue_history
-      aux_data: aux_data
-    output:
-      system_utterance: system_utterance
-      aux_data: aux_data
-      final: final
-    user_name: User
-    system_name: System
-    first_system_utterance: "Thank you for calling Blue Ocean Rent-A-Car. How may I help you today?"
-    prompt_template: prompt_template.txt
-    model: gpt-5.4-nano
-    # temperature: 0.7
-```
-
-The exchange of information between the main module and the blocks is illustrated as follows.
-
-![sample-arch](../../images/rag-arch-en.jpg)In this application, the first `passage_retrieval` block performs vector search using the user's utterance and stores the retrieved results in `aux_data["passages"]`. The following `llm_dialogue` block inserts those `passages` into the prompt template and generates a response.
-
-In the `passage_retrieval` block, `sources` specifies the document directories to ingest. In this example, the target files are the Markdown files under `sample_apps/rag_en/docs/`. At startup, these documents are read and the vector database is created or updated. By default, the vector database is stored under `vector_db/`. If you want to rebuild the vector database from scratch whenever the documents change, enable `clear_before_ingest: True`.
-
-The contents of `sample_apps/rag_en/prompt_template.txt` are as follows.
-
-```text
-# Task Description
-
-- You are a phone support representative for Blue Ocean Rent-A-Car. Answer the customer's questions concisely based on the information below. If the information below does not cover the answer, say, "I'm sorry, but I can't answer that right now."
-
-# Source Information
-
-{passages}
-```
-
-The retrieved FAQ passages are inserted into `{passages}`. As a result, this becomes a RAG application that answers questions within the scope of the FAQ. The FAQ text itself is stored in `sample_apps/rag_en/docs/rent-a-car-faq.md`.
-
-### Building an Application by Reusing the RAG Application
-
-To build a new application by reusing this application, do the following.
-
-- Copy the entire `sample_apps/rag_en` directory. It may be copied to a directory completely unrelated to the DialBB directory.
-
-- Edit the documents under `docs/`, `config.yml`, and `prompt_template.txt`. You may also rename these files.
-
-- If you want to rebuild the vector database after updating the documents, enable `clear_before_ingest: True` in `config.yml` before startup.
-
-- Start it with the following command.
-
-  ```sh
-  dialbb-server <configuration file>
-  ```
-
 ## DST-STN Application
 
 ### Description
@@ -602,6 +515,9 @@ reaction_to_silence:
   action: repeat
 ```
 
+See {numref}`handling_speech_input` for the details.
+
+
 `test_requests.json` contains examples of requests that exercise these behaviors.
 
 #### Scenario Graph
@@ -631,3 +547,91 @@ The main files that you are likely to modify are as follows.
 - `config.yml`
 
   Modify this file when you want to change block configuration parameters, models, prompt-related settings, or runtime behavior.
+
+## RAG Application
+
+### Description
+
+This application combines {ref}`passage_retrieval` and {ref}`llm_dialogue` to provide document-grounded dialogue. It retrieves relevant passages from FAQ documents and passes them to the LLM to generate a response.
+
+It is located in `sample_apps/rag_en`.
+
+The contents of `sample_apps/rag_en/config.yml` are as follows.
+
+```yaml
+# configuration file for an English RAG application
+
+language: en
+
+blocks:
+  - name: passage_retrieval
+    block_class: dialbb.builtin_blocks.passage_retrieval.Retriever
+    input:
+      dialogue_history: dialogue_history
+      aux_data: aux_data
+    output:
+      aux_data: aux_data
+    # vector_db_dir: vector_db
+    # collection: rag_docs
+    # chunk_size: 800
+    # chunk_overlap: 100
+    # top_k: 5
+    # clear_before_ingest: True
+    # seperator: "\n\n---\n\n"
+    extensions:
+      - ".md"
+    sources:
+      - docs
+  - name: llm_dialogue
+    block_class: dialbb.builtin_blocks.llm_dialogue.LLMDialogue
+    input:
+      dialogue_history: dialogue_history
+      aux_data: aux_data
+    output:
+      system_utterance: system_utterance
+      aux_data: aux_data
+      final: final
+    user_name: User
+    system_name: System
+    first_system_utterance: "Thank you for calling Blue Ocean Rent-A-Car. How may I help you today?"
+    prompt_template: prompt_template.txt
+    model: gpt-5.4-nano
+    # temperature: 0.7
+```
+
+The exchange of information between the main module and the blocks is illustrated as follows.
+
+![sample-arch](../../images/rag-arch-en.jpg)In this application, the first `passage_retrieval` block performs vector search using the user's utterance and stores the retrieved results in `aux_data["passages"]`. The following `llm_dialogue` block inserts those `passages` into the prompt template and generates a response.
+
+In the `passage_retrieval` block, `sources` specifies the document directories to ingest. In this example, the target files are the Markdown files under `sample_apps/rag_en/docs/`. At startup, these documents are read and the vector database is created or updated. By default, the vector database is stored under `vector_db/`. If you want to rebuild the vector database from scratch whenever the documents change, enable `clear_before_ingest: True`.
+
+The contents of `sample_apps/rag_en/prompt_template.txt` are as follows.
+
+```text
+# Task Description
+
+- You are a phone support representative for Blue Ocean Rent-A-Car. Answer the customer's questions concisely based on the information below. If the information below does not cover the answer, say, "I'm sorry, but I can't answer that right now."
+
+# Source Information
+
+{passages}
+```
+
+The retrieved FAQ passages are inserted into `{passages}`. As a result, this becomes a RAG application that answers questions within the scope of the FAQ. The FAQ text itself is stored in `sample_apps/rag_en/docs/rent-a-car-faq.md`.
+
+### Building an Application by Reusing the RAG Application
+
+To build a new application by reusing this application, do the following.
+
+- Copy the entire `sample_apps/rag_en` directory. It may be copied to a directory completely unrelated to the DialBB directory.
+
+- Edit the documents under `docs/`, `config.yml`, and `prompt_template.txt`. You may also rename these files.
+
+- If you want to rebuild the vector database after updating the documents, enable `clear_before_ingest: True` in `config.yml` before startup.
+
+- Start it with the following command.
+
+  ```sh
+  dialbb-server <configuration file>
+  ```
+

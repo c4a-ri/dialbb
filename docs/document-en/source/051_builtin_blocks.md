@@ -1010,6 +1010,7 @@ When the configuration includes a `context_db` element, contextual information i
 
 (In version 1.2, `context_db` was changed to be specified at the top level of the configuration rather than in the block configuration.)
 
+(handling_speech_input)=
 ### Advanced Mechanisms for Handling Speech Input
 
 #### Additional block configuration parameters
