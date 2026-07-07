@@ -266,17 +266,6 @@ def set_file_frame(parent_frame, settings, label_text, file_type_list) -> AppFil
     # select_button.grid(column=2, row=1, padx=5)
     select_button.grid(column=2, row=1, padx=5, pady=5)
 
-    # import button
-    import_button = ttk.Button(
-        file_frame,
-        text=gui_text("btn_load"),
-        command=lambda: import_application_file(
-            file_frame.edit_box, settings, file_type_list
-        ),
-    )
-    # import_button.grid(column=3, row=1, padx=5)
-    import_button.grid(column=3, row=1, padx=5, pady=5)
-
     file_frame.columnconfigure(1, weight=1)  # Entryを伸縮可能に
 
     return file_frame
@@ -338,6 +327,7 @@ def set_file_path_command(edit_box, _settings, title, file_type_list) -> None:
         # パスをテキストボックスに設定する
         edit_box.delete(0, tk.END)
         edit_box.insert(tk.END, file_path)
+        import_application_file(edit_box, _settings, file_type_list)
 
 
 def clear_app_dir_except_gitignore() -> None:

@@ -7,7 +7,7 @@ name = "dialbb"
 version = "2.0.0"
 description = "A dialogue system development framework"
 readme = { file = "README.md", content-type = "text/markdown" }
-requires-python = ">=3.11"
+requires-python = ">=3.11,<3.15"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
 authors = [
