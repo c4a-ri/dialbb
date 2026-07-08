@@ -1,4 +1,4 @@
-# [DialBB](https://c4a-ri.github.io/dialbb/): A Framework for Building Dialogue Systems
+# DialBB: A Framework for Building Dialogue Systems
 
 ver. 2.0.0
 

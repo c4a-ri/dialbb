@@ -583,6 +583,10 @@ The arguments of the functions used in conditions and actions are of the followi
   It means the string as it is.
 
 
+#### Updating contextual information through conditional functions
+
+If a function used in a condition is called and the contextual information is updated within that function, the contextual information is *not restored* even if the condition is not satisfied.
+
 (realization_in_system_utterance)=
 ### Variables and Function Calls in System Utterances
 
@@ -986,7 +990,7 @@ In an action function, setting a string to `_reaction` in the context informatio
 
 For example, if the action function `_set(&_reaction, "I agree.")` is executed and the system's response in the subsequent state is "How was the food?", then the system will return the response "I agree. How was the food?".
 
-
+This feature cannot be used when the destination state is `#initial`.
 
 ### Continuous Transition
 
