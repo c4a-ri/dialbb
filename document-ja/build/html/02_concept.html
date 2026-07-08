@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>2. DialBBの概要 &mdash; DialBB ver. 1.2 ドキュメント v1.2.4 ドキュメント</title>
+  <title>2. DialBBの概要 &mdash; DialBB ver. 2.0 ドキュメント v2.0.0 ドキュメント</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -31,7 +31,7 @@
           
           
           <a href="index.html" class="icon icon-home">
-            DialBB ver. 1.2 ドキュメント
+            DialBB ver. 2.0 ドキュメント
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -47,8 +47,9 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">2. DialBBの概要</a></li>
 <li class="toctree-l1"><a class="reference internal" href="03_tutorial.html">3. チュートリアル</a></li>
 <li class="toctree-l1"><a class="reference internal" href="04_framework.html">4. フレームワーク仕様</a></li>
-<li class="toctree-l1"><a class="reference internal" href="05_builtin_blocks.html">5. 組み込みブロッククラスの仕様</a></li>
-<li class="toctree-l1"><a class="reference internal" href="06_appendix.html">6. Appendix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="051_builtin_blocks.html">5. 組み込みブロッククラスの仕様</a></li>
+<li class="toctree-l1"><a class="reference internal" href="052_deprecated_blocks.html">6. 非推奨となった組み込みブロッククラス</a></li>
+<li class="toctree-l1"><a class="reference internal" href="06_appendix.html">7. Appendix</a></li>
 </ul>
 
         </div>
@@ -57,7 +58,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">DialBB ver. 1.2 ドキュメント</a>
+          <a href="index.html">DialBB ver. 2.0 ドキュメント</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -81,17 +82,10 @@
 <p>フレームワークとは，それ単体でアプリケーションとして成立はしないが，データや追加のプログラムを与えることでアプリケーションを作成するものです．</p>
 <p>以下にDialBBのアプリケーションの基本的なアーキテクチャを示します．</p>
 <p><img alt="dialbb-arch" src="_images/dialbb-arch.jpg" /></p>
-<p>メインモジュールは，対話の各ターンで入力されたデータ（ユーザ発話を含みます）を各ブロックに順次処理させることにより，システム発話を作成して返します．この入力の内容は同じJSON形式のデータblackboard<a class="footnote-reference brackets" href="#fn" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> に書き込まれます．各ブロックは，blackboardの要素のいくつかを受け取り，辞書形式のデータを返します．返されたデータはblackboardに追加されます．すでに同じキーを持つ要素がblackboardにある場合は上書きされます．</p>
+<p>メインモジュールは，対話の各ターンで入力されたデータ（ユーザ発話を含みます）を各ブロックに順次処理させることにより，システム発話を作成して返します．この入力の内容は同じJSON形式のデータblackboardに書き込まれます．各ブロックは，blackboardの要素のいくつかを受け取り，辞書形式のデータを返します．返されたデータはblackboardに追加されます．すでに同じキーを持つ要素がblackboardにある場合は上書きされます．</p>
 <p>どのようなブロックを使うかは，コンフィギュレーションファイルで設定します．ブロックは，あらかじめDialBBが用意しているブロック（組み込みブロック）でもアプリケーション開発者が作成するブロックでも構いません．</p>
 <p>メインモジュールが各ブロックにどのようなデータを渡し，どのようなデータを受け取るかもコンフィギュレーションファイルで指定します．</p>
 <p>詳細は<a class="reference internal" href="04_framework.html#framework"><span class="std std-numref">4 章</span></a>で説明します．</p>
-<hr class="footnotes docutils" />
-<aside class="footnote-list brackets">
-<aside class="footnote brackets" id="fn" role="note">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
-<p>ver.0.2以前はpayloadと呼んでいました．</p>
-</aside>
-</aside>
 </section>
 
 

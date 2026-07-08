@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>4. Framework Specifications &mdash; DialBB ver. 1.2 Document v1.2.4 documentation</title>
+  <title>4. Framework Specifications &mdash; DialBB ver. 2.0 Document v2.0.0 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -17,7 +17,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="5. Built-in Block Classes" href="05_builtin_blocks.html" />
+    <link rel="next" title="5. Built-in Block Classes" href="051_builtin_blocks.html" />
     <link rel="prev" title="3. Tutorial" href="03_tutorial.html" /> 
 </head>
 
@@ -30,7 +30,7 @@
           
           
           <a href="index.html" class="icon icon-home">
-            DialBB ver. 1.2 Document
+            DialBB ver. 2.0 Document
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -49,8 +49,8 @@
 <li class="toctree-l2"><a class="reference internal" href="#input-and-output">4.1. Input and Output</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#the-dialogueprocessor-class">4.1.1. The DialogueProcessor Class</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#request">4.1.2. Request</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#at-the-start-of-the-session">4.1.2.1. At the start of the session</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#after-the-session-starts">4.1.2.2. After the session starts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#at-the-start-of-the-session">4.1.2.1. At the Start of the Session</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#after-the-session-starts">4.1.2.2. After the Session Starts</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#response">4.1.3. Response</a></li>
@@ -58,8 +58,8 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#webapi">4.2. WebAPI</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#server-startup">4.2.1. Server Startup</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#connection-from-client-at-the-start-of-a-session">4.2.2. Connection from Client (At the Start of a Session)</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#connection-from-client-after-the-session-started">4.2.3. Connection from Client (After the Session Started)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#connection-from-a-client-at-the-start-of-a-session">4.2.2. Connection from a Client at the Start of a Session</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#connection-from-a-client-after-the-session-starts">4.2.3. Connection from a Client After the Session Starts</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#configuration">4.3. Configuration</a></li>
@@ -68,8 +68,8 @@
 <li class="toctree-l3"><a class="reference internal" href="#storing-dialogue-history-in-an-external-database">4.4.2. Storing Dialogue History in an External Database</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#how-to-make-your-own-blocks">4.5. How to make your own blocks</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#methods-to-be-implemented">4.5.1. Methods to be Implemented</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#how-to-make-your-own-blocks">4.5. How to Make Your Own Blocks</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#methods-to-implement">4.5.1. Methods to Implement</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#available-variables">4.5.2. Available Variables</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#available-methods">4.5.3. Available Methods</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#logging">4.5.3.1. Logging</a></li>
@@ -78,11 +78,22 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#debug-mode">4.6. Debug Mode</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#test-using-test-scenarios">4.7. Test Using Test Scenarios</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#loading-environment-variables">4.7. Loading Environment Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#test">4.8. Test</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#test-using-test-scenarios">4.8.1. Test Using Test Scenarios</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#test-using-test-requests">4.8.2. Test Using Test Requests</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#test-using-a-user-simulator">4.8.3. Test Using a User Simulator</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#running-the-sample">4.8.3.1. Running the Sample</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#specifications">4.8.3.2. Specifications</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="05_builtin_blocks.html">5. Built-in Block Classes</a></li>
-<li class="toctree-l1"><a class="reference internal" href="06_appendix.html">6. Appendix</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="051_builtin_blocks.html">5. Built-in Block Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="052_deprecated_blocks.html">6. Deprecated Built-in Block Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="06_appendix.html">7. Appendix</a></li>
 </ul>
 
         </div>
@@ -91,7 +102,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">DialBB ver. 1.2 Document</a>
+          <a href="index.html">DialBB ver. 2.0 Document</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -111,205 +122,203 @@
              
   <section id="framework-specifications">
 <span id="framework"></span><h1><span class="section-number">4. </span>Framework Specifications<a class="headerlink" href="#framework-specifications" title="Permalink to this heading"></a></h1>
-<p>This section describes the specifications of DialBB as a framework.</p>
-<p>We assume that the reader has knowledge of Python programming.</p>
+<p>This chapter describes DialBB as a framework.</p>
+<p>It assumes that the reader is familiar with Python programming.</p>
 <section id="input-and-output">
 <h2><span class="section-number">4.1. </span>Input and Output<a class="headerlink" href="#input-and-output" title="Permalink to this heading"></a></h2>
-<p>The main module of DialBB has the class API (method call), which accepts user utterance and auxiliary information in JSON format and returns system utterance and auxiliary information in JSON format.</p>
-<p>The main module works by calling blocks in sequence. Each block receives data  formatted in JSON (Python dictionary type) and returns the data in JSON format.</p>
-<p>The class and input/output specifications of each block are specified in the configuration file for each application.</p>
+<p>The main module of DialBB provides a class API. It accepts user utterances and auxiliary information in JSON-like dictionary form and returns system utterances and auxiliary information in the same form.</p>
+<p>The main module operates by calling blocks in sequence. Each block receives dictionary data and returns dictionary data.</p>
+<p>The block classes used by an application and their input and output mappings are defined in the application’s configuration file.</p>
 <section id="the-dialogueprocessor-class">
 <h3><span class="section-number">4.1.1. </span>The DialogueProcessor Class<a class="headerlink" href="#the-dialogueprocessor-class" title="Permalink to this heading"></a></h3>
-<p>The application is built by creating an object of class <code class="docutils literal notranslate"><span class="pre">dialbb.main.DialogueProcessor</span></code></p>
-<p>This is done by the following procedure.</p>
+<p>An application is created by instantiating <code class="docutils literal notranslate"><span class="pre">dialbb.main.DialogueProcessor</span></code>.</p>
+<p>The basic usage is as follows.</p>
 <ul>
-<li><p>It is assumed that DialBB is installed via pip according to the GitHub README, or that <code class="docutils literal notranslate"><span class="pre">dialbb</span></code> is in the module search path.</p></li>
-<li><p>In the application that uses DialBB, use the following DialogueProcessor
-and calls process method.</p>
+<li><p>Assume that DialBB has been installed according to the GitHub README, or that <code class="docutils literal notranslate"><span class="pre">dialbb</span></code> is available on the module search path.</p></li>
+<li><p>In your application code, create a <code class="docutils literal notranslate"><span class="pre">DialogueProcessor</span></code> instance and call its <code class="docutils literal notranslate"><span class="pre">process</span></code> method.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">dialbb.main</span> <span class="kn">import</span> <span class="n">DialogueProcessor</span>
-<span class="n">dialogue_processor</span> <span class="o">=</span> <span class="n">DialogueProcessor</span><span class="p">(</span><span class="o">&lt;</span><span class="n">configuration</span> <span class="n">file</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">additional</span> <span class="n">configuration</span><span class="o">&gt;</span><span class="p">)</span>
-<span class="n">response</span> <span class="o">=</span> <span class="n">dialogue_processor</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="o">&lt;</span><span class="n">request</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">initial</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># at the start of a dialogue session</span>
-<span class="n">response</span> <span class="o">=</span> <span class="n">dialogue_processor</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="o">&lt;</span><span class="n">request</span><span class="o">&gt;</span><span class="p">)</span> <span class="c1"># when session continues</span>
+
+<span class="n">dialogue_processor</span> <span class="o">=</span> <span class="n">DialogueProcessor</span><span class="p">(</span><span class="o">&lt;</span><span class="n">configuration</span> <span class="n">file</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">additional</span> <span class="n">configuration</span><span class="o">&gt;</span><span class="p">)</span>
+<span class="n">response</span> <span class="o">=</span> <span class="n">dialogue_processor</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="o">&lt;</span><span class="n">request</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">initial</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># start of a dialogue session</span>
+<span class="n">response</span> <span class="o">=</span> <span class="n">dialogue_processor</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="o">&lt;</span><span class="n">request</span><span class="o">&gt;</span><span class="p">)</span>  <span class="c1"># subsequent turns</span>
 </pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">&lt;additional</span> <span class="pre">configuration&gt;</span></code> is data in dictionary form, where keys must be a string, such as</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span>{
+</li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">&lt;additional</span> <span class="pre">configuration&gt;</span></code> is a dictionary whose keys must be strings, for example:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>{
   &quot;&lt;key1&gt;&quot;: &lt;value1&gt;,
   &quot;&lt;key2&gt;&quot;: &lt;value2&gt;,
   ...
 }
 </pre></div>
 </div>
-<p>This is used in addition to the data read from the configuration file. If the same key is used in the
-configuration file and in the additional configuration, the value of the additional configuration is used.</p>
-<p><code class="docutils literal notranslate"><span class="pre">&lt;request&gt;</span></code> and <code class="docutils literal notranslate"><span class="pre">response</span></code> are dictionary type data, described below.</p>
-<p>Note that <code class="docutils literal notranslate"><span class="pre">DialogueProcessor.process</span></code> is <strong>not</strong> thread safe.</p>
-</li>
-</ul>
+<p>This is merged with the data loaded from the configuration file. If the same key appears in both places, the value from the additional configuration is used.</p>
+<p><code class="docutils literal notranslate"><span class="pre">&lt;request&gt;</span></code> and <code class="docutils literal notranslate"><span class="pre">response</span></code> are dictionary objects described below.</p>
+<p><code class="docutils literal notranslate"><span class="pre">DialogueProcessor.process</span></code> is <strong>not</strong> thread-safe.</p>
 </section>
 <section id="request">
 <h3><span class="section-number">4.1.2. </span>Request<a class="headerlink" href="#request" title="Permalink to this heading"></a></h3>
 <section id="at-the-start-of-the-session">
-<h4><span class="section-number">4.1.2.1. </span>At the start of the session<a class="headerlink" href="#at-the-start-of-the-session" title="Permalink to this heading"></a></h4>
-<p>JSON in the following form.</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span>{
-  &quot;user_id&quot;: &lt;user id: string&gt;,
-  &quot;aux_data&quot;: &lt;auxiliary data: object (types of values are arbitrary)&gt;}
+<h4><span class="section-number">4.1.2.1. </span>At the Start of the Session<a class="headerlink" href="#at-the-start-of-the-session" title="Permalink to this heading"></a></h4>
+<p>The request has the following form.</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>{
+  &quot;user_id&quot;: &lt;user ID string&gt;,
+  &quot;aux_data&quot;: &lt;auxiliary data object&gt;
 }
 </pre></div>
 </div>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">user_id</span></code> is mandatory and <code class="docutils literal notranslate"><span class="pre">aux_data</span></code> is optional</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">&lt;user</span> <span class="pre">id&gt;</span></code> is a unique ID for a user. This is used for remembering the contents of previous interactions when the same user interacts with the application multiple times.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">&lt;auxiliary</span> <span class="pre">data&gt;</span></code> is used to send client status to the application. It is an JSON object and its contents are decided on an application-by-application basis.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">user_id</span></code> is required.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aux_data</span></code> is optional.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;user</span> <span class="pre">ID&gt;</span></code> is a unique identifier for a user. It is used when the same user interacts with the application multiple times and the application needs to retain earlier context.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;auxiliary</span> <span class="pre">data&gt;</span></code> is used to send client-side state to the application. It is a JSON object whose content depends on the application.</p></li>
 </ul>
 </section>
 <section id="after-the-session-starts">
-<h4><span class="section-number">4.1.2.2. </span>After the session starts<a class="headerlink" href="#after-the-session-starts" title="Permalink to this heading"></a></h4>
-<p>JSON in the following form.</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span>{
-  &quot;user_id&quot;: &lt;user id: string&gt;,
-  &quot;session_id&quot;: &lt;session id: string&gt;,
-  &quot;user_utterance&quot;: &lt;user utterance string: string&gt;,
-  &quot;aux_data&quot;: &lt;auxiliary data: object (types of values are arbitrary)&gt;
+<h4><span class="section-number">4.1.2.2. </span>After the Session Starts<a class="headerlink" href="#after-the-session-starts" title="Permalink to this heading"></a></h4>
+<p>The request has the following form.</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>{
+  &quot;user_id&quot;: &lt;user ID string&gt;,
+  &quot;session_id&quot;: &lt;session ID string&gt;,
+  &quot;user_utterance&quot;: &lt;user utterance string&gt;,
+  &quot;aux_data&quot;: &lt;auxiliary data object&gt;
 }
 </pre></div>
 </div>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">user_id</span></code>, <code class="docutils literal notranslate"><span class="pre">session_id</span></code>, and <code class="docutils literal notranslate"><span class="pre">user_utterance</span></code> are mandatory, and <code class="docutils literal notranslate"><span class="pre">aux_data</span></code> is optional.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">&lt;session</span> <span class="pre">id&gt;</span></code> is the session ID included in the responses.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">&lt;user</span> <span class="pre">utterance</span> <span class="pre">string&gt;</span></code> is the utterance made by the user.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">user_id</span></code>, <code class="docutils literal notranslate"><span class="pre">session_id</span></code>, and <code class="docutils literal notranslate"><span class="pre">user_utterance</span></code> are required.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aux_data</span></code> is optional.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;session</span> <span class="pre">ID&gt;</span></code> is the session identifier returned by the server.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;user</span> <span class="pre">utterance</span> <span class="pre">string&gt;</span></code> is the utterance entered by the user.</p></li>
 </ul>
 </section>
 </section>
 <section id="response">
 <h3><span class="section-number">4.1.3. </span>Response<a class="headerlink" href="#response" title="Permalink to this heading"></a></h3>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span>{
-  &quot;session_id&quot;:&lt;session id: string&gt;,
-  &quot;system_utterance&quot;: &lt;system utterance string: string&gt;, 
-  &quot;user_id&quot;:&lt;user id: string&gt;, 
-  &quot;final&quot;: &lt;end-of-dialogue flag: bool&gt; 
-  &quot;aux_data&quot;: &lt;auxiliary data: object (types of values are arbitrary)&gt;
+<p>The response has the following form.</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>{
+  &quot;session_id&quot;: &lt;session ID string&gt;,
+  &quot;system_utterance&quot;: &lt;system utterance string&gt;,
+  &quot;user_id&quot;: &lt;user ID string&gt;,
+  &quot;final&quot;: &lt;boolean flag indicating whether the dialogue has ended&gt;,
+  &quot;aux_data&quot;: &lt;auxiliary data object&gt;
 }
-
 </pre></div>
 </div>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">&lt;session</span> <span class="pre">id&gt;</span></code> is the ID of the dialog session. A new session ID is generated when new session starts.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">&lt;system</span> <span class="pre">utterance</span> <span class="pre">string&gt;</span></code> is the utterance of the system.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">&lt;user</span> <span class="pre">id&gt;</span></code> is the ID of the user sent in the request.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">&lt;end-of-dialog</span> <span class="pre">flag&gt;</span></code> is a boolean value indicating whether the dialog has ended or not.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">&lt;auxiliary</span> <span class="pre">data&gt;</span></code> is data that the application sends to the client. It is used to send
-information such as server status.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;session</span> <span class="pre">ID&gt;</span></code> is the identifier of the dialogue session. A new session ID is generated when a new session starts. When an external database is used, a hash value is used.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;system</span> <span class="pre">utterance</span> <span class="pre">string&gt;</span></code> is the system response.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;user</span> <span class="pre">ID&gt;</span></code> is the user ID that was sent in the request.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;final&gt;</span></code> indicates whether the dialogue has ended.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;auxiliary</span> <span class="pre">data&gt;</span></code> is data sent from the application to the client, for example server-side state.</p></li>
 </ul>
 </section>
 </section>
 <section id="webapi">
 <h2><span class="section-number">4.2. </span>WebAPI<a class="headerlink" href="#webapi" title="Permalink to this heading"></a></h2>
-<p>Applications can also be accessed via WebAPI.</p>
+<p>Applications can also be accessed through the Web API.</p>
 <section id="server-startup">
 <h3><span class="section-number">4.2.1. </span>Server Startup<a class="headerlink" href="#server-startup" title="Permalink to this heading"></a></h3>
-<p>It is assumed that DialBB is installed via pip according to the GitHub README.</p>
-<p>Start the server by specifying a configuration file.</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>dialbb-server<span class="w"> </span><span class="o">[</span>--port<span class="w"> </span>&lt;port&gt;<span class="o">]</span><span class="w"> </span>&lt;config<span class="w"> </span>file&gt;
+<p>Assume that DialBB has been installed according to the GitHub README.</p>
+<p>Start the server with the following command.</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>dialbb-server<span class="w"> </span><span class="o">[</span>--port<span class="w"> </span>&lt;port&gt;<span class="o">]</span><span class="w"> </span>&lt;config<span class="w"> </span>file&gt;
 </pre></div>
 </div>
 <p>The default port number is <code class="docutils literal notranslate"><span class="pre">8080</span></code>.</p>
 </section>
-<section id="connection-from-client-at-the-start-of-a-session">
-<h3><span class="section-number">4.2.2. </span>Connection from Client (At the Start of a Session)<a class="headerlink" href="#connection-from-client-at-the-start-of-a-session" title="Permalink to this heading"></a></h3>
+<section id="connection-from-a-client-at-the-start-of-a-session">
+<h3><span class="section-number">4.2.2. </span>Connection from a Client at the Start of a Session<a class="headerlink" href="#connection-from-a-client-at-the-start-of-a-session" title="Permalink to this heading"></a></h3>
 <ul>
 <li><p>URI</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">http</span><span class="p">:</span><span class="o">//&lt;</span><span class="n">server</span><span class="o">&gt;</span><span class="p">:</span><span class="o">&lt;</span><span class="n">port</span><span class="o">&gt;/</span><span class="n">init</span>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>http://&lt;server&gt;:&lt;port&gt;/init
 </pre></div>
 </div>
 </li>
 <li><p>Request header</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Content</span><span class="o">-</span><span class="n">Type</span><span class="p">:</span> <span class="n">application</span><span class="o">/</span><span class="n">json</span>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Content-Type: application/json
 </pre></div>
 </div>
 </li>
 <li><p>Request body</p>
-<p>The data is in the same JSON format as the request in the case of the class API.</p>
+<p>The same JSON structure as the class API request.</p>
 </li>
 <li><p>Response</p>
-<p>The data is in the same JSON format as the response in the case of the class API.</p>
+<p>The same JSON structure as the class API response.</p>
 </li>
 </ul>
 </section>
-<section id="connection-from-client-after-the-session-started">
-<h3><span class="section-number">4.2.3. </span>Connection from Client (After the Session Started)<a class="headerlink" href="#connection-from-client-after-the-session-started" title="Permalink to this heading"></a></h3>
+<section id="connection-from-a-client-after-the-session-starts">
+<h3><span class="section-number">4.2.3. </span>Connection from a Client After the Session Starts<a class="headerlink" href="#connection-from-a-client-after-the-session-starts" title="Permalink to this heading"></a></h3>
 <ul>
 <li><p>URI</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">http</span><span class="p">:</span><span class="o">//&lt;</span><span class="n">server</span><span class="o">&gt;</span><span class="p">:</span><span class="o">&lt;</span><span class="n">port</span><span class="o">&gt;/</span><span class="n">dialogue</span>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>http://&lt;server&gt;:&lt;port&gt;/dialogue
 </pre></div>
 </div>
 </li>
-<li><p>request header</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Content</span><span class="o">-</span><span class="n">Type</span><span class="p">:</span> <span class="n">application</span><span class="o">/</span><span class="n">json</span>
+<li><p>Request header</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Content-Type: application/json
 </pre></div>
 </div>
 </li>
-<li><p>request body</p>
-<p>The data is in the JSON format as the request in the case of the class API.</p>
+<li><p>Request body</p>
+<p>The same JSON structure as the class API request.</p>
 </li>
-<li><p>response</p>
-<p>The data is in the same JSON format as the response in the case of the class API.</p>
+<li><p>Response</p>
+<p>The same JSON structure as the class API response.</p>
 </li>
 </ul>
 </section>
 </section>
 <section id="configuration">
 <span id="id1"></span><h2><span class="section-number">4.3. </span>Configuration<a class="headerlink" href="#configuration" title="Permalink to this heading"></a></h2>
-<p>The configuration is data in dictionary format and is assumed to be provided with a yaml file.</p>
-<p>Only the <code class="docutils literal notranslate"><span class="pre">blocks</span></code> element is required for configuration; the blocks element is a list of what each block specifies (this is called the block configuration) and has the following form</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">blocks</span><span class="p">:</span>
-  <span class="o">-</span> <span class="o">&lt;</span><span class="n">Block</span> <span class="n">Configuration</span><span class="o">&gt;</span>
-  <span class="o">-</span> <span class="o">&lt;</span><span class="n">Block</span> <span class="n">Configuration</span><span class="o">&gt;</span>
-  <span class="o">...</span>
-  <span class="o">-</span> <span class="o">&lt;</span><span class="n">Block</span> <span class="n">Configuration</span><span class="o">&gt;</span>
+<p>The configuration is dictionary data, typically provided as a YAML file.</p>
+<p>The only required top-level element is <code class="docutils literal notranslate"><span class="pre">blocks</span></code>. This is a list of block configurations.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">blocks</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;block configuration&gt;</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;block configuration&gt;</span>
+<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">...</span>
 </pre></div>
 </div>
-<p>The following are the mandatory elements of each block configuration.</p>
+<p>Each block configuration requires the following elements.</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">name</span></code></p>
-<p>Name of the block. Used in the log.</p>
+<p>The name of the block. It is used in logs.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">block_class</span></code></p>
-<p>The class name of the block. This should be written as a realtive path from a module search path (an element of <code class="docutils literal notranslate"><span class="pre">sys.path</span></code>. Paths set to <code class="docutils literal notranslate"><span class="pre">PYTHONPATH</span></code> environment variable are included in it).</p>
-<p>The directory containing the configuration files is automatically registered in the path (an element of <code class="docutils literal notranslate"><span class="pre">sys.path</span></code>) where the module is searched.</p>
-<p>Built-in classes should be specified in the form <code class="docutils literal notranslate"><span class="pre">dialbb.built-in_blocks.&lt;module</span> <span class="pre">name&gt;.&lt;class</span> <span class="pre">name&gt;.</span></code> Relative paths from <code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks</span></code> are also allowed, but are deprecated.</p>
+<p>The class name of the block. It should be written as a path relative to a module search path entry in <code class="docutils literal notranslate"><span class="pre">sys.path</span></code>. Paths specified in <code class="docutils literal notranslate"><span class="pre">PYTHONPATH</span></code> are included in <code class="docutils literal notranslate"><span class="pre">sys.path</span></code>.</p>
+<p>The directory containing the configuration file is automatically added to the module search path.</p>
+<p>Built-in block classes should be specified in the form <code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.&lt;module</span> <span class="pre">name&gt;.&lt;class</span> <span class="pre">name&gt;</span></code>. A path relative to <code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks</span></code> is also accepted, but deprecated.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">input</span></code></p>
-<p>This defines the input from the main module to the block. It is a dictionary type data, where keys are used for references within the block and values are used for references in the blackboard (data stored in the main module). For example, if the following is in a block configuration,
-then what can be referenced by <code class="docutils literal notranslate"><span class="pre">input['sentence']</span></code> in the block is <code class="docutils literal notranslate"><span class="pre">blackboard['canonicalized_user_utterance']</span></code> in the main module.</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">input</span><span class="p">:</span><span class="w"> </span>
+<p>This defines the mapping from the main module to the block. It is a dictionary whose keys are names used inside the block and whose values are keys in the blackboard maintained by the main module.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">input</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">sentence</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">canonicalized_user_utterance</span>
 </pre></div>
 </div>
-<p>If the specified key is not in the blackboard, the corresponding element of the input becomes <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+<p>In this example, <code class="docutils literal notranslate"><span class="pre">input['sentence']</span></code> inside the block refers to <code class="docutils literal notranslate"><span class="pre">blackboard['canonicalized_user_utterance']</span></code> in the main module.</p>
+<p>If the specified blackboard key does not exist, the corresponding input element becomes <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">output</span></code></p>
-<p>Like <code class="docutils literal notranslate"><span class="pre">input</span></code>, it is data of dictionary type, where keys are used for references within the block and values are used for references on the blackboard. If the following is specified:</p>
+<p>This defines the mapping from the block back to the main module. Like <code class="docutils literal notranslate"><span class="pre">input</span></code>, it is a dictionary whose keys are names used inside the block and whose values are keys in the blackboard.</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">output</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">output_text</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">system_utterance</span>
 </pre></div>
 </div>
-<p>and if the output from the block is <code class="docutils literal notranslate"><span class="pre">output</span></code>, then the following process is performed.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>  <span class="n">blackboard</span><span class="p">[</span><span class="s1">&#39;system_utterance&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="s1">&#39;output_text&#39;</span><span class="p">]</span>
+<p>If the block returns a dictionary named <code class="docutils literal notranslate"><span class="pre">output</span></code>, the following assignment is performed.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">blackboard</span><span class="p">[</span><span class="s1">&#39;system_utterance&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="s1">&#39;output_text&#39;</span><span class="p">]</span>
 </pre></div>
 </div>
-<p>If <code class="docutils literal notranslate"><span class="pre">blackboard</span></code> already has <code class="docutils literal notranslate"><span class="pre">system_utterance</span></code> as a key, the value is overwritten.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">blackboard</span></code> already has <code class="docutils literal notranslate"><span class="pre">system_utterance</span></code>, the value is overwritten.</p>
 </li>
 </ul>
 </section>
 <section id="retaining-dialogue-history">
 <h2><span class="section-number">4.4. </span>Retaining Dialogue History<a class="headerlink" href="#retaining-dialogue-history" title="Permalink to this heading"></a></h2>
-<p>(Added in ver. 1.2)</p>
 <section id="retaining-dialogue-history-in-the-blackboard">
 <h3><span class="section-number">4.4.1. </span>Retaining Dialogue History in the Blackboard<a class="headerlink" href="#retaining-dialogue-history-in-the-blackboard" title="Permalink to this heading"></a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">dialogue_history</span></code> element of <code class="docutils literal notranslate"><span class="pre">blackboard</span></code> stores dialogue history in the following format through internal processing of the main process:</p>
-<div class="highlight-JSON notranslate"><div class="highlight"><pre><span></span>[
+<p>The <code class="docutils literal notranslate"><span class="pre">dialogue_history</span></code> element of <code class="docutils literal notranslate"><span class="pre">blackboard</span></code> stores dialogue history in the following format.</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>[
   {
     &quot;speaker&quot;: &quot;user&quot;,
     &quot;user_id&quot;: &lt;input user_id, or &quot;&quot; if none is included&gt;,
@@ -318,15 +327,15 @@ then what can be referenced by <code class="docutils literal notranslate"><span 
   },
   {
     &quot;speaker&quot;: &quot;system&quot;,
-    &quot;aux_data&quot;: &lt;aux_data of the output. {} if aux_data is not included in the output&gt;,
+    &quot;aux_data&quot;: &lt;output aux_data, or {} if none is included&gt;,
     &quot;utterance&quot;: &lt;system utterance string&gt;
   },
   {
     &quot;speaker&quot;: &quot;user&quot;,
-    &quot;user_id&quot;: &lt;user_id of the input. &quot;&quot; if user_id is not included in the input&gt;,
-    &quot;aux_data&quot;: &lt;aux_data of the input. {} if aux_data is not included in the input&gt;,
+    &quot;user_id&quot;: &lt;input user_id, or &quot;&quot; if none is included&gt;,
+    &quot;aux_data&quot;: &lt;input aux_data, or {} if none is included&gt;,
     &quot;utterance&quot;: &lt;user utterance string&gt;
-  }
+  },
   ...
 ]
 </pre></div>
@@ -334,8 +343,8 @@ then what can be referenced by <code class="docutils literal notranslate"><span 
 </section>
 <section id="storing-dialogue-history-in-an-external-database">
 <span id="context-db"></span><h3><span class="section-number">4.4.2. </span>Storing Dialogue History in an External Database<a class="headerlink" href="#storing-dialogue-history-in-an-external-database" title="Permalink to this heading"></a></h3>
-<p>When running the DialBB application as a web server, if requests become concentrated and processing is distributed across multiple instances using a load balancer, storing contextual information in an external database (MongoDB) allows a single session to be handled by different instances.</p>
-<p>To use an external database, specify the <code class="docutils literal notranslate"><span class="pre">context_db</span></code> element in the block configuration as follows:</p>
+<p>When a DialBB application is run as a web server behind a load balancer, a single session may be handled by different instances. In that case, context can be stored in an external database such as MongoDB.</p>
+<p>To use an external database, specify <code class="docutils literal notranslate"><span class="pre">context_db</span></code> in the block configuration as follows.</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">context_db</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">host</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">localhost</span>
 <span class="w">  </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">27017</span>
@@ -343,43 +352,41 @@ then what can be referenced by <code class="docutils literal notranslate"><span 
 <span class="w">  </span><span class="nt">password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">password</span>
 </pre></div>
 </div>
-<p>Each key is described below:</p>
+<p>Each key has the following meaning.</p>
 <ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">host</span></code> (str)</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">host</span></code> (<code class="docutils literal notranslate"><span class="pre">str</span></code>)</p>
 <p>The hostname where MongoDB is running.</p>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">port</span></code> (int, default: <code class="docutils literal notranslate"><span class="pre">27017</span></code>)</p>
-<p>The port number used to access MongoDB.</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">port</span></code> (<code class="docutils literal notranslate"><span class="pre">int</span></code>, default <code class="docutils literal notranslate"><span class="pre">27017</span></code>)</p>
+<p>The port number for MongoDB.</p>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">user</span></code> (str)</p>
-<p>The username for accessing MongoDB.</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">user</span></code> (<code class="docutils literal notranslate"><span class="pre">str</span></code>)</p>
+<p>The username used to access MongoDB.</p>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">password</span></code> (str)</p>
-<p>The password for accessing MongoDB.</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">password</span></code> (<code class="docutils literal notranslate"><span class="pre">str</span></code>)</p>
+<p>The password used to access MongoDB.</p>
 </li>
 </ul>
 </section>
 </section>
 <section id="how-to-make-your-own-blocks">
-<h2><span class="section-number">4.5. </span>How to make your own blocks<a class="headerlink" href="#how-to-make-your-own-blocks" title="Permalink to this heading"></a></h2>
+<h2><span class="section-number">4.5. </span>How to Make Your Own Blocks<a class="headerlink" href="#how-to-make-your-own-blocks" title="Permalink to this heading"></a></h2>
 <p>Developers can create their own blocks.</p>
-<p>The block class must be a descendant of <code class="docutils literal notranslate"><span class="pre">diabb.abstract_block.AbstractBlock</span></code>.</p>
-<section id="methods-to-be-implemented">
-<h3><span class="section-number">4.5.1. </span>Methods to be Implemented<a class="headerlink" href="#methods-to-be-implemented" title="Permalink to this heading"></a></h3>
+<p>A block class must inherit from <code class="docutils literal notranslate"><span class="pre">dialbb.abstract_block.AbstractBlock</span></code>.</p>
+<section id="methods-to-implement">
+<h3><span class="section-number">4.5.1. </span>Methods to Implement<a class="headerlink" href="#methods-to-implement" title="Permalink to this heading"></a></h3>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">__init__(self,</span> <span class="pre">*args)</span></code></p>
-<p>Constructor. It is defined as follows:</p>
+<p>The constructor should be defined as follows.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
- 
-     <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
- 
-     <span class="o">&lt;</span><span class="n">Process</span> <span class="n">unique</span> <span class="n">to</span> <span class="n">this</span> <span class="n">block</span><span class="o">&gt;</span>
+    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+    <span class="o">&lt;</span><span class="n">block</span><span class="o">-</span><span class="n">specific</span> <span class="n">processing</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">process(self,</span> <span class="pre">input:</span> <span class="pre">Dict[str,</span> <span class="pre">Any],</span> <span class="pre">session_id:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">False)</span> <span class="pre">-&gt;</span> <span class="pre">Dict[str,</span> <span class="pre">Any]</span></code></p>
-<p>Processes input and returns output. The relationship between input, output and the main module’s
-blackboard is defined by the configuration (see “<a class="reference internal" href="#configuration"><span class="std std-ref">Configuration</span></a>”). <code class="docutils literal notranslate"><span class="pre">session_id</span></code> is a string passed from the main module that is unique for each dialog session.</p>
+<p>This method processes <code class="docutils literal notranslate"><span class="pre">input</span></code> and returns output. The relationship between the block’s input and output and the main module’s blackboard is defined in the configuration. See <a class="reference internal" href="#configuration"><span class="std std-numref">Section 4.3</span></a>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">session_id</span></code> is a string passed from the main module and is unique to each dialogue session.</p>
 </li>
 </ul>
 </section>
@@ -387,16 +394,16 @@ blackboard is defined by the configuration (see “<a class="reference internal"
 <h3><span class="section-number">4.5.2. </span>Available Variables<a class="headerlink" href="#available-variables" title="Permalink to this heading"></a></h3>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">self.config</span></code> (dictionary)</p>
-<p>This is a dictionary type data of the contents of the configuration. By referring to this data, it is possible to read in elements that have been added by the user.</p>
+<p>The full application configuration as dictionary data.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">self.block_config</span></code> (dictionary)</p>
-<p>The contents of the block configuration are dictionary type data. By referring to this data, it is possible to load elements that have been added independently.</p>
+<p>The block configuration for the current block.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">self.name</span></code> (string)</p>
-<p>The name of the block as written in the configuration.</p>
+<p>The name of the block written in the configuration.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">self.config_dir</span></code> (string)</p>
-<p>The directory containing the configuration files. It is sometimes called the application directory.</p>
+<p>The directory containing the configuration file. It is also called the application directory.</p>
 </li>
 </ul>
 </section>
@@ -404,63 +411,208 @@ blackboard is defined by the configuration (see “<a class="reference internal"
 <h3><span class="section-number">4.5.3. </span>Available Methods<a class="headerlink" href="#available-methods" title="Permalink to this heading"></a></h3>
 <section id="logging">
 <h4><span class="section-number">4.5.3.1. </span>Logging<a class="headerlink" href="#logging" title="Permalink to this heading"></a></h4>
-<p>The following logging methods are available:</p>
+<p>The following logging methods are available.</p>
 <ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">log_debug(self,</span> <span class="pre">message:</span> <span class="pre">str,</span> <span class="pre">session_id:</span> <span class="pre">str=&quot;unknown&quot;)</span></code></p>
-<p>Outputs debug-level logs to standard error output. <code class="docutils literal notranslate"><span class="pre">session_id</span></code> can be specified as a session ID to be included in the log.</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">log_debug(self,</span> <span class="pre">message:</span> <span class="pre">str,</span> <span class="pre">session_id:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">&quot;unknown&quot;)</span></code></p>
+<p>Outputs a debug-level log to standard error.</p>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">log_info(self,</span> <span class="pre">message:</span> <span class="pre">str,</span> <span class="pre">session_id:</span> <span class="pre">str=&quot;unknown&quot;)</span></code></p>
-<p>Outputs info-level logs to standard error output.</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">log_info(self,</span> <span class="pre">message:</span> <span class="pre">str,</span> <span class="pre">session_id:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">&quot;unknown&quot;)</span></code></p>
+<p>Outputs an info-level log to standard error.</p>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">log_warning(self,</span> <span class="pre">message:</span> <span class="pre">str,</span> <span class="pre">session_id:</span> <span class="pre">str=&quot;unknown&quot;)</span></code></p>
-<p>Outputs warning-level logs to standard error output.</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">log_warning(self,</span> <span class="pre">message:</span> <span class="pre">str,</span> <span class="pre">session_id:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">&quot;unknown&quot;)</span></code></p>
+<p>Outputs a warning-level log to standard error.</p>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">log_error(self,</span> <span class="pre">message:</span> <span class="pre">str,</span> <span class="pre">session_id:</span> <span class="pre">str=&quot;unknown&quot;)</span></code></p>
-<p>Outputs error-level logs to standard error output. In the debug mode mentioned below, an exception is raised.</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">log_error(self,</span> <span class="pre">message:</span> <span class="pre">str,</span> <span class="pre">session_id:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">&quot;unknown&quot;)</span></code></p>
+<p>Outputs an error-level log to standard error. In debug mode, it raises an exception.</p>
 </li>
 </ul>
-<p>In the debug mode mentioned below, the log level is set to <code class="docutils literal notranslate"><span class="pre">debug</span></code>; otherwise, it defaults to <code class="docutils literal notranslate"><span class="pre">info</span></code>.</p>
 </section>
 </section>
 </section>
 <section id="debug-mode">
 <h2><span class="section-number">4.6. </span>Debug Mode<a class="headerlink" href="#debug-mode" title="Permalink to this heading"></a></h2>
-<p>When the environment variable <code class="docutils literal notranslate"><span class="pre">DIALBB_DEBUG</span></code> is set to <code class="docutils literal notranslate"><span class="pre">yes</span></code> (case-insensitive) during Python startup, the program runs in debug mode. In this case, the value of <code class="docutils literal notranslate"><span class="pre">dialbb.main.DEBUG</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code>. This value can also be referenced in blocks created by the application developer.</p>
-<p>If <code class="docutils literal notranslate"><span class="pre">dialbb.main.DEBUG</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code>, the logging level is set to debug; otherwise it is set to info.</p>
+<p>If the environment variable <code class="docutils literal notranslate"><span class="pre">DIALBB_DEBUG</span></code> is set to <code class="docutils literal notranslate"><span class="pre">yes</span></code> when Python starts, ignoring case, the program runs in debug mode. In that case, <code class="docutils literal notranslate"><span class="pre">dialbb.main.DEBUG</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code>. Blocks created by application developers can also refer to this value.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">dialbb.main.DEBUG</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code>, the logging level is set to <code class="docutils literal notranslate"><span class="pre">debug</span></code>; otherwise it is set to <code class="docutils literal notranslate"><span class="pre">info</span></code>.</p>
 </section>
+<section id="loading-environment-variables">
+<h2><span class="section-number">4.7. </span>Loading Environment Variables<a class="headerlink" href="#loading-environment-variables" title="Permalink to this heading"></a></h2>
+<p>In addition to <code class="docutils literal notranslate"><span class="pre">DIALBB_DEBUG</span></code>, environment variables are used for settings such as API keys for commercial LLMs. These variables may be set in the shell, but they can also be written in a <code class="docutils literal notranslate"><span class="pre">.env</span></code> file in the current working directory when the application starts.</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>DIALBB_DEBUG=yes
+OPENAI_API_KEY=....
+GOOGLE_API_KEY=...
+ANTHROPIC_API_KEY=...
+</pre></div>
+</div>
+<p>Environment variables that are already set are <strong>not overwritten</strong> by entries in <code class="docutils literal notranslate"><span class="pre">.env</span></code>.</p>
+</section>
+<section id="test">
+<h2><span class="section-number">4.8. </span>Test<a class="headerlink" href="#test" title="Permalink to this heading"></a></h2>
 <section id="test-using-test-scenarios">
-<h2><span class="section-number">4.7. </span>Test Using Test Scenarios<a class="headerlink" href="#test-using-test-scenarios" title="Permalink to this heading"></a></h2>
-<p>The following commands can be used to test with test scenarios.</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python<span class="w"> </span>dialbb/util/test.py<span class="w"> </span>&lt;application<span class="w"> </span>configuration&gt;<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>&lt;<span class="nb">test</span><span class="w"> </span>scenario&gt;<span class="w"> </span><span class="o">[</span>--output<span class="w"> </span>&lt;output<span class="w"> </span>file&gt;<span class="o">]</span>
+<span id="test-scenario"></span><h3><span class="section-number">4.8.1. </span>Test Using Test Scenarios<a class="headerlink" href="#test-using-test-scenarios" title="Permalink to this heading"></a></h3>
+<p>You can test an application with test scenarios using the following command.</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>dialbb-test<span class="w"> </span>&lt;application<span class="w"> </span>configuration<span class="w"> </span>file&gt;<span class="w"> </span>&lt;<span class="nb">test</span><span class="w"> </span>scenario&gt;<span class="w"> </span><span class="o">[</span>--output<span class="w"> </span>&lt;output<span class="w"> </span>file&gt;<span class="o">]</span>
 </pre></div>
 </div>
-<p>The test scenario is a text file in the following format:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">session</span> <span class="n">separation</span><span class="o">&gt;</span>
-<span class="n">System</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">system</span> <span class="n">utterance</span><span class="o">&gt;</span>
-<span class="n">User</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">user</span> <span class="n">utterance</span><span class="o">&gt;</span>
-<span class="n">System</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">system</span> <span class="n">utterance</span><span class="o">&gt;</span>
-<span class="n">User</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">user</span> <span class="n">utterance</span><span class="o">&gt;</span>
-<span class="o">...</span>
-<span class="n">System</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">system</span> <span class="n">utterance</span><span class="o">&gt;</span>
-<span class="n">User</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">user</span> <span class="n">utterance</span><span class="o">&gt;</span>
-<span class="n">System</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">system</span> <span class="n">utterance</span><span class="o">&gt;</span>
-<span class="o">&lt;</span><span class="n">session</span> <span class="n">separation</span><span class="o">&gt;</span>
-<span class="o">&lt;</span><span class="n">System</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">system</span> <span class="n">utterance</span><span class="o">&gt;</span>
-<span class="n">User</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">user</span> <span class="n">utterance</span><span class="o">&gt;</span>
-<span class="n">System</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">system</span> <span class="n">utterance</span><span class="o">&gt;</span>
-<span class="n">User</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">user</span> <span class="n">utterance</span><span class="o">&gt;</span>
-<span class="o">...</span>
-<span class="n">System</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">system</span> <span class="n">utterance</span><span class="o">&gt;</span>
-<span class="n">User</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">user</span> <span class="n">utterance</span><span class="o">&gt;</span>
-<span class="n">System</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">system</span> <span class="n">utterance</span><span class="o">&gt;</span>
-<span class="o">&lt;</span><span class="n">session</span> <span class="n">separation</span><span class="o">&gt;</span>
-<span class="o">...</span>
+<p>A test scenario is a text file in the following format.</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>----init...
+System: &lt;system utterance&gt;
+User: &lt;user utterance&gt;
+System: &lt;system utterance&gt;
+User: &lt;user utterance&gt;
+...
+----init...
+System: &lt;system utterance&gt;
+User: &lt;user utterance&gt;
+...
+</pre></div>
+</div>
+<p>Each session separator is a string beginning with <code class="docutils literal notranslate"><span class="pre">----init</span></code>.</p>
+<p>The test script sends each user utterance to the application in order and receives the system utterance. If the returned system utterance differs from the one in the script, a warning is issued.</p>
+<p>When the test finishes, the dialogue can be written out in the same format as the test scenario, including the actual system utterances. Comparing the expected scenario with the output file makes it easy to inspect response changes.</p>
+</section>
+<section id="test-using-test-requests">
+<span id="test-requests"></span><h3><span class="section-number">4.8.2. </span>Test Using Test Requests<a class="headerlink" href="#test-using-test-requests" title="Permalink to this heading"></a></h3>
+<p>Test scenarios cannot include <code class="docutils literal notranslate"><span class="pre">aux_data</span></code>. To test inputs that contain <code class="docutils literal notranslate"><span class="pre">aux_data</span></code>, use test requests instead.</p>
+<p>Run the test with the following command.</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>dialbb-send-test-requests<span class="w"> </span>&lt;application<span class="w"> </span>configuration<span class="w"> </span>file&gt;<span class="w"> </span>&lt;<span class="nb">test</span><span class="w"> </span>request<span class="w"> </span>file&gt;
+</pre></div>
+</div>
+<p>A test request file is a JSON file in the following format.</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>[
+  [
+    &lt;first input of the first session&gt;,
+    &lt;second input of the first session&gt;,
+    ...
+  ],
+  [
+    &lt;first input of the second session&gt;,
+    &lt;second input of the second session&gt;,
+    ...
+  ],
+  ...
+]
+</pre></div>
+</div>
+<p>Each input has one of the following forms.</p>
+<ul>
+<li><p>First input of a session without <code class="docutils literal notranslate"><span class="pre">aux_data</span></code></p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>{&quot;user_id&quot;: &lt;user ID&gt;}
+</pre></div>
+</div>
+</li>
+<li><p>First input of a session with <code class="docutils literal notranslate"><span class="pre">aux_data</span></code></p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>{
+  &quot;user_id&quot;: &lt;user ID&gt;,
+  &quot;aux_data&quot;: &lt;aux_data dictionary&gt;
+}
+</pre></div>
+</div>
+</li>
+<li><p>Second and subsequent inputs without <code class="docutils literal notranslate"><span class="pre">aux_data</span></code></p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>{
+  &quot;user_id&quot;: &lt;user ID&gt;,
+  &quot;user_utterance&quot;: &quot;&lt;user utterance text&gt;&quot;
+}
+</pre></div>
+</div>
+</li>
+<li><p>Second and subsequent inputs with <code class="docutils literal notranslate"><span class="pre">aux_data</span></code></p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>{
+  &quot;user_id&quot;: &lt;user ID&gt;,
+  &quot;user_utterance&quot;: &quot;&lt;user utterance text&gt;&quot;,
+  &quot;aux_data&quot;: &lt;aux_data dictionary&gt;
+}
+</pre></div>
+</div>
+</li>
+</ul>
+<p>The first input of each session is sent as-is. For the second and later inputs, <code class="docutils literal notranslate"><span class="pre">session_id</span></code> is added automatically before the request is sent to the DialBB application.</p>
+<p><code class="docutils literal notranslate"><span class="pre">user_id</span></code> may be omitted. In that case, the tool inserts a default user ID.</p>
+<p>The sample application <a class="reference internal" href="#c:/Users/nakano/system/dialbb/dialbb-next/sample_apps/dst_stn_en/test_requests.json"><span class="xref myst">sample_apps/dst_stn_en/test_requests.json</span></a> contains concrete examples, including <code class="docutils literal notranslate"><span class="pre">aux_data</span></code> values used for speech-input-related testing.</p>
+</section>
+<section id="test-using-a-user-simulator">
+<span id="sim-tester"></span><h3><span class="section-number">4.8.3. </span>Test Using a User Simulator<a class="headerlink" href="#test-using-a-user-simulator" title="Permalink to this heading"></a></h3>
+<p>DialBB includes a tester that uses an LLM-based user simulator.</p>
+<section id="running-the-sample">
+<h4><span class="section-number">4.8.3.1. </span>Running the Sample<a class="headerlink" href="#running-the-sample" title="Permalink to this heading"></a></h4>
+<p>The following example uses the English LLM dialogue sample application.</p>
+<ul>
+<li><p>Install DialBB and extract the sample applications.</p></li>
+<li><p>Set your OpenAI API key in the environment variable <code class="docutils literal notranslate"><span class="pre">OPENAI_API_KEY</span></code>.</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">OPENAI_API_KEY</span><span class="o">=</span>&lt;your<span class="w"> </span>OpenAI<span class="w"> </span>API<span class="w"> </span>key&gt;
+</pre></div>
+</div>
+</li>
+<li><p>In the <code class="docutils literal notranslate"><span class="pre">sample_apps</span></code> directory, run the following command.</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>dialbb-sim-tester<span class="w"> </span>--app_config<span class="w"> </span>llm_dialogue_en/config.yml<span class="w"> </span>--test_config<span class="w"> </span>llm_dialogue_en/simulation/config.yml<span class="w"> </span>--output<span class="w"> </span>_output.txt
+</pre></div>
+</div>
+</li>
+<li><p>The result is written to <code class="docutils literal notranslate"><span class="pre">_output.txt</span></code>.</p></li>
+<li><p>To launch the tester from a Python program, use the following code.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">dialbb.sim_tester.main</span> <span class="kn">import</span> <span class="n">test_by_simulation</span>
 
+<span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">test_by_simulation</span><span class="p">(</span>
+    <span class="s2">&quot;llm_dialogue_en/simulation/config.yml&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;llm_dialogue_en/config.yml&quot;</span><span class="p">,</span>
+    <span class="n">output_file</span><span class="o">=</span><span class="s2">&quot;_output.txt&quot;</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="k">pass</span>
 </pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">&lt;session</span> <span class="pre">separation&gt;</span></code> is a string stareging with <code class="docutils literal notranslate"><span class="pre">----init</span></code>.</p>
-<p>The test script receives system utterance by inputting <code class="docutils literal notranslate"><span class="pre">&lt;user</span> <span class="pre">speech&gt;</span></code> to the application in turn. If the system utterances differ from the script’s system utterances, a warning is issued. When the test is finished, the dialogues can be output in the same format as the test scenario, including the output system utterances. By comparing the test scenario with the output file, changes in responses can be examined.</p>
+</li>
+</ul>
+</section>
+<section id="specifications">
+<h4><span class="section-number">4.8.3.2. </span>Specifications<a class="headerlink" href="#specifications" title="Permalink to this heading"></a></h4>
+<ul>
+<li><p>Startup options</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>dialbb-sim-tester<span class="w"> </span>--app_config<span class="w"> </span>&lt;DialBB<span class="w"> </span>application<span class="w"> </span>configuration<span class="w"> </span>file&gt;<span class="w"> </span>--test_config<span class="w"> </span>&lt;<span class="nb">test</span><span class="w"> </span>configuration<span class="w"> </span>file&gt;<span class="w"> </span>--output<span class="w"> </span>&lt;output<span class="w"> </span>file&gt;
+</pre></div>
+</div>
+</li>
+<li><p>Test configuration file</p>
+<p>A YAML file containing the following keys.</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">model</span></code> (string, required)</p>
+<p>Model specifier. Use the form <code class="docutils literal notranslate"><span class="pre">provider:model_name</span></code>, for example <code class="docutils literal notranslate"><span class="pre">google_genai:gemini-2.0-flash-001</span></code>. OpenAI GPT models such as <code class="docutils literal notranslate"><span class="pre">gpt-5.4-nano</span></code> may omit the <code class="docutils literal notranslate"><span class="pre">openai:</span></code> prefix.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">settings</span></code> (list of objects, required)</p>
+<p>A list of settings. Each setting may contain the following elements.</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">prompt_template</span></code> (string, required)</p>
+<p>Path to a text file containing a prompt template. The path is relative to the test configuration file.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">initial_aux_data</span></code> (string, optional)</p>
+<p>Path to a JSON file describing the <code class="docutils literal notranslate"><span class="pre">aux_data</span></code> sent in the initial request to the DialBB application. The path is relative to the test configuration file.</p>
+</li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">temperatures</span></code> (list of floats, optional)</p>
+<p>A list of temperature values for the LLM. The default is <code class="docutils literal notranslate"><span class="pre">[0.7]</span></code>. A session is run for each combination of <code class="docutils literal notranslate"><span class="pre">settings</span></code> and <code class="docutils literal notranslate"><span class="pre">temperatures</span></code>.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_turns</span></code> (integer, optional)</p>
+<p>The maximum number of turns per session. The default is <code class="docutils literal notranslate"><span class="pre">15</span></code>.</p>
+</li>
+</ul>
+</li>
+<li><p>Function specification</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">dialbb.sim_tester.main.test_by_simulation(test_config_file:</span> <span class="pre">str,</span> <span class="pre">app_config_file:</span> <span class="pre">str,</span> <span class="pre">output_file:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">json_output:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False,</span> <span class="pre">prompt_params:</span> <span class="pre">Dict[str,</span> <span class="pre">str]</span> <span class="pre">=</span> <span class="pre">None)</span></code></p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">test_config_file</span></code>: Path to the test configuration file.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">app_config_file</span></code>: Path to the DialBB application configuration file.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">output_file</span></code>: File path for dialogue log output.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">json_output</span></code>: Whether the output file should be JSON. If <code class="docutils literal notranslate"><span class="pre">False</span></code>, a text file is produced.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">prompt_params</span></code>: Dictionary of values to embed in the prompt. If the prompt template contains <code class="docutils literal notranslate"><span class="pre">{&lt;key&gt;}</span></code>, it is replaced with <code class="docutils literal notranslate"><span class="pre">&lt;value&gt;</span></code>.</p></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</section>
+</section>
 </section>
 </section>
 
@@ -469,7 +621,7 @@ blackboard is defined by the configuration (see “<a class="reference internal"
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="03_tutorial.html" class="btn btn-neutral float-left" title="3. Tutorial" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="05_builtin_blocks.html" class="btn btn-neutral float-right" title="5. Built-in Block Classes" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="051_builtin_blocks.html" class="btn btn-neutral float-right" title="5. Built-in Block Classes" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

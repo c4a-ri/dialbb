@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>6. Appendix &mdash; DialBB ver. 1.2 Document v1.2.4 documentation</title>
+  <title>7. Appendix &mdash; DialBB ver. 2.0 Document v2.0.0 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -17,7 +17,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="5. Built-in Block Classes" href="05_builtin_blocks.html" /> 
+    <link rel="prev" title="6. Deprecated Built-in Block Classes" href="052_deprecated_blocks.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -29,7 +29,7 @@
           
           
           <a href="index.html" class="icon icon-home">
-            DialBB ver. 1.2 Document
+            DialBB ver. 2.0 Document
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -45,27 +45,21 @@
 <li class="toctree-l1"><a class="reference internal" href="02_concept.html">2. DialBB Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="03_tutorial.html">3. Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="04_framework.html">4. Framework Specifications</a></li>
-<li class="toctree-l1"><a class="reference internal" href="05_builtin_blocks.html">5. Built-in Block Classes</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">6. Appendix</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#frontend">6.1. Frontend</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#simple-frontend">6.1.1. Simple Frontend</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#debug-frontend">6.1.2. Debug Frontend</a></li>
+<li class="toctree-l1"><a class="reference internal" href="051_builtin_blocks.html">5. Built-in Block Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="052_deprecated_blocks.html">6. Deprecated Built-in Block Classes</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">7. Appendix</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#frontend">7.1. Frontend</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#simple-frontend">7.1.1. Simple Frontend</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#debug-frontend">7.1.2. Debug Frontend</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#how-to-use-dialbb-without-installing-via-pip">6.2. How to Use DialBB without Installing via pip</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#using-the-class-api">6.2.1. Using the Class API</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#using-the-web-api">6.2.2. Using the Web API</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#tester-using-a-user-simulator">6.3. Tester Using a User Simulator</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#how-to-run-the-sample">6.3.1. How to Run the Sample</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#specifications">6.3.2. Specifications</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#discontinued-features">6.4. Discontinued Features</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#snips-understander-built-in-block">6.4.1. Snips Understander Built-in Block</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#whitespace-tokenizer-and-sudachi-tokenizer-built-in-blocks">6.4.2. Whitespace Tokenizer and Sudachi Tokenizer Built-in Blocks</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#snips-stn-sample-application">6.4.3. Snips+STN Sample Application</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#how-to-modify-dialbb-source-code">7.2. How to Modify DialBB Source Code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#discontinued-features">7.3. Discontinued Features</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#snips-understander-built-in-block">7.3.1. Snips Understander Built-in Block</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#whitespace-tokenizer-and-sudachi-tokenizer-built-in-blocks">7.3.2. Whitespace Tokenizer and Sudachi Tokenizer Built-in Blocks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#snips-stn-sample-application">7.3.3. Snips+STN Sample Application</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#simple-application">7.3.4. Simple Application</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#experimental-application">7.3.5. Experimental Application</a></li>
 </ul>
 </li>
 </ul>
@@ -78,7 +72,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">DialBB ver. 1.2 Document</a>
+          <a href="index.html">DialBB ver. 2.0 Document</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -86,7 +80,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active"><span class="section-number">6. </span>Appendix</li>
+      <li class="breadcrumb-item active"><span class="section-number">7. </span>Appendix</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/06_appendix.md.txt" rel="nofollow"> View page source</a>
       </li>
@@ -97,138 +91,70 @@
            <div itemprop="articleBody">
              
   <section id="appendix">
-<h1><span class="section-number">6. </span>Appendix<a class="headerlink" href="#appendix" title="Permalink to this heading"></a></h1>
+<h1><span class="section-number">7. </span>Appendix<a class="headerlink" href="#appendix" title="Permalink to this heading"></a></h1>
 <section id="frontend">
-<h2><span class="section-number">6.1. </span>Frontend<a class="headerlink" href="#frontend" title="Permalink to this heading"></a></h2>
+<h2><span class="section-number">7.1. </span>Frontend<a class="headerlink" href="#frontend" title="Permalink to this heading"></a></h2>
 <p>DialBB comes with two sample frontends for accessing the Web API.</p>
 <section id="simple-frontend">
-<h3><span class="section-number">6.1.1. </span>Simple Frontend<a class="headerlink" href="#simple-frontend" title="Permalink to this heading"></a></h3>
-<p>You can access it at:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">http</span><span class="p">:</span><span class="o">//&lt;</span><span class="n">host</span><span class="o">&gt;</span><span class="p">:</span><span class="o">&lt;</span><span class="n">port</span><span class="o">&gt;</span>
+<h3><span class="section-number">7.1.1. </span>Simple Frontend<a class="headerlink" href="#simple-frontend" title="Permalink to this heading"></a></h3>
+<p>You can access it at the following URL.</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>http://&lt;host&gt;:&lt;port&gt;
 </pre></div>
 </div>
-<p>This frontend displays system and user utterances in speech bubbles.</p>
-<p>It does not allow sending <code class="docutils literal notranslate"><span class="pre">aux_data</span></code>.</p>
-<p>Information other than the system utterance included in the response is not displayed.</p>
+<p>This frontend displays system and user utterances as speech bubbles.</p>
+<p>It cannot send <code class="docutils literal notranslate"><span class="pre">aux_data</span></code>, and it does not display response fields other than the system utterance.</p>
 </section>
 <section id="debug-frontend">
-<h3><span class="section-number">6.1.2. </span>Debug Frontend<a class="headerlink" href="#debug-frontend" title="Permalink to this heading"></a></h3>
-<p>You can access it at:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">http</span><span class="p">:</span><span class="o">//&lt;</span><span class="n">host</span><span class="o">&gt;</span><span class="p">:</span><span class="o">&lt;</span><span class="n">port</span><span class="o">&gt;/</span><span class="n">test</span>
+<h3><span class="section-number">7.1.2. </span>Debug Frontend<a class="headerlink" href="#debug-frontend" title="Permalink to this heading"></a></h3>
+<p>You can access it at the following URL.</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>http://&lt;host&gt;:&lt;port&gt;/test
 </pre></div>
 </div>
 <p>This frontend displays system and user utterances in a list format.</p>
-<p>It allows sending <code class="docutils literal notranslate"><span class="pre">aux_data</span></code>.</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">aux_data</span></code> included in the response is also displayed.</p>
+<p>It can send <code class="docutils literal notranslate"><span class="pre">aux_data</span></code>, and it also displays the <code class="docutils literal notranslate"><span class="pre">aux_data</span></code> included in the response.</p>
 </section>
 </section>
-<section id="how-to-use-dialbb-without-installing-via-pip">
-<h2><span class="section-number">6.2. </span>How to Use DialBB without Installing via pip<a class="headerlink" href="#how-to-use-dialbb-without-installing-via-pip" title="Permalink to this heading"></a></h2>
-<p>First, clone the GitHub repository. The cloned directory will be referred to as <code class="docutils literal notranslate"><span class="pre">&lt;DialBB</span> <span class="pre">Directory&gt;</span></code>.</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>git@github.com:c4a-ri/dialbb.git<span class="w"> </span>&lt;DialBB<span class="w"> </span>Directory&gt;
+<section id="how-to-modify-dialbb-source-code">
+<h2><span class="section-number">7.2. </span>How to Modify DialBB Source Code<a class="headerlink" href="#how-to-modify-dialbb-source-code" title="Permalink to this heading"></a></h2>
+<p>Clone the GitHub repository. Let the cloned directory be <code class="docutils literal notranslate"><span class="pre">&lt;DialBB</span> <span class="pre">directory&gt;</span></code>.</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>git@github.com:c4a-ri/dialbb.git<span class="w"> </span>&lt;DialBB<span class="w"> </span>directory&gt;
 </pre></div>
 </div>
-<p>Set the environment variable <code class="docutils literal notranslate"><span class="pre">PYTHONPATH</span></code>:</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span>&lt;DialBB<span class="w"> </span>Directory&gt;:<span class="nv">$PYTHONPATH</span>
+<p>Install the dependencies with <code class="docutils literal notranslate"><span class="pre">uv</span></code>. This also installs DialBB in editable mode, so changes to the source code are reflected immediately.</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>&lt;DialBB<span class="w"> </span>directory&gt;
+uv<span class="w"> </span>sync
 </pre></div>
 </div>
-<section id="using-the-class-api">
-<h3><span class="section-number">6.2.1. </span>Using the Class API<a class="headerlink" href="#using-the-class-api" title="Permalink to this heading"></a></h3>
-<p>If you want to use DialBB via the class API, start Python and import the necessary modules or classes from <code class="docutils literal notranslate"><span class="pre">dialbb</span></code>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">dialbb.main</span> <span class="kn">import</span> <span class="n">DialogueProcessor</span>
+<p>When starting DialBB, run it with <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">run</span></code>.</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>run<span class="w"> </span>dialbb-server<span class="w"> </span><span class="o">[</span>--port<span class="w"> </span>&lt;port&gt;<span class="o">]</span><span class="w"> </span>&lt;config<span class="w"> </span>file&gt;
 </pre></div>
 </div>
-</section>
-<section id="using-the-web-api">
-<h3><span class="section-number">6.2.2. </span>Using the Web API<a class="headerlink" href="#using-the-web-api" title="Permalink to this heading"></a></h3>
-<p>To use DialBB as a Web API, specify the configuration file and start the server:</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python<span class="w"> </span>&lt;DialBB<span class="w"> </span>Directory&gt;/run_server.py<span class="w"> </span><span class="o">[</span>--port<span class="w"> </span>&lt;port&gt;<span class="o">]</span><span class="w"> </span>&lt;config<span class="w"> </span>file&gt;
+<p>You can also start it by specifying the Python file directly. This is useful when using an IDE such as PyCharm or VS Code.</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>&lt;DialBB<span class="w"> </span>directory&gt;/run_server.py<span class="w"> </span><span class="o">[</span>--port<span class="w"> </span>&lt;port&gt;<span class="o">]</span><span class="w"> </span>&lt;config<span class="w"> </span>file&gt;
 </pre></div>
 </div>
-<p>The default <code class="docutils literal notranslate"><span class="pre">port</span></code> (port number) is 8080.</p>
-</section>
-</section>
-<section id="tester-using-a-user-simulator">
-<h2><span class="section-number">6.3. </span>Tester Using a User Simulator<a class="headerlink" href="#tester-using-a-user-simulator" title="Permalink to this heading"></a></h2>
-<p>A tester using a user simulator that uses an LLM (ChatGPT) is included.</p>
-<section id="how-to-run-the-sample">
-<h3><span class="section-number">6.3.1. </span>How to Run the Sample<a class="headerlink" href="#how-to-run-the-sample" title="Permalink to this heading"></a></h3>
-<p>The following explains how to run it using Bash. If you are using Windows Command Prompt, please adjust accordingly.</p>
-<ul>
-<li><p>Install DialBB and download and extract the sample application.</p></li>
-<li><p>Set the OpenAI API key to the environment variable  <code class="docutils literal notranslate"><span class="pre">OPENAI_API_KEY</span></code>.</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">OPENAI_KEY</span><span class="o">=</span>&lt;Your<span class="w"> </span>OpenAI<span class="w"> </span>API<span class="w"> </span>Key&gt;
-</pre></div>
-</div>
-</li>
-<li><p>In the directory where the sample application is extracted (<code class="docutils literal notranslate"><span class="pre">sample_apps</span></code>), run the following command:</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>dialbb-sim-tester<span class="w"> </span>--app_config<span class="w"> </span>lab_app_en/config.yml<span class="w"> </span>--test_config<span class="w"> </span>lab_app_en/simulation/config.yml<span class="w"> </span>--output<span class="w"> </span>_output.txt
-</pre></div>
-</div>
-</li>
-<li><p>The result will be written to <code class="docutils literal notranslate"><span class="pre">_output.txt</span></code>.</p></li>
-<li><p>To launch the tester from within a program, use the following code:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">dialbb.sim_tester.main</span> <span class="kn">import</span> <span class="n">test_by_simulation</span>
-
-<span class="n">test_by_simulation</span><span class="p">(</span><span class="s2">&quot;lab_app_en/config.yml&quot;</span><span class="p">,</span> 
-                   <span class="s2">&quot;lab_app_en/simulation/config.yml&quot;</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s2">&quot;_output.txt&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</li>
-</ul>
-</section>
-<section id="specifications">
-<h3><span class="section-number">6.3.2. </span>Specifications<a class="headerlink" href="#specifications" title="Permalink to this heading"></a></h3>
-<ul>
-<li><p>Startup options</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>dialbb-sim-tester<span class="w"> </span>--app_config<span class="w"> </span>&lt;DialBB<span class="w"> </span>application<span class="w"> </span>config<span class="w"> </span>file&gt;<span class="w"> </span>--test_config<span class="w"> </span>&lt;<span class="nb">test</span><span class="w"> </span>config<span class="w"> </span>file&gt;<span class="w"> </span>--output<span class="w"> </span>&lt;output<span class="w"> </span>file&gt;
-</pre></div>
-</div>
-</li>
-<li><p>Test configuration file</p>
-<p>A YAML file containing the following keys:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">model</span></code>: (string, required) Name of the OpenAI GPT model, such as <code class="docutils literal notranslate"><span class="pre">gpt-4o</span></code> and <code class="docutils literal notranslate"><span class="pre">gpt-4o-mini</span></code>. <code class="docutils literal notranslate"><span class="pre">gpt-5</span></code> cannot be used.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">settings</span></code>: (list of objects, required) A list of settings. Each can contain the following:</p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">prompt_templates</span></code>: (list of strings, required) Paths to text files containing prompt templates. The paths are relative to the configuration file.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">initial_aux_data</span></code>: (string, optional) Path to a JSON file containing content to be included in <code class="docutils literal notranslate"><span class="pre">aux_data</span></code> at the beginning of the dialogue when accessing the DialBB application. Path is relative to the configuration file.</p></li>
-</ul>
-</li>
-<li><p><code class="docutils literal notranslate"><span class="pre">temperatures</span></code>: (list of floats, optional) A list of temperature parameters for GPT. Default is a single-element list <code class="docutils literal notranslate"><span class="pre">[0.7]</span></code>. Sessions will be conducted for all combinations of the length of <code class="docutils literal notranslate"><span class="pre">prompt_templates</span></code> × this list.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">max_turns</span></code>: (integer, optional) Maximum number of turns per session. Default is <code class="docutils literal notranslate"><span class="pre">15</span></code>.</p></li>
-</ul>
-</li>
-<li><p>Function Specification</p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">dialbb.sim_test.main.test_by_simulation(test_config_file:</span> <span class="pre">str,</span> <span class="pre">app_config_file:</span> <span class="pre">str,</span> <span class="pre">output_file:</span> <span class="pre">str=None,</span> <span class="pre">json_output:</span> <span class="pre">bool=False,</span> <span class="pre">prompt_params:</span> <span class="pre">Dict[str,</span> <span class="pre">str])</span></code></p>
-<p>Parameters:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">test_config_file</span></code>: Path to the test configuration file.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">app_config_file</span></code>: Path to the DialBB application configuration file.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">output_file</span></code>: File to write the dialogue logs to.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">json_output</span></code>: Whether the output file should be in JSON format. If <code class="docutils literal notranslate"><span class="pre">False</span></code>, it will be a text file.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">prompt_params</span></code>: Dictionary of parameters to embed into the prompt. If the prompt template contains <code class="docutils literal notranslate"><span class="pre">{&lt;key&gt;}</span></code>, it will be replaced with <code class="docutils literal notranslate"><span class="pre">&lt;value&gt;</span></code>.</p></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</section>
 </section>
 <section id="discontinued-features">
-<h2><span class="section-number">6.4. </span>Discontinued Features<a class="headerlink" href="#discontinued-features" title="Permalink to this heading"></a></h2>
+<h2><span class="section-number">7.3. </span>Discontinued Features<a class="headerlink" href="#discontinued-features" title="Permalink to this heading"></a></h2>
 <section id="snips-understander-built-in-block">
-<h3><span class="section-number">6.4.1. </span>Snips Understander Built-in Block<a class="headerlink" href="#snips-understander-built-in-block" title="Permalink to this heading"></a></h3>
-<p>As Snips has become challenging to install with Python 3.9 and above, it was discontinued in version 0.9. Please use the LR-CRF Understander built-in block as an alternative.</p>
+<h3><span class="section-number">7.3.1. </span>Snips Understander Built-in Block<a class="headerlink" href="#snips-understander-built-in-block" title="Permalink to this heading"></a></h3>
+<p>Snips was discontinued in version 0.9 because it is difficult to install on Python 3.9 and later. Use the LR-CRF Understander built-in block instead.</p>
 </section>
 <section id="whitespace-tokenizer-and-sudachi-tokenizer-built-in-blocks">
-<h3><span class="section-number">6.4.2. </span>Whitespace Tokenizer and Sudachi Tokenizer Built-in Blocks<a class="headerlink" href="#whitespace-tokenizer-and-sudachi-tokenizer-built-in-blocks" title="Permalink to this heading"></a></h3>
-<p>These blocks were discontinued in version 0.9. If you use LR-CRF Understander or ChatGPT Understander, there is no need for the Tokenizer blocks.</p>
+<h3><span class="section-number">7.3.2. </span>Whitespace Tokenizer and Sudachi Tokenizer Built-in Blocks<a class="headerlink" href="#whitespace-tokenizer-and-sudachi-tokenizer-built-in-blocks" title="Permalink to this heading"></a></h3>
+<p>These blocks were discontinued in version 0.9. If you use the LR-CRF Understander or ChatGPT Understander, you do not need a tokenizer block.</p>
 </section>
 <section id="snips-stn-sample-application">
-<h3><span class="section-number">6.4.3. </span>Snips+STN Sample Application<a class="headerlink" href="#snips-stn-sample-application" title="Permalink to this heading"></a></h3>
+<h3><span class="section-number">7.3.3. </span>Snips+STN Sample Application<a class="headerlink" href="#snips-stn-sample-application" title="Permalink to this heading"></a></h3>
 <p>This sample application was discontinued in version 0.9.</p>
+</section>
+<section id="simple-application">
+<h3><span class="section-number">7.3.4. </span>Simple Application<a class="headerlink" href="#simple-application" title="Permalink to this heading"></a></h3>
+<p>This sample application was discontinued in version 2.0.</p>
+</section>
+<section id="experimental-application">
+<h3><span class="section-number">7.3.5. </span>Experimental Application<a class="headerlink" href="#experimental-application" title="Permalink to this heading"></a></h3>
+<p>This sample application was discontinued in version 2.0.</p>
 </section>
 </section>
 </section>
@@ -237,7 +163,7 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="05_builtin_blocks.html" class="btn btn-neutral float-left" title="5. Built-in Block Classes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="052_deprecated_blocks.html" class="btn btn-neutral float-left" title="6. Deprecated Built-in Block Classes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>

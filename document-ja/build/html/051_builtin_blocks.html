@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="ja" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>5. 組み込みブロッククラスの仕様 &mdash; DialBB ver. 2.0 ドキュメント v2.0.0 ドキュメント</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+        <script src="_static/translations.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="索引" href="genindex.html" />
+    <link rel="search" title="検索" href="search.html" />
+    <link rel="next" title="6. 非推奨となった組み込みブロッククラス" href="052_deprecated_blocks.html" />
+    <link rel="prev" title="4. フレームワーク仕様" href="04_framework.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            DialBB ver. 2.0 ドキュメント
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="01_intro.html">1. はじめに</a></li>
+<li class="toctree-l1"><a class="reference internal" href="02_concept.html">2. DialBBの概要</a></li>
+<li class="toctree-l1"><a class="reference internal" href="03_tutorial.html">3. チュートリアル</a></li>
+<li class="toctree-l1"><a class="reference internal" href="04_framework.html">4. フレームワーク仕様</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">5. 組み込みブロッククラスの仕様</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#llm-dialogue">5.1. LLM Dialogue （大規模言語モデルベースの対話ブロック）</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id3">5.1.1. 入出力</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id4">5.1.2. ブロックコンフィギュレーションのパラメータ</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id5">5.1.3. 処理内容</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id6">5.1.4. プロンプトテンプレート内のプレースホルダ</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#aux-data">5.1.5. システム発話からのaux_dataの抽出</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#passage-retrieval-rag">5.2. Passage Retrieval （RAG用のパッセージ検索ブロック）</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id7">5.2.1. 入出力</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id8">5.2.2. ブロックコンフィギュレーションのパラメータ</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id9">5.2.3. 処理内容</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#dst-with-llm-llm">5.3. DST with LLM （LLMを用いたスロット抽出ブロック）</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id10">5.3.1. 入出力</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id11">5.3.2. 処理内容</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dst-params">5.3.3. ブロックコンフィギュレーションのパラメータ</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dst-knowledge">5.3.4. スロット抽出知識</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#dialogues">5.3.4.1. dialoguesシート</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#slots">5.3.4.2. slotsシート</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#stn-manager">5.4. STN manager （状態遷移ネットワークベースの対話管理ブロック）</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id15">5.4.1. ブロックコンフィギュレーションのパラメータ</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scenario">5.4.2. 対話管理の知識記述</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id17">5.4.3. 特別な状態</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id18">5.4.4. 条件とアクション</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#context-information">5.4.4.1. 文脈情報</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#arguments">5.4.4.2. 関数の引数</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id21">5.4.4.3. 条件関数による文脈情報のアップデート</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#realization-in-system-utterance">5.4.5. システム発話中の変数や関数呼び出しの扱い</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id23">5.4.6. システム発話からのaux_dataの抽出</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id24">5.4.7. 関数定義</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id25">5.4.7.1. 組み込み関数</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#llm-functinos">5.4.7.2. 大規模言語モデルを用いた組み込み関数</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id27">5.4.7.3. 組み込み関数の簡略記法</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#custom-functions">5.4.7.4. 開発者による関数定義</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id29">5.4.7.5. 関数中のロギング</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#id30">5.4.8. 連続遷移</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id31">5.4.9. 言語理解結果候補が複数ある場合の処理</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id32">5.4.10. リアクション</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subdialogue">5.4.11. Subdialogue</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id33">5.4.12. 外部データベースへの文脈情報の保存</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#handling-speech-input">5.4.13. 音声入力を扱うための仕組み</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id35">5.4.13.1. ブロックコンフィギュレーションパラメータの追加</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id36">5.4.13.2. 組み込み条件関数の追加</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id37">5.4.13.3. 直前の誤った入力を無視する</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="052_deprecated_blocks.html">6. 非推奨となった組み込みブロッククラス</a></li>
+<li class="toctree-l1"><a class="reference internal" href="06_appendix.html">7. Appendix</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">DialBB ver. 2.0 ドキュメント</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active"><span class="section-number">5. </span>組み込みブロッククラスの仕様</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/051_builtin_blocks.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="builtin-blocks">
+<span id="id1"></span><h1><span class="section-number">5. </span>組み込みブロッククラスの仕様<a class="headerlink" href="#builtin-blocks" title="この見出しへのパーマリンク"></a></h1>
+<section id="llm-dialogue">
+<span id="id2"></span><h2><span class="section-number">5.1. </span>LLM Dialogue （大規模言語モデルベースの対話ブロック）<a class="headerlink" href="#llm-dialogue" title="この見出しへのパーマリンク"></a></h2>
+<p>(<code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.llm_dialogue.LLMDialogue</span></code>)</p>
+<p>大規模言語モデル（LLM）を用いて対話を行います．</p>
+<section id="id3">
+<h3><span class="section-number">5.1.1. </span>入出力<a class="headerlink" href="#id3" title="この見出しへのパーマリンク"></a></h3>
+<ul class="simple">
+<li><p>入力</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">aux_data</span></code>: 補助データ（辞書型）</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dialogue_history</span></code>: 対話履歴 （辞書型のリスト）</p></li>
+</ul>
+</li>
+<li><p>出力</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">system_utterance</span></code>: 入力文字列（文字列）</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aux_data</span></code>: 補助データ（辞書型）</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">final</span></code>: 対話終了かどうかのフラグ（ブール値）</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="id4">
+<h3><span class="section-number">5.1.2. </span>ブロックコンフィギュレーションのパラメータ<a class="headerlink" href="#id4" title="この見出しへのパーマリンク"></a></h3>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">first_system_utterance</span></code> （文字列，デフォルト値は<code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code>）</p>
+<p>対話の最初のシステム発話です．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">user_name</span></code> （文字列，デフォルト値は日本語の場合<code class="docutils literal notranslate"><span class="pre">&quot;ユーザ&quot;</span></code>, その他は<code class="docutils literal notranslate"><span class="pre">&quot;User&quot;</span></code>）</p>
+<p>LLMのプロンプトに対話履歴を与えるときに使う文字列です．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">system_name</span></code> （文字列，デフォルト値は日本語の場合<code class="docutils literal notranslate"><span class="pre">&quot;システム&quot;</span></code>, その他は<code class="docutils literal notranslate"><span class="pre">&quot;System&quot;</span></code>）</p>
+<p>LLMのプロンプトに対話履歴を与えるときに使う文字列です．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">prompt_template</span></code> （文字列）</p>
+<p>システム発話の生成をLLMに行わせるプロンプトを記述したファイル名です．アプリケーションディレクトリからの相対で記述します．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">model</span></code> （文字列，デフォルト値は<code class="docutils literal notranslate"><span class="pre">gpt-5.4-nano</span></code>）</p>
+<p>モデル指定文字列です．<code class="docutils literal notranslate"><span class="pre">provider:model_name</span></code> の形式で指定します（langchainの<a class="reference external" href="https://reference.langchain.com/python/langchain/chat_models/base/init_chat_model">init_chat_modelで指定する形式</a>です）．例：<code class="docutils literal notranslate"><span class="pre">google_genai:gemini-2.0-flash-001</span></code>．ただし，<code class="docutils literal notranslate"><span class="pre">gpt-5.4-nano</span></code> のようなOpenAIのGPTモデルは <code class="docutils literal notranslate"><span class="pre">openai:</span></code> を省略できます．
+モデルによっては環境変数でキーを指定する必要があります．例えば<code class="docutils literal notranslate"><span class="pre">gpt-5.4-nano</span></code> のようなOpenAIのGPTモデルを用いる場合は，<code class="docutils literal notranslate"><span class="pre">OPENAI_API_KEY</span></code>を指定します．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">temperature</span></code> （float，デフォルト値は<code class="docutils literal notranslate"><span class="pre">0.7</span></code>）</p>
+<p>LLM呼び出しの際の温度パラメータです．LLMが<code class="docutils literal notranslate"><span class="pre">gpt-5x</span></code>の場合は無視されます．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">instruction</span></code> (文字列, デフォルト値は<a class="reference external" href="https://github.com/c4a-ri/dialbb/blob/main/dialbb/util/globals.py">このファイル</a>を参照．)</p>
+<p>システムロールのメッセージとしてLLMに送られる指示です．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">multi_party</span></code> （ブール値．デフォルト値: <code class="docutils literal notranslate"><span class="pre">false</span></code>）</p>
+<p>この値が<code class="docutils literal notranslate"><span class="pre">true</span></code>のとき，プロンプトに入る対話履歴で<code class="docutils literal notranslate"><span class="pre">user_id</span></code>の値が用いられます．これにより複数のユーザの発話の区別がLLMにつくようになります．</p>
+</li>
+</ul>
+</section>
+<section id="id5">
+<h3><span class="section-number">5.1.3. </span>処理内容<a class="headerlink" href="#id5" title="この見出しへのパーマリンク"></a></h3>
+<ul>
+<li><p>対話の最初はブロックコンフィギュレーションの<code class="docutils literal notranslate"><span class="pre">first_system_utterance</span></code>の値をシステム発話として返します．</p></li>
+<li><p>2回目以降のターンでは，プロンプトテンプレートの末尾に対話履歴を与えてLLMに発話を生成させ，返ってきた文字列をシステム発話として返します．プロンプトテンプレートにプレースホルダが含まれている場合の処理は後述します．</p>
+<ul>
+<li><p>対話履歴の形式は以下です．</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&lt;コンフィギュレーションのsystem_name&gt;: &lt;システム発話＞
+&lt;コンフィギュレーションのuser_name&gt;: &lt;ユーザ発話＞
+...
+&lt;コンフィギュレーションのsystem_name&gt;: &lt;システム発話＞
+&lt;コンフィギュレーションのuser_name&gt;: &lt;ユーザ発話＞
+</pre></div>
+</div>
+</li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aux_data</span></code>は基本的に出力と同じものが出力されますが，<a class="reference internal" href="#extract-aux-data"><span class="std std-numref">5.1.5 章</span></a>で述べるようにシステム発話文字列に<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>をアップデートする内容が含まれている場合は，それに従ってアップデートされます．</p></li>
+<li><p>出力の<code class="docutils literal notranslate"><span class="pre">final</span></code>は常に<code class="docutils literal notranslate"><span class="pre">False</span></code>です．</p></li>
+</ul>
+</section>
+<section id="id6">
+<h3><span class="section-number">5.1.4. </span>プロンプトテンプレート内のプレースホルダ<a class="headerlink" href="#id6" title="この見出しへのパーマリンク"></a></h3>
+<ul>
+<li><p>プロンプトテンプレート内では，以下のプレースホルダが利用できます．</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">{current_time}</span></code></p>
+<p>対話の行われている時点の年月日，曜日，時分秒を表す文字列で置き換えられる．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">{&lt;アルファベット，数字，アンダースコアのみからなる任意の文字列&gt;}</span></code></p>
+<p>文字列が<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>のキーにあれば，その値を文字列に変換したもので置き換えらる．</p>
+</li>
+</ul>
+</li>
+<li><p>プレースホルダの削除</p>
+<p>もし置き換えられないプレースホルダが残っていて，それが<code class="docutils literal notranslate"><span class="pre">[[[</span></code>と<code class="docutils literal notranslate"><span class="pre">]]]</span></code>で囲まれていれば，その部分は消去されます．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">{dialogue_history}</span></code>をテンプレートに記述する必要はありません．</p></li>
+</ul>
+</section>
+<section id="aux-data">
+<span id="extract-aux-data"></span><h3><span class="section-number">5.1.5. </span>システム発話からのaux_dataの抽出<a class="headerlink" href="#aux-data" title="この見出しへのパーマリンク"></a></h3>
+<p>出力のシステム発話文字列の最後に <code class="docutils literal notranslate"><span class="pre">(&lt;key_1&gt;:</span> <span class="pre">&lt;value_1&gt;,</span>&#160; <span class="pre">&lt;key_2&gt;:</span> <span class="pre">&lt;value_2&gt;,</span> <span class="pre">...</span> <span class="pre">&lt;key_n&gt;:</span> <span class="pre">&lt;value_n&gt;)</span></code>の形の文字列があるとき，この部分は発話文字列から削除され，出力の<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>に<code class="docutils literal notranslate"><span class="pre">{”&lt;key_1&gt;”:</span> <span class="pre">”&lt;value_1&gt;”,</span>&#160; <span class="pre">”&lt;key_2&gt;”:</span> <span class="pre">”&lt;value_2&gt;”,</span> <span class="pre">...</span> <span class="pre">”&lt;key_n&gt;”:</span> <span class="pre">”&lt;value_n&gt;”}</span></code>が付け加わります．（実際にはupdateされるので，同じキーがあれば値が上書きされます．）クライアントの制御に用いることができます．</p>
+<p>例：</p>
+<ul class="simple">
+<li><p>システム発話文字列 ：<code class="docutils literal notranslate"><span class="pre">&quot;こんにちは</span> <span class="pre">(emotion:happy)&quot;</span></code></p></li>
+<li><p>最終的なシステム発話：<code class="docutils literal notranslate"><span class="pre">&quot;こんにちは&quot;</span></code>， <code class="docutils literal notranslate"><span class="pre">aux_data</span></code>のアップデート：<code class="docutils literal notranslate"><span class="pre">{&quot;emotion&quot;:</span> <span class="pre">&quot;happy&quot;}</span></code></p></li>
+</ul>
+<p>キーはアルファベット，数字，アンダースコアの並びでないといけません．</p>
+</section>
+</section>
+<section id="passage-retrieval-rag">
+<span id="passage-retrieval"></span><h2><span class="section-number">5.2. </span>Passage Retrieval （RAG用のパッセージ検索ブロック）<a class="headerlink" href="#passage-retrieval-rag" title="この見出しへのパーマリンク"></a></h2>
+<p>(<code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.passage_retrieval.Retriever</span></code>)</p>
+<p>RAG（Retrieval-Augmented Generation）のために，文書集合からユーザ発話に関連するパッセージを検索します．</p>
+<p>起動時に指定された文書ファイル群を読み込み，ベクトルDBを構築します．実行時には直近のユーザ発話を検索クエリとして類似検索を行い，検索結果を<code class="docutils literal notranslate"><span class="pre">aux_data[&quot;passages&quot;]</span></code>に格納します．</p>
+<section id="id7">
+<h3><span class="section-number">5.2.1. </span>入出力<a class="headerlink" href="#id7" title="この見出しへのパーマリンク"></a></h3>
+<ul>
+<li><p>入力</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">dialogue_history</span></code>: 対話履歴</p>
+<p>メインモジュールが保持している対話履歴です．直近のユーザ発話が検索クエリとして使われます．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aux_data</span></code>: 補助データ（辞書型）</p>
+<p>メインモジュールに<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>がない時は，<code class="docutils literal notranslate"><span class="pre">{}</span></code>になります．</p>
+</li>
+</ul>
+</li>
+<li><p>出力</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">aux_data</span></code>: 補助データ（辞書型）</p>
+<p>入力の<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>に，検索結果を連結した文字列を<code class="docutils literal notranslate"><span class="pre">&quot;passages&quot;</span></code>というキーで追加または上書きしたものです．</p>
+</li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="id8">
+<h3><span class="section-number">5.2.2. </span>ブロックコンフィギュレーションのパラメータ<a class="headerlink" href="#id8" title="この見出しへのパーマリンク"></a></h3>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">sources</span></code>（文字列のリスト）</p>
+<p>検索対象文書が入っているファイルまたはディレクトリを指定します．コンフィギュレーションファイルのあるディレクトリからの相対パスで記述します．ディレクトリを指定した場合は，その配下を再帰的に走査します．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">extensions</span></code>（文字列のリスト，デフォルト値は<code class="docutils literal notranslate"><span class="pre">.pdf</span></code>, <code class="docutils literal notranslate"><span class="pre">.txt</span></code>, <code class="docutils literal notranslate"><span class="pre">.md</span></code>, <code class="docutils literal notranslate"><span class="pre">.docx</span></code>, <code class="docutils literal notranslate"><span class="pre">.pptx</span></code>, <code class="docutils literal notranslate"><span class="pre">.html</span></code>, <code class="docutils literal notranslate"><span class="pre">.htm</span></code>, <code class="docutils literal notranslate"><span class="pre">.json</span></code>, <code class="docutils literal notranslate"><span class="pre">.csv</span></code>）</p>
+<p>読み込み対象とする拡張子のリストです．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">vector_db_dir</span></code>（文字列，デフォルト値は<code class="docutils literal notranslate"><span class="pre">&quot;vector_db&quot;</span></code>）</p>
+<p>ベクトルDBを保存するディレクトリ名です．コンフィギュレーションファイルのあるディレクトリからの相対パスで指定します．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">collection</span></code>（文字列，デフォルト値は<code class="docutils literal notranslate"><span class="pre">&quot;rag_docs&quot;</span></code>）</p>
+<p>Chroma DB内のコレクション名です．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">clear_before_ingest</span></code>（ブール値，デフォルト値は<code class="docutils literal notranslate"><span class="pre">True</span></code>）</p>
+<p><code class="docutils literal notranslate"><span class="pre">True</span></code>のとき，起動時に既存のベクトルDBディレクトリを削除してから文書を再投入します．文書変更後に毎回ベクトルDBを作り直したい場合に使います．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">chunk_size</span></code>（整数，デフォルト値は<code class="docutils literal notranslate"><span class="pre">800</span></code>）</p>
+<p>文書を分割するときのチャンクサイズです．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">chunk_overlap</span></code>（整数，デフォルト値は<code class="docutils literal notranslate"><span class="pre">100</span></code>）</p>
+<p>文書分割時のチャンクの重なりサイズです．<code class="docutils literal notranslate"><span class="pre">chunk_size</span></code>より小さくする必要があります．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">top_k</span></code>（整数，デフォルト値は<code class="docutils literal notranslate"><span class="pre">5</span></code>）</p>
+<p>類似検索で取得するパッセージ数です．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">separator</span></code>（文字列，デフォルト値は<code class="docutils literal notranslate"><span class="pre">&quot;\n\n---\n\n&quot;</span></code>）</p>
+<p>検索された複数パッセージを1つの文字列に連結するときの区切り文字列です．</p>
+</li>
+</ul>
+</section>
+<section id="id9">
+<h3><span class="section-number">5.2.3. </span>処理内容<a class="headerlink" href="#id9" title="この見出しへのパーマリンク"></a></h3>
+<ul class="simple">
+<li><p>起動時に<code class="docutils literal notranslate"><span class="pre">OPENAI_API_KEY</span></code>環境変数を確認し，OpenAIの埋め込みモデルを初期化します．</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sources</span></code>で指定されたファイル群を読み込み，必要に応じて正規化と分割を行ってベクトルDBに投入します．</p></li>
+<li><p>実行時には<code class="docutils literal notranslate"><span class="pre">dialogue_history</span></code>の最後のユーザ発話を検索クエリとして類似検索を行います．</p></li>
+<li><p>検索結果の各パッセージ本文を<code class="docutils literal notranslate"><span class="pre">separator</span></code>で連結し，<code class="docutils literal notranslate"><span class="pre">aux_data[&quot;passages&quot;]</span></code>に格納して返します．</p></li>
+</ul>
+</section>
+</section>
+<section id="dst-with-llm-llm">
+<span id="dst-with-llm"></span><h2><span class="section-number">5.3. </span>DST with LLM （LLMを用いたスロット抽出ブロック）<a class="headerlink" href="#dst-with-llm-llm" title="この見出しへのパーマリンク"></a></h2>
+<p>(<code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.dst_with_llm.DST</span></code>）</p>
+<p>大規模言語モデルを用いて，対話履歴からのスロットの抽出，すなわち対話状態追跡（Dialogue State Tracking: DST)を行います．</p>
+<p>コンフィギュレーションの<code class="docutils literal notranslate"><span class="pre">language</span></code>要素が<code class="docutils literal notranslate"><span class="pre">ja</span></code>の場合は日本語，<code class="docutils literal notranslate"><span class="pre">en</span></code>の場合は英語のスロット抽出を行います．</p>
+<p>本ブロックは，起動時にExcelで記述したスロット抽出知識を読み込み，スロットのリストとスロット抽出例に変換します．</p>
+<p>実行時は，プロンプトに対話履歴を付加してLLMにスロット抽出を行わせます．</p>
+<section id="id10">
+<h3><span class="section-number">5.3.1. </span>入出力<a class="headerlink" href="#id10" title="この見出しへのパーマリンク"></a></h3>
+<ul>
+<li><p>入力</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">dialogue_history</span></code>: 対話履歴</p>
+<p>メインモジュールが保持している対話履歴（最新のユーザ発話までの対話）です．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aux_data</span></code>: 補助データ（辞書型）</p>
+<p>メインモジュールに<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>がない時は，<code class="docutils literal notranslate"><span class="pre">{}</span></code>になります．</p>
+</li>
+</ul>
+</li>
+<li><p>出力</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">aux_data</span></code>: 補助データ（辞書型）</p>
+<p>スロット抽出結果を含みます．</p>
+</li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="id11">
+<h3><span class="section-number">5.3.2. </span>処理内容<a class="headerlink" href="#id11" title="この見出しへのパーマリンク"></a></h3>
+<p>対話履歴からスロットを抽出して，その結果をもとに<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>をアップデートします．</p>
+<p>例えば，<code class="docutils literal notranslate"><span class="pre">好きなラーメン</span></code>スロットの値が<code class="docutils literal notranslate"><span class="pre">味噌ラーメン</span></code>で，<code class="docutils literal notranslate"><span class="pre">ユーザの名前</span></code>スロットの値が<code class="docutils literal notranslate"><span class="pre">健二</span></code>だった場合，以下の処理が行われます．</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">aux_data</span><span class="p">[</span><span class="s2">&quot;好きなラーメン&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;味噌ラーメン&quot;</span>
+<span class="n">aux_data</span><span class="p">[</span><span class="s2">&quot;ユーザの名前&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;健二&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="dst-params">
+<span id="id12"></span><h3><span class="section-number">5.3.3. </span>ブロックコンフィギュレーションのパラメータ<a class="headerlink" href="#dst-params" title="この見出しへのパーマリンク"></a></h3>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">knowledge_file</span></code>（文字列）</p>
+<p>知識を記述したExcelファイルを指定します．コンフィギュレーションファイルのあるディレクトリからの相対パスで記述します．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flags_to_use</span></code>（文字列のリスト）</p>
+<p>各シートの<code class="docutils literal notranslate"><span class="pre">flag</span></code>カラムにこの値のうちのどれかが書かれていた場合に読み込みます．このパラメータがセットされていない場合はすべての行が読み込まれます．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">knowledge_google_sheet</span></code> (ハッシュ)</p>
+<ul>
+<li><p>Excelの代わりにGoogle Sheetを用いる場合の情報を記述します．（Google Sheetを利用する際の設定は<a class="reference external" href="https://note.com/kohaku935/n/nc13bcd11632d">こはたさんの記事</a>が参考になりますが，Google Cloud Platformの設定画面のUIがこの記事とは多少変わっています．）</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">sheet_id</span></code> （文字列）</p>
+<p>Google SheetのIDです．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">key_file</span></code>（文字列）</p>
+<p>Goole Sheet APIにアクセスするためのキーファイルをコンフィギュレーションファイルのディレクトリからの相対パスで指定します．</p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">model</span></code> (文字列．デフォルト値は<code class="docutils literal notranslate"><span class="pre">gpt-5.4-nano</span></code>）</p>
+<p>LLMのモデルを指定します．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">prompt_template</span></code></p>
+<p>スロット抽出のためのプロンプトテンプレートを書いたファイルをコンフィギュレーションファイルのディレクトリからの相対パスで指定します．</p>
+<p>これが指定されていない場合は，<code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.dst_with_llm.prompt_template_ja.PROMPT_TEMPLATE_JA</span></code> （日本語）または，<code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.dst_with_llm.prompt_template_en.PROMPT_TEMPLATE_EN</span></code> （英語）が使われます．</p>
+<p>プロンプトテンプレートは，言語理解をLLMに行わせるプロンプトのテンプレートで，以下のプレイスホルダを含みます．</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">{slot_definitions}</span></code>: スロットの種類を列挙したものです．</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">{examples}</span></code>: 対話例と，タイプ，スロットの正解を書いた，いわゆるfew shot exampleです．</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">{dialogue_history}</span></code>: 対話履歴</p></li>
+</ul>
+<p>これらのプレイスホルダには，実行時に値が代入されます．</p>
+</li>
+</ul>
+</section>
+<section id="dst-knowledge">
+<span id="id13"></span><h3><span class="section-number">5.3.4. </span>スロット抽出知識<a class="headerlink" href="#dst-knowledge" title="この見出しへのパーマリンク"></a></h3>
+<p>スロット抽出知識は，以下の2つのシートからなります．</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>シート名</p></th>
+<th class="head"><p>内容</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>dialogues</p></td>
+<td><p>対話とスロット抽出結果の組の例</p></td>
+</tr>
+<tr class="row-odd"><td><p>slots</p></td>
+<td><p>スロットとエンティティの関係および同義語のリスト</p></td>
+</tr>
+</tbody>
+</table>
+<p>シート名はブロックコンフィギュレーションで変更可能ですが，変更することはほとんどないと思いますので，詳細な説明は割愛します．</p>
+<section id="dialogues">
+<h4><span class="section-number">5.3.4.1. </span>dialoguesシート<a class="headerlink" href="#dialogues" title="この見出しへのパーマリンク"></a></h4>
+<p>各行は次のカラムからなります．</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">flag</span></code></p>
+<p>利用するかどうかを決めるフラグ．<code class="docutils literal notranslate"><span class="pre">Y</span></code> (yes), <code class="docutils literal notranslate"><span class="pre">T</span></code> (test)などを書くことが多いです．どのフラグの行を利用するかはコンフィギュレーションに記述します．サンプルアプリのコンフィギュレーションでは，すべての行を使う設定になっています．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dialogue</span></code></p>
+<p>対話例</p>
+<p>以下が例です</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>システム：好きなラーメンは何ですか？
+ユーザ：味噌ラーメン
+システム：札幌の味噌ラーメンですか？
+ユーザ：そう
+</pre></div>
+</div>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">slots</span></code></p>
+<p>対話から抽出されるべきスロット．スロットを以下の形で記述します．</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">スロット名</span><span class="o">&gt;=&lt;</span><span class="n">スロット値</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">スロット名</span><span class="o">&gt;=&lt;</span><span class="n">スロット値</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">...</span> <span class="o">&lt;</span><span class="n">スロット名</span><span class="o">&gt;=&lt;</span><span class="n">スロット値</span><span class="o">&gt;</span> 
+</pre></div>
+</div>
+<p>以下が例です．</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">地方</span><span class="o">=</span><span class="n">札幌</span><span class="p">,</span> <span class="n">好きなラーメン</span><span class="o">=</span><span class="n">味噌ラーメン</span>
+</pre></div>
+</div>
+<p>このブロックで使うシートにこれ以外のカラムがあっても構いません．</p>
+</li>
+</ul>
+</section>
+<section id="slots">
+<h4><span class="section-number">5.3.4.2. </span>slotsシート<a class="headerlink" href="#slots" title="この見出しへのパーマリンク"></a></h4>
+<p>各行は次のカラムからなります．</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">flag</span></code></p>
+<p>dialoguesシートと同じ</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">slot</span> <span class="pre">name</span></code></p>
+<p>スロット名．utterancesシートの発話例で使うもの．スロット抽出結果でも用います．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">entity</span></code></p>
+<p>辞書エントリー名．スロット抽出結果結果に含まれます．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">synonyms</span></code></p>
+<p>同義語を<code class="docutils literal notranslate"><span class="pre">','</span></code>で連結したものです．</p>
+</li>
+</ul>
+</section>
+</section>
+</section>
+<section id="stn-manager">
+<span id="id14"></span><h2><span class="section-number">5.4. </span>STN manager （状態遷移ネットワークベースの対話管理ブロック）<a class="headerlink" href="#stn-manager" title="この見出しへのパーマリンク"></a></h2>
+<p>(<code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.stn_manager.stn_management.Manager</span></code>)</p>
+<p>状態遷移ネットワーク(State-Transition Network)を用いて対話管理を行います．</p>
+<ul>
+<li><p>入力</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">dialogue_history</span></code>: メインモジュールから送られてくる対話履歴（任意）</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nlu_result</span></code>: 言語理解結果（辞書型または辞書型のリスト）（任意） (廃止予定)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sentence</span></code>: ユーザ発話（文字列）（<code class="docutils literal notranslate"><span class="pre">dialogue_history</span></code>があればなくても良い）</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">user_id</span></code>: ユーザID（文字列）（<code class="docutils literal notranslate"><span class="pre">dialogue_history</span></code>があればなくても良い）</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aux_data</span></code>: 補助データ（辞書型）（任意：クライアントから補助データを受け取る場合には必要）</p></li>
+</ul>
+</li>
+<li><p>出力</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">output_text</span></code>: システム発話（文字列）
+例：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;醤油ラーメン好きなんですね&quot;</span>
+</pre></div>
+</div>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">final</span></code>: 対話終了かどうかのフラグ（ブール値）</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aux_data</span></code>: 補助データ（辞書型）(ver. 0.4.0で変更）
+入力の補助データを，後述のアクション関数の中でアップデートしたものに，遷移した状態のIDを含めたもの．アクション関数の中でのアップデートは必ずしも行われるわけではない．遷移した状態は，以下の形式で付加される．</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="w">   </span><span class="p">{</span><span class="nt">&quot;state&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;特定のラーメンが好き&quot;</span><span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</li>
+</ul>
+<section id="id15">
+<h3><span class="section-number">5.4.1. </span>ブロックコンフィギュレーションのパラメータ<a class="headerlink" href="#id15" title="この見出しへのパーマリンク"></a></h3>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">knowledge_file</span></code>（文字列）</p>
+<p>シナリオを記述したExcelファイルを指定します．コンフィギュレーションファイルのあるディレクトリからの相対パスで記述します．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">function_definitions</span></code>（文字列）</p>
+<p>シナリオ関数（<code class="xref std std-numref docutils literal notranslate"><span class="pre">dictionary_function</span></code>を参照）を定義したモジュールの名前です．複数ある場合は<code class="docutils literal notranslate"><span class="pre">':'</span></code>でつなぎます．モジュール検索パスにある必要があります．（コンフィギュレーションファイルのあるディレクトリはモジュール検索パスに入っています．）</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flags_to_use</span></code>（文字列のリスト）</p>
+<p>各シートの<code class="docutils literal notranslate"><span class="pre">flag</span></code>カラムにこの値のうちのどれかが書かれていた場合に読み込みます．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">knowledge_google_sheet</span></code> (ハッシュ)</p>
+<p>DST with LLMブロックと同じです．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">scenario_graph</span></code>: (ブール値．デフォルト値 <code class="docutils literal notranslate"><span class="pre">false</span></code>）</p>
+<p>この値が<code class="docutils literal notranslate"><span class="pre">true</span></code>の場合，シナリオシートの<code class="docutils literal notranslate"><span class="pre">system</span> <span class="pre">utterance</span></code>カラムと<code class="docutils literal notranslate"><span class="pre">user</span> <span class="pre">utterance</span> <span class="pre">example</span></code>カラムの値を使って，グラフを作成します．これにより，シナリオ作成者が直感的に状態遷移ネットワークを確認できます．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">repeat_when_no_available_transitions</span></code> （ブール値．デフォルト値 <code class="docutils literal notranslate"><span class="pre">false</span></code>．ver. 0.4.0で追加）</p>
+<p>この値が<code class="docutils literal notranslate"><span class="pre">True</span></code>のとき，条件に合う遷移がないとき，遷移せず同じ発話を繰り返します．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">multi_party</span></code> （ブール値．デフォルト値 <code class="docutils literal notranslate"><span class="pre">false</span></code>．ver. 0.10.0で追加）</p>
+<p>この値が<code class="docutils literal notranslate"><span class="pre">true</span></code>のとき，<a class="reference internal" href="#context-information"><span class="std std-numref">5.4.4.1 章</span></a>の対話履歴の内容，および，<a class="reference internal" href="#llm-functinos"><span class="std std-numref">5.4.7.2 章</span></a>の大規模言語モデルを用いる組み込み関数のプロンプトに入る対話履歴で，<code class="docutils literal notranslate"><span class="pre">user_id</span></code>の値が用いられます．</p>
+</li>
+</ul>
+</section>
+<section id="scenario">
+<span id="id16"></span><h3><span class="section-number">5.4.2. </span>対話管理の知識記述<a class="headerlink" href="#scenario" title="この見出しへのパーマリンク"></a></h3>
+<p>対話管理知識（シナリオ）は，Excelファイルの<code class="docutils literal notranslate"><span class="pre">scenario</span></code>シートです．</p>
+<p>このシートの各行が，一つの遷移を表します．各行は次のカラムからなります．</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">flag</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">utterance</span></code>シートと同じ</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">state</span></code></p>
+<p>遷移元の状態名</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">system</span> <span class="pre">utterance</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">state</span></code>の状態で生成されるシステム発話の候補．</p>
+<p>システム発話文字列に含まれる<code class="docutils literal notranslate"><span class="pre">{&lt;変数&gt;}</span></code>または<code class="docutils literal notranslate"><span class="pre">{&lt;関数呼び出し&gt;}</span></code>は，対話中にその変数に代入された値や関数呼び出しの結果で置き換えられます．これについては，以下の<a class="reference internal" href="#realization-in-system-utterance"><span class="std std-numref">5.4.5 章</span></a>で詳しく説明します．</p>
+<p><code class="docutils literal notranslate"><span class="pre">state</span></code>が同じ行は複数あり得ますが，同じ<code class="docutils literal notranslate"><span class="pre">state</span></code>の行の<code class="docutils literal notranslate"><span class="pre">system</span> <span class="pre">utterance</span></code>すべてが発話の候補となり，ランダムに生成されます．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">user</span> <span class="pre">utterance</span> <span class="pre">example</span></code></p>
+<p>ユーザ発話の例．対話の流れを理解するために書くだけで，システムでは用いられません．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">user</span> <span class="pre">utterance</span> <span class="pre">type</span></code></p>
+<p>ユーザ発話を言語理解した結果得られるユーザ発話のタイプ．遷移の条件となります．
+このブロックの入力に<code class="docutils literal notranslate"><span class="pre">nlu_result</span></code>がない場合，この列はなくても構いません．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">conditions</span></code></p>
+<p>条件（の並び）．遷移の条件を表す関数呼び出し．複数あっても構いません．複数ある場合は，<code class="docutils literal notranslate"><span class="pre">';'</span></code>で連結します．各条件は<code class="docutils literal notranslate"><span class="pre">&lt;関数名&gt;(&lt;引数1&gt;,</span> <span class="pre">&lt;引数2&gt;,</span> <span class="pre">...,</span> <span class="pre">&lt;引数n&gt;)</span></code>の形をしています．引数は0個でも構いません．各条件で使える引数については，<a class="reference internal" href="#arguments"><span class="std std-numref">5.4.4.2 章</span></a>を参照してください．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">actions</span></code></p>
+<p>アクション（の並び）．遷移した際に実行する関数呼び出し．複数あっても構いません．複数ある場合は，<code class="docutils literal notranslate"><span class="pre">;</span></code>で連結します．各条件は<code class="docutils literal notranslate"><span class="pre">&lt;関数名&gt;(&lt;引数1&gt;,</span> <span class="pre">&lt;引数2&gt;,</span> <span class="pre">...,</span> <span class="pre">&lt;引数n&gt;)</span></code>の形をしています．引数は0個でも構いません．各条件で使える引数については，<a class="reference internal" href="#arguments"><span class="std std-numref">5.4.4.2 章</span></a>を参照してください．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">next</span> <span class="pre">state</span></code></p>
+<p>遷移先の状態名</p>
+</li>
+</ul>
+<p>（メモとして利用するために）シートにこれ以外のカラムがあっても構いません．</p>
+<p>各行が表す遷移の<code class="docutils literal notranslate"><span class="pre">user</span> <span class="pre">utterance</span> <span class="pre">type</span></code>が空かもしくは言語理解結果のタイプと一致し，<code class="docutils literal notranslate"><span class="pre">conditions</span></code>が空か全部満たされた場合，遷移の条件を満たし，<code class="docutils literal notranslate"><span class="pre">next</span> <span class="pre">state</span></code>の状態に遷移します．その際，<code class="docutils literal notranslate"><span class="pre">actions</span></code>に書いてあるアクションが実行されます．</p>
+<p><code class="docutils literal notranslate"><span class="pre">state</span></code>カラムが同じ行（遷移元の状態が同じ遷移）は，<strong>上に書いてあるものから順に</strong>遷移の条件を満たしているかどうかをチェックします．</p>
+<p>デフォルト遷移（<code class="docutils literal notranslate"><span class="pre">user</span> <span class="pre">utterance</span> <span class="pre">type</span></code>カラムも<code class="docutils literal notranslate"><span class="pre">conditions</span></code>カラムも空の行）は，<code class="docutils literal notranslate"><span class="pre">state</span></code>カラムが同じ行の中で一番下に書かれていなくてはなりません．</p>
+<p><code class="docutils literal notranslate"><span class="pre">repeat_when_no_available_transitions</span></code>がTrueの場合以外は，デフォルト遷移が必要です．</p>
+</section>
+<section id="id17">
+<h3><span class="section-number">5.4.3. </span>特別な状態<a class="headerlink" href="#id17" title="この見出しへのパーマリンク"></a></h3>
+<p>以下の状態名はあらかじめ定義されています．</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">#prep</span></code></p>
+<p>準備状態．この状態がある場合，対話が始まった時（クライアントから最初にアクセスがあった時）に，この状態からの遷移が試みられます．<code class="docutils literal notranslate"><span class="pre">state</span></code>カラムの値が<code class="docutils literal notranslate"><span class="pre">#prep</span></code>の行の<code class="docutils literal notranslate"><span class="pre">conditions</span></code>にある条件がすべて満たされるかどうかを調べ，満たされた場合に，その行の<code class="docutils literal notranslate"><span class="pre">actions</span></code>のアクションを実行してから，<code class="docutils literal notranslate"><span class="pre">next</span> <span class="pre">state</span></code>の状態に遷移し，その状態のシステム発話が出力されます．</p>
+<p>最初のシステム発話や状態を状況に応じて変更するときに使います．日本語サンプルアプリは，対話が行われる時間に応じて挨拶の内容を変更します．</p>
+<p>この準備状態はなくても構いません．</p>
+<p><code class="docutils literal notranslate"><span class="pre">#prep</span></code>からの遷移先は<code class="docutils literal notranslate"><span class="pre">#initial</span></code>でなくてもよくなりました．(ver. 0.4.0)</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">#initial</span></code></p>
+<p>初期状態．<code class="docutils literal notranslate"><span class="pre">#prep</span></code>状態がない場合，対話が始まった時（クライアントから最初にアクセスがあった時）この状態から始まり，この状態のシステム発話が<code class="docutils literal notranslate"><span class="pre">output_text</span></code>に入れられてメインプロセスに返されます．</p>
+</li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">#prep</span></code>状態または<code class="docutils literal notranslate"><span class="pre">#initial</span></code>状態のどちらかがなくてはなりません．</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">#error</span></code></p>
+<p>内部エラーが起きたときこの状態に移動します．システム発話を生成して終了します．</p>
+</li>
+</ul>
+<p>また，<code class="docutils literal notranslate"><span class="pre">#final_say_bye</span></code> のように，<code class="docutils literal notranslate"><span class="pre">#final</span></code>ではじまるstate IDは最終状態を表します．
+最終状態ではシステム発話を生成して対話を終了します．</p>
+</section>
+<section id="id18">
+<h3><span class="section-number">5.4.4. </span>条件とアクション<a class="headerlink" href="#id18" title="この見出しへのパーマリンク"></a></h3>
+<section id="context-information">
+<span id="id19"></span><h4><span class="section-number">5.4.4.1. </span>文脈情報<a class="headerlink" href="#context-information" title="この見出しへのパーマリンク"></a></h4>
+<p>STN Managerは，対話のセッションごとに文脈情報を保持しています．文脈情報は変数とその値の組の集合（pythonの辞書型データ）で，値はどのようなデータ構造でも構いません．</p>
+<p>条件やアクションの関数は文脈情報にアクセスします．</p>
+<p>文脈情報にはあらかじめ以下のキーと値のペアがセットされています．</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>キー</p></th>
+<th class="head"><p>値</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>_current_state_name</p></td>
+<td><p>遷移前状態の名前（文字列）</p></td>
+</tr>
+<tr class="row-odd"><td><p>_config</p></td>
+<td><p>configファイルを読み込んでできた辞書型のデータ</p></td>
+</tr>
+<tr class="row-even"><td><p>_block_config</p></td>
+<td><p>configファイルのうち対話管理ブロックの設定部分（辞書型のデータ）</p></td>
+</tr>
+<tr class="row-odd"><td><p>_aux_data</p></td>
+<td><p>メインプロセスから受け取ったaux_data（辞書型のデータ）</p></td>
+</tr>
+<tr class="row-even"><td><p>_previous_system_utterance</p></td>
+<td><p>直前のシステム発話（文字列）</p></td>
+</tr>
+<tr class="row-odd"><td><p>_dialogue_history</p></td>
+<td><p>対話履歴（リスト）</p></td>
+</tr>
+<tr class="row-even"><td><p>_turns_in_state</p></td>
+<td><p>今の状態でのターン数（ユーザの発話回数）（整数）</p></td>
+</tr>
+<tr class="row-odd"><td><p>_session_id</p></td>
+<td><p>現在の対話のセッションID（文字列）</p></td>
+</tr>
+<tr class="row-even"><td><p>_user_id</p></td>
+<td><p>直前のユーザ発話のユーザID（文字列）</p></td>
+</tr>
+</tbody>
+</table>
+<p>対話履歴は，以下の形です．</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">[</span>
+  <span class="p">{</span>
+    <span class="s2">&quot;speaker&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;utterance&quot;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">正規化後のユーザ発話</span><span class="p">(</span><span class="n">文字列</span><span class="p">)</span><span class="o">&gt;</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    <span class="s2">&quot;speaker&quot;</span><span class="p">:</span> <span class="s2">&quot;system&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;utterance&quot;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">システム発話</span><span class="o">&gt;</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    <span class="s2">&quot;speaker&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;utterance&quot;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">正規化後のユーザ発話</span><span class="p">(</span><span class="n">文字列</span><span class="p">)</span><span class="o">&gt;</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    <span class="s2">&quot;speaker&quot;</span><span class="p">:</span> <span class="s2">&quot;system&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;utterance&quot;</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">システム発話</span><span class="o">&gt;</span>
+  <span class="p">},</span>
+  <span class="o">...</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>ブロックコンフィギュレーションの<code class="docutils literal notranslate"><span class="pre">multi_party</span></code>の値が<code class="docutils literal notranslate"><span class="pre">true</span></code>の時，<code class="docutils literal notranslate"><span class="pre">&quot;user&quot;</span></code>の代わりに，<code class="docutils literal notranslate"><span class="pre">user_id</span></code>の値を用います．</p>
+<p>これらに加えて新しいキーと値のペアをアクション関数内で追加することができます．</p>
+</section>
+<section id="arguments">
+<span id="id20"></span><h4><span class="section-number">5.4.4.2. </span>関数の引数<a class="headerlink" href="#arguments" title="この見出しへのパーマリンク"></a></h4>
+<p>条件やアクションで用いる関数の引数には次のタイプがあります．</p>
+<ul>
+<li><p>特殊変数 （<code class="docutils literal notranslate"><span class="pre">#</span></code>で始まる文字列）</p>
+<p>以下の種類があります．</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">#&lt;スロット名&gt;</span></code></p>
+<p>直前のユーザ発話の言語理解結果（入力の<code class="docutils literal notranslate"><span class="pre">nlu_result</span></code>の値）のスロット値．スロット値が空の場合は空文字列になります．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">#&lt;補助データのキー&gt;</span></code></p>
+<p>入力の<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>の中のこのキーの値．例えば<code class="docutils literal notranslate"><span class="pre">#emotion</span></code>の場合，<code class="docutils literal notranslate"><span class="pre">aux_data['emotion']</span></code>の値．このキーがない場合は，空文字列になります．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">#sentence</span></code></p>
+<p>直前のユーザ発話（正規化したもの）</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">#user_id</span></code></p>
+<p>ユーザID（文字列）</p>
+</li>
+</ul>
+</li>
+<li><p>変数（<code class="docutils literal notranslate"><span class="pre">*</span></code>で始まる文字列）</p>
+<p>文脈情報における変数の値です．<code class="docutils literal notranslate"><span class="pre">*&lt;変数名&gt;</span></code>の形．変数の値は文字列でないといけません．文脈情報にその変数がない場合は空文字列になります．</p>
+</li>
+<li><p>変数参照（&amp;で始まる文字列）</p>
+<p><code class="docutils literal notranslate"><span class="pre">&amp;&lt;文脈情報での変数の名前&gt;</span></code> の形で，関数定義内で文脈情報の変数名を利用するときに用います．</p>
+</li>
+<li><p>定数（<code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code>で囲んだ文字列）</p>
+<p>文字列そのままを意味します．</p>
+</li>
+</ul>
+</section>
+<section id="id21">
+<h4><span class="section-number">5.4.4.3. </span>条件関数による文脈情報のアップデート<a class="headerlink" href="#id21" title="この見出しへのパーマリンク"></a></h4>
+<p>条件に用いられる関数が呼び出され、その中で文脈情報がアップデートされた場合、条件が満たされなくても文脈情報は<strong>もとに戻りません</strong>。</p>
+</section>
+</section>
+<section id="realization-in-system-utterance">
+<span id="id22"></span><h3><span class="section-number">5.4.5. </span>システム発話中の変数や関数呼び出しの扱い<a class="headerlink" href="#realization-in-system-utterance" title="この見出しへのパーマリンク"></a></h3>
+<p>システム発話中の<code class="docutils literal notranslate"><span class="pre">{</span></code>と<code class="docutils literal notranslate"><span class="pre">}</span></code>に囲まれた部分の変数や関数呼び出しは，その変数の値や，関数呼び出しの返り値で置き換えられます．</p>
+<p>変数は<code class="docutils literal notranslate"><span class="pre">#</span></code>で始まるものは上記の特殊変数です．それ以外のものは通常の変数で，文脈情報にあるはずのものです．それらの変数が存在しない場合は，置換されず変数名がそのまま使われます．</p>
+<p>関数呼び出しの場合，関数は条件やアクションで用いる関数と同じように上記の引数を取ることができます．返り値は文字列でないといけません．</p>
+</section>
+<section id="id23">
+<h3><span class="section-number">5.4.6. </span>システム発話からのaux_dataの抽出<a class="headerlink" href="#id23" title="この見出しへのパーマリンク"></a></h3>
+<p><a class="reference internal" href="#extract-aux-data"><span class="std std-numref">5.1.5 章</span></a>と同様に，システム発話文字列から情報を抽出して<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>に追加することができます．</p>
+</section>
+<section id="id24">
+<h3><span class="section-number">5.4.7. </span>関数定義<a class="headerlink" href="#id24" title="この見出しへのパーマリンク"></a></h3>
+<p>条件やアクションで用いる関数（まとめてシナリオ関数と呼びます）は，DialBB組み込みのものと，開発者が定義するものがあります．条件で使う関数はbool値を返し，アクションで使う関数は何も返しません．</p>
+<section id="id25">
+<h4><span class="section-number">5.4.7.1. </span>組み込み関数<a class="headerlink" href="#id25" title="この見出しへのパーマリンク"></a></h4>
+<p>組み込み関数には以下があります．</p>
+<ul>
+<li><p>条件で用いる関数</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">_eq(x,</span> <span class="pre">y)</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">x</span></code>と<code class="docutils literal notranslate"><span class="pre">y</span></code>が同じなら<code class="docutils literal notranslate"><span class="pre">True</span></code>を返します．
+例：<code class="docutils literal notranslate"><span class="pre">_eq(*a,</span> <span class="pre">&quot;b&quot;</span></code>): 変数<code class="docutils literal notranslate"><span class="pre">a</span></code>の値が<code class="docutils literal notranslate"><span class="pre">&quot;b&quot;</span></code>なら<code class="docutils literal notranslate"><span class="pre">True</span></code>を返します．
+<code class="docutils literal notranslate"><span class="pre">_eq(#food,</span> <span class="pre">&quot;ラーメン&quot;)</span></code>: <code class="docutils literal notranslate"><span class="pre">#food</span></code>スロットが<code class="docutils literal notranslate"><span class="pre">&quot;ラーメン&quot;</span></code>なら<code class="docutils literal notranslate"><span class="pre">True</span></code>を返します．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">_ne(x,</span> <span class="pre">y)</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">x</span></code>と<code class="docutils literal notranslate"><span class="pre">y</span></code>が同じでなければ<code class="docutils literal notranslate"><span class="pre">True</span></code>を返します．</p>
+<p>例：<code class="docutils literal notranslate"><span class="pre">_ne(*a,</span> <span class="pre">*b)</span></code>: 変数<code class="docutils literal notranslate"><span class="pre">a</span></code>の値と変数<code class="docutils literal notranslate"><span class="pre">b</span></code>の値が異なれば<code class="docutils literal notranslate"><span class="pre">True</span></code>を返します．
+<code class="docutils literal notranslate"><span class="pre">_ne(#food,</span> <span class="pre">&quot;ラーメン&quot;):</span></code> <code class="docutils literal notranslate"><span class="pre">#food</span></code>スロットが<code class="docutils literal notranslate"><span class="pre">&quot;ラーメン&quot;</span></code>なら<code class="docutils literal notranslate"><span class="pre">False</span></code>を返します．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">_contains(x,</span> <span class="pre">y)</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">x</span></code>が文字列として<code class="docutils literal notranslate"><span class="pre">y</span></code>を含む場合<code class="docutils literal notranslate"><span class="pre">True</span></code>を返します．<br />
+例：_contains(#sentence, &quot;はい&quot;) : ユーザ発話が「はい」を含めばTrueを返します．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">_not_contains(x,</span> <span class="pre">y)</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">x</span></code>が文字列として<code class="docutils literal notranslate"><span class="pre">y</span></code>を含まない場合<code class="docutils literal notranslate"><span class="pre">True</span></code>を返します．</p>
+<p>例： <code class="docutils literal notranslate"><span class="pre">_not_contains(#sentence,</span> <span class="pre">&quot;はい&quot;)</span></code> : ユーザ発話が<code class="docutils literal notranslate"><span class="pre">&quot;はい&quot;</span></code>を含めば<code class="docutils literal notranslate"><span class="pre">True</span></code>を返します．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">_member_of(x,</span> <span class="pre">y)</span></code></p>
+<p>文字列<code class="docutils literal notranslate"><span class="pre">y</span></code>を<code class="docutils literal notranslate"><span class="pre">':'</span></code>で分割してできたリストに文字列<code class="docutils literal notranslate"><span class="pre">x</span></code>が含まれていれば<code class="docutils literal notranslate"><span class="pre">True</span></code>を返します．</p>
+<p>例：<code class="docutils literal notranslate"><span class="pre">_member_of(#food,</span> <span class="pre">&quot;ラーメン:チャーハン:餃子&quot;)</span></code></p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">_not_member_of(x,</span> <span class="pre">y)</span></code></p>
+<p>文字列<code class="docutils literal notranslate"><span class="pre">y</span></code>を<code class="docutils literal notranslate"><span class="pre">':'</span></code>で分割してできたリストに文字列<code class="docutils literal notranslate"><span class="pre">x</span></code>が含まれていなければ<code class="docutils literal notranslate"><span class="pre">True</span></code>を返します．</p>
+<p>例：<code class="docutils literal notranslate"><span class="pre">_not_member_of(*favorite_food,</span> <span class="pre">&quot;ラーメン:チャーハン:餃子&quot;)</span></code></p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">_num_turns_exceeds(n)</span></code></p>
+<p>文字列<code class="docutils literal notranslate"><span class="pre">n</span></code>が表す整数よりも対話の最初からのターン数（ユーザの発話回数）が多いとき，<code class="docutils literal notranslate"><span class="pre">True</span></code>を返します．</p>
+<p>例：<code class="docutils literal notranslate"><span class="pre">_num_turns_exceeds(&quot;10&quot;)</span></code></p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">_num_turns_in_state_exceeds(n)</span></code></p>
+<p>文字列<code class="docutils literal notranslate"><span class="pre">n</span></code>が表す整数よりもその状態でのターン数（ユーザの発話回数）が多いとき，<code class="docutils literal notranslate"><span class="pre">True</span></code>を返します．</p>
+<p>例：<code class="docutils literal notranslate"><span class="pre">_num_turns_in_state_exceeds(&quot;5&quot;)</span></code></p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">_check_with_llm(task)</span></code>, <code class="docutils literal notranslate"><span class="pre">_check_with_prompt_template(prompt_template)</span></code></p>
+<p>大規模言語モデルを用いて判定をします．後述します．</p>
+</li>
+</ul>
+</li>
+<li><p>アクションで用いる関数</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">_set(x,</span> <span class="pre">y)</span></code></p>
+<p>変数<code class="docutils literal notranslate"><span class="pre">x</span></code>に<code class="docutils literal notranslate"><span class="pre">y</span></code>をセットします．</p>
+<p>例：<code class="docutils literal notranslate"><span class="pre">_set(&amp;a,</span> <span class="pre">b)</span></code>: <code class="docutils literal notranslate"><span class="pre">b</span></code>の値を<code class="docutils literal notranslate"><span class="pre">a</span></code>にセットします．
+<code class="docutils literal notranslate"><span class="pre">_set(&amp;a,</span> <span class="pre">&quot;hello&quot;)</span></code>： <code class="docutils literal notranslate"><span class="pre">a</span></code>に<code class="docutils literal notranslate"><span class="pre">&quot;hello&quot;</span></code>をセットします．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">_set(x,</span> <span class="pre">y)</span></code></p>
+<p>変数<code class="docutils literal notranslate"><span class="pre">x</span></code>に<code class="docutils literal notranslate"><span class="pre">y</span></code>をセットします．</p>
+<p>例：<code class="docutils literal notranslate"><span class="pre">_set(&amp;a,</span> <span class="pre">b)</span></code>: <code class="docutils literal notranslate"><span class="pre">b</span></code>の値を<code class="docutils literal notranslate"><span class="pre">a</span></code>にセットします．
+<code class="docutils literal notranslate"><span class="pre">_set(&amp;a,</span> <span class="pre">&quot;hello&quot;)</span></code>： <code class="docutils literal notranslate"><span class="pre">a</span></code>に<code class="docutils literal notranslate"><span class="pre">&quot;hello&quot;</span></code>をセットします．</p>
+</li>
+</ul>
+</li>
+<li><p>システム発話内で用いる関数</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">_generate_with_llm(task)</span></code>, <code class="docutils literal notranslate"><span class="pre">_generate_with_prompt_template(task)</span></code></p>
+<p>大規模言語モデルを用いて文字列を生成します．後述します．</p>
+</li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="llm-functinos">
+<span id="id26"></span><h4><span class="section-number">5.4.7.2. </span>大規模言語モデルを用いた組み込み関数<a class="headerlink" href="#llm-functinos" title="この見出しへのパーマリンク"></a></h4>
+<p><code class="docutils literal notranslate"><span class="pre">_check_with_llm(task)</span></code>および<code class="docutils literal notranslate"><span class="pre">_generate_with_llm(task)</span></code>は，大規模言語モデルと，対話履歴を用いて，条件の判定および文字列の生成を行います．</p>
+<p>以下が例です．</p>
+<ul>
+<li><p>条件判定の例</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">_check_with_llm</span><span class="p">(</span><span class="s2">&quot;ユーザが理由を言ったかどうか判断してください．&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p>文字列生成の例</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">_generate_with_llm</span><span class="p">(</span><span class="s2">&quot;それまでの会話につづけて，対話を終わらせる発話を50文字以内で生成してください&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+</ul>
+<p>これらの関数を使うためには，以下の設定が必要です．</p>
+<ul>
+<li><p>ブロックコンフィギュレーションの<code class="docutils literal notranslate"><span class="pre">llm</span></code>要素 (<code class="docutils literal notranslate"><span class="pre">chatgpt</span></code>要素でも良いですが非推奨です）に以下の要素を加える</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">model</span></code> （文字列） （<code class="docutils literal notranslate"><span class="pre">gpt_model</span></code>も使えますが非推奨です．）</p>
+<p>モデル指定文字列です．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">instruction</span></code> (文字列)</p>
+<p>LLMを呼び出す際に，システムロールのメッセージとして用いられます．文字列生成の時だけ用いられます．デフォルト値は<a class="reference external" href="https://github.com/c4a-ri/dialbb/blob/main/dialbb/util/globals.py">このファイル</a>を参照．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">temperature</span></code> (float)</p>
+<p>LLMの温度パラメータです．デフォルト値は<code class="docutils literal notranslate"><span class="pre">0.7</span></code>です．LLMが<code class="docutils literal notranslate"><span class="pre">gpt-5x</span></code>の場合は無視されます．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">temperature_for_checking</span></code> (float)</p>
+<p>条件判定の際に用いるLLMの温度パラメータです．これが指定されていない場合は，<code class="docutils literal notranslate"><span class="pre">temperature</span></code>の値が用いられます．LLMが<code class="docutils literal notranslate"><span class="pre">gpt-5x</span></code>の場合は無視されます．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">situation</span></code> （文字列のリスト）</p>
+<p>LLMのプロンプトに書く状況を列挙したものです．</p>
+<p>この要素がない場合，状況は指定されません．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">persona</span></code> （文字列のリスト）</p>
+<p>LLMのプロンプトに書くシステムのペルソナを列挙したものです．</p>
+<p>この要素がない場合，ペルソナは指定されません．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cautions</span></code> （文字列のリスト）</p>
+<p>LLMのプロンプトに書くシステムへの注意事項を列挙したものです．
+この要素がない場合，注意事項は指定されません．</p>
+<p>なお，<code class="docutils literal notranslate"><span class="pre">check_with_llm</span></code>では，この要素があっても注意事項は指定されません．</p>
+</li>
+</ul>
+<p>例：</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">llm</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpt-5.4-nano</span>
+<span class="w">  </span><span class="c1"># temperature: 0.7</span>
+<span class="w">  </span><span class="nt">situation</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">あなたは対話システムで，ユーザと食べ物に関して雑談をしています．</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ユーザとは初対面です</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ユーザとは同年代です</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ユーザとは親しい感じで話します</span>
+<span class="w">  </span><span class="nt">persona</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">名前は由衣</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">28歳</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">女性</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ラーメン全般が好き</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">お酒は飲まない</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">IT会社のwebデザイナー</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">独身</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">非常にフレンドリーに話す</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">外交的で陽気</span>
+<span class="w">  </span><span class="nt">cautions</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">長い発話は禁止</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">発話の最後には「．」をつけない</span>
+</pre></div>
+</div>
+</li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">_check_with_prompt_template(prompt_template)</span></code>および<code class="docutils literal notranslate"><span class="pre">_generate_with_prompt_template(prompt_template)</span></code>は，大規模言語モデルにプロンプトを与えて条件の判定および文字列の生成を行います．プロンプトは，引数に指定したプロンプトテンプレートのプレースホルダを値に置き換えることで作られます．</p>
+<p>これらの関数を使うにはAPIキーを適切な環境変数に設定することと，ブロックコンフィギュレーションの<code class="docutils literal notranslate"><span class="pre">llm</span></code>要素の設定が必要です．</p>
+<p>以下が例です．</p>
+<ul>
+<li><p>条件判定の例</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">_check_with_llm</span><span class="p">(</span><span class="s2">&quot;ユーザが理由を言ったかどうか判断してください．&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p>条件判定の例</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>_generate_with_prompt_template(&quot;
+
+# 状況
+
+{situation}
+
+# あなたのペルソナ
+
+{persona}
+
+# 注意事項
+
+{cautions}
+
+# 現在までの対話
+
+{dialogue_history}
+
+# タスク
+
+ユーザが理由を言ったかどうか判断し，yesかnoで答えてください．&quot;)
+</pre></div>
+</div>
+</li>
+<li><p>文字列生成の例</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>_generate_with_prompt_template(&quot;
+
+# 状況
+
+{situation}
+
+# あなたのペルソナ
+
+{persona}
+
+# 注意事項
+
+{cautions}
+
+# 現在までの対話
+
+{dialogue_history}
+
+# タスク
+
+それまでの会話につづけて，対話を終わらせる発話を50文字以内で生成してください．&quot;)
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">{</span></code>と<code class="docutils literal notranslate"><span class="pre">}</span></code>で囲まれている部分はプレースホルダです．</p>
+</li>
+<li><p>利用できるプレースホルダ</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">{dialogue_history}</span></code></p>
+<p>その時点までの対話（最新のユーザ発話を含む）で置き換えられる</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">{situation}</span></code></p>
+<p>ブロックコンフィギュレーションの<code class="docutils literal notranslate"><span class="pre">llm</span></code>要素の<code class="docutils literal notranslate"><span class="pre">situation</span></code>の値で置き換えられる</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">{persona}</span></code></p>
+<p>ブロックコンフィギュレーションの<code class="docutils literal notranslate"><span class="pre">llm</span></code>要素の<code class="docutils literal notranslate"><span class="pre">persona</span></code>の値で置き換えられる</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">{cautions}</span></code></p>
+<p>ブロックコンフィギュレーションの<code class="docutils literal notranslate"><span class="pre">llm</span></code>要素の<code class="docutils literal notranslate"><span class="pre">cautions</span></code>の値で置き換えられる</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">{current_time}</span></code></p>
+<p>対話の行われている時点の年月日，曜日，時分秒を表す文字列で置き換えられる</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">{&lt;アルファベット，数字，アンダースコアのみからなる任意の文字列&gt;}</span></code></p>
+<p>文字列が<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>のキーにあれば，その値を文字列に変換したもので置き換えらる．この文字列は，</p>
+</li>
+</ul>
+</li>
+<li><p>プレースホルダの削除</p>
+<p>もし置き換えられないプレースホルダが残っていて，それが<code class="docutils literal notranslate"><span class="pre">[[[</span></code>と<code class="docutils literal notranslate"><span class="pre">]]]</span></code>で囲まれていれば，その部分は消去されます．</p>
+</li>
+</ul>
+</section>
+<section id="id27">
+<h4><span class="section-number">5.4.7.3. </span>組み込み関数の簡略記法<a class="headerlink" href="#id27" title="この見出しへのパーマリンク"></a></h4>
+<p>組み込み関数の記述を簡単にするために以下の簡略記法（Syntax Sugar)が用意されています．</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;変数名&gt;==&lt;値&gt;</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">_eq(&lt;変数名&gt;,</span> <span class="pre">&lt;値&gt;)</span></code>の意味です．</p>
+<p>例：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#好きなラーメン==&quot;豚骨ラーメン&quot;</span>
+</pre></div>
+</div>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;変数名&gt;!=&lt;値&gt;</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">_ne(&lt;変数名&gt;,</span> <span class="pre">&lt;値&gt;)</span></code>の意味です．</p>
+<p>例：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#NE_Person!=&quot;&quot;</span>
+</pre></div>
+</div>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&lt;変数名&gt;=&lt;値&gt;</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">_set(&amp;&lt;変数名&gt;,</span> <span class="pre">&lt;値&gt;)</span></code>の意味です．</p>
+<p>例：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">user_name</span><span class="o">=</span><span class="c1">#NE_Person</span>
+</pre></div>
+</div>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TT</span> <span class="pre">&gt;</span> <span class="pre">&lt;整数&gt;</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">_num_turns_exceeds(&quot;&lt;整数&gt;&quot;)</span></code>の意味です．</p>
+<p>例：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">TT</span><span class="o">&gt;</span><span class="mi">10</span>
+</pre></div>
+</div>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TS</span> <span class="pre">&gt;</span> <span class="pre">&lt;整数&gt;</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">_num_turns_in_state_exceeds(&quot;&lt;整数&gt;&quot;)</span></code>の意味です．</p>
+<p>例：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">TS</span><span class="o">&gt;</span><span class="mi">5</span>
+</pre></div>
+</div>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">$&lt;タスク文字列&gt;$</span></code></p>
+<p>条件として使われた時は，<code class="docutils literal notranslate"><span class="pre">_check_with_llm(&quot;&lt;タスク文字列&gt;&quot;)</span></code>の意味で，システム発話中で使われた時は，<code class="docutils literal notranslate"><span class="pre">{_generate_with_llm(&quot;&lt;タスク文字列&gt;&quot;)}</span></code>の意味です．</p>
+<p>条件の例：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ユーザが理由を言ったかどうか判断してください．$
+</pre></div>
+</div>
+<p>文字列生成を含むシステム発話の例：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>わかりました．$それまでの会話につづけて，対話を終わらせる発話を50文字以内で生成してください．$今日はお時間ありがとうございました．
+</pre></div>
+</div>
+<p>以前は<code class="docutils literal notranslate"><span class="pre">$&quot;&lt;タスク文字列&gt;&quot;</span></code>の形でしたが推奨されません．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">$$$&lt;プロンプトテンプレート&gt;$$$</span></code></p>
+<p>条件として使われた時は，<code class="docutils literal notranslate"><span class="pre">_check_with_prompt_template(&quot;&lt;プロンプトテンプレート&gt;&quot;)</span></code>の意味で，システム発話中で使われた時は，<code class="docutils literal notranslate"><span class="pre">{_generate_with_prompt_template(&quot;&lt;プロンプトテンプレート&gt;&quot;)}</span></code>の意味です．</p>
+</li>
+</ul>
+</section>
+<section id="custom-functions">
+<span id="id28"></span><h4><span class="section-number">5.4.7.4. </span>開発者による関数定義<a class="headerlink" href="#custom-functions" title="この見出しへのパーマリンク"></a></h4>
+<p>開発者が関数定義を行うときには，コンフィギュレーションファイルのブロックコンフィギュレーションの<code class="docutils literal notranslate"><span class="pre">function_definition</span></code>で指定されているモジュールのファイル（DST+STNアプリケーションでは<code class="docutils literal notranslate"><span class="pre">scenario_functions.py</span></code>）を編集します．</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">get_ramen_location</span><span class="p">(</span><span class="n">ramen</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">variable</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">location</span><span class="p">:</span><span class="nb">str</span> <span class="o">=</span> <span class="n">ramen_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ramen</span><span class="p">,</span> <span class="s2">&quot;日本&quot;</span><span class="p">)</span>
+    <span class="n">context</span><span class="p">[</span><span class="n">variable</span><span class="p">]</span> <span class="o">=</span> <span class="n">location</span>
+</pre></div>
+</div>
+<p>上記のように，シナリオで使われている引数にプラスして，文脈情報を受け取る辞書型の変数を必ず加える必要があります．</p>
+<p>シナリオで使われている引数はすべて文字列でなくてはなりません．</p>
+<p>引数には，特殊変数・変数の場合，その値が渡されます．</p>
+<p>また，変数参照の場合は<code class="docutils literal notranslate"><span class="pre">'&amp;'</span></code>を除いた変数名が，定数の場合は，<code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code>の中の文字列が渡されます．</p>
+</section>
+<section id="id29">
+<h4><span class="section-number">5.4.7.5. </span>関数中のロギング<a class="headerlink" href="#id29" title="この見出しへのパーマリンク"></a></h4>
+<p>シナリオ関数の中で，以下の関数を用いてロギングができます．セッションIDつきで標準出力に書き出されます．</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.stn_management.util.scenario_function_log_debug(message:</span> <span class="pre">str)</span></code>
+debugレベルのログが書き出されます．</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.stn_management.util.scenario_function_log_info(message:</span> <span class="pre">str)</span></code>
+infoレベルのログが書き出されます．</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.stn_management.util.scenario_function_log_warning(message:</span> <span class="pre">str)</span></code></p>
+<p>warningレベルのログが書き出されます．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dialbb.builtin_blocks.stn_management.util.scenario_function_log_error(message:</span> <span class="pre">str)</span></code>
+errorレベルのログが書き出されます．デバッグモードの時にはExceptionを投げます．</p></li>
+</ul>
+</section>
+</section>
+<section id="id30">
+<h3><span class="section-number">5.4.8. </span>連続遷移<a class="headerlink" href="#id30" title="この見出しへのパーマリンク"></a></h3>
+<p>システム発話（の1番目）が<code class="docutils literal notranslate"><span class="pre">$skip</span></code>である状態に遷移した場合，システム応答を返さず，即座に次の遷移を行います．これは，最初の遷移のアクションの結果に応じて二つ目の遷移を選択するような場合に用います．</p>
+</section>
+<section id="id31">
+<h3><span class="section-number">5.4.9. </span>言語理解結果候補が複数ある場合の処理<a class="headerlink" href="#id31" title="この見出しへのパーマリンク"></a></h3>
+<p>入力の<code class="docutils literal notranslate"><span class="pre">nlu_result</span></code>がリスト型のデータで，複数の言語理解結果候補を含んでいる場合，処理は次のようになります．</p>
+<p>リストの先頭から順に，言語理解結果候補の<code class="docutils literal notranslate"><span class="pre">type</span></code>の値が，現在の状態から可能な遷移のうちのどれかの<code class="docutils literal notranslate"><span class="pre">user</span> <span class="pre">utterance</span> <span class="pre">type</span></code>の値に等しいかどうかを調べ，等しい遷移があれば，その言語理解結果候補を用います．</p>
+<p>どの言語理解結果候補も上記の条件に合わない場合，リストの先頭の言語理解結果候補を用います．</p>
+</section>
+<section id="id32">
+<h3><span class="section-number">5.4.10. </span>リアクション<a class="headerlink" href="#id32" title="この見出しへのパーマリンク"></a></h3>
+<p>アクション関数の中で，文脈情報の<code class="docutils literal notranslate"><span class="pre">_reaction</span></code>に文字列をセットすると，状態遷移後のシステム発話の先頭に，その文字列を付加します．</p>
+<p>例えば，<code class="docutils literal notranslate"><span class="pre">_set(&amp;_reaction,</span> <span class="pre">&quot;そうですね&quot;)</span></code>というアクション関数を実行した後に遷移した状態のシステム発話が<code class="docutils literal notranslate"><span class="pre">&quot;ところで今日はいい天気ですね&quot;</span></code>であれば，<code class="docutils literal notranslate"><span class="pre">&quot;そうですね</span> <span class="pre">ところで今日はいい天気ですね&quot;</span></code>という発話をシステム発話として返します．</p>
+<p>遷移先状態が<code class="docutils literal notranslate"><span class="pre">#initial</span></code>の時は、この機能は使えません。</p>
+</section>
+<section id="subdialogue">
+<h3><span class="section-number">5.4.11. </span>Subdialogue<a class="headerlink" href="#subdialogue" title="この見出しへのパーマリンク"></a></h3>
+<p>遷移先の状態名が<code class="docutils literal notranslate"><span class="pre">#gosub:&lt;状態名1&gt;:&lt;状態名2&gt;</span></code>の形の場合，<code class="docutils literal notranslate"><span class="pre">&lt;状態名1&gt;</span></code>の状態に遷移して，そこから始まるsubdialogueを実行します．そして，その後の対話で，遷移先が<code class="docutils literal notranslate"><span class="pre">:exit</span></code>になったら，<code class="docutils literal notranslate"><span class="pre">&lt;状態名2&gt;</span></code>の状態に移ります．</p>
+<p>例えば，遷移先の状態名が<code class="docutils literal notranslate"><span class="pre">#gosub:request_confirmation:confirmed</span></code>の形の場合，<code class="docutils literal notranslate"><span class="pre">request_confirmatin</span></code>から始まるsubdialogueを実行し，遷移先が<code class="docutils literal notranslate"><span class="pre">:exit</span></code>になったら，<code class="docutils literal notranslate"><span class="pre">confirmed</span></code>に戻ります．</p>
+<p>subdialogueの中でsubdialogueに遷移することも可能です．</p>
+</section>
+<section id="id33">
+<h3><span class="section-number">5.4.12. </span>外部データベースへの文脈情報の保存<a class="headerlink" href="#id33" title="この見出しへのパーマリンク"></a></h3>
+<p>コンフィギュレーションに<code class="docutils literal notranslate"><span class="pre">context_db</span></code>要素があるとき，文脈情報を外部DB（MongoDB)に保存します．<code class="docutils literal notranslate"><span class="pre">context_db</span></code>の指定の仕方は，<a class="reference internal" href="04_framework.html#context-db"><span class="std std-numref">4.4.2 章</span></a>を見てください．</p>
+<p>(ver. 1.2でcontext_dbはブロックコンフィギュレーションではなく，コンフィグレーションのトップレベルでしていするように変更されました．)</p>
+</section>
+<section id="handling-speech-input">
+<span id="id34"></span><h3><span class="section-number">5.4.13. </span>音声入力を扱うための仕組み<a class="headerlink" href="#handling-speech-input" title="この見出しへのパーマリンク"></a></h3>
+<p>ver. 0.4.0で，音声認識結果を入力として扱うときに生じる問題に対処するため，以下の変更が行われました．</p>
+<section id="id35">
+<h4><span class="section-number">5.4.13.1. </span>ブロックコンフィギュレーションパラメータの追加<a class="headerlink" href="#id35" title="この見出しへのパーマリンク"></a></h4>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">input_confidence_threshold</span></code> （float．デフォルト値<code class="docutils literal notranslate"><span class="pre">0.0</span></code>）</p>
+<p>入力が音声認識結果の時，その確信度がこの値未満の場合に，確信度が低いとみなします．入力の確信度は，<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>の<code class="docutils literal notranslate"><span class="pre">confidence</span></code>の値です．<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>に<code class="docutils literal notranslate"><span class="pre">confidence</span></code>キーがないときは，確信度が高いとみなします．確信度が低い場合は，以下に述べるパラメータの値に応じて処理が変わります．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">confirmation_request</span></code>（オブジェクト）</p>
+<p>これは以下の形で指定します．</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">confirmation_request</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">function_to_generate_utterance</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;関数名（文字列）&gt;</span>
+<span class="w">  </span><span class="nt">acknowledgement_utterance_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;肯定のユーザ発話タイプ名（文字列）&gt;</span>
+<span class="w">  </span><span class="nt">denial_utterance_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;否定のユーザ発話タイプ名（文字列）&gt;</span>
+</pre></div>
+</div>
+<p>これが指定されている場合，入力の確信度が低いときは，状態遷移をおこなわず，<code class="docutils literal notranslate"><span class="pre">function_to_generate_utterance</span></code>で指定された関数を実行し，その返り値を発話します（確認要求発話と呼びます）．</p>
+<p>そして，それに対するユーザ発話に応じて次の処理を行います．</p>
+<ul class="simple">
+<li><p>ユーザ発話の確信度が低い時は，遷移を行わず，前の状態の発話を繰り返します．</p></li>
+<li><p>ユーザ発話のタイプが<code class="docutils literal notranslate"><span class="pre">acknowledgement_utterance_type</span></code>で指定されているものの場合，確認要求発話の前のユーザ発話に応じた遷移を行います．</p></li>
+<li><p>ユーザ発話のタイプが<code class="docutils literal notranslate"><span class="pre">denial_utterance_type</span></code>で指定されているものの場合，遷移を行わず，元の状態の発話を繰り返します．</p></li>
+<li><p>ユーザ発話のタイプがそれ以外の場合は，通常の遷移を行います．</p></li>
+</ul>
+<p>ただし，入力がバージイン発話の場合（<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>に<code class="docutils literal notranslate"><span class="pre">barge_in</span></code>要素があり，その値が<code class="docutils literal notranslate"><span class="pre">True</span></code>の場合）はこの処理を行いません．</p>
+<p><code class="docutils literal notranslate"><span class="pre">function_to_generate_utterance</span></code>で指定する関数は，ブロックコンフィギュレーションの<code class="docutils literal notranslate"><span class="pre">function_definitions</span></code>で指定したモジュールで定義します．この関数の引数は，このブロックの入力の<code class="docutils literal notranslate"><span class="pre">nlu_result</span></code>と文脈情報です．返り値はシステム発話の文字列です．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">utterance_to_ask_repetition</span></code>（文字列）</p>
+<p>これが指定されている場合，入力の確信度が低いときは，状態遷移をおこなわず，この要素の値をシステム発話とします．ただし，バージインの場合（<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>に<code class="docutils literal notranslate"><span class="pre">barge_in</span></code>要素があり，その値が<code class="docutils literal notranslate"><span class="pre">True</span></code>の場合）はこの処理を行いません．</p>
+<p><code class="docutils literal notranslate"><span class="pre">confirmation_request</span></code>と<code class="docutils literal notranslate"><span class="pre">utterance_to_ask_repetition</span></code>は同時に指定できません．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ignore_out_of_context_barge_in</span></code> （ブール値．デフォルト値<code class="docutils literal notranslate"><span class="pre">False</span></code>）</p>
+<p>この値が<code class="docutils literal notranslate"><span class="pre">True</span></code>の場合，入力がバージイン発話(リクエストの<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>の<code class="docutils literal notranslate"><span class="pre">barge_in</span></code>の値が<code class="docutils literal notranslate"><span class="pre">True</span></code>)の場合，デフォルト遷移以外の遷移の条件を満たさなかった場合（すなわちシナリオで予想された入力ではない）か，または，入力の確信度が低い場合，遷移しません．この時に，レスポンスの<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>の<code class="docutils literal notranslate"><span class="pre">barge_in_ignored</span></code>を<code class="docutils literal notranslate"><span class="pre">True</span></code>とします．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">reaction_to_silence</span></code> （オブジェクト）</p>
+<p><code class="docutils literal notranslate"><span class="pre">action</span></code>要素を必ず持ちます．<code class="docutils literal notranslate"><span class="pre">action</span></code> 要素の値は文字列で<code class="docutils literal notranslate"><span class="pre">&quot;repeat&quot;</span></code>か<code class="docutils literal notranslate"><span class="pre">&quot;transition&quot;</span></code>です．<code class="docutils literal notranslate"><span class="pre">action</span></code> 要素の値が<code class="docutils literal notranslate"><span class="pre">transition</span></code>の場合，<code class="docutils literal notranslate"><span class="pre">destination</span></code> 要素が必須です．その値は状態名（文字列）です．</p>
+<p>入力の<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>が<code class="docutils literal notranslate"><span class="pre">long_silence</span></code>キーを持ちその値が<code class="docutils literal notranslate"><span class="pre">True</span></code>の場合で，かつ，デフォルト遷移以外の遷移の条件を満たさなかった場合，このパラメータに応じて以下のように動作します．</p>
+<ul class="simple">
+<li><p>このパラメータが指定されていない場合，通常の状態遷移を行います．</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">action</span></code>の値が<code class="docutils literal notranslate"><span class="pre">&quot;repeat&quot;</span></code>の場合，状態遷移を行わず直前のシステム発話を繰り返します．</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">action</span></code>の値が<code class="docutils literal notranslate"><span class="pre">transition</span></code>の場合，<code class="docutils literal notranslate"><span class="pre">destination</span></code>で指定されている状態に遷移します．</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="id36">
+<h4><span class="section-number">5.4.13.2. </span>組み込み条件関数の追加<a class="headerlink" href="#id36" title="この見出しへのパーマリンク"></a></h4>
+<p>以下の組み込み条件関数が追加されています．</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">_confidence_is_low()</span></code></p>
+<p>入力の<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>の<code class="docutils literal notranslate"><span class="pre">confidence</span></code>の値がコンフィギュレーションの<code class="docutils literal notranslate"><span class="pre">input_confidence_threshold</span></code>の値以下の場合にTrueを返します．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">_is_long_silence()</span></code></p>
+<p>入力の<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>の<code class="docutils literal notranslate"><span class="pre">long_silence</span></code>の値が<code class="docutils literal notranslate"><span class="pre">True</span></code>の場合に<code class="docutils literal notranslate"><span class="pre">True</span></code>を返します．</p>
+</li>
+</ul>
+</section>
+<section id="id37">
+<h4><span class="section-number">5.4.13.3. </span>直前の誤った入力を無視する<a class="headerlink" href="#id37" title="この見出しへのパーマリンク"></a></h4>
+<p>入力の<code class="docutils literal notranslate"><span class="pre">aux_data</span></code>の<code class="docutils literal notranslate"><span class="pre">rewind</span></code>の値が<code class="docutils literal notranslate"><span class="pre">True</span></code>の場合，直前のレスポンスを行う前の状態から遷移を行います．
+直前のレスポンスを行った際に実行したアクションによる文脈情報の変更も元に戻されます．</p>
+<p>音声認識の際に，ユーザ発話を間違って途中で分割してしまい，前半だけに対する応答を行ってしまった場合に用います．</p>
+<p>文脈情報は元に戻りますが，アクション関数の中でグローバル変数の値を変更していたり，外部データベースの内容を変更していた場合にはもとに戻らないことに注意してください．</p>
+</section>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="04_framework.html" class="btn btn-neutral float-left" title="4. フレームワーク仕様" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="052_deprecated_blocks.html" class="btn btn-neutral float-right" title="6. 非推奨となった組み込みブロッククラス" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright C4A Research Institute, Inc.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
