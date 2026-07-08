@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright 2026 C4A Research Institute, Inc.
+# Copyright 2024-2026 C4A Research Institute, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,19 +19,20 @@
 #   main dialogue processor
 #   メイン対話処理
 
-__version__ = '1.2.4'
 __author__ = 'Mikio Nakano'
 __copyright__ = 'C4A Research Institute, Inc.'
 
 import copy
 import dataclasses
 import time
+from pathlib import Path
 from typing import Dict, Any, List
 import importlib
 import yaml
 import io, sys
-import os
 import hashlib
+import os
+from dotenv import load_dotenv
 
 from dialbb.util.context_db import ContextDB
 from dialbb.util.globals import DEBUG
@@ -40,7 +41,6 @@ from dialbb.util.error_handlers import abort_during_building
 from dialbb.util.logger import get_logger
 
 
-session_count = 0  # used in generating session id's
 ANY_FLAG: str = "Any"
 CONFIG_KEY_FLAGS_TO_USE: str = "flags_to_use"
 CONFIG_KEY_LANGUAGE: str = "language"
@@ -70,6 +70,8 @@ class DialogueProcessor:
     DialBB対話処理のメインクラス
     """
 
+    __version__ = '2.0.0'
+
     config = {}
 
     def __init__(self, config_file: str, additional_config: Dict[str, Any] = None):
@@ -80,7 +82,27 @@ class DialogueProcessor:
         :param additional_config: additional configuration
         """
 
-        print(f"Starting an application with DialBB {__version__}.")
+        #load_dotenv()
+
+        # from pathlib import Path
+        # import dotenv
+        # from dotenv import find_dotenv
+
+        env_path = Path.cwd() / ".env"
+        load_dotenv(env_path)
+
+        # print("cwd:", Path.cwd())
+        # print("find_dotenv:", find_dotenv())
+        # print("dotenv file:", dotenv.__file__)
+        #
+        # loaded = load_dotenv()
+        # print("loaded:", loaded)
+        #
+        # print("OPENAI_API_KEY:", os.getenv("OPENAI_API_KEY"))
+        # print(os.getcwd())
+        # print(os.environ['OPENAI_API_KEY'])
+
+        print(f"Starting an application with DialBB {self.__version__}.")
         # read config file configファイルの読み込み
         print("Reading application config file.")
         try:
@@ -128,6 +150,8 @@ class DialogueProcessor:
             # for rewinding  状態を元に戻す時のため
             # session_id -> context
 
+        self._session_count = 0
+
         self._logger = get_logger("main")
 
     def _add_history(self, session_id: str, history: List[Dict[str, Any]]) -> None:
@@ -148,16 +172,20 @@ class DialogueProcessor:
     def get_config(cls):
         return cls.config
 
-    @staticmethod
-    def _generate_session_id() -> str:
+
+    def _generate_session_id(self) -> str:
         """
         create new session id string by hashing
         :return: session id string
         """
 
-        data = str(time.time())
-        hash_object = hashlib.sha256(data.encode())
-        session_id = hash_object.hexdigest()
+        if self._use_context_db:
+            data = str(time.time())
+            hash_object = hashlib.sha256(data.encode())
+            session_id = hash_object.hexdigest()
+        else:
+            self._session_count += 1
+            session_id = "dialbb_session" + str(self._session_count)
         return session_id
 
     def process(self, request: Dict[str, Any], initial: bool = False) -> Dict[str, Any]:
@@ -175,8 +203,6 @@ class DialogueProcessor:
         blackboard: Dict[str, Any] = copy.deepcopy(request)
 
         if initial:  # first turn
-            global session_count
-            session_count += 1
             # create session id string
             session_id = self._generate_session_id()
             self._log_info(f"new session started.", session_id=session_id)

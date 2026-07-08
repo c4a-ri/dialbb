@@ -38,7 +38,7 @@ from dialbb.util.globals import CHATGPT_INSTRUCTIONS
 DIALOGUE_HISTORY_OLD_TAG: str = '@dialogue_history'
 DIALOGUE_HISTORY_TAG: str = '{dialogue_history}'
 CURRENT_TIME_TAG: str = '{current_time}'
-DEFAULT_GPT_MODEL: str = "gpt-4o-mini"
+DEFAULT_GPT_MODEL: str = "gpt-5.4-nano"
 DIALOGUE_UP_TO_NOW = {"ja": "現在までの対話", "en": "Dialogue up to now"}
 
 

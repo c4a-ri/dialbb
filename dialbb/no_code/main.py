@@ -18,8 +18,7 @@
 # main.py
 #   dialbb no_code GUI main program
 #
-__version__ = "0.1"
-__author__ = "Mikio Nakano"
+
 
 import os
 import sys
@@ -31,8 +30,9 @@ from tkinter import filedialog
 import subprocess
 import shutil
 import zipfile
-from typing import Dict, Optional, Any
+from typing import Dict, Optional, Any, List
 from dataclasses import dataclass
+import yaml
 
 from dialbb.no_code.tools.scenario_converter2json import (
     convert_excel_to_json as scenario_convert_excel_to_json,
@@ -45,7 +45,7 @@ from dialbb.no_code.gui_utils import (
     FileTimestamp,
     child_position,
     read_gui_text_data,
-    gui_text,
+    gui_text, SettingData,
 )
 from dialbb.main import DialogueProcessor
 from dialbb.paths import DIALBB_DIR, NC_PATH, APP_DIR, TEMPLATE_DIR
@@ -64,8 +64,7 @@ PYEDITOR_STATE_GRAPH_JSON: str = os.path.join(PYEDITOR_DIR, "data", "state_graph
 
 APP_FILES: Dict[str, str] = {
     "scenario": "scenario.xlsx",
-    "nlu-knowledge": "nlu-knowledge.xlsx",
-    "ner-knowledge": "ner-knowledge.xlsx",
+    "dst-knowledge": "dst-knowledge.xlsx",
     "scenario-functions": "scenario_functions.py",
     "config": "config.yml",
     "test-config": "test_config.yml",
@@ -95,13 +94,15 @@ class AppFileFrame(ttk.Frame):
     """アプリファイル選択UIで使う拡張Frame（型情報用）。"""
 
     spec_app: tk.Label
-    edit_box: tk.Entry
+    selected_file_path: str
 
 
-# -------- GUI Editor -------------------------------------
-# Start GUI Editor GUIエディタ起動/停止
+# -------- Scenario Editor -------------------------------------
+# Start Scenario Editor シナリオエディタ起動/停止
 def exec_editor(file_path, parent, button) -> None:
-    """シナリオエディタの起動/停止と保存連携を行う。"""
+    """
+    Start/stop scenario editor
+    """
     if not PROCESS_STATE.editor_process:
         # エディタ起動処理
         # convert excel to JSON（PyEditor入力）
@@ -239,44 +240,13 @@ def set_file_frame(parent_frame, settings, label_text, file_type_list) -> AppFil
     # ラベルの作成
     # file_frame = ttk.Frame(parent_frame, style="My.TLabelframe")
     file_frame = AppFileFrame(parent_frame)
+    file_frame.selected_file_path = ""
     file_frame.spec_app = tk.Label(file_frame)
-    file_frame.spec_app.grid(column=1, columnspan=2, row=0, sticky=tk.W, padx=5)
+    file_frame.spec_app.grid(column=0, row=0, sticky=tk.W, padx=5)
     # アプリ名の表示エリアを登録して保存アプリ名を表示する
     settings.reg_disp_area(file_frame.spec_app)
 
-    label = tk.Label(file_frame, text=gui_text("main_import"))
-    # label.grid(column=0, row=1, padx=0, sticky=tk.E)
-    label.grid(column=0, row=1, padx=0, pady=5, sticky=tk.E)
-
-    # テキストボックスの作成
-    file_frame.edit_box = tk.Entry(file_frame)
-    file_frame.edit_box.grid(column=1, row=1, padx=20, sticky=tk.E + tk.W)
-    file_frame.grid_columnconfigure(0, weight=0)
-    file_frame.grid_rowconfigure(1, weight=1)
-
-    # select button
-    select_button = ttk.Button(
-        file_frame,
-        text=gui_text("btn_select"),
-        command=lambda: set_file_path_command(
-            file_frame.edit_box, settings, label_text, file_type_list
-        ),
-    )
-    # select_button.grid(column=2, row=1, padx=5)
-    select_button.grid(column=2, row=1, padx=5, pady=5)
-
-    # import button
-    import_button = ttk.Button(
-        file_frame,
-        text=gui_text("btn_load"),
-        command=lambda: import_application_file(
-            file_frame.edit_box, settings, file_type_list
-        ),
-    )
-    # import_button.grid(column=3, row=1, padx=5)
-    import_button.grid(column=3, row=1, padx=5, pady=5)
-
-    file_frame.columnconfigure(1, weight=1)  # Entryを伸縮可能に
+    file_frame.grid_columnconfigure(0, weight=1)
 
     return file_frame
 
@@ -330,29 +300,84 @@ def on_cancel(frame) -> None:
 
 
 # [select]ボタン：アプリファイルの読み込み
-def set_file_path_command(edit_box, _settings, title, file_type_list) -> None:
-    """ファイル選択ダイアログで選んだパスを入力欄へ反映する。"""
+def set_file_path_command(file_frame, _settings, title, file_type_list) -> None:
+    """ファイル選択ダイアログで選んだパスを読み込む。"""
     file_path = filedialog.askopenfilename(title=title, filetypes=file_type_list)
     if file_path:
-        # パスをテキストボックスに設定する
-        edit_box.delete(0, tk.END)
-        edit_box.insert(tk.END, file_path)
+        file_frame.selected_file_path = file_path
+        import_application_file(file_path, _settings, file_type_list)
 
 
-def import_application_file(edit_box, settings, _file_type_list) -> None:
+def clear_app_dir_except_gitignore() -> None:
+    """APP_FILE_DIR 配下を .gitignore 以外すべて削除する。"""
+    os.makedirs(APP_FILE_DIR, exist_ok=True)
+
+    for name in os.listdir(APP_FILE_DIR):
+        if name == ".gitignore":
+            continue
+
+        path = os.path.join(APP_FILE_DIR, name)
+        if os.path.isdir(path):
+            shutil.rmtree(path)
+        else:
+            os.unlink(path)
+
+
+def import_application_file(file_path, settings, _file_type_list) -> None:
     """zip形式のアプリファイルを展開して設定へ反映する。"""
-    file_path = edit_box.get()
     if file_path:
         logger.info("%s decompress to %s", file_path, APP_FILE_DIR)
-        # zipファイルをシステムエリアに展開する
-        with zipfile.ZipFile(file_path) as zf:
-            zf.extractall(APP_FILE_DIR)
+        try:
+            clear_app_dir_except_gitignore()
+            # zipファイルをシステムエリアに展開する
+            with zipfile.ZipFile(file_path) as zf:
+                zf.extractall(APP_FILE_DIR)
+        except (FileNotFoundError, PermissionError, shutil.Error, OSError, zipfile.BadZipFile) as e:
+            messagebox.showerror("Error", gui_text("msg_warn_no_file"), detail=f"{e}")
+            return
 
         # アプリケーション名の保存
         file_name, _ = os.path.splitext(os.path.basename(file_path))
         settings.set_appname(file_name)
-
+        convert_ver1_config()
         messagebox.showinfo("Import", f"{file_name}" + gui_text("msg_info_appload"))
+
+
+def convert_ver1_config() -> None:
+    """
+    convert ver1 config into ver2 config
+    :return: None
+    """
+
+    with open(os.path.join(APP_DIR, "config.yml"), encoding='utf-8') as fp:
+        config: Dict[str, Any] = yaml.safe_load(fp)
+
+    block_configs: List[Dict[str, Any]] = config["blocks"]
+    new_block_configs: List[Dict[str, Any]] = []
+    for block_config in block_configs:
+        if block_config["name"] == "manager":
+            if "chatgpt" not in block_config:
+                return  # ver2 app
+            else:
+                llm_config: Dict[str, Any] = block_config["chatgpt"]
+                if llm_config.get("gpt_model"):
+                    model: str = llm_config["gpt_model"]
+                    del llm_config["gpt_model"]
+                    llm_config["model"] = model
+                del block_config["chatgpt"]
+                block_config["llm"] = llm_config
+
+                block_config['input'] = {"dialogue_history": "dialogue_history", "aux_data": "aux_data"}
+                block_config['output'] = {"output_text": "system_utterance", "final": "final", "aux_data": "aux_data"}
+                new_block_configs.append(block_config)
+        elif block_config["name"] not in ("canonicalizer", "understander", "ner"):
+            new_block_configs.append(block_config)
+
+    config["blocks"] = new_block_configs
+    with open(os.path.join(APP_DIR, "config.yml"), 'w', encoding='utf-8') as fp:
+        yaml.safe_dump(config, fp, allow_unicode=True)
+    messagebox.showinfo("Convert ver. 1 app", gui_text("msg_convert_ver1_app"))
+
 
 
 # [create]ボタンの処理。templateファイルをコピーする。
@@ -395,17 +420,15 @@ def create_app_files(parent, settings) -> None:
             )
             return
 
-        # コピー先ディレクトリを作成（無ければ）
-        os.makedirs(APP_FILE_DIR, exist_ok=True)
-
-        # src_dir 内を再帰的にコピー（ディレクトリは merge、ファイルは上書き）
         try:
+            clear_app_dir_except_gitignore()
+
+            # src_dir 内を再帰的にコピーする
             for name in os.listdir(src_dir):
                 s = os.path.join(src_dir, name)
                 d = os.path.join(APP_FILE_DIR, name)
                 if os.path.isdir(s):
-                    # dirs_exist_ok=True 既に存在する場合に上書き
-                    shutil.copytree(s, d, dirs_exist_ok=True)
+                    shutil.copytree(s, d)
                 else:
                     shutil.copy2(s, d)
         except (FileNotFoundError, PermissionError, shutil.Error, OSError) as e:
@@ -462,6 +485,8 @@ def export_app_file(file_path, settings):
         with zipfile.ZipFile(zip_file, "w", compression=zipfile.ZIP_DEFLATED) as zf:
             for root, _, files in os.walk(APP_FILE_DIR):
                 for fn in files:
+                    if fn == ".gitkeep":
+                        continue
                     fullpath = os.path.join(root, fn)
                     # zip 内のパスは APP_FILE_DIR を基準とした相対パスにする
                     arcname = os.path.relpath(fullpath, APP_FILE_DIR)
@@ -476,10 +501,10 @@ def export_app_file(file_path, settings):
 
 
 # [setting]ボタンの処理。ユーザ情報の設定。
-def setting_json(parent, settings):
+def set_api_keys(parent, settings: SettingData):
     """設定ダイアログを開き、APIキーを保存する。"""
     sub_menu = tk.Toplevel(parent)
-    sub_menu.title(gui_text("set_title_top"))
+    sub_menu.title(gui_text("set_title_api_keys"))
     sub_menu.grab_set()  # モーダルにする
     sub_menu.focus_set()  # フォーカスを新しいウィンドウをへ移す
     sub_menu.transient(parent)
@@ -490,22 +515,40 @@ def setting_json(parent, settings):
 
     # OPENAI_API_KEY入力エリア
     label1 = tk.Label(f1, text="OPENAI_API_KEY")
-    api_key = tk.Entry(f1, width=30)
+    openai_api_key_entry = tk.Entry(f1, width=50)
+    label2 = tk.Label(f1, text="GOOGLE_API_KEY")
+    google_api_key_entry = tk.Entry(f1, width=50)
+    label3 = tk.Label(f1, text="ANTHROPIC_API_KEY")
+    anthropic_api_key_entry = tk.Entry(f1, width=50)
     # 横方向のスクロールバーを作成
-    horiz_scrollbar1 = tk.Scrollbar(f1, orient=tk.HORIZONTAL, command=api_key.xview)
-    api_key.config(xscrollcommand=horiz_scrollbar1.set)
+    horiz_scrollbar1 = tk.Scrollbar(f1, orient=tk.HORIZONTAL, command=openai_api_key_entry.xview)
+    openai_api_key_entry.config(xscrollcommand=horiz_scrollbar1.set)
+    horiz_scrollbar2 = tk.Scrollbar(f1, orient=tk.HORIZONTAL, command=google_api_key_entry.xview)
+    google_api_key_entry.config(xscrollcommand=horiz_scrollbar2.set)
+    horiz_scrollbar3 = tk.Scrollbar(f1, orient=tk.HORIZONTAL, command=anthropic_api_key_entry.xview)
+    anthropic_api_key_entry.config(xscrollcommand=horiz_scrollbar3.set)
 
     # configの値を設定
-    api_key.insert(0, settings.get_gptkey())
+    openai_api_key_entry.insert(0, settings.get_openai_api_key())
+    google_api_key_entry.insert(0, settings.get_google_api_key())
+    anthropic_api_key_entry.insert(0, settings.get_anthropic_api_key())
 
     # ボタンクリックされた際のイベント
     def ok_click():
         """設定値を保存してダイアログを閉じる。"""
         # OPENAI_KEYの登録
-        key = api_key.get()
-        settings.set_gptkey(key)
-        # OPENAI_KEY環境変数をセット
+        key = openai_api_key_entry.get()
+        settings.set_openai_api_key(key)
         os.environ["OPENAI_API_KEY"] = key
+
+        key = google_api_key_entry.get()
+        settings.set_google_api_key(key)
+        os.environ["GOOGLE_API_KEY"] = key
+
+        key = anthropic_api_key_entry.get()
+        settings.set_anthropic_api_key(key)
+        os.environ["ANTHROPIC_API_KEY"] = key
+
         messagebox.showinfo("Settings", gui_text("msg_saved"))
         # 画面を閉じる
         sub_menu.destroy()
@@ -518,8 +561,17 @@ def setting_json(parent, settings):
 
     # Layout
     label1.grid(column=0, row=0)
-    api_key.grid(column=1, row=0, sticky=tk.NSEW, padx=5, pady=5)
+    label2.grid(column=0, row=2)
+    label3.grid(column=0, row=4)
+
+    openai_api_key_entry.grid(column=1, row=0, sticky=tk.NSEW, padx=5, pady=5)
     horiz_scrollbar1.grid(column=1, row=1, sticky=tk.NSEW)
+    google_api_key_entry.grid(column=1, row=2, sticky=tk.NSEW, padx=5, pady=5)
+    horiz_scrollbar2.grid(column=1, row=3, sticky=tk.NSEW)
+    anthropic_api_key_entry.grid(column=1, row=4, sticky=tk.NSEW, padx=5, pady=5)
+    horiz_scrollbar3.grid(column=1, row=5, sticky=tk.NSEW)
+
+
     f1.grid_columnconfigure(1, weight=1)
     f1.pack(side=tk.TOP, expand=True, fill=tk.X, padx=5, pady=5)
     can_btn.pack(side="right", padx=5, pady=5)
@@ -593,15 +645,19 @@ def set_main_frame(root_frame) -> None:
     dialogue_processor_local: Optional[DialogueProcessor] = None
 
     # OPENAI_KEY環境変数の設定
-    if settings.get_gptkey():
-        os.environ["OPENAI_KEY"] = settings.get_gptkey()
+    if settings.get_openai_api_key():
+        os.environ["OPENAI_API_KEY"] = settings.get_openai_api_key()
+    if settings.get_google_api_key():
+        os.environ["GOOGLE_API_KEY"] = settings.get_google_api_key()
+    if settings.get_anthropic_api_key():
+        os.environ["ANTHROPIC_API_KEY"] = settings.get_anthropic_api_key()
 
     # App file Label 作成
     application_frame = ttk.Labelframe(
         root_frame, text=gui_text("main_title_1"), padding=10
     )
 
-    # ファイル選択エリア作成（ファイルの拡張子を指定）
+    # create file selection area ファイル選択エリア作成（ファイルの拡張子を指定）
     file_frame = set_file_frame(
         application_frame,
         settings,
@@ -611,7 +667,7 @@ def set_main_frame(root_frame) -> None:
     # file_frame.pack(fill=tk.BOTH)
     file_frame.grid(row=0, column=0, columnspan=3, sticky="ew")
 
-    # ---(2025/10)Added Edit frame buttons ---
+    # --- (2025/10) Added Edit frame buttons ---
     edit_frame = ttk.Labelframe(
         application_frame, text=gui_text("main_title_3"), padding=5
     )
@@ -628,26 +684,18 @@ def set_main_frame(root_frame) -> None:
             edit_scenario_btn,
         ),
     )
-    edit_scenario_btn.grid(row=0, column=0, padx=5, pady=5)
+    edit_scenario_btn.grid(row=0, column=1, padx=5, pady=5)
 
-    # edit_nlu_knowledge button
-    edit_nlu_knowledge_btn = ttk.Button(
+    # edit_dst_knowledge button
+    edit_dst_knowledge_btn = ttk.Button(
         edit_frame,
-        text=gui_text("btn_lang_knowledge"),
+        text=gui_text("btn_dst_knowledge"),
         command=lambda: edit_excel(
-            os.path.join(APP_FILE_DIR, APP_FILES["nlu-knowledge"])
+            os.path.join(APP_FILE_DIR, APP_FILES["dst-knowledge"])
         ),
     )
-    edit_nlu_knowledge_btn.grid(row=0, column=1, padx=5, pady=5)
-    # edit_ner_knowledge button
-    edit_ner_knowledge_btn = ttk.Button(
-        edit_frame,
-        text=gui_text("btn_named_entity"),
-        command=lambda: edit_excel(
-            os.path.join(APP_FILE_DIR, APP_FILES["ner-knowledge"])
-        ),
-    )
-    edit_ner_knowledge_btn.grid(row=0, column=2, padx=5, pady=5)
+    edit_dst_knowledge_btn.grid(row=0, column=2, padx=5, pady=5)
+
     # edit_scenario_functions button
     edit_scenario_functions_btn = ttk.Button(
         edit_frame,
@@ -669,7 +717,7 @@ def set_main_frame(root_frame) -> None:
             settings,
         ),
     )
-    edit_config_btn.grid(row=1, column=0, padx=5, pady=5)
+    edit_config_btn.grid(row=0, column=0, padx=5, pady=5)
     edit_frame.columnconfigure((0, 1, 2, 3), weight=1)
     # End of added edit frame buttons
 
@@ -679,17 +727,27 @@ def set_main_frame(root_frame) -> None:
         text=gui_text("btn_create"),
         command=lambda: create_app_files(application_frame, settings),
     )
-    # create_btn.pack(side=tk.LEFT, padx=10, pady=10)
     create_btn.grid(row=1, column=0, padx=5, pady=10)
+
+    select_btn = ttk.Button(
+        application_frame,
+        text=gui_text("btn_select"),
+        command=lambda: set_file_path_command(
+            file_frame,
+            settings,
+            gui_text("msg_appfile_select"),
+            [("zip File", "*.zip")],
+        ),
+    )
+    select_btn.grid(row=1, column=1, padx=5, pady=10)
 
     # export ボタン:アプリファイルのzip保存
     export_btn = ttk.Button(
         application_frame,
         text=gui_text("btn_export"),
-        command=lambda: export_app_file(file_frame.edit_box.get(), settings),
+        command=lambda: export_app_file(file_frame.selected_file_path, settings),
     )
-    # export_btn.pack(side=tk.LEFT, padx=10, pady=10)
-    export_btn.grid(row=1, column=1, padx=5, pady=10)
+    export_btn.grid(row=1, column=2, padx=5, pady=10)
 
     application_frame.columnconfigure(0, weight=1)
     application_frame.columnconfigure(1, weight=1)
@@ -707,8 +765,8 @@ def set_main_frame(root_frame) -> None:
     # settingボタン:ユーザ情報の設定
     setting_btn = ttk.Button(
         dialbb_label,
-        text=gui_text("btn_setting"),
-        command=lambda: setting_json(file_frame, settings),
+        text=gui_text("btn_api_keys"),
+        command=lambda: set_api_keys(file_frame, settings),
     )
     # setting_btn.pack(side=tk.LEFT, padx=10)
     setting_btn.grid(row=0, column=0, padx=5, pady=5)
@@ -877,7 +935,7 @@ def main() -> None:
         choices=["ja", "en"],
         nargs="?",
         default="ja",
-        help="Language type: ja/en",
+        help="Display language: ja/en",
     )
     args = parser.parse_args()
 
@@ -896,7 +954,7 @@ def main() -> None:
 
     # set title and icon
     # タイトルとアイコンを設定
-    root.title(gui_text("main_title_top"))
+    root.title(gui_text("main_title_top") + " " + DialogueProcessor.__version__)
     # photo = os.path.join(NC_PATH, 'img', 'dialbb-icon.png')
     # root.iconphoto(True, tk.PhotoImage(file=photo))
 

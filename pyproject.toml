@@ -1,114 +1,161 @@
-[tool.poetry]
-name = "dialbb"
-version = "1.2.4"
-description = "A dialogue system development framework"
-authors = ["Mikio Nakano <mikio.nakano@c4a.jp>"]
-readme = "README.md"
-
-packages = [
-    { include = "dialbb" }
-]
-include = [
-]
-exclude = [
-    "dialbb/builtin_blocks/stn_management/context_db/",
-    "dialbb/util/context_db/",
-    "dialbb/no_code/gui_editor",
-    "dialbb/no_code/app",
-    "dialbb/no_code/data",
-    "dialbb/pyeditor/data",
-    "dialbb/no_code/settings.dat",
-    "**/__pycache__/"
-]
-
-
-[tool.poetry.dependencies]
-python = ">=3.10,<3.14"
-openpyxl = "3.1.5"
-flask = "3.1.0"
-annotated-types = "0.7.0"
-anyio = "4.8.0"
-attrs = "25.1.0"
-blinker = "1.9.0"
-cachetools = "5.5.1"
-catalogue = "2.0.10"
-certifi = "2025.1.31"
-charset-normalizer = "3.4.1"
-click = "8.1.8"
-colorama = "0.4.6"
-distro = "1.9.0"
-et-xmlfile = "2.0.0"
-exceptiongroup = "1.2.2"
-google-auth = "2.38.0"
-google-auth-oauthlib = "1.2.1"
-gspread = "6.1.4"
-h11 = "0.14.0"
-httpcore = "1.0.7"
-httplib2 = "0.22.0"
-httpx = "0.28.1"
-idna = "3.10"
-itsdangerous = "2.2.0"
-jaconv = "0.4.0"
-jinja2 = "3.1.5"
-jsonschema = "4.23.0"
-jsonschema-specifications = "2024.10.1"
-markupsafe = "3.0.2"
-numpy = [
-  {version = "==1.26.4", python = ">=3.11"},
-  {version = "==1.24.4", python = "=3.10"}
-]
-oauth2client = "4.1.3"
-oauthlib = "3.2.2"
-openai = "1.61.1"
-pandas = "2.2.3"
-pyasn1 = "0.6.1"
-pyasn1-modules = "0.4.1"
-pydantic = "2.10.6"
-pydantic-core = "2.27.2"
-pyparsing = "3.2.1"
-python-dateutil = "2.9.0.post0"
-pytz = "2025.1"
-pyyaml = "6.0.2"
-referencing = "0.36.2"
-regex = "2024.11.6"
-requests = "2.32.3"
-requests-oauthlib = "2.0.0"
-rpds-py = "0.22.3"
-rsa = "4.9"
-six = "1.17.0"
-sniffio = "1.3.1"
-sudachidict-core = "20250129"
-sudachipy = "0.6.10"
-tqdm = "4.67.1"
-typing-extensions = "4.12.2"
-tzdata = "2025.1"
-urllib3 = "2.3.0"
-werkzeug = "3.1.8"
-zipp = "3.17.0"
-ruamel-yaml = "^0.18.10"
-cryptography = "44.0.0"
-joblib = "1.4.2"
-nltk = "3.8.1"
-python-crfsuite = "0.9.11"
-scikit-learn = "1.6.1"
-scipy = "1.15.1"
-sklearn-crfsuite = "0.5.0"
-tabulate = "0.9.0"
-threadpoolctl = "3.5.0"
-pymongo = "4.11"
-google-generativeai = "0.8.5"
-pySide6 = "^6.6.0"
-pillow = "^12.0.0"
-
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dialbb"
+version = "2.0.0"
+description = "A dialogue system development framework"
+readme = { file = "README.md", content-type = "text/markdown" }
+requires-python = ">=3.11,<3.15"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [
+    { name = "Mikio Nakano", email = "mikio.nakano@c4a.jp" }
+]
+keywords = ["chatbot", "conversational-ai", "dialogue-system", "llm", "rag"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Education",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "annotated-types>=0.7.0",
+    "anyio>=4.8.0",
+    "attrs>=25.1.0",
+    "blinker>=1.9.0",
+    "cachetools>=5.5.1",
+    "catalogue>=2.0.10",
+    "certifi>=2025.1.31",
+    "charset-normalizer>=3.4.4",
+    "click>=8.1.8",
+    "colorama>=0.4.6",
+    "cryptography>=44.0.0",
+    "distro>=1.9.0",
+    "et-xmlfile>=2.0.0",
+    "exceptiongroup>=1.2.2",
+    "flask>=3.1.0",
+    "google-auth>=2.49.2",
+    "google-auth-oauthlib>=1.3.1",
+    "google-genai>=1.73.1",
+    "gspread>=6.1.4",
+    "h11>=0.14.0",
+    "httpcore>=1.0.7",
+    "httplib2>=0.22.0",
+    "httpx>=0.28.1",
+    "idna>=3.10",
+    "itsdangerous>=2.2.0",
+    "jaconv>=0.4.0",
+    "jinja2>=3.1.5",
+    "joblib>=1.4.2",
+    "jsonschema>=4.23.0",
+    "jsonschema-specifications>=2024.10.1",
+    "langchain>=1.2.15",
+    "langchain-anthropic>=1.4.1",
+    "langchain-community>=0.4.2",
+    "langchain-google-genai>=4.2.2",
+    "langchain-google-vertexai",
+    "langchain-huggingface>=1.2.2",
+    "langchain-openai>=1.2.0",
+    "langchain-text-splitters>=1.1.2",
+    "markupsafe>=3.0.2",
+    "oauth2client>=4.1.3",
+    "oauthlib>=3.2.2",
+    "openai>=2.32.0",
+    "openpyxl>=3.1.5",
+    "pandas>=2.2.3",
+    "pillow>=12.0.0",
+    "pyasn1>=0.6.1",
+    "pyasn1-modules>=0.4.1",
+    "pydantic>=2.10.6",
+    "pydantic-core>=2.27.2",
+    "pymongo>=4.11",
+    "pyparsing>=3.2.1",
+    "PySide6>=6.6.0",
+    "python-dateutil>=2.9.0.post0",
+    "python-dotenv>=1.2.2",
+    "pytz>=2025.1",
+    "pyyaml>=6.0.2",
+    "referencing>=0.36.2",
+    "regex>=2024.11.6",
+    "requests>=2.34.2",
+    "requests-oauthlib>=2.0.0",
+    "rpds-py>=0.22.3",
+    "rsa>=4.9",
+    "ruamel-yaml>=0.18.10",
+    "six>=1.17.0",
+    "sniffio>=1.3.1",
+    "tabulate>=0.9.0",
+    "threadpoolctl>=3.5.0",
+    "tqdm>=4.67.3",
+    "typing-extensions>=4.15.0",
+    "tzdata>=2025.1",
+    "urllib3>=2.3.0",
+    "werkzeug>=3.1.3",
+    "zipp>=3.17.0",
+]
+
+[project.optional-dependencies]
+rag = [
+    "langchain-chroma>=1.1.0",
+    "langchain-unstructured>=1.0.1",
+    # HTML support is included in the base unstructured package; there is no upstream `html` extra.
+    "unstructured[docx,md,pdf,pptx]>=0.23.1",
+]
+
+[project.urls]
+Homepage = "https://c4a-ri.github.io/dialbb/"
+Documentation = "https://c4a-ri.github.io/dialbb/document-en/build/html/"
+Repository = "https://github.com/c4a-ri/dialbb"
+Issues = "https://github.com/c4a-ri/dialbb/issues"
+Discussions = "https://github.com/c4a-ri/dialbb/discussions"
+
+[project.scripts]
+dialbb-nc = "dialbb.no_code.main:main"
+dialbb-server = "dialbb.server.run_server:main"
+dialbb-test = "dialbb.util.test:main"
+dialbb-send-test-requests = "dialbb.util.send_test_requests:main"
+dialbb-uninstall = "dialbb.uninstall:main"
+dialbb-sim-tester = "dialbb.sim_tester.main:main"
+
+[tool.setuptools]
+include-package-data = false
+
+[tool.setuptools.package-data]
+dialbb = ["**/*.yml", "**/*.txt", "**/*.xlsx", "**/*.jsd"]
+
+[tool.setuptools.exclude-package-data]
+dialbb = [
+    "no_code/settings.dat",
+    "no_code/app/*",
+    "no_code/app/**",
+    "no_code/app/**/*",
+]
 
 
-[tool.poetry.scripts]
-dialbb-nc = 'dialbb.no_code.main:main'
-dialbb-server = 'dialbb.server.run_server:main'
-dialbb-test = 'dialbb.util.test:main'
-dialbb-send-test-requests = 'dialbb.util.send_test_requests:main'
-dialbb-uninstall = 'dialbb.uninstall:main'
-dialbb-sim-tester = 'dialbb.sim_tester.main:main'
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["dialbb*"]
+namespaces = true
+exclude = [
+    "dialbb.builtin_blocks.stn_management.context_db*",
+    "dialbb.util.context_db*",
+    "dialbb.no_code.gui_editor*",
+    "dialbb.no_code.app*",
+    "dialbb.no_code.data*",
+]
+
+[dependency-groups]
+dev = [
+    "build>=1.5.0",
+    "twine>=6.2.0",
+]

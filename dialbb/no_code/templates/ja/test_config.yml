@@ -1,6 +1,6 @@
 user_name: User
 system_name: System
-model: gpt-4o-mini
+model: gpt-5.4-nano
 max_turns: 30
 
 settings:

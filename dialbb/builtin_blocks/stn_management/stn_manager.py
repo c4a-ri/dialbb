@@ -85,7 +85,10 @@ CONTEXT_KEY_SESSION_ID: str = '_session_id'
 CONTEXT_KEY_USER_ID: str = '_user_id'
 
 INPUT_KEY_AUX_DATA: str = "aux_data"
+INPUT_KEY_USER_ID: str = "user_id"
 INPUT_KEY_SENTENCE: str = "sentence"
+INPUT_KEY_NLU_RESULT: str = "nlu_result"
+INPUT_KEY_DIALOGUE_HISTORY: str = "dialogue_history"
 
 KEY_STOP_DIALOGUE: str = "stop_dialogue"
 KEY_REWIND: str = 'rewind'
@@ -226,7 +229,7 @@ class Manager(AbstractBlock):
                 abort_during_building(
                     f"Neither knowledge file nor google sheet info is not specified for the block {self.name}.")
             scenario_df = self.get_dfs_from_excel(excel_file, sheet_name)
-        scenario_df.fillna('', inplace=True)
+        scenario_df = scenario_df.astype(object).fillna('')
         scenario_df = scenario_df.map(lambda x: x.strip() if isinstance(x, str) else x)  # strip
         flags_to_use = self.block_config.get(CONFIG_KEY_FLAGS_TO_USE, [ANY_FLAG])
         self._network: StateTransitionNetwork = create_stn(scenario_df, flags_to_use)
@@ -272,7 +275,7 @@ class Manager(AbstractBlock):
         excel_file_path = os.path.join(self.config_dir, excel_file)
         print(f"reading excel file: {excel_file_path}", file=sys.stderr)
         try:
-            df_all: Dict[str, DataFrame] = pd.read_excel(excel_file_path, sheet_name=None)  # read all sheets
+            df_all: Dict[str, DataFrame] = pd.read_excel(excel_file_path, sheet_name=None, dtype=str)  # read all sheets
         except Exception as e:
             abort_during_building(f"failed to read excel file: {excel_file_path}. {str(e)}")
         # reading slots sheet
@@ -331,8 +334,8 @@ class Manager(AbstractBlock):
         processes input from dialbb main process and output results to it
         メインプロセスからの入力を受け取って処理結果を返す
         :param input_data: dictionary having the following keys:
-                  sentence: canonicalized user utterance string
-                  nlu_result: NLU result (dictionary)
+                  sentence: user utterance string
+                  nlu_result or dst_result: NLU/DST result (dictionary)
                   user id: user id string
                   aux_data: auxiliary data
         :param session_id: session id string
@@ -342,16 +345,23 @@ class Manager(AbstractBlock):
                    aux_data: dictionary of the form {"state": <current state name>"}
         """
 
-        user_id: str = input_data['user_id']
-        nlu_result: Union[Dict[str, Any], List[Dict[str, Any]]] = input_data.get('nlu_result',
-                                                                                 {KEY_TYPE: "", "slots": {}})
+        nlu_result: Union[Dict[str, Any], List[Dict[str, Any]]] = input_data.get(INPUT_KEY_NLU_RESULT)
+        if nlu_result is None:
+            nlu_result = {KEY_TYPE: "", "slots": {}}
         if not nlu_result:
             nlu_result = {KEY_TYPE: "", "slots": {}}
         aux_data: Dict[str, Any] = input_data.get(INPUT_KEY_AUX_DATA)
         if aux_data is None:
             self.log_warning("aux_data is not included in the input", session_id=session_id)
             aux_data = {}
-        sentence = input_data.get(INPUT_KEY_SENTENCE, "")
+
+        dialogue_history_from_main: List[Dict[str,str]] = input_data.get(INPUT_KEY_DIALOGUE_HISTORY)
+        if dialogue_history_from_main:
+            sentence: str = dialogue_history_from_main[-1].get("utterance")
+            user_id: str = dialogue_history_from_main[-1].get("user_id")
+        else:
+            sentence = input_data.get(INPUT_KEY_SENTENCE, "")
+            user_id: str = input_data[INPUT_KEY_USER_ID]
         previous_state_name: str = ""
         new_state_name: str = ""
 
@@ -388,8 +398,6 @@ class Manager(AbstractBlock):
                 if prep_state:
                     prep_actions: List[Action] = prep_state.get_transitions()[0].get_actions()
                     if prep_actions:
-                        # self._perform_actions(prep_actions, nlu_result, aux_data, user_id, session_id, sentence)
-                        # find destination state  遷移先の状態を見つける
                         new_state_name: str = self._transition(prep_state.get_name(), nlu_result, aux_data, context,
                                                                user_id, session_id, sentence)
                         new_state_name = self._handle_sub_dialogue(new_state_name, session_id, context)
@@ -402,10 +410,6 @@ class Manager(AbstractBlock):
             else:  # non-first turn 2回目以降のターン
                 # find previous state
                 previous_state_name: str = context.get(CONTEXT_KEY_CURRENT_STATE_NAME, "")
-
-                ### for debug. to delete
-                # previous_context = self._get_previous_context(session_id)
-                # print(f"for debug: state: {context.get(CONTEXT_KEY_CURRENT_STATE_NAME)}, previous state: {previous_context.get(CONTEXT_KEY_CURRENT_STATE_NAME)}")
 
                 if DEBUG:  # logging for debug
                     self._log_dialogue_context_for_debug(session_id, context)
@@ -424,7 +428,10 @@ class Manager(AbstractBlock):
 
                 # update dialogue history
                 user: str = user_id if self.multi_party else "user"
-                context[CONTEXT_KEY_DIALOGUE_HISTORY].append({"speaker": user, "utterance": sentence})
+                if dialogue_history_from_main:
+                    context[CONTEXT_KEY_DIALOGUE_HISTORY] = dialogue_history_from_main
+                else:
+                    context[CONTEXT_KEY_DIALOGUE_HISTORY].append({"speaker": user, "utterance": sentence})
 
                 if previous_state_name == "":
                     self.log_error(f"can't find previous state for session.", session_id=session_id)
@@ -551,7 +558,8 @@ class Manager(AbstractBlock):
                 output_text = f"{context[CONTEXT_KEY_REACTION]} {output_text}"
 
             context[CONTEXT_KEY_PREVIOUS_SYSTEM_UTTERANCE] = output_text
-            context[CONTEXT_KEY_DIALOGUE_HISTORY].append({"speaker": "system", "utterance": output_text})
+            if not input_data.get(INPUT_KEY_DIALOGUE_HISTORY):
+                context[CONTEXT_KEY_DIALOGUE_HISTORY].append({"speaker": "system", "utterance": output_text})
             context[CONTEXT_KEY_REACTION] = ""
 
             # check if the new state is a final state
@@ -899,7 +907,7 @@ class Manager(AbstractBlock):
         checks if transition is possible
         遷移が可能か調べる
         :param transition: Transition object to check
-        :param nlu_result: NLU result of user input obtained from the understander
+        :param nlu_result: NLU result
         :param aux_data: auxiliary data received from the main process
         :param context: dialogue context information
         :param user_id: user id
@@ -930,7 +938,7 @@ class Manager(AbstractBlock):
         :param context: dialogue context information
         :param user_id: user id string
         :param session_id: session id string
-        :param sentence: canonicalized user utterance string
+        :param sentence: user utterance string
         :return:
         """
 

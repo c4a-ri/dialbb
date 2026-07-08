@@ -96,7 +96,7 @@ def system_kind_from(state: str, sys_utt: str) -> str:
 
 
 def read_excel_rows(xlsx_path: Path, sheet: str) -> List[Dict[str, str]]:
-    df = pd.read_excel(xlsx_path, sheet_name=sheet)
+    df = pd.read_excel(xlsx_path, sheet_name=sheet, dtype=str)
     df = df.fillna("")
 
     missing = [c for c in REQUIRED_COLS if c not in df.columns]
@@ -381,6 +381,7 @@ def convert_excel_to_json(excel_path: str, json_path: str, sheet: str = "scenari
     rows = read_excel_rows(xlsx_path, sheet)
     graph = convert_rows_to_graph(rows)
 
+    out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(
         json.dumps(graph, ensure_ascii=False, indent=2),
         encoding="utf-8"

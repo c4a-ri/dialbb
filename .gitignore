@@ -148,6 +148,9 @@ dmypy.json
 /dialbb/pyeditor/data/*
 !/dialbb/pyeditor/data/.gitkeep
 
+# context db
+/dialbb/util/context_db/*
+
 # Temporary backup file
 *-old.py
 *_old.py
@@ -157,3 +160,4 @@ dmypy.json
 # debug tools
 /scripts/debug_generate_rows.py
 /scripts/print_rows.py
+

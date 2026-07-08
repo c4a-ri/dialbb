@@ -1,6 +1,6 @@
-# [DialBB](https://c4a-ri.github.io/dialbb/): A Framework for Building Dialogue Systems
+# DialBB: A Framework for Building Dialogue Systems
 
-ver. 1.2.4
+ver. 2.0.0
 
 [<img src="./docs/images/japan_national_flag.jpg" width="5%">日本語](README-ja.md)
 
@@ -10,7 +10,8 @@ Please refer to [the project main page](https://c4a-ri.github.io/dialbb/), which
 
 ## Documents
 
-Please refer to the [document](https://c4a-ri.github.io/dialbb/document-en/build/html/) for detailed specification and the way of application development. 
+Please refer to the [document](https://c4a-ri.github.io/dialbb/document-en/build/html/) for detailed specification and the way of application development. (If this README is not for a released version, please download the [document for the same version as this README](docs/files/document-en.zip).)
+
 
 ## Citation
 
@@ -26,7 +27,9 @@ DialBB is released under Apache License 2.0.
 
 ### Execution Environment
 
-We have confirmed that the following procedure works on Python 3.10.13 on Ubuntu 20.04.  We haven't heard that application dosn't work with Python 3.9 or later and on Windows10/11 and MacOS (including Apple Silicon), though we haven't completely confirmed. 
+DialBB works with Python 3.11–3.14 on Windows, macOS, and Ubuntu, although not every combination has been fully tested. (It no longer works with Python 3.10.)
+
+Please note that the RAG application described later works only with Python 3.11–3.13.
 
 The following instructions assume that you are working with bash on Ubuntu. If you are using other shells or the Windows command prompt, please read the following instructions accordingly.
 
@@ -36,7 +39,7 @@ The following instructions assume that you are working with bash on Ubuntu. If y
 
   ```sh
   $ python -m venv venv  # Create a virtual environment named venv
-  $ venv/bin/activate   # Enter the virtual environment
+  $ source venv/bin/activate   # Enter the virtual environment
   ```
 
 - Download `dialbb-*-py3-none-any.whl` file from [distribution directory](dist).
@@ -47,9 +50,19 @@ The following instructions assume that you are working with bash on Ubuntu. If y
   $ pip install <downloaded whl file>
   ```
 
+- If you use the RAG passage retrieval block, also install the optional document loader dependencies.
+
+  ```sh
+  $ pip install '<downloaded whl file>[rag]'
+  (e.g., pip install dialbb-2.0.0-py3-none-any.whl[rag])
+  ```
+
+  This can only be installed with Python 3.11–3.13.
+
+
 ### Download the Sample Applications
 
-Download the sample applications file by clicking [https://c4a-ri.github.io/dialbb/files/sample_apps.zip](https://c4a-ri.github.io/dialbb/files/sample_apps.zip) and extract them in an appropriate directory.
+Download the sample applications file at [docs/files/sample_apps.zip](docs/files/sample_apps.zip) and extract them in an appropriate directory.
 
 
 ### Running the Parroting Application
@@ -79,7 +92,7 @@ Execute the following on another terminal. If you do not have curl installed, te
 
   ```json
   {"aux_data":null, 
-   "session_id": <a long string>", 
+   "session_id":"dialbb_session1", 
    "system_utterance":"I'm a parrot. You can say anything.", 
    "user_id":"user1"}
   ```
@@ -88,7 +101,7 @@ Execute the following on another terminal. If you do not have curl installed, te
 
   ```sh
   $ curl -X POST -H "Content-Type: application/json" \
-    -d '{"user_utterance": "Hello", "user_id":"user1", "session_id": <sesion_id in the response}' \
+    -d '{"user_utterance": "Hello", "user_id":"user1", "session_id":"dialbb_session1"}' \
     http://localhost:8080/dialogue
   ```
 
@@ -97,7 +110,7 @@ Execute the following on another terminal. If you do not have curl installed, te
   ```json
   {"aux_data":null,
    "final":false,
-   "session_id": <sent session_id>,
+   "session_id":"dialbb_session1",
    "system_utterance":"You said \"Hello\"",
    "user_id":"user1"}
   ```
@@ -116,148 +129,175 @@ If the server is running on Windows 10, the dialog screen may not appear in your
 http://<hostname>:8080/test
 ```
 
-### Simple Applications
+### LLM Dialogue Applications
 
-This is a sample application using the following built-in blocks. The English version is available in `sample_apps/simple_en/` and the Japanese version is available in `sample_apps/simple_ja/`.
-
-- English Application
-
-  - Simple Canonicalizer Block
-  - LR-CRF Understander Block (language understanding based on Logistic Regression and Conditional Random Fields)
-  - STN Manager Block (state transition network-based dialogue manager)
-- Japanese Application
-
-  - Japanese Canonicalizer Block
-  - LR-CRF Understander  Block
-  - STN Manager  Block
-
-
-#### Installing Graphviz
-
-Install Graphviz by referring to the [Graphviz website](https://graphviz.org/). However, Graphviz is **not necessary** to run the application.
-
-
-#### Startup
-
-The following command starts the application.
-
-
-  - English application
-
-    ```sh
-    $ dialbb-server sample_apps/simple_en/config.yml 
-    ```
-
-
-  - Japanese application
-
-    ```sh
-    $ dialbb-server sample_apps/simple_ja/config.yml 
-    ```
-
-#### Operation Check
-
-Operation check can be done with a browser. (See "Running the Parroting Application" above.)
-
-#### Operation Check Using Test Sets
-
-The following commands can be used to test the sequential processing and interaction of user speech.
-
-- English
-
-  ```sh
-  $ dialbb-test sample_apps/simple_en/config.yml \
-    sample_apps/simple_en/test_inputs.txt --output \
-    sample_apps/simple_en/_test_outputs.txt
-  ```
-
-​	The dialog exchange is written to `sample_apps/simple_en/_test_outputs.txt`.
-
-  - Japanese
-
-    ```sh
-    $ dialbb-test sample_apps/simple_ja/config.yml \
-      sample_apps/simple_ja/test_inputs.txt --output \
-      sample_apps/simple_ja/_test_outputs.txt
-    ```
-
-​       The dialog exchange is written to `sample_apps/simple_ja/_test_outputs.txt`.
-
-
-### Experimental Applications
-
-Experimental applications are available at `sample_apps/lab_app_ja/` (Japanese) and `sample_apps/lab_app_en/` (English) . This application is used to test various functions of the built-in blocks. It uses the following built-in blocks.
-
-
-- English Application
-
-  - Simple Canonicalizer Block
-  - ChatGPT Understander Block
-  - ChatGPT NER Block
-  - STN Manager Block
-
-- Japanese Application
-
-  - Japanese Canonicalizer Block
-  - ChatGPT Understander Block
-  - ChatGPT NER Block
-  - STN Manager Block
-
-#### Setting environment variables
-
-This application uses OpenAI's ChatGPT. So, set the OpenAI API key in the environment variable `OPENAI_API_KEY`. The following is a bash example.
-
-```sh
-$ export OPENAI_API_KEY=<OpenAI's API key>.
-```
-
-#### Startup
-
-  ```sh
-  $ dialbb-server sample_apps/lab_app_en/config_en.yml # English app
-  $ dialbb-server sample_apps/lab_app_en/config_ja.yml # Japanese app
-  ```
-
-#### Test Method
-
-The following commands allow you to test features not used in the Simple Application.
-
-  ```sh
-  $ cd sample_apps/lab_app_en # in the case of English app
-  $ cd sample_apps/lab_app_ja # in the case of Japanese app
-  $ dialbb-send-test-requests config.yml test_requests.json
-  ```
-
-### ChatGPT Dialogue Application
-
-This application uses only  OpenAI's ChatGPT to engage in dialogues. 
+This application uses single prompt template for an LLM (Large Language Model) to engage in dialogues. 
 
 Only the following builtin block is used.
 
-- ChatGPT Dialogue Block
+- LLM Dialogue Block
 
 
 #### Setting environment variables
 
-Set the environment variable OPENAI_API_KEY to the OpenAI API key. The following is a bash example.
+This application uses OpenAI's ChatGPT by default. So, set the OpenAI API key in the environment variable `OPENAI_API_KEY`. The following is a bash example. 
 
 ```sh
 $ export OPENAI_API_KEY=<OpenAI's API key>.
 ```
+
+You can also write the key in `.env`  in the working directory as follows:
+
+```
+OPENAI_API_KEY=<OpenAI's API key>
+```
+
+You can also use other LLMs by modifiying the configuration files. In that case, set necessary keys in the enviroment variables or specify them in `.env`.
 
 #### Startup
 
   English version:
 
   ```sh
-  $ dialbb-server sample_apps/chatgpt/config_en.yml
+$ dialbb-server sample_apps/llm_dialogue_en/config.yml
   ```
 
   Japanese version:
 
   ```sh
-  $ dialbb-server sample_apps/chatgpt/config_en.yml
+  $ dialbb-server sample_apps/llm_dialogue_ja/config.yml
   ```
+
+#### Testing with user simulation
+
+You can also test these applications with LLM-based user simulation.
+
+Japanese version:
+
+```sh
+$ dialbb-sim-tester --app_config sample_apps/llm_dialogue_ja/config.yml \
+  --test_config sample_apps/llm_dialogue_ja/simulation/config.yml
+```
+
+English version:
+
+```sh
+$ dialbb-sim-tester --app_config sample_apps/llm_dialogue_en/config.yml \
+  --test_config sample_apps/llm_dialogue_en/simulation/config.yml
+```
+
+
+### DST+STN Applications
+
+Sample applications using DST (dialogue state tracking) and STN (State-transition network) are available at `sample_apps/dst_stn_ja/` (Japanese) and `sample_apps/dst_stn_en/` (English) . These applications are used to test various functions of the built-in blocks. They use the following built-in blocks.
+
+
+- DST with LLM Block
+- STN Manager Block
+
+#### Installing Graphviz
+
+Install Graphviz by referring to the [Graphviz website](https://graphviz.org/). However, Graphviz is **not necessary** to run the application.
+
+#### Setting environment variables
+
+These application also use OpenAI's ChatGPT. In the same way as LLM Dialogue Applications, set the OpenAI's API key to the environment variable.
+
+#### Startup
+
+  ```sh
+  $ dialbb-server sample_apps/dst_stn_en/config.yml # English app
+  $ dialbb-server sample_apps/dst_stn_ja/config.yml # Japanese app
+  ```
+
+#### Testing with user simulation
+
+You can also test these applications with LLM-based user simulation.
+
+Japanese version:
+
+    $ dialbb-sim-tester --app_config sample_apps/dst_stn_ja/config.yml \
+      --test_config sample_apps/dst_stn_ja/simulation/config.yml
+
+English version:
+
+    $ dialbb-sim-tester --app_config sample_apps/dst_stn_en/config.yml \
+      --test_config sample_apps/dst_stn_en/simulation/config.yml
+
+#### Testing by sending auxiliary data
+
+The following commands allow you to test various features by sending auxiliary data.
+
+  ```sh
+$ dialbb-send-test-requests sample_apps/dst_stn_en/config.yml sample_apps/dst_stn_en/test_requests.json # for English app
+$ dialbb-send-test-requests sample_apps/dst_stn_ja/config.yml sample_apps/dst_stn_ja/test_requests.json # for Japanese app
+  ```
+
+### RAG Applications
+
+Sample RAG applications are available at `sample_apps/rag_en/` (English) and `sample_apps/rag_ja/` (Japanese). These applications retrieve relevant passages from the FAQ documents and pass them to the LLM. They use the following built-in blocks.
+
+- Passage Retrieval Block
+- LLM Dialogue Block
+
+#### Installing additional libraries
+
+To run this application, you need to install additional libraries. Please run the following:
+
+```sh
+$ pip install <downloaded dialbb-*.whl file>[rag]
+（e.g., pip install dialbb-2.0.0-py3-none-any.whl[rag]）
+```
+
+#### Setting environment variables
+
+These applications also use OpenAI's ChatGPT and embeddings by default. As with the LLM Dialogue Applications, set the OpenAI API key in the environment variable `OPENAI_API_KEY` or write it in `.env`.
+
+The passage retrieval block also requires the optional document loader dependencies. If you installed the base wheel only, run `pip install 'dialbb[rag]'` additionally.
+
+#### Startup
+
+  English version:
+
+  ```sh
+$ dialbb-server sample_apps/rag_en/config.yml
+  ```
+
+  Japanese version:
+
+  ```sh
+$ dialbb-server sample_apps/rag_ja/config.yml
+  ```
+
+At startup, the passage retrieval block reads the files under `docs/` and builds a vector database under `vector_db/` as needed. If you want to rebuild the vector database from scratch, enable `clear_before_ingest: True` in the application configuration.
+
+Access `http://<hostname>:8080` or `http://<hostname>:8080/test` from a browser.
+
+#### Testing with user simulation
+
+You can also test these applications with LLM-based user simulation.
+
+  English version:
+
+  ```sh
+$ dialbb-sim-tester --app_config sample_apps/rag_en/config.yml \
+  --test_config sample_apps/rag_en/simulation/config.yml
+  ```
+
+  Japanese version:
+
+  ```sh
+$ dialbb-sim-tester --app_config sample_apps/rag_ja/config.yml \
+  --test_config sample_apps/rag_ja/simulation/config.yml
+  ```
+
+### No-code Tool
+
+The following command invokes the English version of the no-code tool.
+
+```sh
+$ dialbb-nc en
+```
 
 ### Uninstalling DialBB
 
