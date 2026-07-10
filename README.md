@@ -2,7 +2,7 @@
 
 ver. 2.0.0
 
-[<img src="./docs/images/japan_national_flag.jpg" width="5%">日本語](README-ja.md)
+[日本語](README-ja.md)
 
 ## Project Main Page
 
