@@ -14,7 +14,7 @@ ver. 2.0.0
 
 詳細な仕様やアプリケーションの構築法は[ドキュメント](https://c4a-ri.github.io/dialbb/document-ja/build/html/)を参照して下さい．
 
-本READMEがリリース版ではない場合は，[本READMEと同じバージョンのドキュメント](docs/files/document-ja.zip)をダウンロードしてください．）また，ノーコードツールについては[本READMEと同じバージョンのノーコードツールのドキュメント](docs/no-code/index-ja.md)を参照してください．
+本READMEがリリース版ではない場合は，[本READMEと同じバージョンのドキュメント](docs/files/document-ja.zip)をダウンロードしてください．また，ノーコードツールについては[本READMEと同じバージョンのノーコードツールのドキュメント](docs/no-code/index-ja.md)を参照してください．
 
 
 ## 引用
