@@ -2,44 +2,55 @@
 
 ## 2.0.0 (2026.7.8)
 
-- Default LLM changed to gpt-5.4-nano
+- Added the following built-in blocks:
 
-- Created a RAG sample app
+  - DST with LLM block
 
-- Added a new passage search block for RAG
+  - LLM dialogue block
 
-- Changed automatically generated `session_id` values to shorter strings when not using the context DB
+  - Passage retrieval block for RAG
 
-- Changed the system to support loading environment variable settings from `.env`
+- Deprecated the following built-in blocks:
 
-- Built-in STN Manager block
-
-  - Changed LLM calls to use LangChain
-
-  - Changed the block to accept `dialogue_history` as input
-
-- Added a new built-in DST with LLM block
-
-- Added a new built-in LLM Dialogue block
-
-- no-code tool
-
-  Allows to use DST with LLM instead of ChatGPT-based NLU and NER
-
-- Deprecated the following built-in blocks
+  - ChatGPT dialogue block
 
   - Japanese canonicalizer block
 
-  - Simple Canonicalizer block
+  - Simple canonicalizer block
 
-  - LR-CRF Understander block
+  - LR-CRF understander block 
 
-  - ChatGPT Understander block
+  - ChatGPT understander block
 
   - ChatGPT NER block
 
-  - spaCy-Based NER block
+  - spaCy-based NER block
 
+- Changed the sample apps to the following three:
+
+  - LLM dialogue application
+
+  - DST-STN application
+
+  - RAG application
+
+- STN Manager built-in block
+
+  - Changed LLM calls to use LangChain
+
+  - Changed it so `dialogue_history` can be accepted as input
+
+- No-code tool
+
+  - Changed it so LLM-based DST can be used instead of language understanding and named entity extraction
+
+- Changed from Poetry to a uv-based setup
+
+- Changed the default LLM to `gpt-5.4-nano`
+
+- When not using the context DB, changed automatically generated `session_id` values to shorter strings.
+
+- Changed it so environment variable settings can be loaded from `.env`.
 ## 1.2.4 (2026.5.21)
 
 - No-code tool
