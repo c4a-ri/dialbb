@@ -123,7 +123,7 @@ If the hostname or IP address of the server from which the application is launch
 http://<hostname>:8080 
 ```
 
-If the server is running on Windows 10, the dialog screen may not appear in your browser. In this case, a simple dialog screen will appear when you connect to the following URL.
+If the server is running on Windows 11, the dialog screen may not appear in your browser. In this case, a simple dialog screen will appear when you connect to the following URL.
 
 ```
 http://<hostname>:8080/test
@@ -168,6 +168,8 @@ $ dialbb-server sample_apps/llm_dialogue_en/config.yml
   $ dialbb-server sample_apps/llm_dialogue_ja/config.yml
   ```
 
+Access `http://<hostname>:8080` or `http://<hostname>:8080/test` from a browser.
+
 #### Testing with user simulation
 
 You can also test these applications with LLM-based user simulation.
@@ -209,6 +211,8 @@ These application also use OpenAI's ChatGPT. In the same way as LLM Dialogue App
   $ dialbb-server sample_apps/dst_stn_en/config.yml # English app
   $ dialbb-server sample_apps/dst_stn_ja/config.yml # Japanese app
   ```
+
+Access `http://<hostname>:8080` or `http://<hostname>:8080/test` from a browser.
 
 #### Testing with user simulation
 
