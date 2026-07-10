@@ -22,19 +22,23 @@
 
 - Added a new built-in LLM Dialogue block
 
-- Deprecated the built-in ChatGPT Dialogue block
+- no-code tool
 
-- Deprecated the built-in Japanese canonicalizer block
+  Allows to use DST with LLM instead of ChatGPT-based NLU and NER
 
-- Deprecated the built-in Simple Canonicalizer block
+- Deprecated the following built-in blocks
 
-- Deprecated the built-in LR-CRF Understander block
+  - Japanese canonicalizer block
 
-- Deprecated the built-in ChatGPT Understander block
+  - Simple Canonicalizer block
 
-- Deprecated the built-in ChatGPT NER block
+  - LR-CRF Understander block
 
-- Deprecated the builtin spaCy-Based NER block
+  - ChatGPT Understander block
+
+  - ChatGPT NER block
+
+  - spaCy-Based NER block
 
 ## 1.2.4 (2026.5.21)
 
