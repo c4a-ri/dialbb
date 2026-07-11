@@ -42,22 +42,19 @@ The following instructions assume that you are working with bash on Ubuntu. If y
   $ source venv/bin/activate   # Enter the virtual environment
   ```
 
-- Download `dialbb-*-py3-none-any.whl` file from [distribution directory](dist).
-
 - Execute the following.
 
   ```sh
-  $ pip install <downloaded whl file>
+  $ pip install dialbb
   ```
 
-- If you use the RAG passage retrieval block, also install the optional document loader dependencies.
+- If you use the RAG passage retrieval block, also execute the following.
 
   ```sh
-  $ pip install '<downloaded whl file>[rag]'
-  (e.g., pip install dialbb-2.0.0-py3-none-any.whl[rag])
+  $ pip install dialbb[rag]
   ```
-
-  This can only be installed with Python 3.11–3.13.
+  
+This can only be installed with Python 3.11–3.13.
 
 
 ### Download the Sample Applications
@@ -249,15 +246,18 @@ Sample RAG applications are available at `sample_apps/rag_en/` (English) and `sa
 To run this application, you need to install additional libraries. Please run the following:
 
 ```sh
-$ pip install <downloaded dialbb-*.whl file>[rag]
-（e.g., pip install dialbb-2.0.0-py3-none-any.whl[rag]）
+$ pip install dialbb[rag]
 ```
 
 #### Setting environment variables
 
 These applications also use OpenAI's ChatGPT and embeddings by default. As with the LLM Dialogue Applications, set the OpenAI API key in the environment variable `OPENAI_API_KEY` or write it in `.env`.
 
-The passage retrieval block also requires the optional document loader dependencies. If you installed the base wheel only, run `pip install 'dialbb[rag]'` additionally.
+Additional libraries must be installed to run this application. Please run the following command:
+
+```sh
+$ pip install dialbb[rag]
+```
 
 #### Startup
 
