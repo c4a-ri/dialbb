@@ -2,11 +2,16 @@
 mm_client Engine
 マルチセッション対応のダイアログエンジン管理
 """
+from datetime import datetime
+from contextlib import closing
+from pathlib import Path
+import time
 import queue
 import threading
 import uuid
+import wave
 from dataclasses import dataclass, field
-from typing import Dict, Optional, Callable
+from typing import Dict, Optional, Callable, cast
 
 from dialbb.util.logger import get_logger
 from .core import CoreDialogueEngine, DialogueEvent
@@ -24,12 +29,9 @@ class SessionConfig:
     stt_key_file: Optional[str] = None
     loop_period: float = 0.1
     max_user_wait_time: float = 30.0
-    mic_gain: float = 1.0
     sample_rate: int = 16000
     language_code: str = "ja-JP"
-    # True: クライアント音声モード（WebSocket 経由でマイク/スピーカをクライアント側で処理）
-    # False: デスクトップモード（PyAudio/pygame によるサーバローカル処理）
-    use_client_audio: bool = False
+    audio_logging: bool = False
 
 
 @dataclass
@@ -51,10 +53,23 @@ class DialogueSession:
     stop_event: threading.Event = field(default_factory=threading.Event)
     conversation_active_event: threading.Event = field(default_factory=threading.Event)
     stt_enabled_event: threading.Event = field(default_factory=threading.Event)
+    audio_logging_enabled: bool = False
+    audio_sample_rate: int = 16000
+    audio_frames: list[bytes] = field(default_factory=list)
+    audio_lock: threading.Lock = field(default_factory=threading.Lock)
+    tts_state_lock: threading.Condition = field(
+        default_factory=lambda: threading.Condition(threading.Lock())
+    )
+    current_tts_utterance_id: int = 0
+    current_tts_text: str = ""
+    current_tts_total_segments: int = 0
+    current_tts_played_segments: set[int] = field(default_factory=set)
+    system_speaking: bool = False
     # ワーカースレッド
     workers: list = field(default_factory=list)
     # ステータス
     is_active: bool = False
+    tts_cancel_requested: bool = False
 
 
 class DialogueEngineManager:
@@ -64,13 +79,21 @@ class DialogueEngineManager:
         self,
         default_config: SessionConfig,
         event_callback: Optional[Callable[[str, DialogueEvent], None]] = None,
-        tts_audio_callback: Optional[Callable[[str, bytes], None]] = None,
+        tts_audio_callback: Optional[Callable[[str, int, int, bytes], None]] = None,
     ) -> None:
         self.default_config = default_config
         self.sessions: Dict[str, DialogueSession] = {}
         self.event_callback = event_callback
         self.tts_audio_callback = tts_audio_callback
         self._lock = threading.Lock()
+
+    @staticmethod
+    def _split_tts_segments(text: str) -> list[str]:
+        segments = [segment.strip() for segment in text.split("。") if segment.strip()]
+        return [
+            (segment + "。") if not segment.endswith(("。", "！", "？", "!", "?")) else segment
+            for segment in segments
+        ]
 
     def create_session(self) -> str:
         """新しいセッションを作成して session_id を返す"""
@@ -103,6 +126,16 @@ class DialogueEngineManager:
                 return False
 
             cfg = config or self.default_config
+            with session.tts_state_lock:
+                session.tts_cancel_requested = False
+                session.system_speaking = False
+                session.current_tts_text = ""
+                session.current_tts_total_segments = 0
+                session.current_tts_played_segments.clear()
+            session.audio_logging_enabled = cfg.audio_logging
+            session.audio_sample_rate = cfg.sample_rate
+            with session.audio_lock:
+                session.audio_frames.clear()
             # ワーカーを起動
             workers = self._start_workers(session, cfg)
             session.workers = workers
@@ -115,14 +148,19 @@ class DialogueEngineManager:
 
     def _start_workers(self, session: DialogueSession, config: SessionConfig) -> list:
         """セッションのワーカースレッドを起動"""
-        # クライアント音声モード時: audio_chunk_queue を STT へ渡す
-        stt_audio_q = session.audio_chunk_queue if config.use_client_audio else None
-        # クライアント音声モード時: TTS 音声データをコールバック経由で返送
+        # WebSocket 音声入力を STT へ渡す
+        stt_audio_q = session.audio_chunk_queue
+        # TTS 音声データをコールバック経由で返送
         tts_audio_cb = None
-        if config.use_client_audio and self.tts_audio_callback:
+        if self.tts_audio_callback:
             _cb = self.tts_audio_callback
             _sid = session.session_id
-            tts_audio_cb = lambda audio_bytes: _cb(_sid, audio_bytes)  # noqa: E731
+            tts_audio_cb = lambda segment_index, segment_count, audio_bytes: _cb(  # noqa: E731
+                _sid,
+                segment_index,
+                segment_count,
+                audio_bytes,
+            )
         workers = [
             # STT ワーカー
             threading.Thread(
@@ -132,9 +170,7 @@ class DialogueEngineManager:
                     "stop_event": session.stop_event,
                     "listening_enabled_event": session.stt_enabled_event,
                     "sample_rate": config.sample_rate,
-                    "chunk_ms": 100,
                     "language_code": config.language_code,
-                    "mic_gain": config.mic_gain,
                     "audio_chunk_queue": stt_audio_q,
                 },
                 name=f"stt-worker-{session.session_id[:8]}",
@@ -162,6 +198,7 @@ class DialogueEngineManager:
                     "stop_event": session.stop_event,
                     "conversation_active_event": session.conversation_active_event,
                     "tts_cancel_queue": session.tts_cancel_queue,
+                    "cancel_state_clear_callback": self.clear_tts_cancel_requested,
                     "audio_send_callback": tts_audio_cb,
                 },
                 name=f"tts-worker-{session.session_id[:8]}",
@@ -204,6 +241,8 @@ class DialogueEngineManager:
                 logger.warning("[ENGINE] セッションは既に停止: %s", session_id)
                 return False
 
+            logger.info("[ENGINE] セッション停止開始: %s", session_id)
+            logger.info("[ENGINE] 停止対象ワーカー: %s", [worker.name for worker in session.workers])
             # end コマンドを送る
             session.command_queue.put("end")
             # 全ワーカーに停止シグナルを送る
@@ -212,15 +251,62 @@ class DialogueEngineManager:
             session.audio_chunk_queue.put(None)
             # ワーカーの終了を待つ
             for worker in session.workers:
+                logger.info(
+                    "[ENGINE] join待ち: session=%s worker=%s alive_before=%s",
+                    session_id,
+                    worker.name,
+                    worker.is_alive(),
+                )
                 worker.join(timeout=3.0)
+                logger.info(
+                    "[ENGINE] join結果: session=%s worker=%s alive_after=%s",
+                    session_id,
+                    worker.name,
+                    worker.is_alive(),
+                )
+
+            self._save_audio_log(session)
 
             alive = [w for w in session.workers if w.is_alive()]
             if alive:
                 logger.warning("[ENGINE] 未終了ワーカー: %s", [w.name for w in alive])
+            else:
+                logger.info("[ENGINE] 全ワーカー終了を確認: %s", session_id)
+
+            logger.info(
+                "[ENGINE] 現在の生存スレッド: %s",
+                ", ".join(thread.name for thread in threading.enumerate()),
+            )
 
             session.is_active = False
             logger.info("[ENGINE] セッション停止完了: %s", session_id)
         return True
+
+    def _save_audio_log(self, session: DialogueSession) -> None:
+        if not session.audio_logging_enabled:
+            return
+
+        with session.audio_lock:
+            audio_frames = list(session.audio_frames)
+            session.audio_frames.clear()
+
+        if not audio_frames:
+            logger.info("[ENGINE] audio log は空のため保存しません: %s", session.session_id)
+            return
+
+        output_dir = Path.cwd() / "audio_logs"
+        output_dir.mkdir(parents=True, exist_ok=True)
+        output_path = output_dir / f"{session.session_id}_{datetime.now():%Y%m%d_%H%M%S}.wav"
+
+        try:
+            with closing(cast(wave.Wave_write, wave.open(str(output_path), "wb"))) as wf:
+                wf.setnchannels(1)
+                wf.setsampwidth(2)
+                wf.setframerate(session.audio_sample_rate)
+                wf.writeframes(b"".join(audio_frames))
+            logger.info("[ENGINE] audio log saved: %s", output_path)
+        except OSError as exc:
+            logger.warning("[ENGINE] audio log save failed: %s", exc)
 
     def delete_session(self, session_id: str) -> bool:
         """セッションを削除"""
@@ -254,6 +340,98 @@ class DialogueEngineManager:
     def get_session(self, session_id: str) -> Optional[DialogueSession]:
         """セッションを取得"""
         return self.sessions.get(session_id)
+
+    def begin_tts_utterance(self, session_id: str, text: str) -> int | None:
+        """システム発話の再生を開始する。"""
+        session = self.sessions.get(session_id)
+        if not session:
+            return None
+
+        with session.tts_state_lock:
+            session.current_tts_utterance_id += 1
+            session.current_tts_text = text
+            session.current_tts_total_segments = len(self._split_tts_segments(text))
+            session.current_tts_played_segments.clear()
+            session.tts_cancel_requested = False
+            session.system_speaking = True
+            return session.current_tts_utterance_id
+
+    def set_tts_cancel_requested(self, session_id: str, requested: bool) -> bool:
+        """TTS 送信抑止フラグを更新する。"""
+        session = self.sessions.get(session_id)
+        if not session:
+            return False
+        with session.tts_state_lock:
+            session.tts_cancel_requested = requested
+            if requested:
+                session.system_speaking = False
+        return True
+
+    def is_tts_cancel_requested(self, session_id: str) -> bool:
+        """TTS 送信抑止フラグの状態を返す。"""
+        session = self.sessions.get(session_id)
+        return bool(session and session.tts_cancel_requested)
+
+    def clear_tts_cancel_requested(self, session_id: str) -> bool:
+        """TTS 送信抑止フラグを解除する。"""
+        return self.set_tts_cancel_requested(session_id, False)
+
+    def record_tts_segment_playback_done(
+        self,
+        session_id: str,
+        utterance_id: int,
+        segment_index: int,
+        segment_count: int,
+    ) -> tuple[int, int, bool] | None:
+        """セグメント再生完了を記録する。"""
+        session = self.sessions.get(session_id)
+        if not session:
+            return None
+
+        with session.tts_state_lock:
+            if utterance_id != session.current_tts_utterance_id:
+                return None
+
+            session.current_tts_played_segments.add(segment_index)
+            played_segments = len(session.current_tts_played_segments)
+            if played_segments >= segment_count or session.tts_cancel_requested:
+                session.system_speaking = False
+            session.tts_state_lock.notify_all()
+            return played_segments, segment_count, session.system_speaking
+
+    def wait_for_tts_segment_playback_done(
+        self,
+        session_id: str,
+        utterance_id: int,
+        segment_index: int,
+        timeout: float = 30.0,
+    ) -> bool:
+        """指定セグメントの再生完了、または cancel を待つ。"""
+        session = self.sessions.get(session_id)
+        if not session:
+            return False
+
+        deadline = time.monotonic() + timeout
+        with session.tts_state_lock:
+            while True:
+                if utterance_id != session.current_tts_utterance_id:
+                    return False
+                if session.tts_cancel_requested:
+                    return False
+                if segment_index in session.current_tts_played_segments:
+                    return True
+
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    logger.warning(
+                        "[ENGINE] playback ack timeout: session=%s utterance=%s segment=%d",
+                        session_id,
+                        utterance_id,
+                        segment_index,
+                    )
+                    return False
+
+                session.tts_state_lock.wait(timeout=remaining)
 
     def list_sessions(self) -> list:
         """アクティブなセッション一覧を返す"""

@@ -12,7 +12,7 @@
 - MAINスレッド: 全体の司令塔。認識結果を受けて対話要求を作り、応答をTTSへ渡す。
 - STTスレッド: 音声認識（Google STT）結果を生成する（RecognitionEvent）。
 - DialBBスレッド: DialogueProcessor を呼び出してシステム応答を生成する。
-- TTSスレッド: 音声合成（Google TTS）と再生（pygame）を実行する。
+- TTSスレッド: 音声合成（Google TTS）を実行する。
 
 Queue はスレッド間のメッセージ受け渡し口であり、非同期に安全な連携を実現する。
 

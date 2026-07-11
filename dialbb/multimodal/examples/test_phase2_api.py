@@ -137,10 +137,17 @@ async def test_websocket() -> None:
             print("\n3. 対話開始")
             await ws.send(json.dumps({"action": "start_dialogue"}))
 
-            print("\n4. テキスト発話送信")
-            await ws.send(
-                json.dumps({"action": "send_text_utterance", "text": "テストメッセージです"})
-            )
+            print("\n4. 音声データ送信")
+            if AUDIO_DATA:
+                audio_file = AUDIO_DATA.pop(0)
+                file_path = os.path.join(current_dir, "data", audio_file)
+                print(f"  - 音声ファイル: {audio_file}")
+                with open(file_path, "rb") as f:
+                    audio_data = f.read()
+                # base64 PCM16kHz 16bit mono 形式でエンコードする
+                audio_base64 = base64.b64encode(audio_data).decode("utf-8")
+                print(f"  - 音声データサイズ: {len(audio_data)} bytes, base64サイズ: {len(audio_base64)} chars")
+                await ws.send(json.dumps({"action": "send_audio_chunk", "audio_data": audio_base64}))
 
             print("\n5. サーバイベント受信(最大10件 / 各15秒待ち)")
             for _ in range(50):
@@ -155,22 +162,6 @@ async def test_websocket() -> None:
                 else:
                     print(f"📨 {event.get('event')}: {event.get('payload')}")
                 print(f"  - 発話: {event.get('payload', {}).get('data', {}).get('message')}")
-
-                # 'role': 'system'なら音声データ送信
-                data = event.get("payload", {}).get("data", {})
-                if event.get("event") == "dialogue_event" and data.get('message', '') == "音声入力待ち":
-                    print("  - 音声データ送信")
-                    # test.wav の内容を base64 エンコードして送信する
-                    if AUDIO_DATA:
-                        audio_file = AUDIO_DATA.pop(0)
-                        file_path = os.path.join(current_dir, "data", audio_file)
-                        print(f"  - 音声ファイル: {audio_file}")
-                        with open(file_path, "rb") as f:
-                            audio_data = f.read()
-                        # base64 PCM16kHz 16bit mono 形式でエンコードする
-                        audio_base64 = base64.b64encode(audio_data).decode("utf-8")
-                        print(f"  - 音声データサイズ: {len(audio_data)} bytes, base64サイズ: {len(audio_base64)} chars")
-                        await ws.send(json.dumps({"action": "send_audio_chunk", "audio_data": audio_base64}))
 
             print("\n6. 対話終了")
             await ws.send(json.dumps({"action": "end_dialogue"}))
