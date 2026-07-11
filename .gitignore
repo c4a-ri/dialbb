@@ -158,6 +158,13 @@ sample_apps/*/_*
 *-sav.py
 *_sav.py
 
+# log files
+audio_logs/
+
+# debug files
+debug_logs/
+config-dbg.yml
+
 # debug tools
 /scripts/debug_generate_rows.py
 /scripts/print_rows.py

@@ -1,14 +1,16 @@
 from collections.abc import Iterable, Iterator
+import threading
 import time
 from queue import Queue
 from threading import Event
+from typing import Any, cast
 
 from google.api_core.exceptions import GoogleAPICallError, RetryError
 from google.auth.exceptions import GoogleAuthError
 from google.cloud import speech
 
 from dialbb.util.logger import get_logger
-from .audio_input import MicrophoneAudioInput, WebSocketAudioInput
+from .audio_input import WebSocketAudioInput
 from ..main.messages import RecognitionEvent, RecognitionEventType
 
 logger = get_logger(__name__)
@@ -38,20 +40,14 @@ class GoogleStreamingSttClient:
             enable_voice_activity_events=True,
         )
 
-        requests = (
+        def _requests() -> Iterator[speech.StreamingRecognizeRequest]:
             # マイクから渡された生PCMチャンクを逐次リクエスト化する。
-            speech.StreamingRecognizeRequest(audio_content=chunk)
-            for chunk in audio_chunks
-        )
+            for chunk in audio_chunks:
+                yield speech.StreamingRecognizeRequest(audio_content=chunk)
 
         try:
-            # pylint: disable=unexpected-keyword-arg
             # STT ストリーミングAPIを開始し、音声チャンク列から認識結果ストリームを取得する。
-            responses = self.client.streaming_recognize(
-                config=streaming_config,
-                requests=requests,
-            )
-            # pylint: enable=unexpected-keyword-arg
+            responses = cast(Any, self.client).streaming_recognize(streaming_config, _requests())
         except (GoogleAPICallError, RetryError, OSError) as exc:
             # API 呼び出し失敗は ERROR イベントに変換して上位へ返す。
             yield RecognitionEvent(
@@ -84,7 +80,8 @@ class GoogleStreamingSttClient:
             if not result.alternatives:
                 # 候補が空のケースもスキップする。
                 continue
-
+            
+            logger.debug("[STT] result.is_final=%s, alternatives=%s", result.is_final, result.alternatives)
             alt = result.alternatives[0]
             # 確定/中間の別をイベント型に変換して返す。
             evt_type = (
@@ -105,100 +102,75 @@ def run_stt_worker(
     stop_event: Event,
     listening_enabled_event: Event | None = None,
     sample_rate: int = 16000,
-    chunk_ms: int = 100,
     language_code: str = "ja-JP",
-    mic_gain: float = 1.0,
     audio_chunk_queue: "Queue[bytes | None] | None" = None,
 ) -> None:
     """Speech activity detection + STT worker thread.
 
     audio_chunk_queue が指定された場合は WebSocket 経由で受信した音声を STT に流す。
-    未指定の場合は PyAudio でサーバローカルのマイクを使用するデスクトップモード。
+    未指定の場合は処理を開始しない。
     """
+    logger.info(
+        "[STT] worker start: thread=%s mode=%s",
+        threading.current_thread().name,
+        "websocket" if audio_chunk_queue is not None else "disabled",
+    )
     try:
-        recognizer = GoogleStreamingSttClient(
-            sample_rate=sample_rate,
-            language_code=language_code,
-        )
-    except (GoogleAPICallError, RetryError, GoogleAuthError, OSError) as exc:
-        stt_event_queue.put(
-            RecognitionEvent(
-                event_type=RecognitionEventType.ERROR,
-                text=str(exc),
-                raw=exc,
-            )
-        )
-        return
-
-    # --- WebSocket 音声モード（クライアントから音声チャンクを受信） ---
-    if audio_chunk_queue is not None:
-        import queue as _q
-        while not stop_event.is_set():
-            if listening_enabled_event and not listening_enabled_event.is_set():
-                time.sleep(0.1)
-                continue
-            # 新セッション開始前にキューの古いデータを消去
-            while not audio_chunk_queue.empty():
-                try:
-                    audio_chunk_queue.get_nowait()
-                except _q.Empty:
-                    break
-            logger.info("[STT] WebSocket audio mode: waiting for audio chunks...")
-            ws_audio = WebSocketAudioInput(audio_chunk_queue, listening_enabled_event, stop_event)
-            try:
-                for recognition_event in recognizer.stream(ws_audio.chunks()):
-                    if stop_event.is_set():
-                        break
-                    if listening_enabled_event and not listening_enabled_event.is_set():
-                        break
-                    stt_event_queue.put(recognition_event)
-            except (GoogleAPICallError, RetryError, OSError) as exc:
-                if stop_event.is_set():
-                    break
-                logger.warning("[STT] WS接続エラー(リトライ): %s", exc)
-                time.sleep(1.0)
-            except Exception as exc:  # noqa: BLE001
-                stt_event_queue.put(
-                    RecognitionEvent(
-                        event_type=RecognitionEventType.ERROR,
-                        text=f"Unexpected STT error: {exc}",
-                        raw=exc,
-                    )
-                )
-                break
-        return
-
-    # --- PyAudio モード（サーバローカルのマイク入力） ---
-    while not stop_event.is_set():
-        if listening_enabled_event and not listening_enabled_event.is_set():
-            # 音声受付OFF時はマイクを開かず待機する。
-            time.sleep(0.1)
-            continue
-
         try:
-            # マイク入力を逐次 chunk 化して STT に流し込む。
-            with MicrophoneAudioInput(sample_rate=sample_rate, chunk_ms=chunk_ms, gain=mic_gain) as mic:
-                for recognition_event in recognizer.stream(mic.chunks()):
-                    if stop_event.is_set():
-                        # 停止シグナルを受けたら即座にループを抜ける。
-                        break
-                    if listening_enabled_event and not listening_enabled_event.is_set():
-                        # 音声受付OFFへ切り替わったためマイクを閉じて待機へ戻る。
-                        break
-                    stt_event_queue.put(recognition_event)
-        except (GoogleAPICallError, RetryError, OSError) as exc:
-            # 503 など一時的な接続エラーはログ出力のみでリトライする。
-            if stop_event.is_set():
-                break
-            logger.warning("[STT] 接続エラー(リトライ): %s", exc)
-            time.sleep(1.0)
-        except Exception as exc:  # noqa: BLE001
-            # 想定外例外も握りつぶさず可視化する。
+            recognizer = GoogleStreamingSttClient(
+                sample_rate=sample_rate,
+                language_code=language_code,
+            )
+        except (GoogleAPICallError, RetryError, GoogleAuthError, OSError) as exc:
             stt_event_queue.put(
                 RecognitionEvent(
                     event_type=RecognitionEventType.ERROR,
-                    text=f"Unexpected STT error: {exc}",
+                    text=str(exc),
                     raw=exc,
                 )
             )
-            break
+            return
+
+        # --- WebSocket 音声モード（クライアントから音声チャンクを受信） ---
+        if audio_chunk_queue is not None:
+            import queue as _q
+            while not stop_event.is_set():
+                if listening_enabled_event and not listening_enabled_event.is_set():
+                    time.sleep(0.1)
+                    continue
+                # 新セッション開始前にキューの古いデータを消去
+                while not audio_chunk_queue.empty():
+                    try:
+                        audio_chunk_queue.get_nowait()
+                    except _q.Empty:
+                        break
+                logger.info("[STT] WebSocket audio mode: waiting for audio chunks...")
+                ws_audio = WebSocketAudioInput(audio_chunk_queue, listening_enabled_event, stop_event)
+                try:
+                    for recognition_event in recognizer.stream(ws_audio.chunks()):
+                        if stop_event.is_set():
+                            break
+                        if listening_enabled_event and not listening_enabled_event.is_set():
+                            break
+                        stt_event_queue.put(recognition_event)
+                except (GoogleAPICallError, RetryError, OSError) as exc:
+                    if stop_event.is_set():
+                        break
+                    logger.warning("[STT] WS接続エラー(リトライ): %s", exc)
+                    time.sleep(1.0)
+                except (RuntimeError, ValueError, TypeError) as exc:
+                    stt_event_queue.put(
+                        RecognitionEvent(
+                            event_type=RecognitionEventType.ERROR,
+                            text=f"Unexpected STT error: {exc}",
+                            raw=exc,
+                        )
+                    )
+                    break
+            return
+    finally:
+        logger.info(
+            "[STT] worker exit: thread=%s stop_event=%s",
+            threading.current_thread().name,
+            stop_event.is_set(),
+        )

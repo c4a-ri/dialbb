@@ -1,9 +1,8 @@
-import io
+import threading
 from queue import Empty, Queue
 from threading import Event
-from typing import Callable
+from typing import Callable, cast
 
-import pygame
 from google.api_core.exceptions import GoogleAPICallError, RetryError
 from google.cloud import texttospeech
 
@@ -13,22 +12,12 @@ from ..main.messages import TtsRequest, TtsResult
 
 logger = get_logger(__name__)
 
-# Google Cloud TTS の音声設定。
 _LANGUAGE_CODE = "ja-JP"
 _VOICE_NAME = "ja-JP-Neural2-B"
-_AUDIO_ENCODING = texttospeech.AudioEncoding.MP3
-
-
-def _ensure_mixer_initialized() -> bool:
-    """pygame mixer を必要時に初期化する。"""
-    if pygame.mixer.get_init() is not None:
-        return True
-    try:
-        pygame.mixer.init()
-    except pygame.error:
-        logger.exception("[TTS] pygame mixer 初期化に失敗")
-        return False
-    return True
+_AUDIO_ENCODING: texttospeech.AudioEncoding = cast(
+    texttospeech.AudioEncoding,
+    texttospeech.AudioEncoding.MP3,
+)
 
 
 def _synthesize_with_encoding(
@@ -56,43 +45,13 @@ def _synthesize(client: texttospeech.TextToSpeechClient, text: str) -> bytes:
     return _synthesize_with_encoding(client, text, _AUDIO_ENCODING)
 
 
-def _play_audio(
-    audio_bytes: bytes,
-    stop_event: Event,
-    conversation_active_event: Event,
-    cancel_queue: "Queue | None" = None,
-    audio_format: str = "mp3",
-) -> bool:
-    """音声バイト列を pygame で再生する。
-
-    Returns:
-        True: 最後まで再生完了。
-        False: stop_event / conversation_active_event / cancel_queue により中断。
-    """
-    if not _ensure_mixer_initialized():
-        return False
-
-    buf = io.BytesIO(audio_bytes)
-    try:
-        pygame.mixer.music.load(buf, audio_format)
-        pygame.mixer.music.play()
-    except pygame.error:
-        logger.exception("[TTS] 音声再生の開始に失敗(format=%s)", audio_format)
-        return False
-    while pygame.mixer.music.get_busy():
-        if stop_event.is_set() or not conversation_active_event.is_set():
-            pygame.mixer.music.stop()
-            return False
-        if cancel_queue is not None:
-            try:
-                cancel_queue.get_nowait()
-                logger.debug("[TTS] キャンセルキュー受信: 再生中断")
-                pygame.mixer.music.stop()
-                return False
-            except Empty:
-                pass
-        pygame.time.wait(50)
-    return True
+def split_tts_segments(text: str) -> list[str]:
+    """TTS 合成用にテキストを句読点単位で分割する。"""
+    segments = [segment.strip() for segment in text.split("。") if segment.strip()]
+    return [
+        (segment + "。") if not segment.endswith(("。", "！", "？", "!", "?")) else segment
+        for segment in segments
+    ]
 
 
 def run_tts_worker(
@@ -100,125 +59,104 @@ def run_tts_worker(
     tts_result_queue: "Queue[TtsResult]",
     stop_event: Event,
     conversation_active_event: "Event | None" = None,
-    tts_cancel_queue: "Queue | None" = None,
-    audio_send_callback: "Callable[[bytes], None] | None" = None,
+    tts_cancel_queue: "Queue[str] | None" = None,
+    cancel_state_clear_callback: Callable[[str], None] | None = None,
+    audio_send_callback: Callable[[int, int, bytes], None] | None = None,
 ) -> None:
     """Google Cloud TTS による音声合成ワーカースレッド。
 
-    audio_send_callback が指定された場合は pygame ではなくコールバックで音声データを渡す。
-    未指定の場合は pygame でサーバローカルに再生するデスクトップモード。
-
-    テキストを句点「。」で分割して逐次合成・配信（デスクトップ時は再生）し、
-    stop_event / conversation_active_event / tts_cancel_queue で途中を中断できる。
+    クライアント音声モードでは、TTS を句点単位で逐次合成し、
+    audio_send_callback でクライアントへ音声データを渡す。
     """
-    client = texttospeech.TextToSpeechClient()
-    # conversation_active_event が渡されない場合は常に active とみなす。
-    active_event = conversation_active_event or Event()
-    if conversation_active_event is None:
-        active_event.set()
+    logger.info("[TTS] worker start: thread=%s", threading.current_thread().name)
+    try:
+        client = texttospeech.TextToSpeechClient()
+        active_event = conversation_active_event or Event()
+        if conversation_active_event is None:
+            active_event.set()
 
-    # ワーカースレッド開始時にミキサ初期化を試みる（失敗してもワーカーは継続）。
-    if audio_send_callback is None:
-        mixer_available = _ensure_mixer_initialized()
-        if not mixer_available:
-            logger.error("[TTS] 音声出力初期化に失敗。再生要求時に再試行します。")
+        if audio_send_callback is None:
+            logger.error("[TTS] audio_send_callback が未設定のため音声送信を行えません")
+            return
 
-    while not stop_event.is_set():
-        try:
-            request = tts_request_queue.get(timeout=0.1)
-        except Empty:
-            continue
+        while not stop_event.is_set():
+            try:
+                request = tts_request_queue.get(timeout=0.1)
+            except Empty:
+                continue
 
-        logger.info("[TTS] TTS<-MAIN 合成要求受信")
-        logger.debug("[TTS] request.text=%s", request.text)
+            if tts_cancel_queue is not None:
+                while True:
+                    try:
+                        tts_cancel_queue.get_nowait()
+                    except Empty:
+                        break
 
-        # 前回リクエストの残留キャンセル信号を捨てる（stale cancel 対策）。
-        if tts_cancel_queue is not None:
-            while not tts_cancel_queue.empty():
-                try:
-                    tts_cancel_queue.get_nowait()
-                except Empty:
+            logger.info("[TTS] TTS<-MAIN 合成要求受信")
+            logger.debug("[TTS] request.text=%s", request.text)
+
+            segments = split_tts_segments(request.text)
+            total_segments = len(segments)
+
+            completed = True
+            for segment_index, segment in enumerate(segments, start=1):
+                if stop_event.is_set() or not active_event.is_set():
+                    logger.debug("[TTS] 中断: %s", segment)
+                    completed = False
                     break
 
-        # 句点で分割し、空セグメントを除去する。
-        segments = [s.strip() for s in request.text.split("。") if s.strip()]
-        # 末尾が「。」で終わっていた場合は再度「。」を付け直す。
-        segments = [
-            (seg + "。") if not seg.endswith(("。", "！", "？", "!", "?")) else seg
-            for seg in segments
-        ]
-
-        completed = True
-        for segment in segments:
-            if stop_event.is_set() or not active_event.is_set():
-                logger.debug("[TTS] 中断: %s", segment)
-                completed = False
-                break
-
-            # セグメント処理開始前にキャンセル信号を確認する。
-            if tts_cancel_queue is not None and not tts_cancel_queue.empty():
-                try:
-                    tts_cancel_queue.get_nowait()
-                    logger.debug("[TTS] セグメント開始前にキャンセル検知: 再生中断")
-                except Empty:
-                    pass
-                completed = False
-                break
-
-            logger.debug("[TTS] 合成中: %s", segment)
-            try:
-                audio_bytes = _synthesize(client, segment)
-            except (GoogleAPICallError, RetryError, OSError):
-                logger.exception("[TTS] 合成エラー: %s", segment)
-                completed = False
-                break
-
-            if audio_send_callback is not None:
-                # コールバックモード: クライアントへ音声データを送信（fire-and-forget）
-                audio_send_callback(audio_bytes)
-                finished = True
-            else:
-                # pygame 再生モード（デスクトップ）
-                finished = _play_audio(
-                    audio_bytes,
-                    stop_event,
-                    active_event,
-                    tts_cancel_queue,
-                    audio_format="mp3",
-                )
-                if not finished:
-                    # MP3 デコード不可環境向けに LINEAR16(WAV) で再合成して再生を試みる。
-                    logger.warning("[TTS] MP3再生失敗。LINEAR16(WAV)へフォールバックします。")
-                    try:
-                        wav_audio = _synthesize_with_encoding(
-                            client,
-                            segment,
-                            texttospeech.AudioEncoding.LINEAR16,
-                        )
-                    except (GoogleAPICallError, RetryError, OSError):
-                        logger.exception("[TTS] WAVフォールバック合成エラー: %s", segment)
+                if tts_cancel_queue is not None:
+                    cancel_requested = False
+                    while True:
+                        try:
+                            tts_cancel_queue.get_nowait()
+                            cancel_requested = True
+                        except Empty:
+                            break
+                    if cancel_requested:
+                        logger.info("[TTS] cancel 受信: segment=%d/%d", segment_index, total_segments)
                         completed = False
                         break
 
-                    finished = _play_audio(
-                        wav_audio,
-                        stop_event,
-                        active_event,
-                        tts_cancel_queue,
-                        audio_format="wav",
-                    )
-            if not finished:
-                logger.debug("[TTS] 再生中断: %s", segment)
-                completed = False
-                break
+                logger.debug("[TTS] 合成中: %s", segment)
+                try:
+                    audio_bytes = _synthesize(client, segment)
+                except (GoogleAPICallError, RetryError, OSError):
+                    logger.exception("[TTS] 合成エラー: %s", segment)
+                    completed = False
+                    break
 
-        tts_result_queue.put(
-            TtsResult(
-                session_id=request.session_id,
-                text=request.text,
-                completed=completed,
+                if tts_cancel_queue is not None:
+                    cancel_requested = False
+                    while True:
+                        try:
+                            tts_cancel_queue.get_nowait()
+                            cancel_requested = True
+                        except Empty:
+                            break
+                    if cancel_requested:
+                        logger.info("[TTS] cancel 受信 (synth後): segment=%d/%d", segment_index, total_segments)
+                        completed = False
+                        break
+
+                audio_send_callback(segment_index, total_segments, audio_bytes)
+
+            tts_result_queue.put(
+                TtsResult(
+                    session_id=request.session_id,
+                    text=request.text,
+                    completed=completed,
+                )
             )
+            logger.info("[TTS] TTS->MAIN 結果送信")
+            if completed:
+                logger.debug("[TTS] 合成完了: %s", request.text)
+
+            if cancel_state_clear_callback is not None:
+                cancel_state_clear_callback(request.session_id)
+    finally:
+        logger.info(
+            "[TTS] worker exit: thread=%s stop_event=%s",
+            threading.current_thread().name,
+            stop_event.is_set(),
         )
-        logger.info("[TTS] TTS->MAIN 結果送信")
-        if completed:
-            logger.debug("[TTS] 合成・再生完了: %s", request.text)
