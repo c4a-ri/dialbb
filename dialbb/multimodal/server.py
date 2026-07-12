@@ -121,6 +121,10 @@ def create_app(
                 len(split_tts_segments(str(event.data.get("text") or ""))),
                 event.data.get("text"),
             )
+        elif event.event_type == "chat" and event.data.get("role") == "user":
+            transcript = str(event.data.get("text") or "")
+            if engine_manager.flush_user_audio_log(session_id, transcript):
+                logger.info("[SERVER] user audio log flushed on final transcript: session=%s", session_id)
         logger.debug("[SERVER] Event handled: session=%s, type=%s", session_id, event.event_type)
 
     def on_tts_audio(session_id: str, segment_index: int, segment_count: int, audio_bytes: bytes) -> None:
@@ -139,6 +143,13 @@ def create_app(
         if session:
             with session.tts_state_lock:
                 utterance_id = session.current_tts_utterance_id
+        engine_manager.record_system_audio_chunk(
+            session_id,
+            audio_bytes,
+            utterance_id,
+            segment_index,
+            segment_count,
+        )
         audio_b64 = base64.b64encode(audio_bytes).decode("utf-8")
         session_hub.emit_from_thread(
             session_id,
@@ -275,9 +286,7 @@ def create_app(
                             # logger.info("[WEBSOCKET] Audio chunk received: session=%s, bytes=%d", session_id, len(audio_bytes))
                             if _session:
                                 _session.audio_chunk_queue.put(audio_bytes)
-                                if _session.audio_logging_enabled:
-                                    with _session.audio_lock:
-                                        _session.audio_frames.append(audio_bytes)
+                                engine_manager.record_user_audio_chunk(session_id, audio_bytes)
                                 # バージインは STT の partial/final で判定する。
                                 # 生の音声チャンク到着だけでは割り込みキャンセルしない。
                         except (ValueError, binascii.Error):

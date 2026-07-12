@@ -18,6 +18,19 @@ blocks:
     # model: google_genai:gemini-2.5-flash
     # temperature: 0.7
     # multi_party: False
-    
-    
+
+multimodal:
+  # multimodal client config
+  main:
+    # メインループ周期 (秒)
+    loop_period: 0.1
+    # ユーザ発話待ちタイムアウト (秒)  T.Oで "user_silence"通知
+    max_user_wait_time: 10.0
+    # 音声ログ保存の有無
+    audio_logging: false
+
+  stt:
+    # Google Speech-to-Text and Text-to-Speech service account key file
+    # in config directory.
+    key_file: 
 

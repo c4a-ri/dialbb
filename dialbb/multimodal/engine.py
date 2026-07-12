@@ -4,6 +4,7 @@ mm_client Engine
 """
 from datetime import datetime
 from contextlib import closing
+import json
 from pathlib import Path
 import time
 import queue
@@ -55,7 +56,9 @@ class DialogueSession:
     stt_enabled_event: threading.Event = field(default_factory=threading.Event)
     audio_logging_enabled: bool = False
     audio_sample_rate: int = 16000
-    audio_frames: list[bytes] = field(default_factory=list)
+    audio_user_buffer: list["AudioChunk"] = field(default_factory=list)
+    audio_log_queue: "queue.Queue[AudioLogEntry | None]" = field(default_factory=queue.Queue)
+    audio_log_sequence: int = 0
     audio_lock: threading.Lock = field(default_factory=threading.Lock)
     tts_state_lock: threading.Condition = field(
         default_factory=lambda: threading.Condition(threading.Lock())
@@ -70,6 +73,26 @@ class DialogueSession:
     # ステータス
     is_active: bool = False
     tts_cancel_requested: bool = False
+
+
+@dataclass
+class AudioLogEntry:
+    sequence: int
+    timestamp_ns: int
+    source: str
+    audio_format: str
+    audio_bytes: bytes
+    transcript: str | None = None
+    sample_rate: int | None = None
+    utterance_id: int | None = None
+    segment_index: int | None = None
+    segment_count: int | None = None
+
+
+@dataclass
+class AudioChunk:
+    timestamp_ns: int
+    audio_bytes: bytes
 
 
 class DialogueEngineManager:
@@ -135,7 +158,9 @@ class DialogueEngineManager:
             session.audio_logging_enabled = cfg.audio_logging
             session.audio_sample_rate = cfg.sample_rate
             with session.audio_lock:
-                session.audio_frames.clear()
+                session.audio_user_buffer.clear()
+                session.audio_log_queue = queue.Queue()
+                session.audio_log_sequence = 0
             # ワーカーを起動
             workers = self._start_workers(session, cfg)
             session.workers = workers
@@ -225,9 +250,34 @@ class DialogueEngineManager:
                 daemon=False,
             ),
         ]
+        if config.audio_logging:
+            workers.insert(3, self._build_audio_log_worker(session))
         for worker in workers:
             worker.start()
         return workers
+
+    def _build_audio_log_worker(self, session: DialogueSession) -> threading.Thread:
+        def _run() -> None:
+            logger.info("[ENGINE] audio log worker start: session=%s", session.session_id)
+            try:
+                while not session.stop_event.is_set() or not session.audio_log_queue.empty():
+                    try:
+                        entry = session.audio_log_queue.get(timeout=0.1)
+                    except queue.Empty:
+                        continue
+
+                    if entry is None:
+                        continue
+
+                    self._save_audio_log_entry(session, entry)
+            finally:
+                logger.info("[ENGINE] audio log worker exit: session=%s", session.session_id)
+
+        return threading.Thread(
+            target=_run,
+            name=f"audio-log-worker-{session.session_id[:8]}",
+            daemon=False,
+        )
 
     def stop_session(self, session_id: str) -> bool:
         """セッションを停止"""
@@ -285,28 +335,164 @@ class DialogueEngineManager:
     def _save_audio_log(self, session: DialogueSession) -> None:
         if not session.audio_logging_enabled:
             return
+        logger.debug("[ENGINE] audio log stop requested: %s", session.session_id)
 
-        with session.audio_lock:
-            audio_frames = list(session.audio_frames)
-            session.audio_frames.clear()
+    def _save_audio_log_entry(self, session: DialogueSession, entry: AudioLogEntry) -> None:
+        output_dir = Path.cwd() / "audio_logs" / session.session_id
+        output_dir.mkdir(parents=True, exist_ok=True)
+        manifest_path = output_dir / "manifest.jsonl"
 
-        if not audio_frames:
-            logger.info("[ENGINE] audio log は空のため保存しません: %s", session.session_id)
+        timestamp = datetime.fromtimestamp(entry.timestamp_ns / 1_000_000_000)
+        base_name = f"{entry.sequence:06d}_{timestamp:%Y%m%d_%H%M%S_%f}_{entry.source}"
+
+        if entry.audio_format == "wav":
+            output_path = output_dir / f"{base_name}.wav"
+            try:
+                with closing(cast(wave.Wave_write, wave.open(str(output_path), "wb"))) as wf:
+                    wf.setnchannels(1)
+                    wf.setsampwidth(2)
+                    wf.setframerate(entry.sample_rate or session.audio_sample_rate)
+                    wf.writeframes(entry.audio_bytes)
+                self._append_manifest_entry(
+                    manifest_path,
+                    entry,
+                    output_path.name,
+                )
+                logger.debug("[ENGINE] audio log saved: %s", output_path)
+            except OSError as exc:
+                logger.warning("[ENGINE] audio log save failed: %s", exc)
             return
 
-        output_dir = Path.cwd() / "audio_logs"
-        output_dir.mkdir(parents=True, exist_ok=True)
-        output_path = output_dir / f"{session.session_id}_{datetime.now():%Y%m%d_%H%M%S}.wav"
+        if entry.audio_format == "mp3":
+            suffix = ""
+            if entry.utterance_id is not None:
+                suffix += f"_utt{entry.utterance_id:06d}"
+            if entry.segment_index is not None and entry.segment_count is not None:
+                suffix += f"_seg{entry.segment_index:02d}of{entry.segment_count:02d}"
+            output_path = output_dir / f"{base_name}{suffix}.mp3"
+            try:
+                output_path.write_bytes(entry.audio_bytes)
+                self._append_manifest_entry(
+                    manifest_path,
+                    entry,
+                    output_path.name,
+                )
+                logger.debug("[ENGINE] audio log saved: %s", output_path)
+            except OSError as exc:
+                logger.warning("[ENGINE] audio log save failed: %s", exc)
+            return
 
+        logger.warning("[ENGINE] unknown audio format for log: %s", entry.audio_format)
+
+    def _append_manifest_entry(self, manifest_path: Path, entry: AudioLogEntry, file_name: str) -> None:
+        record = {
+            "sequence": entry.sequence,
+            "timestamp_ns": entry.timestamp_ns,
+            "source": entry.source,
+            "audio_format": entry.audio_format,
+            "file_name": file_name,
+            "transcript": entry.transcript,
+            "utterance_id": entry.utterance_id,
+            "segment_index": entry.segment_index,
+            "segment_count": entry.segment_count,
+        }
         try:
-            with closing(cast(wave.Wave_write, wave.open(str(output_path), "wb"))) as wf:
-                wf.setnchannels(1)
-                wf.setsampwidth(2)
-                wf.setframerate(session.audio_sample_rate)
-                wf.writeframes(b"".join(audio_frames))
-            logger.info("[ENGINE] audio log saved: %s", output_path)
+            with manifest_path.open("a", encoding="utf-8") as manifest_fp:
+                manifest_fp.write(json.dumps(record, ensure_ascii=False) + "\n")
         except OSError as exc:
-            logger.warning("[ENGINE] audio log save failed: %s", exc)
+            logger.warning("[ENGINE] manifest save failed: %s", exc)
+
+    def record_user_audio_chunk(self, session_id: str, audio_bytes: bytes) -> bool:
+        session = self.sessions.get(session_id)
+        if not session or not session.audio_logging_enabled:
+            return False
+
+        with session.audio_lock:
+            session.audio_user_buffer.append(
+                AudioChunk(
+                    timestamp_ns=time.time_ns(),
+                    audio_bytes=audio_bytes,
+                )
+            )
+        return True
+
+    def flush_user_audio_log(self, session_id: str, transcript: str) -> bool:
+        session = self.sessions.get(session_id)
+        if not session or not session.audio_logging_enabled:
+            return False
+
+        normalized_text = transcript.strip()
+        if not normalized_text:
+            with session.audio_lock:
+                session.audio_user_buffer.clear()
+            return False
+
+        with session.audio_lock:
+            audio_chunks = list(session.audio_user_buffer)
+            session.audio_user_buffer.clear()
+
+        if not audio_chunks:
+            return False
+
+        audio_bytes = b"".join(chunk.audio_bytes for chunk in audio_chunks)
+        return self._record_audio_log(
+            session_id,
+            source="user",
+            audio_format="wav",
+            audio_bytes=audio_bytes,
+            transcript=normalized_text,
+        )
+
+    def record_system_audio_chunk(
+        self,
+        session_id: str,
+        audio_bytes: bytes,
+        utterance_id: int,
+        segment_index: int,
+        segment_count: int,
+    ) -> bool:
+        return self._record_audio_log(
+            session_id,
+            source="system",
+            audio_format="mp3",
+            audio_bytes=audio_bytes,
+            utterance_id=utterance_id,
+            segment_index=segment_index,
+            segment_count=segment_count,
+        )
+
+    def _record_audio_log(
+        self,
+        session_id: str,
+        source: str,
+        audio_format: str,
+        audio_bytes: bytes,
+        transcript: str | None = None,
+        utterance_id: int | None = None,
+        segment_index: int | None = None,
+        segment_count: int | None = None,
+    ) -> bool:
+        session = self.sessions.get(session_id)
+        if not session or not session.audio_logging_enabled:
+            return False
+
+        with session.audio_lock:
+            session.audio_log_sequence += 1
+            session.audio_log_queue.put(
+                AudioLogEntry(
+                    sequence=session.audio_log_sequence,
+                    timestamp_ns=time.time_ns(),
+                    source=source,
+                    audio_format=audio_format,
+                    audio_bytes=audio_bytes,
+                    transcript=transcript,
+                    sample_rate=session.audio_sample_rate if audio_format == "wav" else None,
+                    utterance_id=utterance_id,
+                    segment_index=segment_index,
+                    segment_count=segment_count,
+                )
+            )
+        return True
 
     def delete_session(self, session_id: str) -> bool:
         """セッションを削除"""
