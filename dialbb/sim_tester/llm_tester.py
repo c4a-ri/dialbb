@@ -111,9 +111,11 @@ class LLMTester:
         self._messages.append({"role": "user", "content": system_utterance})
 
         try:
+            print(f"messages={self._messages}")
             response = self._llm_client.invoke(
                 [self._convert_message(message) for message in self._messages]
             )
+            print(f"response={str(response)}")
             user_utterance = response.content if hasattr(response, "content") else str(response)
         except Exception:
             traceback.print_exc()
