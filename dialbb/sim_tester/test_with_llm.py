@@ -135,7 +135,7 @@ def test_one_setting(
 
     initial_aux_data: dict[str, object] = setting['initial_aux_data']
     prompt_template: str = setting['prompt_template']
-    user_simulator.set_parameters_and_clear_history(prompt_template, temperature)
+    user_simulator.set_parameters_and_clear_history(prompt_template)
 
     log_text = ""
 
@@ -165,7 +165,7 @@ def test_one_setting(
     log_text += f"System: {response['system_utterance']}\n"
     yield log_text
     session_id = response['session_id']
-    user_utterance = user_simulator.generate_next_user_utterance(response['system_utterance'])
+    user_utterance = user_simulator.generate_next_user_utterance(prompt_template, response['system_utterance'])
 
     while True:
         result['dialogue'].append({"speaker": "user", "utterance": user_utterance})
@@ -186,7 +186,7 @@ def test_one_setting(
             break
 
         # next utterance
-        user_utterance = user_simulator.generate_next_user_utterance(response['system_utterance'])
+        user_utterance = user_simulator.generate_next_user_utterance(prompt_template, response['system_utterance'])
 
     print(log_text)
 

@@ -25,7 +25,7 @@ import sys
 import traceback
 from typing import Dict, Any, List
 from langchain.chat_models import init_chat_model
-from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+from dialbb.util.globals import CHATGPT_INSTRUCTIONS
 
 DEFAULT_GPT_MODEL: str = "gpt-5.4-nano"
 DIALOGUE_HISTORY_TAG: str = '{dialogue_history}'
@@ -41,16 +41,23 @@ class LLMTester:
         if os.environ.get('DIALBB_TESTER_DEBUG', 'no').lower() == "yes":
             self._debug = True
 
-        # conforms to older documents
-        if not os.environ.get('OPENAI_API_KEY') and os.environ.get('OPENAI_KEY'):
-            os.environ['OPENAI_API_KEY'] = os.environ.get('OPENAI_KEY')
-
         self._model = test_config.get("model", DEFAULT_GPT_MODEL)
 
         self._temperature: float = 0.0
-        self._messages: List[Dict[str, str]] = []
         self._dialogue_history = ""
         self._llm_client = None
+        self._language: str = test_config.get("language", 'en')
+        if self._language == 'en':
+            self._user_name: str = "User"
+            self._system_name: str = "System"
+            self._dialogue_history_tag: str = "# Dialogue up to now"
+        elif self._language == 'ja':
+            self._user_name = "ユーザ"
+            self._system_name = "システム"
+            self._dialogue_history_tag: str = "# 今までの対話"
+        else:
+            raise Exception("Unsupported language: " + self._language)
+        self._instruction = CHATGPT_INSTRUCTIONS[self._language]
 
     def _initialize_llm(self) -> None:
         try:
@@ -70,51 +77,36 @@ class LLMTester:
             print(f"failed to initialize chat model '{self._model}': {exc}")
             sys.exit(1)
 
-    @staticmethod
-    def _convert_message(message: Dict[str, str]):
-        role = message["role"]
-        content = message["content"]
-        if role == "system":
-            return SystemMessage(content=content)
-        if role == "user":
-            return HumanMessage(content=content)
-        if role == "assistant":
-            return AIMessage(content=content)
-        raise ValueError(f"unsupported message role: {role}")
-
-    def set_parameters_and_clear_history(self, prompt_template: str, temperature: float) -> None:
+    def set_parameters_and_clear_history(self, temperature: float) -> None:
         """
         setting simulator parameters
-        :param prompt_template: template of prompt to be used in calling ChatGPT
         :param temperature: temperature for GPT
         :return: None
         """
 
-        # check old prompt
-        if prompt_template.find(DIALOGUE_HISTORY_TAG) >= 0 \
-           or prompt_template.find(DIALOGUE_HISTORY_OLD_TAG) >= 0:
-            print("The format of the prompt template is obsolete. The 'dialogue_history' tag is no longer necessary.")
-            sys.exit(1)
-
         self._temperature = temperature
-        self._messages = []
-        self._messages.append({"role": "system", "content": prompt_template})
+        self._dialogue_history = ""
         self._initialize_llm()
 
-    def generate_next_user_utterance(self, system_utterance: str) -> str:
+    def generate_next_user_utterance(self, prompt_template: str, system_utterance: str) -> str:
         """
         generate simulated user utterance following the system utterance
+        :param prompt_template: prompt template
         :param system_utterance: recent system utterance
         :return: generated user utterance
         """
 
-        self._messages.append({"role": "user", "content": system_utterance})
+        self._dialogue_history += f"{self._system_name}: {system_utterance}\n"
+        messages = []
+        messages.append({'role': "system", "content": self._instruction})
+        prompt = prompt_template + "\n\n" + self._dialogue_history_tag + "\n\n" + self._dialogue_history
+        if self._debug:
+            print(prompt)
+        messages.append({'role': "user", "content": prompt})
 
         try:
-            print(f"messages={self._messages}")
-            response = self._llm_client.invoke(
-                [self._convert_message(message) for message in self._messages]
-            )
+            print(f"dialogue history={self._dialogue_history}")
+            response = self._llm_client.invoke(messages)
             print(f"response={str(response)}")
             user_utterance = response.content if hasattr(response, "content") else str(response)
         except Exception:
@@ -123,7 +115,7 @@ class LLMTester:
 
         print(f"generated user utterance: {user_utterance}")
         user_utterance = user_utterance.replace('"','')
-        self._messages.append({"role": "assistant", "content": user_utterance})
+        self._dialogue_history += f"{self._user_name}: {user_utterance}\n"
 
         return user_utterance
 
