@@ -1,5 +1,6 @@
 from collections.abc import Generator
 import queue
+
 class WebSocketAudioInput:
     """WebSocket 経由で受信した PCM16 音声チャンクを STT へ供給するアダプタ。
 

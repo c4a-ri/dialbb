@@ -1,0 +1,36 @@
+# configuration file for an LLM-based Japanese application
+
+blocks:
+  - name: llm_dialogue
+    block_class: dialbb.builtin_blocks.llm_dialogue.LLMDialogue
+    input:
+      dialogue_history: dialogue_history
+      aux_data: aux_data
+    output:
+      system_utterance: system_utterance
+      aux_data: aux_data
+      final: final
+    user_name: ユーザ
+    system_name: システム
+    first_system_utterance: "こんにちは。私の名前は由衣。少しお話させてね。スイーツって好き？"
+    prompt_template: prompt_template.txt
+    model: gpt-5.4-nano
+    # model: google_genai:gemini-2.5-flash
+    # temperature: 0.7
+    # multi_party: False
+
+multimodal:
+  # multimodal client config
+  main:
+    # メインループ周期 (秒)
+    loop_period: 0.1
+    # ユーザ発話待ちタイムアウト (秒)  T.Oで "user_silence"通知
+    max_user_wait_time: 10.0
+    # 音声ログ保存の有無
+    audio_logging: false
+
+  stt:
+    # Google Speech-to-Text and Text-to-Speech service account key file
+    # in config directory.
+    key_file: 
+

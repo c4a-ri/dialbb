@@ -149,15 +149,23 @@ sample_apps/*/_*
 /dialbb/pyeditor/data/*
 !/dialbb/pyeditor/data/.gitkeep
 
+# context db
+/dialbb/util/context_db/*
+
 # Temporary backup file
 *-old.py
 *_old.py
 *-sav.py
 *_sav.py
 
-# logs
+# log files
 audio_logs/
+
+# debug files
+debug_logs/
+config-dbg.yml
 
 # debug tools
 /scripts/debug_generate_rows.py
 /scripts/print_rows.py
+

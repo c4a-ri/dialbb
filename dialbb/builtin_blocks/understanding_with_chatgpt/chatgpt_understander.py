@@ -55,7 +55,7 @@ CONFIG_KEY_GPT_MODEL: str = "gpt_model"
 KEY_INPUT_TEXT: str = "input_text"
 KEY_NLU_RESULT: str = "nlu_result"
 
-DEFAULT_GPT_MODEL: str = "gpt-4o-mini"
+DEFAULT_GPT_MODEL: str = "gpt-5.4-nano"
 
 SCOPES = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
 
@@ -159,7 +159,7 @@ class Understander(AbstractBlock):
         excel_file_path = os.path.join(self.config_dir, excel_file)
         self.log_debug(f"reading excel file: {excel_file_path}")
         try:
-            df_all: Dict[str, DataFrame] = pd.read_excel(excel_file_path, sheet_name=None)  # read all sheets
+            df_all: Dict[str, DataFrame] = pd.read_excel(excel_file_path, sheet_name=None, dtype=str)  # read all sheets
             # reading slots sheet
             return df_all.get(utterances_sheet), df_all.get(slots_sheet)
         except Exception as e:

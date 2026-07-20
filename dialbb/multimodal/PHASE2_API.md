@@ -298,7 +298,6 @@ config = SessionConfig(
     stt_key_file='path/to/stt/key.json',
     loop_period=0.1,
     max_user_wait_time=30.0,
-    mic_gain=1.0,
 )
 
 # エンジンマネージャを作成
@@ -322,13 +321,9 @@ manager.delete_session(session_id)
 main:
   loop_period: 0.1
   max_user_wait_time: 30.0
-
+  audio_logging: false
 stt:
   key_file: path/to/google-credentials.json
-  mic_gain: 1.0
-
-dialbb:
-  config_file: path/to/dialbb/config.yml
 ```
 
 ---

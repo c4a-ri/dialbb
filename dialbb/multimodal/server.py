@@ -121,6 +121,10 @@ def create_app(
                 len(split_tts_segments(str(event.data.get("text") or ""))),
                 event.data.get("text"),
             )
+        elif event.event_type == "chat" and event.data.get("role") == "user":
+            transcript = str(event.data.get("text") or "")
+            if engine_manager.flush_user_audio_log(session_id, transcript):
+                logger.info("[SERVER] user audio log flushed on final transcript: session=%s", session_id)
         logger.debug("[SERVER] Event handled: session=%s, type=%s", session_id, event.event_type)
 
     def on_tts_audio(session_id: str, segment_index: int, segment_count: int, audio_bytes: bytes) -> None:
@@ -139,6 +143,13 @@ def create_app(
         if session:
             with session.tts_state_lock:
                 utterance_id = session.current_tts_utterance_id
+        engine_manager.record_system_audio_chunk(
+            session_id,
+            audio_bytes,
+            utterance_id,
+            segment_index,
+            segment_count,
+        )
         audio_b64 = base64.b64encode(audio_bytes).decode("utf-8")
         session_hub.emit_from_thread(
             session_id,
@@ -275,9 +286,7 @@ def create_app(
                             # logger.info("[WEBSOCKET] Audio chunk received: session=%s, bytes=%d", session_id, len(audio_bytes))
                             if _session:
                                 _session.audio_chunk_queue.put(audio_bytes)
-                                if _session.audio_logging_enabled:
-                                    with _session.audio_lock:
-                                        _session.audio_frames.append(audio_bytes)
+                                engine_manager.record_user_audio_chunk(session_id, audio_bytes)
                                 # バージインは STT の partial/final で判定する。
                                 # 生の音声チャンク到着だけでは割り込みキャンセルしない。
                         except (ValueError, binascii.Error):
@@ -372,8 +381,7 @@ async def _handle_end_dialogue(
 
 def _load_config(config_file: str | None = None) -> SessionConfig:
     """設定ファイルから SessionConfig を読み込む。"""
-    config_path = Path(config_file or Path.cwd() / "config" / "mm_client_config.yml")
-    config_path = config_path.expanduser().resolve()
+    config_path = Path(config_file or "config.yml").expanduser().resolve()
     logger.info("[SERVER] 設定ファイル: %s", config_path)
 
     config_data: dict[str, Any] = {}
@@ -381,9 +389,9 @@ def _load_config(config_file: str | None = None) -> SessionConfig:
         with config_path.open(encoding="utf-8") as config_fp:
             config_data = yaml.safe_load(config_fp) or {}
 
-    stt_cfg = config_data.get("stt") or {}
-    dialbb_cfg = config_data.get("dialbb") or {}
-    main_cfg = config_data.get("main") or {}
+    mm_config = config_data.get("multimodal") or {}
+    stt_cfg = mm_config.get("stt") or {}
+    main_cfg = mm_config.get("main") or {}
 
     stt_key = stt_cfg.get("key_file")
     if stt_key:
@@ -392,19 +400,11 @@ def _load_config(config_file: str | None = None) -> SessionConfig:
             stt_key_path = config_path.parent / stt_key_path
         os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = str(stt_key_path.resolve())
 
-    dialbb_config = dialbb_cfg.get("config_file")
-    if dialbb_config:
-        dialbb_config_path = Path(dialbb_config).expanduser()
-        if not dialbb_config_path.is_absolute():
-            dialbb_config_path = config_path.parent / dialbb_config_path
-        dialbb_config = str(dialbb_config_path.resolve())
-
     return SessionConfig(
-        dialbb_config=dialbb_config,
+        dialbb_config=config_file,
         stt_key_file=stt_cfg.get("key_file"),
         loop_period=float(main_cfg.get("loop_period", 0.1)),
         max_user_wait_time=float(main_cfg.get("max_user_wait_time", 30.0)),
-        mic_gain=float(stt_cfg.get("mic_gain", 1.0)),
         audio_logging=bool(main_cfg.get("audio_logging", False)),
     )
 
