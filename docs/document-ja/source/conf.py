@@ -23,7 +23,7 @@ copyright = 'C4A Research Institute, Inc'
 author = 'Mikio Nakano'
 
 # The full version, including alpha/beta/rc tags
-release = 'v2.0.0'
+release = 'v2.0'
 
 
 # -- General configuration ---------------------------------------------------

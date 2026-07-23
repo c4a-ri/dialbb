@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dialbb"
-version = "2.0.0"
+version = "2.0.1"
 description = "A dialogue system development framework"
 readme = { file = "README-PyPI.md", content-type = "text/markdown" }
 requires-python = ">=3.11,<3.15"
