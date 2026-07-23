@@ -166,6 +166,15 @@
             <button id="sendAudioFileBtn" onclick="sendAudioFile()" disabled>音声ファイル送信</button>
         </div>
 
+        <!-- aux_dataの送信 -->
+        <div class="aux-controls">
+        <textarea id="auxDataInput">{"emotion": "happy", "mode": "test"}</textarea>
+        <label>
+            <input type="checkbox" id="sendAuxDataCheck">
+            送信有
+        </label>
+        </div>
+
         <div class="info">
             <strong>使用方法:</strong><br>
             1. 「作成」でセッション ID を生成するか、既存の ID を入力<br>
@@ -292,6 +301,7 @@
                         message.payload.segment_count,
                     );
                     log(`🔊 音声データ受信 (${message.payload.segment_index}/${message.payload.segment_count})`);
+                    log(`★ aux_data: ${JSON.stringify(message.payload.aux_data)}`);
                 } else if (message.event === 'joined_session') {
                     log(`✓ Joined session: ${message.payload.session_id}`);
                 } else if (message.event === 'error') {
@@ -333,6 +343,23 @@
             }
         }
 
+        // 送信データ(payload)編集
+        function buildAudioChunkPayload(audioData) {
+            const payload = {
+                action: 'send_audio_chunk',
+                audio_data: audioData,
+            };
+
+            // aux_dataの送信有無を判定
+            const auxData = readAuxData();
+            if (auxData === null) return null;
+            if (Object.keys(auxData).length > 0) {
+                payload.aux_data = auxData;
+            }
+            return payload;
+        }
+
+        // ===== 音声ファイル送信 =====
         function sendAudioFile() {
             const fileInput = document.getElementById('audioFileInput');
             if (!fileInput.files.length || !socket) return;
@@ -342,10 +369,11 @@
             reader.onload = () => {
                 const arrayBuffer = reader.result;
                 const base64Audio = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
-                socket.send(JSON.stringify({
-                    action: 'send_audio_chunk',
-                    audio_data: base64Audio
-                }));
+                // 送信データ編集
+                const payload = buildAudioChunkPayload(base64Audio);
+                if (!payload) return;
+                // Websocket送信
+                socket.send(JSON.stringify(payload));
                 log(`🎵 Audio file sent: ${file.name}`);
             };
             reader.readAsArrayBuffer(file);
@@ -447,10 +475,11 @@
                     const input = e.inputBuffer.getChannelData(0);
                     const pcm16k = downsampleTo16k(input, micSampleRate);
                     if (!pcm16k.length) return;
-                    socket.send(JSON.stringify({
-                        action: 'send_audio_chunk',
-                        audio_data: float32ToBase64Pcm16(pcm16k)
-                    }));
+                    // 送信データ編集
+                    const payload = buildAudioChunkPayload(float32ToBase64Pcm16(pcm16k));
+                    if (!payload) return;
+                    // Websocket送信
+                    socket.send(JSON.stringify(payload));
                     sentAudioChunks += 1;
                     if (sentAudioChunks % 20 === 0) {
                         log(`🎙️ 音声送信中... (${sentAudioChunks} chunks)`);
@@ -539,6 +568,26 @@
             }));
             log(`✅ 音声再生完了通知 (${item.segmentIndex}/${item.segmentCount})`);
         }
+
+        function readAuxData() {
+            const enabled = document.getElementById('sendAuxDataCheck').checked;
+            if (!enabled) return {};
+
+            const raw = document.getElementById('auxDataInput').value.trim();
+            log(`[aux_data] raw : ${raw}`);
+            if (!raw) return {};
+
+            try {
+                const parsed = JSON.parse(raw);
+                if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+                return parsed;
+                }
+                throw new Error('aux_data must be an object');
+            } catch (error) {
+                log(`✗ aux_data の JSON が不正です: ${error.message}`, 'error');
+                return null;
+            }
+       }
     </script>
 </body>
 </html>

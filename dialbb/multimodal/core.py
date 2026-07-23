@@ -46,6 +46,7 @@ class CoreDialogueEngine:
         self.user_wait_start_time: Optional[float] = None
         self._barge_in_sent: bool = False
         self.is_final_response: bool = False
+        self._pending_user_aux_data: Dict[str, Any] = {}
         # イベント通知コールバック
         self._event_callback: Optional[Callable[[DialogueEvent], None]] = None
 
@@ -68,6 +69,7 @@ class CoreDialogueEngine:
         self.user_wait_start_time = None
         self._barge_in_sent = False
         self.is_final_response = False
+        self._pending_user_aux_data = {}
 
     @staticmethod
     def _drain(q: Queue) -> None:
@@ -174,9 +176,9 @@ class CoreDialogueEngine:
             self.user_speaking = False
             self.user_waiting = False
             self.user_wait_start_time = None
-            aux_data: dict = (
-                {"barge_in": True} if (self.system_speaking and not self.is_final_response) else {}
-            )
+            aux_data: dict = dict(self._pending_user_aux_data)
+            if self.system_speaking and not self.is_final_response:
+                aux_data["barge_in"] = True
             logger.info("[CORE] CORE->DialBB 発話要求送信")
             dialbb_request_queue.put(
                 DialbbRequest(
@@ -187,10 +189,16 @@ class CoreDialogueEngine:
             )
             if aux_data:
                 logger.debug("[CORE] DialBB aux_data=%s", aux_data)
+            self._pending_user_aux_data = {}
             if tts_cancel_queue is not None and not self.is_final_response:
                 tts_cancel_queue.put("cancel")
                 logger.debug("[CORE] CORE->TTS cancel 冪等送信")
             self._emit_event(DialogueEvent(event_type="chat", data={"role": "user", "text": text}))
+
+        elif stt_event.event_type == RecognitionEventType.AUX_DATA:
+            pending_aux_data = stt_event.raw if isinstance(stt_event.raw, dict) else {}
+            self._pending_user_aux_data = dict(pending_aux_data)
+            logger.debug("[CORE] pending user aux_data=%s", self._pending_user_aux_data)
 
         elif stt_event.event_type == RecognitionEventType.ERROR:
             logger.error("[CORE][STT ERROR] %s", stt_event.text)
@@ -232,7 +240,8 @@ class CoreDialogueEngine:
             return
 
         self.system_speaking = True
-        self._emit_event(DialogueEvent(event_type="chat", data={"role": "system", "text": system_text}))
+        self._emit_event(DialogueEvent(event_type="chat", data={"role": "system", "text": system_text,
+                                                                "aux_data": dict(dialbb_response.aux_data or {}),}))
         logger.info("[CORE] CORE->TTS 合成要求送信. system_speaking=%s, is_final_response=%s", self.system_speaking, self.is_final_response)
         self._emit_event(DialogueEvent(event_type="status", data={"message": "音声合成中"}))
         tts_request_queue.put(TtsRequest(session_id=self.session_id, text=system_text))

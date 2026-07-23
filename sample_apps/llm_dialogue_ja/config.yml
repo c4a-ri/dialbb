@@ -30,7 +30,6 @@ multimodal:
     audio_logging: false
 
   stt:
-    # Google Speech-to-Text and Text-to-Speech service account key file
-    # in config directory.
+    # Google Speech-to-Text and Text-to-Speech service account key file path.
     key_file: 
 

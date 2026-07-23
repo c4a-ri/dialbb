@@ -12,7 +12,7 @@ import threading
 import uuid
 import wave
 from dataclasses import dataclass, field
-from typing import Dict, Optional, Callable, cast
+from typing import Any, Dict, Optional, Callable, cast
 
 from dialbb.util.logger import get_logger
 from .core import CoreDialogueEngine, DialogueEvent
@@ -67,6 +67,7 @@ class DialogueSession:
     current_tts_text: str = ""
     current_tts_total_segments: int = 0
     current_tts_played_segments: set[int] = field(default_factory=set)
+    pending_tts_aux_data: dict[str, Any] = field(default_factory=dict)
     system_speaking: bool = False
     # ワーカースレッド
     workers: list = field(default_factory=list)

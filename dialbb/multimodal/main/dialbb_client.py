@@ -86,11 +86,13 @@ def run_dialbb_worker(
                 # 最初のシステム発話テキストを Main へ返す。
                 init_text = str(init_response.get("system_utterance", "")).strip()
                 is_final = bool(init_response.get("final", False))
+                init_aux_data = init_response.get("aux_data", {})
                 dialbb_response_queue.put(
                     DialbbResponse(
                         session_id=active_session_id,
                         system_text=init_text,
                         is_final=is_final,
+                        aux_data=init_aux_data if isinstance(init_aux_data, dict) else {},
                     )
                 )
                 logger.info("[Dialbb] DialBB->MAIN 初回応答送信")
@@ -131,6 +133,7 @@ def run_dialbb_worker(
                 # 応答が空の場合はフォールバック文言で補完する。
                 logger.warning("[Dialbb] system_utterance が空のためフォールバック文言を返します。")
                 system_text = "すみません、うまく応答を生成できませんでした。"
+            response_aux_data = dialbb_response.get("aux_data", {})
 
             # 生成した応答文を Main へ返す。
             dialbb_response_queue.put(
@@ -138,6 +141,7 @@ def run_dialbb_worker(
                     session_id=active_session_id,
                     system_text=system_text,
                     is_final=is_final,
+                    aux_data=response_aux_data if isinstance(response_aux_data, dict) else {},
                 )
             )
             if is_final:

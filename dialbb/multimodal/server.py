@@ -24,6 +24,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from dialbb.util.logger import get_logger
 from .core import DialogueEvent
 from .engine import DialogueEngineManager, SessionConfig
+from .main.messages import RecognitionEvent, RecognitionEventType
 from .tts.speech_synthesizer import split_tts_segments
 
 logger = get_logger(__name__)
@@ -113,7 +114,23 @@ def create_app(
 
     def on_event(session_id: str, event: DialogueEvent) -> None:
         if event.event_type == "chat" and event.data.get("role") == "system":
-            utterance_id = engine_manager.begin_tts_utterance(session_id, str(event.data.get("text") or ""))
+            # utterance_id = engine_manager.begin_tts_utterance(session_id, str(event.data.get("text") or ""))
+            text = str(event.data.get("text") or "")
+            aux_data = event.data.get("aux_data") or {}
+
+            utterance_id = engine_manager.begin_tts_utterance(session_id, text)
+            session = engine_manager.get_session(session_id)
+            if session:
+                session.pending_tts_aux_data = dict(aux_data) if isinstance(aux_data, dict) else {}
+            session_hub.emit_from_thread(
+                session_id,
+                "system_message",
+                {
+                    "text": text,
+                    "aux_data": aux_data if isinstance(aux_data, dict) else {},
+                    "utterance_id": utterance_id,
+                },
+            )
             logger.info(
                 "[SERVER] system utterance start: session=%s utterance_id=%s segments=%d text=%s",
                 session_id,
@@ -140,9 +157,13 @@ def create_app(
             return
         session = engine_manager.get_session(session_id)
         utterance_id = 0
+        aux_data: dict[str, Any] = {}
         if session:
             with session.tts_state_lock:
                 utterance_id = session.current_tts_utterance_id
+            if segment_index == 1 and session.pending_tts_aux_data:
+                aux_data = dict(session.pending_tts_aux_data)
+                session.pending_tts_aux_data.clear()
         engine_manager.record_system_audio_chunk(
             session_id,
             audio_bytes,
@@ -151,16 +172,19 @@ def create_app(
             segment_count,
         )
         audio_b64 = base64.b64encode(audio_bytes).decode("utf-8")
+        audio_payload: dict[str, Any] = {
+            "audio": audio_b64,
+            "format": "mp3",
+            "utterance_id": utterance_id,
+            "segment_index": segment_index,
+            "segment_count": segment_count,
+        }
+        if aux_data:
+            audio_payload["aux_data"] = aux_data
         session_hub.emit_from_thread(
             session_id,
             "audio_data",
-            {
-                "audio": audio_b64,
-                "format": "mp3",
-                "utterance_id": utterance_id,
-                "segment_index": segment_index,
-                "segment_count": segment_count,
-            },
+            audio_payload,
         )
         logger.debug(
             "[SERVER] TTS audio emitted: session=%s utterance=%s segment=%d/%d bytes=%d",
@@ -279,6 +303,17 @@ def create_app(
                     logger.info("[WEBSOCKET] TTS cancel requested: session=%s", session_id)
                 elif action == "send_audio_chunk":
                     audio_b64 = str(payload.get("audio_data") or "")
+                    aux_data = payload.get("aux_data")
+                    if isinstance(aux_data, dict) and aux_data:
+                        _session = engine_manager.get_session(session_id)
+                        if _session is not None:
+                            _session.stt_event_queue.put(
+                                RecognitionEvent(
+                                    event_type=RecognitionEventType.AUX_DATA,
+                                    raw=dict(aux_data),
+                                )
+                            )
+                        logger.debug("[WEBSOCKET] aux_data received: session=%s aux_data=%s", session_id, aux_data)
                     if audio_b64:
                         try:
                             audio_bytes = base64.b64decode(audio_b64)
@@ -293,6 +328,12 @@ def create_app(
                             logger.warning("[WEBSOCKET] Invalid audio chunk: session=%s", session_id)
                     else:
                         logger.debug("[WEBSOCKET] Audio chunk received (empty): session=%s", session_id)
+                    logger.debug(
+                        "[WEBSOCKET] received payload: session=%s action=%s aux_data=%s",
+                        session_id,
+                        action,
+                        payload.get("aux_data"),
+                    )
                 elif action == "tts_segment_playback_done":
                     utterance_id = int(payload.get("utterance_id") or 0)
                     segment_index = int(payload.get("segment_index") or 0)

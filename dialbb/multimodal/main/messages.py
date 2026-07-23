@@ -17,6 +17,8 @@ class RecognitionEventType(str, Enum):
     FINAL_TRANSCRIPT = "final_transcript"
     # 認識処理中のエラー通知。
     ERROR = "error"
+    # WebSocket から受信した追加情報（音声チャンクに付随する aux_data）。
+    AUX_DATA = "aux_data"
 
 
 @dataclass(slots=True)
@@ -55,6 +57,7 @@ class DialbbResponse:
     system_text: str
     # True の場合は対話の最終応答（以降入力を受け付けない）。
     is_final: bool = False
+    aux_data: dict = field(default_factory=dict)
 
 
 @dataclass(slots=True)
