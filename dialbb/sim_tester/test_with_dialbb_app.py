@@ -88,7 +88,8 @@ def test_one_simulator_config(
     max_turns: int,
     out_fp,
 ) -> Generator[str, None, dict[str, object]]:
-    result = {}
+
+    result = {"config": simulator_config_file}
 
     simulator_app = DialogueProcessor(simulator_config_file)
 

@@ -135,7 +135,7 @@ def test_one_setting(
 
     initial_aux_data: dict[str, object] = setting['initial_aux_data']
     prompt_template: str = setting['prompt_template']
-    user_simulator.set_parameters_and_clear_history(prompt_template)
+    user_simulator.set_parameters_and_clear_history(temperature)
 
     log_text = ""
 

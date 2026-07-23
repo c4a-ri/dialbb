@@ -62,7 +62,7 @@ class LLMTester:
     def _initialize_llm(self) -> None:
         try:
             if self._model.startswith("gpt-5") or self._model.startswith("openai:gpt-5"):
-                print("Note that temperature can't be specified for GPT-5x.")
+                print("Note that temperature can't be specified for GPT-5.x.")
                 self._llm_client = init_chat_model(
                     self._model,
                     timeout=TIMEOUT,

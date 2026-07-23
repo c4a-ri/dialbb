@@ -41,7 +41,7 @@ CURRENT_TIME_TAG: str = '{current_time}'
 DIALOGUE_UP_TO_NOW = {"ja": "現在までの対話", "en": "Dialogue up to now"}
 DEFAULT_LLM: str = "gpt-5.4-nano"
 
-REMAINING_TAGS_PATTERN = re.compile( r"\[\[\[(?=.*\{[A-Za-z0-9_]+\})(?:[^\{\]]|\{[A-Za-z0-9_]+\})*\]\]\]", re.DOTALL)
+REMAINING_TAGS_PATTERN = re.compile(r"\[\[\[[^\]]*\{[A-Za-z0-9_]+\}[^\]]*\]\]\]", re.DOTALL)
 
 class LLMDialogue(AbstractBlock):
     """
@@ -155,6 +155,8 @@ class LLMDialogue(AbstractBlock):
         try:
             response = self._llm.invoke(messages)
             generated_utterance = response.content if hasattr(response, 'content') else str(response)
+            if type(generated_utterance) != str:  # gemini-3.1-flash-lite
+                generated_utterance = generated_utterance[0]['text']
         except Exception as e:
             self.log_error("LLM Error: " + traceback.format_exc())
             sys.exit(1)
