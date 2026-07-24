@@ -40,7 +40,7 @@ async def run_client(session_id: str, server_url: str = "ws://localhost:5000") -
                     if message["event"] == "audio_data":
                         payload = message["payload"]
                         print(
-                            f"   → audio_data {payload['segment_index']}/{payload['segment_count']}"
+                            f"   → audio_data utterance={payload['utterance_id']}"
                         )
                     elif message["event"] == "joined_session":
                         print(f"   → joined_session: {message['payload']['session_id']}")

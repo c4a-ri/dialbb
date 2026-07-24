@@ -291,7 +291,7 @@
                         message.payload.segment_index,
                         message.payload.segment_count,
                     );
-                    log(`🔊 音声データ受信 (${message.payload.segment_index}/${message.payload.segment_count})`);
+                    log(`🔊 音声データ受信 (utterance=${message.payload.utterance_id})`);
                 } else if (message.event === 'joined_session') {
                     log(`✓ Joined session: ${message.payload.session_id}`);
                 } else if (message.event === 'error') {
@@ -486,6 +486,9 @@
         // ===== TTS 音声再生キュー =====
         const ttsQueue = [];
         let ttsPlaying = false;
+        let ttsScheduling = false;
+        let ttsScheduledSourceCount = 0;
+        let ttsNextStartTime = 0;
         let ttsCurrentSource = null;
         const ttsCtx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -497,35 +500,68 @@
                 segmentIndex,
                 segmentCount,
             });
-            if (!ttsPlaying) drainTtsQueue();
+            if (!ttsScheduling) void drainTtsQueue();
         }
 
         async function drainTtsQueue() {
-            if (ttsQueue.length === 0) { ttsPlaying = false; return; }
+            if (ttsScheduling) return;
+            if (ttsQueue.length === 0) {
+                if (ttsScheduledSourceCount === 0) {
+                    ttsPlaying = false;
+                    ttsNextStartTime = 0;
+                }
+                return;
+            }
+
+            ttsScheduling = true;
             ttsPlaying = true;
-            const item = ttsQueue.shift();
             try {
-                const binary = atob(item.audio);
-                const bytes = new Uint8Array(binary.length);
-                for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
                 // ttsCtx が suspended の場合は再開（iOS Safari 対策）
                 if (ttsCtx.state === 'suspended') await ttsCtx.resume();
-                const audioBuf = await ttsCtx.decodeAudioData(bytes.buffer);
-                const src = ttsCtx.createBufferSource();
-                src.buffer = audioBuf;
-                src.connect(ttsCtx.destination);
-                ttsCurrentSource = src;
-                src.onended = () => {
-                    if (ttsCurrentSource === src) {
-                        ttsCurrentSource = null;
+
+                while (ttsQueue.length > 0) {
+                    const item = ttsQueue.shift();
+                    try {
+                        const binary = atob(item.audio);
+                        const bytes = new Uint8Array(binary.length);
+                        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+
+                        const audioBuf = await ttsCtx.decodeAudioData(bytes.buffer.slice(0));
+                        const src = ttsCtx.createBufferSource();
+                        src.buffer = audioBuf;
+                        src.connect(ttsCtx.destination);
+
+                        const startAt = Math.max(ttsCtx.currentTime + 0.02, ttsNextStartTime);
+                        ttsNextStartTime = startAt + audioBuf.duration;
+                        ttsScheduledSourceCount += 1;
+                        ttsCurrentSource = src;
+
+                        src.onended = () => {
+                            ttsScheduledSourceCount = Math.max(0, ttsScheduledSourceCount - 1);
+                            if (ttsCurrentSource === src) {
+                                ttsCurrentSource = null;
+                            }
+                            notifyPlaybackDone(item);
+                            if (ttsScheduledSourceCount === 0 && ttsQueue.length === 0) {
+                                ttsPlaying = false;
+                                ttsNextStartTime = 0;
+                            }
+                        };
+                        src.start(startAt);
+                    } catch (err) {
+                        log(`⚠️ 音声再生エラー: ${err.message}`, 'error');
                     }
-                    notifyPlaybackDone(item);
-                    drainTtsQueue();
-                };
-                src.start();
+                }
             } catch (err) {
                 log(`⚠️ 音声再生エラー: ${err.message}`, 'error');
-                drainTtsQueue();
+            } finally {
+                ttsScheduling = false;
+                if (ttsQueue.length > 0) {
+                    void drainTtsQueue();
+                } else if (ttsScheduledSourceCount === 0) {
+                    ttsPlaying = false;
+                    ttsNextStartTime = 0;
+                }
             }
         }
 
@@ -537,7 +573,7 @@
                 segment_index: item.segmentIndex,
                 segment_count: item.segmentCount,
             }));
-            log(`✅ 音声再生完了通知 (${item.segmentIndex}/${item.segmentCount})`);
+            log(`✅ 音声再生完了通知 (utterance=${item.utteranceId})`);
         }
     </script>
 </body>
