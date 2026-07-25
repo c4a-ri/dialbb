@@ -179,7 +179,7 @@ class CoreDialogueEngine:
 
         elif stt_event.event_type == RecognitionEventType.FINAL_TRANSCRIPT:
             text = stt_event.text.strip()
-            logger.info(f"[CORE] STT->CORE final: {text}")
+            logger.info("[CORE] STT->CORE final: %s", text)
             self._emit_event(DialogueEvent(event_type="status", data={"message": "応答生成中"}))
             self.user_speaking = False
             self.user_waiting = False
@@ -187,7 +187,7 @@ class CoreDialogueEngine:
             aux_data: dict = (
                 {"barge_in": True} if (self.system_speaking and not self.is_final_response) else {}
             )
-            logger.info("[CORE] CORE->DialBB 発話要求送信")
+            logger.info("[CORE] CORE->DialBB request sent")
             dialbb_request_queue.put(
                 DialbbRequest(
                     session_id=self.session_id,
@@ -229,8 +229,8 @@ class CoreDialogueEngine:
             logger.debug("[CORE] 対話停止中のため DialBB 応答を破棄します。")
             return
 
-        if self.user_speaking and self.system_speaking:
-            logger.debug("[CORE] バージイン中のため DialBB 応答を無視します。")
+        if self.user_speaking:
+            logger.debug("[CORE] User is speaking, so the DialBB response is ignored.")
             return
 
         system_text = dialbb_response.system_text.strip()

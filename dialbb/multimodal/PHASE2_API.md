@@ -288,21 +288,24 @@ sequenceDiagram
 ## 6. Python 内部 API
 
 ### コアエンジンの直接利用
+
 ```python
 from dialbb.multimodal.core import CoreDialogueEngine, DialogueEvent
-from dialbb.multimodal.engine import DialogueEngineManager, SessionConfig
+from dialbb.multimodal.engine import DialogueEngineManager, Configurtion
 
 # 設定
-config = SessionConfig(
+config = Configurtion(
     dialbb_config='path/to/dialbb/config.yml',
     stt_key_file='path/to/stt/key.json',
     loop_period=0.1,
     max_user_wait_time=30.0,
 )
 
+
 # エンジンマネージャを作成
 def on_event(session_id: str, event: DialogueEvent) -> None:
     print(f"[{session_id}] {event.event_type}: {event.data}")
+
 
 manager = DialogueEngineManager(config, event_callback=on_event)
 
@@ -349,8 +352,9 @@ dialbb-mm-client-server --config config/mm_client_config.yml
 ```
 
 ### バックエンド統合
+
 ```python
-from dialbb.multimodal import DialogueEngineManager, SessionConfig
+from dialbb.multimodal import DialogueEngineManager, Configurtion
 
 # 既存システムに組み込み
 engine_manager = DialogueEngineManager(config)

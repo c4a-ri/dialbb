@@ -24,15 +24,14 @@ logger = get_logger(__name__)
 
 
 @dataclass
-class SessionConfig:
-    """Session configuration."""
-    dialbb_config: Optional[str] = None
-    stt_key_file: Optional[str] = None
-    loop_period: float = 0.1
-    max_user_wait_time: float = 30.0
-    sample_rate: int = 16000
-    language_code: str = "ja-JP"
-    audio_logging: bool = False
+class Settings:
+     config_file: str = ""
+     config: dict[str, object] | None = None
+     cycle: float = 0.1
+     user_timeout: float = 30.0
+     sample_rate: int = 16000
+     language_code: str = "ja-JP"
+     audio_logging: bool = False
 
 
 @dataclass
@@ -54,8 +53,6 @@ class DialogueSession:
     stop_event: threading.Event = field(default_factory=threading.Event)
     conversation_active_event: threading.Event = field(default_factory=threading.Event)
     stt_enabled_event: threading.Event = field(default_factory=threading.Event)
-    audio_logging_enabled: bool = False
-    audio_sample_rate: int = 16000
     audio_user_buffer: list["AudioChunk"] = field(default_factory=list)
     audio_log_queue: "queue.Queue[AudioLogEntry | None]" = field(default_factory=queue.Queue)
     audio_log_sequence: int = 0
@@ -100,12 +97,13 @@ class DialogueEngineManager:
 
     def __init__(
         self,
-        default_config: SessionConfig,
+        settings: Settings,
         event_callback: Optional[Callable[[str, DialogueEvent], None]] = None,
         tts_audio_callback: Optional[Callable[[str, int, int, bytes], bool]] = None,
     ) -> None:
-        self.default_config = default_config
-        self.sessions: Dict[str, DialogueSession] = {}
+
+        self._settings = settings
+        self.sessions: dict[str, DialogueSession] = {}
         self.event_callback = event_callback
         self.tts_audio_callback = tts_audio_callback
         self._lock = threading.Lock()
@@ -130,45 +128,42 @@ class DialogueEngineManager:
                 engine=engine,
             )
             self.sessions[session_id] = session
-            logger.info("[ENGINE] セッション作成: %s", session_id)
+            logger.info("[ENGINE] session created: %s", session_id)
         return session_id
 
-    def start_session(self, session_id: str, config: Optional[SessionConfig] = None) -> bool:
+    def start_session(self, session_id: str, settings: Settings) -> bool:
         """Start a session and launch its workers."""
         with self._lock:
             session = self.sessions.get(session_id)
             if not session:
-                logger.error("[ENGINE] セッション見つかりません: %s", session_id)
+                logger.error("[ENGINE] can't find the session: %s", session_id)
                 return False
 
             if session.is_active:
-                logger.warning("[ENGINE] セッションは既に起動済み: %s", session_id)
+                logger.warning("[ENGINE] the session is already invoked: %s", session_id)
                 return False
 
-            cfg = config or self.default_config
             with session.tts_state_lock:
                 session.tts_cancel_requested = False
                 session.system_speaking = False
                 session.current_tts_text = ""
                 session.current_tts_total_segments = 0
                 session.current_tts_played_segments.clear()
-            session.audio_logging_enabled = cfg.audio_logging
-            session.audio_sample_rate = cfg.sample_rate
             with session.audio_lock:
                 session.audio_user_buffer.clear()
                 session.audio_log_queue = queue.Queue()
                 session.audio_log_sequence = 0
             # Start workers.
-            workers = self._start_workers(session, cfg)
+            workers = self._start_workers(session, settings)
             session.workers = workers
             session.is_active = True
-            logger.info("[ENGINE] セッション起動完了: %s", session_id)
+            logger.info("[ENGINE] session started: %s", session_id)
 
         # Send the start command.
         session.command_queue.put("start")
         return True
 
-    def _start_workers(self, session: DialogueSession, config: SessionConfig) -> list:
+    def _start_workers(self, session: DialogueSession, settings: Settings) -> list:
         """Start worker threads for a session."""
         # Forward WebSocket audio input to STT.
         stt_audio_q = session.audio_chunk_queue
@@ -191,8 +186,8 @@ class DialogueEngineManager:
                     "stt_event_queue": session.stt_event_queue,
                     "stop_event": session.stop_event,
                     "listening_enabled_event": session.stt_enabled_event,
-                    "sample_rate": config.sample_rate,
-                    "language_code": config.language_code,
+                    "sample_rate": settings.sample_rate,
+                    "language_code": settings.language_code,
                     "audio_chunk_queue": stt_audio_q,
                 },
                 name=f"stt-worker-{session.session_id[:8]}",
@@ -205,7 +200,7 @@ class DialogueEngineManager:
                     "dialbb_request_queue": session.dialbb_request_queue,
                     "dialbb_response_queue": session.dialbb_response_queue,
                     "stop_event": session.stop_event,
-                    "config_file": config.dialbb_config,
+                    "config_file": settings.config_file,
                     "error_queue": queue.Queue(),  # Error queue is handled separately.
                 },
                 name=f"dialbb-worker-{session.session_id[:8]}",
@@ -241,14 +236,14 @@ class DialogueEngineManager:
                     "command_queue": session.command_queue,
                     "tts_cancel_queue": session.tts_cancel_queue,
                     "set_tts_cancel_requested": lambda requested, sid=session.session_id: self.set_tts_cancel_requested(sid, requested),
-                    "loop_period": config.loop_period,
-                    "max_user_wait_time": config.max_user_wait_time,
+                    "loop_period": settings.cycle,
+                    "max_user_wait_time": settings.user_timeout,
                 },
                 name=f"core-engine-{session.session_id[:8]}",
                 daemon=False,
             ),
         ]
-        if config.audio_logging:
+        if settings.audio_logging:
             workers.insert(3, self._build_audio_log_worker(session))
         for worker in workers:
             worker.start()
@@ -282,15 +277,15 @@ class DialogueEngineManager:
         with self._lock:
             session = self.sessions.get(session_id)
             if not session:
-                logger.error("[ENGINE] セッション見つかりません: %s", session_id)
+                logger.error("[ENGINE] the session can't be found: %s", session_id)
                 return False
 
             if not session.is_active:
-                logger.warning("[ENGINE] セッションは既に停止: %s", session_id)
+                logger.warning("[ENGINE] the session has already stopped: %s", session_id)
                 return False
 
-            logger.info("[ENGINE] セッション停止開始: %s", session_id)
-            logger.info("[ENGINE] 停止対象ワーカー: %s", [worker.name for worker in session.workers])
+            logger.info("[ENGINE] stoping session: %s", session_id)
+            logger.info("[ENGINE] stopping workers: %s", [worker.name for worker in session.workers])
             # Send the end command.
             session.command_queue.put("end")
             # Signal every worker to stop.
@@ -300,14 +295,14 @@ class DialogueEngineManager:
             # Wait for workers to exit.
             for worker in session.workers:
                 logger.info(
-                    "[ENGINE] join待ち: session=%s worker=%s alive_before=%s",
+                    "[ENGINE] waiting for join: session=%s worker=%s alive_before=%s",
                     session_id,
                     worker.name,
                     worker.is_alive(),
                 )
                 worker.join(timeout=3.0)
                 logger.info(
-                    "[ENGINE] join結果: session=%s worker=%s alive_after=%s",
+                    "[ENGINE] join result: session=%s worker=%s alive_after=%s",
                     session_id,
                     worker.name,
                     worker.is_alive(),
@@ -317,21 +312,21 @@ class DialogueEngineManager:
 
             alive = [w for w in session.workers if w.is_alive()]
             if alive:
-                logger.warning("[ENGINE] 未終了ワーカー: %s", [w.name for w in alive])
+                logger.warning("[ENGINE] unstopped workers: %s", [w.name for w in alive])
             else:
-                logger.info("[ENGINE] 全ワーカー終了を確認: %s", session_id)
+                logger.info("[ENGINE] all workers have stopped: %s", session_id)
 
             logger.info(
-                "[ENGINE] 現在の生存スレッド: %s",
+                "[ENGINE] current active threads: %s",
                 ", ".join(thread.name for thread in threading.enumerate()),
             )
 
             session.is_active = False
-            logger.info("[ENGINE] セッション停止完了: %s", session_id)
+            logger.info("[ENGINE] session stopped: %s", session_id)
         return True
 
     def _save_audio_log(self, session: DialogueSession) -> None:
-        if not session.audio_logging_enabled:
+        if not self._settings.audio_logging:
             return
         logger.debug("[ENGINE] audio log stop requested: %s", session.session_id)
 
@@ -405,7 +400,7 @@ class DialogueEngineManager:
 
     def record_user_audio_chunk(self, session_id: str, audio_bytes: bytes) -> bool:
         session = self.sessions.get(session_id)
-        if not session or not session.audio_logging_enabled:
+        if not session:
             return False
 
         with session.audio_lock:
@@ -419,7 +414,7 @@ class DialogueEngineManager:
 
     def flush_user_audio_log(self, session_id: str, transcript: str) -> bool:
         session = self.sessions.get(session_id)
-        if not session or not session.audio_logging_enabled:
+        if not session:
             return False
 
         normalized_text = transcript.strip()
@@ -442,7 +437,7 @@ class DialogueEngineManager:
             audio_format="wav",
             audio_bytes=audio_bytes,
             transcript=normalized_text,
-            sample_rate=session.audio_sample_rate,
+            sample_rate=self._settings.sample_rate,
         )
 
     def record_system_audio_chunk(
@@ -479,7 +474,7 @@ class DialogueEngineManager:
         sample_rate: int | None = None,
     ) -> bool:
         session = self.sessions.get(session_id)
-        if not session or not session.audio_logging_enabled:
+        if not session:
             return False
 
         with session.audio_lock:

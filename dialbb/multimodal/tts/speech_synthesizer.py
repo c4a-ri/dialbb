@@ -149,7 +149,7 @@ def run_tts_worker(
                         break
 
             logger.info("[TTS] TTS<-MAIN request to synthesize received.")
-            logger.debug(f"[TTS] request.text={request.text}")
+            logger.debug("[TTS] request.text=%s", request.text)
 
             segments = split_tts_segments(request.text)
             total_segments: int = len(segments)
@@ -157,7 +157,7 @@ def run_tts_worker(
             completed = True
             for segment_index, segment in enumerate(segments, start=1):
                 if stop_event.is_set() or not active_event.is_set():
-                    logger.debug(f"[TTS] canceled: {segment}")
+                    logger.debug("[TTS] canceled: %s", segment)
                     completed = False
                     break
 
@@ -174,11 +174,11 @@ def run_tts_worker(
                         completed = False
                         break
 
-                logger.debug(f"[TTS] synthesizing: {segment}")
+                logger.debug("[TTS] synthesizing: %s", segment)
                 try:
                     audio_bytes = _synthesize(client, segment)
                 except (GoogleAPICallError, RetryError, OSError):
-                    logger.exception(f"[TTS] synthesis error: {segment}")
+                    logger.exception("[TTS] synthesis error: %s", segment)
                     completed = False
                     break
 
@@ -191,7 +191,8 @@ def run_tts_worker(
                         except Empty:
                             break
                     if cancel_requested:
-                        logger.info("[TTS] cancel request received (synth後): segment=%d/%d", segment_index, total_segments)
+                        logger.info("[TTS] cancel request received (synth後): segment=%d/%d",
+                                    segment_index, total_segments)
                         completed = False
                         break
 

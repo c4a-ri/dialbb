@@ -10,8 +10,8 @@ import asyncio
 import base64
 import binascii
 from concurrent.futures import Future as ConcurrentFuture
-import os
 import queue
+import sys
 import threading
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -25,7 +25,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from dialbb.util.logger import get_logger
 from .core import DialogueEvent
-from .engine import DialogueEngineManager, SessionConfig
+from .engine import DialogueEngineManager, Settings
 from .tts.speech_synthesizer import (
     TTS_AUDIO_FORMAT,
     TTS_SAMPLE_RATE_HZ,
@@ -35,7 +35,6 @@ from .tts.speech_synthesizer import (
 
 logger = get_logger(__name__)
 TTS_CHUNK_BUFFER_WINDOW = 3
-
 
 @dataclass
 class SessionConnections:
@@ -102,12 +101,16 @@ class WebSocketSessionHub:
 
 
 def create_app(
-    config_file: str
-) -> tuple[FastAPI, DialogueEngineManager, WebSocketSessionHub]:
+        config_file: str,
+        debug: bool,
+        audio_logging: bool
+) -> FastAPI:
     """
     Creates FastAPI app and engine manager.
     """
-    app = FastAPI(title="DialBB mm_client server")
+
+    app = FastAPI(title="DialBB MM Server")
+
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
@@ -116,7 +119,7 @@ def create_app(
         allow_headers=["*"],
     )
 
-    config: SessionConfig = _load_config(config_file)
+    settings: Settings = _determine_settings(config_file, debug, audio_logging)
 
     session_hub = WebSocketSessionHub()
 
@@ -133,7 +136,7 @@ def create_app(
         elif event.event_type == "chat" and event.data.get("role") == "user":
             transcript = str(event.data.get("text") or "")
             if engine_manager.flush_user_audio_log(session_id, transcript):
-                logger.info("[SERVER] user audio log flushed on final transcript: session=%s", session_id)
+                logger.info(f"[SERVER] user audio log flushed on final transcript: session=%s", session_id)
         logger.debug("[SERVER] Event handled: session=%s, type=%s", session_id, event.event_type)
 
     def on_tts_audio(session_id: str, segment_index: int, segment_count: int, audio_bytes: bytes) -> bool:
@@ -252,7 +255,7 @@ def create_app(
         return True
 
     engine_manager = DialogueEngineManager(
-        config,
+        settings=settings,
         event_callback=on_event,
         tts_audio_callback=cast(Any, on_tts_audio),
     )
@@ -290,7 +293,7 @@ def create_app(
 
     @app.post("/sessions/{session_id}/start")
     async def start_session(session_id: str) -> dict[str, str]:
-        success = engine_manager.start_session(session_id)
+        success = engine_manager.start_session(session_id, settings)
         if not success:
             raise HTTPException(status_code=400, detail="Failed to start session")
         return {"status": "started"}
@@ -329,7 +332,7 @@ def create_app(
                 payload = await websocket.receive_json()
                 action = payload.get("action")
                 if action == "start_dialogue":
-                    await _handle_start_dialogue(websocket, engine_manager, session_id)
+                    await _handle_start_dialogue(websocket, engine_manager, session_id, settings)
                 elif action == "end_dialogue":
                     await _handle_end_dialogue(websocket, engine_manager, session_id)
                 elif action == "cancel_tts":
@@ -397,7 +400,7 @@ def create_app(
         finally:
             await session_hub.disconnect(session_id, websocket)
 
-    return app, engine_manager, session_hub
+    return app
 
 
 def _request_tts_cancel(engine_manager: DialogueEngineManager, session_id: str) -> None:
@@ -410,11 +413,12 @@ def _request_tts_cancel(engine_manager: DialogueEngineManager, session_id: str) 
 
 
 async def _handle_start_dialogue(
-    websocket: WebSocket,
-    engine_manager: DialogueEngineManager,
-    session_id: str,
+        websocket: WebSocket,
+        engine_manager: DialogueEngineManager,
+        session_id: str,
+        settings: Settings
 ) -> None:
-    success = engine_manager.start_session(session_id)
+    success = engine_manager.start_session(session_id, settings)
     if not success:
         await websocket.send_json(
             {"event": "error", "payload": {"message": "Failed to start dialogue"}}
@@ -437,38 +441,52 @@ async def _handle_end_dialogue(
     logger.info("[WEBSOCKET] Dialogue stopped: %s", session_id)
 
 
-def _load_config(config_file: str | None = None) -> SessionConfig:
+def _determine_settings(config_file: str, debug: bool, audio_logging: bool) -> Settings:
     """Load SessionConfig from a configuration file."""
-    config_path = Path(config_file or "config.yml").expanduser().resolve()
-    logger.info("[SERVER] 設定ファイル: %s", config_path)
+    config_path = Path(config_file).expanduser().resolve()
+    logger.info(f"[SERVER] reading config file {config_path}")
 
-    config_data: dict[str, Any] = {}
+    config: dict[str, Any] = {}
     if config_path.exists():
         with config_path.open(encoding="utf-8") as config_fp:
-            config_data = yaml.safe_load(config_fp) or {}
+            config = yaml.safe_load(config_fp) or {}
 
-    mm_config = config_data.get("multimodal") or {}
-    main_cfg = mm_config.get("main") or {}
-
-    return SessionConfig(
-        dialbb_config=config_file,
-        stt_key_file=os.environ["GOOGLE_APPLICATION_CREDENTIALS"],
-        loop_period=float(main_cfg.get("loop_period", 0.1)),
-        max_user_wait_time=float(main_cfg.get("max_user_wait_time", 30.0)),
-        audio_logging=bool(main_cfg.get("audio_logging", False)),
+    return Settings(
+        config_file=config_file,
+        config=config,
+        cycle=float(config.get("cycle", 0.1)),
+        user_timeout=float(config.get("user_timeout", 30.0)),
+        audio_logging=bool(config.get("audio_logging", False)),
     )
 
 
-def run_server(
-    host: str = "0.0.0.0",
-    port: int = 5000,
-    config_file: str | None = None,
-    debug: bool = False,
-) -> None:
+def _parse_factory_args(argv: list[str]) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument("config")
+    parser.add_argument("--host", default="0.0.0.0")
+    parser.add_argument("--port", type=int, default=5000)
+    parser.add_argument("--debug", action="store_true")
+    parser.add_argument("--audio_logging", action="store_true")
+    args, _ = parser.parse_known_args(argv)
+    return args
+
+
+def create_configured_app() -> FastAPI:
+    args = _parse_factory_args(sys.argv[1:])
+    return create_app(args.config, args.debug, args.audio_logging)
+
+
+def run_server(config_file: str, host: str, port: int, debug: bool, audio_logging: bool) -> None:
     """Start the server."""
-    app, _, _ = create_app(config_file)
+
     logger.info("[SERVER] Starting mm_client_server on %s:%d", host, port)
-    uvicorn.run(app, host=host, port=port, reload=debug)
+    uvicorn.run(
+        "dialbb.multimodal.server:create_configured_app",
+        host=host,
+        port=port,
+        reload=debug,
+        factory=True,
+    )
 
 
 def main() -> None:
@@ -481,14 +499,16 @@ def main() -> None:
     parser.add_argument("config", help="Config file path", )
     parser.add_argument("--host", default="0.0.0.0", help="Server host")
     parser.add_argument("--port", type=int, default=5000, help="Server port")
-    parser.add_argument("--debug", action="store_true", help="Enable debug mode")
+    parser.add_argument("--debug", action="store_true", help="Toggle debug mode")
+    parser.add_argument("--audio_logging", action="store_true", help="Enable audio logging")
     args = parser.parse_args()
 
     run_server(
+        args.config,
         host=args.host,
         port=args.port,
-        config_file=args.config,
         debug=args.debug,
+        audio_logging=args.audio_logging
     )
 
 
