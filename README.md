@@ -1,6 +1,6 @@
 # DialBB: A Framework for Building Dialogue Systems
 
-ver. 2.0.0
+ver. 2.0.1
 
 [日本語](README-ja.md)
 
@@ -217,13 +217,17 @@ You can also test these applications with LLM-based user simulation.
 
 Japanese version:
 
-    $ dialbb-sim-tester --app_config sample_apps/dst_stn_ja/config.yml \
-      --test_config sample_apps/dst_stn_ja/simulation/config.yml
+```sh
+$ dialbb-sim-tester --app_config sample_apps/dst_stn_ja/config.yml \
+  --test_config sample_apps/dst_stn_ja/simulation/config.yml
+```
 
 English version:
 
-    $ dialbb-sim-tester --app_config sample_apps/dst_stn_en/config.yml \
-      --test_config sample_apps/dst_stn_en/simulation/config.yml
+```sh
+$ dialbb-sim-tester --app_config sample_apps/dst_stn_en/config.yml \
+  --test_config sample_apps/dst_stn_en/simulation/config.yml
+```
 
 #### Testing by sending auxiliary data
 

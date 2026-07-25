@@ -43,8 +43,7 @@ DIALOGUE_UP_TO_NOW = {"ja": "現在までの対話", "en": "Dialogue up to now"}
 
 
 #  [[[....{tag1}....{tag2}....]]]
-REMAINING_TAGS_PATTERN = re.compile( r"\[\[\[(?=.*\{[A-Za-z0-9_]+\})(?:[^\{\]]|\{[A-Za-z0-9_]+\})*\]\]\]",
-                                     re.DOTALL)
+REMAINING_TAGS_PATTERN = re.compile(r"\[\[\[[^\]]*\{[A-Za-z0-9_]+\}[^\]]*\]\]\]", re.DOTALL)
 
 
 class ChatGPT(AbstractBlock):

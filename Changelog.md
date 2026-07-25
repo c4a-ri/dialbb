@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.1 (2026.7.24)
+
+- Bugs related to placeholders in prompts fixed
+
 ## 2.0.0 (2026.7.8)
 
 - Added the following built-in blocks:
