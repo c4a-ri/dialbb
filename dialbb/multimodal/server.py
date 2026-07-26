@@ -712,7 +712,7 @@ def _determine_settings(config_file: str, debug: bool, audio_logging: bool) -> S
         config=config,
         cycle=float(config.get("cycle", 0.1)),
         user_timeout=float(config.get("user_timeout", 30.0)),
-        audio_logging=bool(config.get("audio_logging", False)),
+        audio_logging=bool(audio_logging or config.get("audio_logging", False)),
     )
 
 

@@ -1,5 +1,6 @@
 import io
 import os
+import sys
 import threading
 from contextlib import redirect_stdout
 from queue import Empty, Queue
@@ -13,6 +14,26 @@ from .messages import DialbbRequest, DialbbResponse
 
 logger = get_logger(__name__)
 DEFAULT_DIALBB_USER_ID = "mm-client"
+
+
+class _StdoutTee(io.TextIOBase):
+    def __init__(self, *streams: io.TextIOBase) -> None:
+        self._streams = streams
+
+    def write(self, text: str) -> int:
+        for stream in self._streams:
+            stream.write(text)
+            stream.flush()
+        return len(text)
+
+    def flush(self) -> None:
+        for stream in self._streams:
+            stream.flush()
+
+
+def _call_with_stdout_tee(callback: Any, captured: io.StringIO, *args: Any, **kwargs: Any) -> Any:
+    with redirect_stdout(_StdoutTee(sys.stdout, captured)):
+        return callback(*args, **kwargs)
 
 
 def run_dialbb_worker(
@@ -39,9 +60,7 @@ def run_dialbb_worker(
         logger.debug("[Dialbb] config=%s", resolved_config)
         captured = io.StringIO()
         try:
-            # stdout を横取りして初期化エラーメッセージを捕捉する。
-            with redirect_stdout(captured):
-                dialogue_processor = DialogueProcessor(resolved_config)
+            dialogue_processor = _call_with_stdout_tee(DialogueProcessor, captured, resolved_config)
         except (ValueError, RuntimeError, OSError) as exc:
             output = captured.getvalue().strip()
             # dialbb は sys.exit()（SystemExit）で終了するため stdout に出力されたメッセージを優先する。
@@ -72,7 +91,9 @@ def run_dialbb_worker(
             if request.is_initial:
                 logger.info("[Dialbb] DialBB<-MAIN 初期化要求受信")
                 # DialBB に initial=True でリクエストし、新規 session_id を取得する。
-                init_response = dialogue_processor.process(
+                init_response = _call_with_stdout_tee(
+                    dialogue_processor.process,
+                    captured,
                     _build_initial_request(user_id=user_id),
                     initial=True,
                 )
@@ -122,7 +143,11 @@ def run_dialbb_worker(
                 dialbb_request.update(request.aux_data)
                 logger.debug("[Dialbb] aux_data=%s", request.aux_data)
             # DialBB に問い合わせて応答を得る。
-            dialbb_response = dialogue_processor.process(dialbb_request)
+            dialbb_response = _call_with_stdout_tee(
+                dialogue_processor.process,
+                captured,
+                dialbb_request,
+            )
             # レスポンスから session_id と発話テキストを取り出す。
             active_session_id = str(dialbb_response.get("session_id", active_session_id))
             system_text = str(dialbb_response.get("system_utterance", "")).strip()
