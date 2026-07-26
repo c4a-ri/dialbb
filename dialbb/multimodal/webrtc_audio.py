@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import io
 import threading
+import time
 import wave
 from dataclasses import dataclass, field
 from fractions import Fraction
@@ -40,6 +41,7 @@ class OutgoingAudioTrack(MediaStreamTrack):
         super().__init__()
         self._loop = loop
         self._queue: asyncio.Queue[_QueuedAudioFrame | None] = asyncio.Queue()
+        self._start_time: float | None = None
         self._timestamp = 0
 
     def enqueue_pcm_chunk(self, pcm_bytes: bytes) -> threading.Event:
@@ -53,6 +55,9 @@ class OutgoingAudioTrack(MediaStreamTrack):
         payloads.append(_QueuedAudioFrame(frames[-1], playback_event=playback_event))
 
         def _enqueue() -> None:
+            if self._queue.empty():
+                self._start_time = None
+                self._timestamp = 0
             for payload in payloads:
                 self._queue.put_nowait(payload)
 
@@ -68,6 +73,8 @@ class OutgoingAudioTrack(MediaStreamTrack):
                     break
                 if payload is not None and payload.playback_event is not None:
                     payload.playback_event.set()
+            self._start_time = None
+            self._timestamp = 0
 
         self._loop.call_soon_threadsafe(_clear)
 
@@ -86,12 +93,20 @@ class OutgoingAudioTrack(MediaStreamTrack):
             raise MediaStreamError
 
         sample_count = len(payload.pcm_bytes) // WEBRTC_SAMPLE_WIDTH_BYTES
+        if self._start_time is None:
+            self._start_time = time.monotonic()
+            self._timestamp = 0
+        else:
+            self._timestamp += sample_count
+            wait = self._start_time + (self._timestamp / WEBRTC_SAMPLE_RATE_HZ) - time.monotonic()
+            if wait > 0:
+                await asyncio.sleep(wait)
+
         frame = AudioFrame(format="s16", layout="mono", samples=sample_count)
         frame.planes[0].update(payload.pcm_bytes)
         frame.sample_rate = WEBRTC_SAMPLE_RATE_HZ
         frame.time_base = Fraction(1, WEBRTC_SAMPLE_RATE_HZ)
         frame.pts = self._timestamp
-        self._timestamp += sample_count
 
         if payload.playback_event is not None:
             payload.playback_event.set()
