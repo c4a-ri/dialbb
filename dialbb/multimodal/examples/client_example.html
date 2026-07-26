@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>mm_client WebSocket Client (FastAPI)</title>
+    <title>mm_client WebRTC Audio Client</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -135,8 +135,8 @@
 </head>
 <body>
     <div class="container">
-        <h1>mm_client WebSocket Client</h1>
-        <p>FastAPI サーバとのリアルタイム対話デモ</p>
+        <h1>mm_client WebRTC Audio Client</h1>
+        <p>制御は WebSocket、音声は WebRTC でやり取りするデモ</p>
         
         <div class="session-setup">
             <input type="text" id="sessionId" placeholder="Session ID (or auto-create)" value="">
@@ -163,13 +163,13 @@
         <!-- ローカル環境の音声ファイルを選択して、sendAudioFile()へ渡す -->
         <div class="buttons">
             <input type="file" id="audioFileInput" accept="audio/*">
-            <button id="sendAudioFileBtn" onclick="sendAudioFile()" disabled>音声ファイル送信</button>
+            <button id="sendAudioFileBtn" onclick="sendAudioFile()" disabled>音声ファイル送信 (未対応)</button>
         </div>
 
         <div class="info">
             <strong>使用方法:</strong><br>
             1. 「作成」でセッション ID を生成するか、既存の ID を入力<br>
-            2. 「接続」で WebSocket サーバに接続<br>
+            2. 「接続」で制御用 WebSocket と音声用 WebRTC に接続<br>
             3. 「対話開始」で会話を開始<br>
             4. 「マイク開始」で音声を送信し、サーバからの音声応答を再生
         </div>
@@ -178,6 +178,11 @@
     <script>
         let socket = null;
         let sessionId = '';
+        let peerConnection = null;
+        let micSender = null;
+        let micStream = null;
+        let micActive = false;
+        let remoteAudioElement = null;
 
         function normalizeServerUrl(rawUrl) {
             const input = (rawUrl || '').trim();
@@ -228,7 +233,7 @@
                 document.getElementById('closeBtn').disabled = false;
                 document.getElementById('connectBtn').disabled = true;
                 document.getElementById('micBtn').disabled = false;
-                document.getElementById('sendAudioFileBtn').disabled = false;
+                document.getElementById('sendAudioFileBtn').disabled = true;
             } else {
                 status.className = 'status disconnected';
                 status.textContent = '✗ 未接続';
@@ -239,6 +244,99 @@
                 document.getElementById('micBtn').disabled = true;
                 document.getElementById('sendAudioFileBtn').disabled = true;
                 stopMic();
+                closeWebRtc();
+            }
+        }
+
+        function ensureRemoteAudioElement() {
+            if (!remoteAudioElement) {
+                remoteAudioElement = document.createElement('audio');
+                remoteAudioElement.autoplay = true;
+                remoteAudioElement.playsInline = true;
+                remoteAudioElement.hidden = true;
+                document.body.appendChild(remoteAudioElement);
+            }
+            return remoteAudioElement;
+        }
+
+        function waitForIceGatheringComplete(pc) {
+            if (pc.iceGatheringState === 'complete') {
+                return Promise.resolve();
+            }
+            return new Promise((resolve) => {
+                const handleStateChange = () => {
+                    if (pc.iceGatheringState === 'complete') {
+                        pc.removeEventListener('icegatheringstatechange', handleStateChange);
+                        resolve();
+                    }
+                };
+                pc.addEventListener('icegatheringstatechange', handleStateChange);
+            });
+        }
+
+        async function connectWebRtc() {
+            const serverUrl = document.getElementById('serverUrl').value;
+            const httpBaseUrl = toHttpBaseUrl(serverUrl);
+            await closeWebRtc();
+
+            peerConnection = new RTCPeerConnection();
+            const transceiver = peerConnection.addTransceiver('audio', { direction: 'sendrecv' });
+            micSender = transceiver.sender;
+
+            peerConnection.ontrack = (event) => {
+                const audioEl = ensureRemoteAudioElement();
+                audioEl.srcObject = event.streams[0] || new MediaStream([event.track]);
+                void audioEl.play().catch((error) => {
+                    log(`⚠️ Remote audio play failed: ${error.message}`, 'error');
+                });
+                log('✓ WebRTC audio track connected');
+            };
+
+            peerConnection.onconnectionstatechange = () => {
+                log(`WebRTC state: ${peerConnection.connectionState}`);
+            };
+
+            const offer = await peerConnection.createOffer();
+            await peerConnection.setLocalDescription(offer);
+            await waitForIceGatheringComplete(peerConnection);
+
+            const response = await fetch(`${httpBaseUrl}/sessions/${sessionId}/webrtc/offer`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    sdp: peerConnection.localDescription.sdp,
+                    type: peerConnection.localDescription.type,
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`WebRTC offer failed: ${response.status}`);
+            }
+
+            const answer = await response.json();
+            await peerConnection.setRemoteDescription(answer);
+            log('✓ WebRTC connected');
+        }
+
+        async function closeWebRtc() {
+            if (micSender) {
+                try {
+                    await micSender.replaceTrack(null);
+                } catch (error) {
+                    log(`⚠️ Failed to detach mic track: ${error.message}`, 'error');
+                }
+                micSender = null;
+            }
+
+            if (peerConnection) {
+                peerConnection.ontrack = null;
+                peerConnection.onconnectionstatechange = null;
+                peerConnection.close();
+                peerConnection = null;
+            }
+
+            if (remoteAudioElement) {
+                remoteAudioElement.srcObject = null;
             }
         }
 
@@ -277,22 +375,15 @@
             socket.onopen = () => {
                 log('✓ WebSocket connected');
                 updateStatus(true);
+                void connectWebRtc().catch((error) => {
+                    log(`✗ WebRTC connection failed: ${error.message}`, 'error');
+                });
             };
 
             socket.onmessage = (event) => {
                 const message = JSON.parse(event.data);
 
-                if (message.event === 'audio_data') {
-                    // TTS 音声データを受信して再生キューに追加
-                    enqueueAudio(
-                        message.payload.audio,
-                        message.payload.format,
-                        message.payload.utterance_id,
-                        message.payload.segment_index,
-                        message.payload.segment_count,
-                    );
-                    log(`🔊 音声データ受信 (utterance=${message.payload.utterance_id})`);
-                } else if (message.event === 'joined_session') {
+                if (message.event === 'joined_session') {
                     log(`✓ Joined session: ${message.payload.session_id}`);
                 } else if (message.event === 'error') {
                     log(`✗ Error: ${message.payload.message}`, 'error');
@@ -328,80 +419,20 @@
         }
 
         function closeConnection() {
+            stopMic();
+            void closeWebRtc();
             if (socket) {
                 socket.close();
             }
         }
 
         function sendAudioFile() {
-            const fileInput = document.getElementById('audioFileInput');
-            if (!fileInput.files.length || !socket) return;
-
-            const file = fileInput.files[0];
-            const reader = new FileReader();
-            reader.onload = () => {
-                const arrayBuffer = reader.result;
-                const base64Audio = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
-                socket.send(JSON.stringify({
-                    action: 'send_audio_chunk',
-                    audio_data: base64Audio
-                }));
-                log(`🎵 Audio file sent: ${file.name}`);
-            };
-            reader.readAsArrayBuffer(file);
+            log('⚠️ 音声ファイル送信は WebRTC 音声モードでは未対応です', 'error');
         }
-
-        // ===== マイク入力 (PCM16 / 16kHz) =====
-        let micActive = false;
-        let audioCtx = null;
-        let micStream = null;
-        let scriptProcessor = null;
-        let micSampleRate = 16000;
-        let sentAudioChunks = 0;
 
         function setMicStatus(text) {
             const st = document.getElementById('micStatus');
             if (st) st.textContent = text;
-        }
-
-        function downsampleTo16k(input, sourceRate) {
-            const targetRate = 16000;
-            if (sourceRate === targetRate) return input;
-            if (sourceRate < targetRate) {
-                throw new Error(`Unsupported mic sample rate: ${sourceRate}Hz`);
-            }
-
-            const ratio = sourceRate / targetRate;
-            const outLength = Math.floor(input.length / ratio);
-            const output = new Float32Array(outLength);
-            let outOffset = 0;
-            let inOffset = 0;
-
-            while (outOffset < outLength) {
-                const nextInOffset = Math.round((outOffset + 1) * ratio);
-                let sum = 0;
-                let count = 0;
-                for (let i = inOffset; i < nextInOffset && i < input.length; i++) {
-                    sum += input[i];
-                    count += 1;
-                }
-                output[outOffset] = count > 0 ? (sum / count) : 0;
-                outOffset += 1;
-                inOffset = nextInOffset;
-            }
-            return output;
-        }
-
-        function float32ToBase64Pcm16(float32Audio) {
-            const i16 = new Int16Array(float32Audio.length);
-            for (let i = 0; i < float32Audio.length; i++) {
-                const s = Math.max(-1, Math.min(1, float32Audio[i]));
-                i16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
-            }
-            const u8 = new Uint8Array(i16.buffer);
-            let bin = '';
-            for (let j = 0; j < u8.length; j++) bin += String.fromCharCode(u8[j]);
-            return btoa(bin);
         }
 
         async function toggleMic() {
@@ -416,9 +447,9 @@
         async function startMic() {
             try {
                 setMicStatus('マイク 起動中...');
-                if (!socket || socket.readyState !== WebSocket.OPEN) {
-                    setMicStatus('マイク開始失敗: WebSocket未接続');
-                    log('✗ WebSocket未接続のためマイクを開始できません', 'error');
+                if (!socket || socket.readyState !== WebSocket.OPEN || !peerConnection || !micSender) {
+                    setMicStatus('マイク開始失敗: 接続未完了');
+                    log('✗ WebSocket または WebRTC 未接続のためマイクを開始できません', 'error');
                     return;
                 }
                 if (document.getElementById('endBtn').disabled) {
@@ -430,39 +461,16 @@
                     throw new Error('このブラウザ/配信元では getUserMedia が利用できません（https または localhost で開いてください）');
                 }
 
-                // ブラウザが許可するサンプルレートで取得し、送信前に 16kHz へ変換する
-                audioCtx = new AudioContext();
-                micSampleRate = audioCtx.sampleRate;
-                if (audioCtx.state === 'suspended') {
-                    await audioCtx.resume();
-                }
                 micStream = await navigator.mediaDevices.getUserMedia({
                     audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true }
                 });
-                const source = audioCtx.createMediaStreamSource(micStream);
-                scriptProcessor = audioCtx.createScriptProcessor(4096, 1, 1);
-                sentAudioChunks = 0;
-                scriptProcessor.onaudioprocess = (e) => {
-                    if (!socket || socket.readyState !== WebSocket.OPEN) return;
-                    const input = e.inputBuffer.getChannelData(0);
-                    const pcm16k = downsampleTo16k(input, micSampleRate);
-                    if (!pcm16k.length) return;
-                    socket.send(JSON.stringify({
-                        action: 'send_audio_chunk',
-                        audio_data: float32ToBase64Pcm16(pcm16k)
-                    }));
-                    sentAudioChunks += 1;
-                    if (sentAudioChunks % 20 === 0) {
-                        log(`🎙️ 音声送信中... (${sentAudioChunks} chunks)`);
-                    }
-                };
-                source.connect(scriptProcessor);
-                scriptProcessor.connect(audioCtx.destination); // 活性化のために必要
+                const [track] = micStream.getAudioTracks();
+                await micSender.replaceTrack(track || null);
                 micActive = true;
                 document.getElementById('micBtn').textContent = '🎤 マイク停止';
                 document.getElementById('micBtn').classList.add('active');
                 setMicStatus('⚫ 録音中...');
-                log(`🎤 マイク入力開始 (${micSampleRate}Hz → 16kHz PCM16)`);
+                log('🎤 マイク入力開始 (WebRTC)');
             } catch (err) {
                 setMicStatus(`マイク開始失敗: ${err.message}`);
                 log(`✗ マイクエラー: ${err.message}`, 'error');
@@ -470,9 +478,10 @@
         }
 
         function stopMic() {
-            if (scriptProcessor) { scriptProcessor.disconnect(); scriptProcessor = null; }
+            if (micSender) {
+                void micSender.replaceTrack(null);
+            }
             if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
-            if (audioCtx) { audioCtx.close(); audioCtx = null; }
             micActive = false;
             const btn = document.getElementById('micBtn');
             if (btn) {
@@ -481,99 +490,6 @@
             }
             setMicStatus('マイク 停止中');
             log('🎤 マイク入力停止');
-        }
-
-        // ===== TTS 音声再生キュー =====
-        const ttsQueue = [];
-        let ttsPlaying = false;
-        let ttsScheduling = false;
-        let ttsScheduledSourceCount = 0;
-        let ttsNextStartTime = 0;
-        let ttsCurrentSource = null;
-        const ttsCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-        function enqueueAudio(base64Audio, format, utteranceId, segmentIndex, segmentCount) {
-            ttsQueue.push({
-                audio: base64Audio,
-                format,
-                utteranceId,
-                segmentIndex,
-                segmentCount,
-            });
-            if (!ttsScheduling) void drainTtsQueue();
-        }
-
-        async function drainTtsQueue() {
-            if (ttsScheduling) return;
-            if (ttsQueue.length === 0) {
-                if (ttsScheduledSourceCount === 0) {
-                    ttsPlaying = false;
-                    ttsNextStartTime = 0;
-                }
-                return;
-            }
-
-            ttsScheduling = true;
-            ttsPlaying = true;
-            try {
-                // ttsCtx が suspended の場合は再開（iOS Safari 対策）
-                if (ttsCtx.state === 'suspended') await ttsCtx.resume();
-
-                while (ttsQueue.length > 0) {
-                    const item = ttsQueue.shift();
-                    try {
-                        const binary = atob(item.audio);
-                        const bytes = new Uint8Array(binary.length);
-                        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-
-                        const audioBuf = await ttsCtx.decodeAudioData(bytes.buffer.slice(0));
-                        const src = ttsCtx.createBufferSource();
-                        src.buffer = audioBuf;
-                        src.connect(ttsCtx.destination);
-
-                        const startAt = Math.max(ttsCtx.currentTime + 0.02, ttsNextStartTime);
-                        ttsNextStartTime = startAt + audioBuf.duration;
-                        ttsScheduledSourceCount += 1;
-                        ttsCurrentSource = src;
-
-                        src.onended = () => {
-                            ttsScheduledSourceCount = Math.max(0, ttsScheduledSourceCount - 1);
-                            if (ttsCurrentSource === src) {
-                                ttsCurrentSource = null;
-                            }
-                            notifyPlaybackDone(item);
-                            if (ttsScheduledSourceCount === 0 && ttsQueue.length === 0) {
-                                ttsPlaying = false;
-                                ttsNextStartTime = 0;
-                            }
-                        };
-                        src.start(startAt);
-                    } catch (err) {
-                        log(`⚠️ 音声再生エラー: ${err.message}`, 'error');
-                    }
-                }
-            } catch (err) {
-                log(`⚠️ 音声再生エラー: ${err.message}`, 'error');
-            } finally {
-                ttsScheduling = false;
-                if (ttsQueue.length > 0) {
-                    void drainTtsQueue();
-                } else if (ttsScheduledSourceCount === 0) {
-                    ttsPlaying = false;
-                    ttsNextStartTime = 0;
-                }
-            }
-        }
-
-        function notifyPlaybackDone(item) {
-            if (!socket || socket.readyState !== WebSocket.OPEN) return;
-            socket.send(JSON.stringify({
-                action: 'tts_segment_playback_done',
-                utterance_id: item.utteranceId,
-                segment_index: item.segmentIndex,
-                segment_count: item.segmentCount,
-            }));
-            log(`✅ 音声再生完了通知 (utterance=${item.utteranceId})`);
         }
     </script>
 </body>

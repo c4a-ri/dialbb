@@ -13,9 +13,11 @@ from concurrent.futures import Future as ConcurrentFuture
 import queue
 import sys
 import threading
+import time
+import wave
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, cast
+from typing import Any, Callable, cast
 from dotenv import load_dotenv
 
 import uvicorn
@@ -32,6 +34,31 @@ from .tts.speech_synthesizer import (
     split_tts_audio_chunks,
     split_tts_segments,
 )
+
+try:
+    from .webrtc_audio import (
+        WEBRTC_CHANNELS,
+        WEBRTC_SAMPLE_RATE_HZ,
+        WEBRTC_SAMPLE_WIDTH_BYTES,
+        OutgoingAudioTrack,
+        RTCPeerConnection,
+        RTCSessionDescription,
+        WebRtcAudioSession,
+        consume_incoming_audio_track,
+        decode_wav_audio_bytes,
+    )
+    WEBRTC_AUDIO_AVAILABLE = True
+except ImportError:
+    RTCPeerConnection = Any  # type: ignore[assignment]
+    RTCSessionDescription = Any  # type: ignore[assignment]
+    OutgoingAudioTrack = Any  # type: ignore[assignment]
+    WebRtcAudioSession = Any  # type: ignore[assignment]
+    consume_incoming_audio_track = None
+    decode_wav_audio_bytes = None
+    WEBRTC_CHANNELS = 1
+    WEBRTC_SAMPLE_RATE_HZ = TTS_SAMPLE_RATE_HZ
+    WEBRTC_SAMPLE_WIDTH_BYTES = 2
+    WEBRTC_AUDIO_AVAILABLE = False
 
 logger = get_logger(__name__)
 TTS_CHUNK_BUFFER_WINDOW = 3
@@ -122,6 +149,52 @@ def create_app(
     settings: Settings = _determine_settings(config_file, debug, audio_logging)
 
     session_hub = WebSocketSessionHub()
+    webrtc_sessions: dict[str, Any] = {}
+    webrtc_lock = threading.Lock()
+
+    def _get_webrtc_session(session_id: str) -> Any | None:
+        with webrtc_lock:
+            return webrtc_sessions.get(session_id)
+
+    async def _close_webrtc_session(session_id: str) -> None:
+        with webrtc_lock:
+            bridge = webrtc_sessions.pop(session_id, None)
+        if bridge is not None:
+            await bridge.close()
+
+    def _clear_webrtc_audio(session_id: str) -> None:
+        bridge = _get_webrtc_session(session_id)
+        if bridge is not None:
+            bridge.outgoing_track.clear()
+
+    def _forward_webrtc_audio_chunk(session_id: str, audio_bytes: bytes) -> None:
+        session = engine_manager.get_session(session_id)
+        if not session:
+            return
+        session.audio_chunk_queue.put(audio_bytes)
+        engine_manager.record_user_audio_chunk(session_id, audio_bytes)
+
+    def _wait_for_webrtc_playback(
+        session_id: str,
+        utterance_id: int,
+        chunk_index: int,
+        playback_deadline: float,
+        timeout: float = 30.0,
+    ) -> bool:
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < playback_deadline:
+            if engine_manager.is_tts_cancel_requested(session_id):
+                return False
+            if time.monotonic() >= deadline:
+                logger.warning(
+                    "[WEBRTC] playback wait timeout: session=%s utterance=%s chunk=%d",
+                    session_id,
+                    utterance_id,
+                    chunk_index,
+                )
+                return False
+            time.sleep(0.02)
+        return not engine_manager.is_tts_cancel_requested(session_id)
 
     def on_event(session_id: str, event: DialogueEvent) -> None:
         if event.event_type == "chat" and event.data.get("role") == "system":
@@ -163,6 +236,104 @@ def create_app(
                 session.current_tts_total_segments = len(audio_chunks)
 
         total_chunks = len(audio_chunks)
+        webrtc_session = _get_webrtc_session(session_id)
+        if webrtc_session is not None:
+            playback_deadlines: list[float] = []
+            scheduled_playback_end = time.monotonic()
+            for chunk_index, chunk_bytes in enumerate(audio_chunks, start=1):
+                if engine_manager.is_tts_cancel_requested(session_id):
+                    logger.info(
+                        "[WEBRTC] cancel detected, stop sending remaining chunks: session=%s utterance=%s next_chunk=%d/%d",
+                        session_id,
+                        utterance_id,
+                        chunk_index,
+                        total_chunks,
+                    )
+                    webrtc_session.outgoing_track.clear()
+                    return False
+
+                try:
+                    pcm_bytes, sample_rate_hz, channels, sample_width_bytes = decode_wav_audio_bytes(chunk_bytes)
+                except (wave.Error, EOFError):
+                    logger.warning("[WEBRTC] invalid TTS WAV payload: session=%s", session_id)
+                    return False
+
+                if (
+                    sample_rate_hz != WEBRTC_SAMPLE_RATE_HZ
+                    or channels != WEBRTC_CHANNELS
+                    or sample_width_bytes != WEBRTC_SAMPLE_WIDTH_BYTES
+                ):
+                    logger.warning(
+                        "[WEBRTC] unsupported TTS audio format: session=%s rate=%s channels=%s width=%s",
+                        session_id,
+                        sample_rate_hz,
+                        channels,
+                        sample_width_bytes,
+                    )
+                    return False
+
+                engine_manager.record_system_audio_chunk(
+                    session_id,
+                    chunk_bytes,
+                    utterance_id,
+                    chunk_index,
+                    total_chunks,
+                    audio_format=TTS_AUDIO_FORMAT,
+                    sample_rate=TTS_SAMPLE_RATE_HZ,
+                )
+                webrtc_session.outgoing_track.enqueue_pcm_chunk(pcm_bytes)
+                chunk_duration = len(pcm_bytes) / (
+                    WEBRTC_SAMPLE_RATE_HZ * WEBRTC_CHANNELS * WEBRTC_SAMPLE_WIDTH_BYTES
+                )
+                scheduled_playback_end = max(time.monotonic(), scheduled_playback_end) + chunk_duration
+                playback_deadlines.append(scheduled_playback_end + 0.15)
+
+                ack_target = chunk_index - TTS_CHUNK_BUFFER_WINDOW
+                if ack_target <= 0:
+                    continue
+
+                if not _wait_for_webrtc_playback(
+                    session_id,
+                    utterance_id,
+                    ack_target,
+                    playback_deadlines[ack_target - 1],
+                ):
+                    logger.info(
+                        "[WEBRTC] playback wait interrupted: session=%s utterance=%s chunk=%d/%d ack_target=%d",
+                        session_id,
+                        utterance_id,
+                        chunk_index,
+                        total_chunks,
+                        ack_target,
+                    )
+                    return False
+
+            if not playback_deadlines:
+                return False
+
+            if not _wait_for_webrtc_playback(
+                session_id,
+                utterance_id,
+                total_chunks,
+                playback_deadlines[-1],
+            ):
+                logger.info(
+                    "[WEBRTC] final playback wait interrupted: session=%s utterance=%s final_chunk=%d/%d",
+                    session_id,
+                    utterance_id,
+                    total_chunks,
+                    total_chunks,
+                )
+                return False
+
+            logger.debug(
+                "[WEBRTC] TTS audio emitted: session=%s utterance=%s total_chunks=%d",
+                session_id,
+                utterance_id,
+                total_chunks,
+            )
+            return True
+
         for chunk_index, chunk_bytes in enumerate(audio_chunks, start=1):
             if engine_manager.is_tts_cancel_requested(session_id):
                 logger.info(
@@ -276,6 +447,10 @@ def create_app(
             if session and session.is_active:
                 logger.info("[SERVER] halting active session: %s", session_id)
                 engine_manager.stop_session(session_id)
+        with webrtc_lock:
+            webrtc_session_ids = list(webrtc_sessions.keys())
+        for session_id in webrtc_session_ids:
+            await _close_webrtc_session(session_id)
         logger.info(
             "[SERVER] threads alive at shutdown: %s",
             ", ".join(thread.name for thread in threading.enumerate()),
@@ -303,6 +478,7 @@ def create_app(
         success = engine_manager.stop_session(session_id)
         if not success:
             raise HTTPException(status_code=400, detail="Failed to stop session")
+        _clear_webrtc_audio(session_id)
         return {"status": "stopped"}
 
     @app.delete("/sessions/{session_id}")
@@ -310,11 +486,79 @@ def create_app(
         success = engine_manager.delete_session(session_id)
         if not success:
             raise HTTPException(status_code=404, detail="Session not found")
+        await _close_webrtc_session(session_id)
         return {"status": "deleted"}
 
     @app.get("/sessions")
     async def list_sessions() -> dict[str, list[str]]:
         return {"sessions": engine_manager.list_sessions()}
+
+    @app.post("/sessions/{session_id}/webrtc/offer")
+    async def create_webrtc_offer(session_id: str, payload: dict[str, str]) -> dict[str, str]:
+        if not WEBRTC_AUDIO_AVAILABLE:
+            raise HTTPException(status_code=503, detail="WebRTC audio dependencies are not installed")
+
+        session = engine_manager.get_session(session_id)
+        if not session:
+            raise HTTPException(status_code=404, detail="Session not found")
+
+        sdp = str(payload.get("sdp") or "")
+        description_type = str(payload.get("type") or "")
+        if not sdp or not description_type:
+            raise HTTPException(status_code=400, detail="Missing WebRTC offer")
+
+        await _close_webrtc_session(session_id)
+
+        loop = asyncio.get_running_loop()
+        peer_connection = RTCPeerConnection()
+        outgoing_track = OutgoingAudioTrack(loop)
+        bridge = WebRtcAudioSession(
+            peer_connection=peer_connection,
+            outgoing_track=outgoing_track,
+        )
+        peer_connection.addTrack(outgoing_track)
+
+        @peer_connection.on("track")
+        def on_track(track: Any) -> None:
+            if track.kind != "audio":
+                return
+            logger.info("[WEBRTC] incoming audio track attached: session=%s", session_id)
+            task = asyncio.create_task(
+                consume_incoming_audio_track(
+                    track,
+                    lambda audio_bytes: _forward_webrtc_audio_chunk(session_id, audio_bytes),
+                )
+            )
+            bridge.add_task(task)
+
+        @peer_connection.on("connectionstatechange")
+        def on_connectionstatechange() -> None:
+            logger.info(
+                "[WEBRTC] connection state changed: session=%s state=%s",
+                session_id,
+                peer_connection.connectionState,
+            )
+            if peer_connection.connectionState in {"failed", "closed"}:
+                asyncio.create_task(_close_webrtc_session(session_id))
+
+        with webrtc_lock:
+            webrtc_sessions[session_id] = bridge
+
+        try:
+            await peer_connection.setRemoteDescription(
+                RTCSessionDescription(sdp=sdp, type=description_type)
+            )
+            answer = await peer_connection.createAnswer()
+            await peer_connection.setLocalDescription(answer)
+        except Exception:
+            await _close_webrtc_session(session_id)
+            raise
+
+        logger.info("[WEBRTC] answer created: session=%s", session_id)
+        return {
+            "sdp": str(peer_connection.localDescription.sdp),
+            "type": str(peer_connection.localDescription.type),
+        }
 
     @app.websocket("/dialogue/ws/{session_id}")
     async def dialogue_socket(websocket: WebSocket, session_id: str) -> None:
@@ -334,9 +578,14 @@ def create_app(
                 if action == "start_dialogue":
                     await _handle_start_dialogue(websocket, engine_manager, session_id, settings)
                 elif action == "end_dialogue":
+                    _clear_webrtc_audio(session_id)
                     await _handle_end_dialogue(websocket, engine_manager, session_id)
                 elif action == "cancel_tts":
-                    _request_tts_cancel(engine_manager, session_id)
+                    _request_tts_cancel(
+                        engine_manager,
+                        session_id,
+                        clear_audio_callback=lambda: _clear_webrtc_audio(session_id),
+                    )
                     logger.info("[WEBSOCKET] TTS cancel requested: session=%s", session_id)
                 elif action == "send_audio_chunk":
                     audio_b64 = str(payload.get("audio_data") or "")
@@ -403,9 +652,16 @@ def create_app(
     return app
 
 
-def _request_tts_cancel(engine_manager: DialogueEngineManager, session_id: str) -> None:
+def _request_tts_cancel(
+    engine_manager: DialogueEngineManager,
+    session_id: str,
+    clear_audio_callback: Callable[[], None] | None = None,
+) -> None:
     if not engine_manager.set_tts_cancel_requested(session_id, True):
         raise HTTPException(status_code=404, detail="Session not found")
+
+    if clear_audio_callback is not None:
+        clear_audio_callback()
 
     session = engine_manager.get_session(session_id)
     if session:
