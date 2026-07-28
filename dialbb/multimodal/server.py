@@ -25,19 +25,14 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from dialbb.util.logger import get_logger
 from .core import DialogueEvent
-<<<<<<< HEAD
-from .engine import DialogueEngineManager, SessionConfig
-from .main.messages import RecognitionEvent, RecognitionEventType
-from .tts.speech_synthesizer import split_tts_segments
-=======
 from .engine import DialogueEngineManager, Settings
+from .main.messages import RecognitionEvent, RecognitionEventType
 from .tts.speech_synthesizer import (
     TTS_AUDIO_FORMAT,
     TTS_SAMPLE_RATE_HZ,
     split_tts_audio_chunks,
     split_tts_segments,
 )
->>>>>>> origin/feature/mm-nakano
 
 logger = get_logger(__name__)
 TTS_CHUNK_BUFFER_WINDOW = 3
