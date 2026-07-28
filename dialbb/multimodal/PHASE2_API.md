@@ -2,20 +2,19 @@
 
 ## 概要
 
-Phase 1 でコアエンジンを分離し、Phase 2 で Flask-SocketIO サーバを構築しました。
+Phase 1 でコアエンジンを分離し、Phase 2 で FastAPI ベースの REST + WebSocket サーバを構築しました。
 
 - **dialbb.multimodal.core**: 会話状態管理（UI非依存）
 - **dialbb.multimodal.engine**: セッション・ワーカー管理（マルチセッション対応）
 - **dialbb.multimodal.server**: REST API + WebSocket（FastAPI ネイティブ）
-- **start_mm_client.py**: Tkinter GUI（新エンジン活用、後方互換性維持）
 
 ---
 
 ## 1. インストール
 
-### 依存パッケージ（新規追加）
+### 依存パッケージ
 ```bash
-pip install flask-socketio python-socketio python-engineio
+pip install fastapi uvicorn websockets
 ```
 
 または pyproject.toml で定義されている場合：
@@ -25,10 +24,7 @@ poetry install
 
 ### エントリポイント
 ```bash
-# Tkinter GUI（既存互換）
-dialbb-mm-client [config/mm_client_config.yml]
-
-# サーバモード（新規）
+# サーバモード
 dialbb-mm-client-server --host 0.0.0.0 --port 5000 --config config/mm_client_config.yml
 ```
 
@@ -97,7 +93,7 @@ GET /sessions
 
 ### 接続
 
-FastAPI ネイティブ WebSocket を使用します。
+FastAPI ネイティブ WebSocket を使用します。接続先は `/dialogue/ws/{session_id}` です。
 
 ```javascript
 const sessionId = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx';
@@ -137,8 +133,16 @@ socket.send(JSON.stringify({
 }));
 ```
 
+#### `cancel_tts`
+TTS 再生のキャンセル要求
+```javascript
+socket.send(JSON.stringify({
+  action: 'cancel_tts'
+}));
+```
+
 #### `send_audio_chunk`
-音声チャンク送信（Phase 3 で実装予定）
+音声チャンク送信
 ```javascript
 socket.send(JSON.stringify({
   action: 'send_audio_chunk',
@@ -146,9 +150,22 @@ socket.send(JSON.stringify({
 }));
 ```
 
+`aux_data` を付ける場合は同時に送れます。実装では STT 側へ渡す追加情報として扱います。
+
+#### `tts_segment_playback_done`
+音声セグメント再生完了 ack
+```javascript
+socket.send(JSON.stringify({
+  action: 'tts_segment_playback_done',
+  utterance_id: 1,
+  segment_index: 1,
+  segment_count: 2
+}));
+```
+
 ### サーバ → クライアント（受信）
 
-サーバは `{ event, payload, ... }` 形式で送信します。音声専用クライアントでは、`joined_session` / `audio_data` / `error` を扱います。
+サーバは `{ event, payload, ... }` 形式で送信します。音声専用クライアントでは、`joined_session` / `system_message` / `audio_data` / `error` を扱います。
 
 #### `joined_session`
 セッション参加確認（接続時に自動送信）
@@ -157,6 +174,28 @@ socket.onmessage = (event) => {
   const message = JSON.parse(event.data);
   if (message.event === 'joined_session') {
     console.log('Joined session:', message.payload.session_id);
+  }
+};
+```
+
+#### `system_message`
+システム発話開始通知
+```javascript
+socket.onmessage = (event) => {
+  const message = JSON.parse(event.data);
+  if (message.event === 'system_message') {
+    console.log('System message:', message.payload.text, message.payload.utterance_id);
+  }
+};
+```
+
+#### `audio_data`
+システム音声セグメント送信
+```javascript
+socket.onmessage = (event) => {
+  const message = JSON.parse(event.data);
+  if (message.event === 'audio_data') {
+    console.log('Audio segment:', message.payload.utterance_id, message.payload.segment_index);
   }
 };
 ```
@@ -212,7 +251,7 @@ flowchart LR
   end
 
   subgraph Workers
-    MAIN[Main Worker]
+    CORE[Core Worker]
     STT[STT Worker]
     DIALBB[DialBB Worker]
     TTS[TTS Worker]
@@ -223,15 +262,17 @@ flowchart LR
   WB <-->|ws json| WS
   WS --> HUB
 
-  REST -->|session control| MAIN
+  REST -->|session control| CORE
+  WS -->|audio chunk| STT
   WS -->|text utterance| QREQ
   QREQ --> DIALBB
 
-  STT --> MAIN
-  DIALBB --> MAIN
-  TTS --> MAIN
+  STT --> CORE
+  DIALBB --> CORE
+  TTS --> CORE
+  TTS -->|mp3 segments| WS
 
-  MAIN -. dialogue event callback .-> HUB
+  CORE -. dialogue event callback .-> HUB
   HUB -. thread safe emit .-> WS
 ```
 
@@ -239,6 +280,7 @@ flowchart LR
 - WebSocket の送受信は FastAPI のイベントループで実行。
 - 対話処理（STT/DialBB/TTS）は `DialogueEngineManager` 配下のワーカースレッドで実行。
 - スレッド側イベントは `WebSocketSessionHub.emit_from_thread()` が `asyncio.run_coroutine_threadsafe()` でイベントループに橋渡しする。
+- `audio_data` には `audio` / `format` / `utterance_id` / `segment_index` / `segment_count` が含まれ、必要に応じて `aux_data` を 1 セグメント目へ引き継ぐ。
 
 ## 5. シーケンス図（スマホクライアント / WebSocket）
 
@@ -249,7 +291,10 @@ sequenceDiagram
   participant W as WebSocket Endpoint
   participant H as WebSocketSessionHub
   participant E as DialogueEngineManager
+  participant STT as STT Worker
+  participant CORE as Core Worker
   participant D as DialBB Worker
+  participant T as TTS Worker
 
   C->>R: POST /sessions
   R->>E: create_session()
@@ -265,12 +310,20 @@ sequenceDiagram
 
   C->>W: action send_audio_chunk with base64 PCM16
   W->>E: audio_chunk_queue.put(...)
-  E->>D: DialbbRequest(user_text)
-  D-->>E: DialogueEvent(chat/status/...)
+  E->>STT: audio chunk
+  STT->>CORE: RecognitionEvent(final_transcript, text)
+  CORE->>D: DialbbRequest(session_id, user_text, aux_data)
+  D->>CORE: DialbbResponse(session_id, system_text)
+  CORE->>T: TtsRequest(session_id, system_text)
+  T->>CORE: TtsResult(session_id, text, completed=True)
 
-  E->>H: emit_from_thread audio_data
-  H->>W: emit_to_session(...)
-  W-->>C: audio_data payload
+  D->>H: emit_from_thread system_message
+  H-->>W: system_message payload
+  T->>H: emit_from_thread audio_data
+  H-->>W: audio_data payload
+
+  C->>W: action tts_segment_playback_done
+  W->>E: record_tts_segment_playback_done()
 
   C->>W: action end_dialogue
   W->>E: stop_session(session_id)
@@ -281,7 +334,7 @@ sequenceDiagram
 ### 送受信メッセージの観点
 
 - クライアント -> サーバ: `{"action": "start_dialogue" | "end_dialogue" | "send_audio_chunk" | "cancel_tts" | "tts_segment_playback_done", ...}`
-- サーバ -> クライアント: `{"event": "joined_session" | "audio_data" | "error", "payload": {...}}`
+- サーバ -> クライアント: `{"event": "joined_session" | "system_message" | "audio_data" | "error", "payload": {...}}`
 
 ---
 
@@ -330,13 +383,6 @@ stt:
 
 ## 8. 推奨される利用方法
 
-### Tkinter GUI（従来通り）
-```bash
-dialbb-mm-client config/mm_client_config.yml
-```
-✅ 既存ユーザは影響なし  
-✅ GUI は新エンジンで動作
-
 ### Web UI（スマホ対応）
 1. サーバ起動:
 ```bash
@@ -362,7 +408,7 @@ session_id = engine_manager.create_session()
 ## 9. Phase 3 へのロードマップ
 
 ### 音声ストリーム対応（WebSocket 経由）
-- `send_audio_chunk` イベントの実装
+- `send_audio_chunk` と `tts_segment_playback_done` の両方が必要
 - STT クライアントを WebSocket 経由で動作
 - TTS 音声をクライアントへ送信
 
@@ -404,7 +450,6 @@ Phase 1/2 で以下が実現できます：
 ✅ **UI 非依存の会話エンジン** (core.py)  
 ✅ **マルチセッション対応** (engine.py)  
 ✅ **REST + WebSocket API** (server.py)  
-✅ **既存 Tkinter GUI との互換性維持**  
 ✅ **スマホ対応の基盤完成**
 
 次のステップ（Phase 3）は音声ストリーミング統合です。

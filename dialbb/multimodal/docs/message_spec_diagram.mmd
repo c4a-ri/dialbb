@@ -1,11 +1,12 @@
 flowchart LR
-  GUI[GUIスレッド\nTkinter Controller]
+  WS[WebSocket / 外部制御]
 
   subgraph Threads[スレッドモジュール]
     STT[ASRスレッド\nrun_stt_worker]
-    MAIN[メインスレッド\nMultimodalMainModule.run]
+    MAIN[メインスレッド\nCoreDialogueEngine.run]
     DIALBB[DialBBスレッド\nrun_dialbb_worker]
     TTS[TTSスレッド\nrun_tts_worker]
+    LOG[Audio Log Worker]
   end
 
   Q1[(Q1: stt_event_queue\nQueue of RecognitionEvent)]
@@ -13,9 +14,13 @@ flowchart LR
   Q3[(Q3: dialbb_response_queue\nQueue of DialbbResponse)]
   Q4[(Q4: tts_request_queue\nQueue of TtsRequest)]
   Q5[(Q5: tts_result_queue\nQueue of TtsResult)]
-  Q6[(Q6: gui_command_queue\nQueue of str)]
-  Q7[(Q7: chat_queue\nQueue of role,text tuple)]
-  Q8[(Q8: tts_cancel_queue\nQueue of str)]
+  Q6[(Q6: command_queue\nQueue of str)]
+  Q7[(Q7: tts_cancel_queue\nQueue of str)]
+  Q8[(Q8: audio_chunk_queue\nQueue of bytes)]
+  Q9[(Q9: audio_log_queue\nQueue of AudioLogEntry | None)]
+
+  WS -->|audio chunk| Q8
+  Q8 -->|PCM16| STT
 
   STT -->|RecognitionEvent| Q1
   Q1 -->|RecognitionEvent| MAIN
@@ -32,22 +37,23 @@ flowchart LR
   TTS -->|TtsResult| Q5
   Q5 -->|TtsResult| MAIN
 
-  GUI -->|start/end| Q6
+  MAIN -->|start/end| Q6
   Q6 -->|command| MAIN
 
-  MAIN -->|chat tuple| Q7
-  Q7 -->|poll| GUI
+  MAIN -->|cancel| Q7
+  Q7 -->|cancel| TTS
 
-  MAIN -->|cancel| Q8
-  Q8 -->|cancel| TTS
+  MAIN -->|audio log| Q9
+  Q9 -->|manifest/wav/mp3| LOG
 
-  GUI -. conversation_active_event .- MAIN
-  GUI -. stt_enabled_event .- STT
+  WS -. dialogue event callback .- MAIN
+  WS -. conversation_active_event .- MAIN
+  WS -. stt_enabled_event .- STT
 
-  GUI -. stop_event .- STT
-  GUI -. stop_event .- DIALBB
-  GUI -. stop_event .- TTS
-  GUI -. stop_event .- MAIN
+  WS -. stop_event .- STT
+  WS -. stop_event .- DIALBB
+  WS -. stop_event .- TTS
+  WS -. stop_event .- MAIN
 
   classDef thread fill:#e6f4ff,stroke:#5b8fb9,color:#1f2937;
-  class STT,MAIN,DIALBB,TTS thread;
+  class STT,MAIN,DIALBB,TTS,LOG thread;

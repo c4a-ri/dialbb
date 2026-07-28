@@ -6,10 +6,9 @@
 
 ## 1.1 基本の仕組み
 
-本モジュールは「GUI + 4つのワーカースレッド」と「8つの Queue」で構成される。
+本モジュールは「コアエンジン + 4つのワーカースレッド」で構成される。 CoreDialogueEngine と DialogueEngineManager を中心に動作する。
 
-- GUIスレッド（Tkinter）: 対話開始/対話終了/終了ボタンで実行状態を制御する。
-- MAINスレッド: 全体の司令塔。認識結果を受けて対話要求を作り、応答をTTSへ渡す。
+-COREスレッド: 全体の司令塔。認識結果を受けて対話要求を作り、応答をTTSへ渡す。
 - STTスレッド: 音声認識（Google STT）結果を生成する（RecognitionEvent）。
 - DialBBスレッド: DialogueProcessor を呼び出してシステム応答を生成する。
 - TTSスレッド: 音声合成（Google TTS）を実行する。
@@ -17,35 +16,39 @@
 Queue はスレッド間のメッセージ受け渡し口であり、非同期に安全な連携を実現する。
 
 - データ Queue
-  - stt_event_queue: STT -> MAIN に RecognitionEvent を渡す。
-  - dialbb_request_queue: MAIN -> DialBB に DialbbRequest を渡す。
-  - dialbb_response_queue: DialBB -> MAIN に DialbbResponse を渡す。
-  - tts_request_queue: MAIN -> TTS に TtsRequest を渡す。
-  - tts_result_queue: TTS -> MAIN に TtsResult を渡す。
+  - stt_event_queue: STT -> CORE に RecognitionEvent を渡す。
+  - dialbb_request_queue: CORE -> DialBB に DialbbRequest を渡す。
+  - dialbb_response_queue: DialBB -> CORE に DialbbResponse を渡す。
+  - tts_request_queue: CORE -> TTS に TtsRequest を渡す。
+  - tts_result_queue: TTS -> CORE に TtsResult を渡す。
 - 制御 Queue
-  - gui_command_queue: GUI -> MAIN に start/end コマンドを渡す。
-  - chat_queue: MAIN -> GUI に表示用メッセージを渡す。
-  - tts_cancel_queue: MAIN -> TTS に再生キャンセルを渡す。
+  - command_queue: 外部制御 -> CORE に start/end コマンドを渡す。
+  - tts_cancel_queue: CORE -> TTS に再生キャンセルを渡す。
 
-特に stt_event_queue は、認識中イベント（partial）、確定イベント（final）、開始/終了イベント、エラーイベントを MAIN に順序付きで届けるための中核 Queue である。
+補足:
+- 現行実装には WebSocket 音声入力用の `audio_chunk_queue` と、音声ログ保存用の `audio_log_queue` がある。
+- `chat_queue` は現行の `CoreDialogueEngine` では使わず、`DialogueEvent` のコールバック経由で外部へ通知する。
+
+特に stt_event_queue は、認識中イベント（partial）、確定イベント（final）、開始/終了イベント、エラーイベントを CORE に順序付きで届けるための中核 Queue である。
 
 制御用 Event は以下の3つを使用する。
 
-- stop_event: アプリケーション終了シグナル。GUIの「終了」でセットし、全ワーカースレッドを終了させる。
-- conversation_active_event: 対話アクティブ状態。GUIの「対話開始」でセット、「対話終了」でクリア。
-- stt_enabled_event: 音声入力受付状態。MAIN が対話状態に応じて set/clear し、STT スレッドの入力受付を制御する。
+- stop_event: アプリケーション終了シグナル。全ワーカースレッドを終了させる。
+- conversation_active_event: 対話アクティブ状態。「対話終了」でクリア。
+- stt_enabled_event: 音声入力受付状態。CORE が対話状態に応じて set/clear し、STT スレッドの入力受付を制御する。
 
 ## 2. スレッド・Queue 構成
 
 ```mermaid
 flowchart LR
-  GUI[GUIスレッド\nTkinter Controller]
+  WS[WebSocket / 外部制御]
 
   subgraph Threads[スレッドモジュール]
     STT[ASRスレッド\nrun_stt_worker]
-    MAIN[メインスレッド\nMultimodalMainModule.run]
+    CORE[COREスレッド\nCoreDialogueEngine.run]
     DIALBB[DialBBスレッド\nrun_dialbb_worker]
     TTS[TTSスレッド\nrun_tts_worker]
+    LOG[Audio Log Worker]
   end
 
   Q1[(Q1: stt_event_queue\nQueue of RecognitionEvent)]
@@ -53,47 +56,51 @@ flowchart LR
   Q3[(Q3: dialbb_response_queue\nQueue of DialbbResponse)]
   Q4[(Q4: tts_request_queue\nQueue of TtsRequest)]
   Q5[(Q5: tts_result_queue\nQueue of TtsResult)]
-  Q6[(Q6: gui_command_queue\nQueue of str)]
-  Q7[(Q7: chat_queue\nQueue of role,text tuple)]
-  Q8[(Q8: tts_cancel_queue\nQueue of str)]
+  Q6[(Q6: command_queue\nQueue of str)]
+  Q7[(Q7: tts_cancel_queue\nQueue of str)]
+  Q8[(Q8: audio_chunk_queue\nQueue of bytes)]
+  Q9[(Q9: audio_log_queue\nQueue of AudioLogEntry | None)]
 
   STT -->|RecognitionEvent| Q1
-  Q1 -->|RecognitionEvent| MAIN
+  Q1 -->|RecognitionEvent| CORE
 
-  MAIN -->|DialbbRequest| Q2
+  CORE -->|DialbbRequest| Q2
   Q2 -->|DialbbRequest| DIALBB
 
   DIALBB -->|DialbbResponse| Q3
-  Q3 -->|DialbbResponse| MAIN
+  Q3 -->|DialbbResponse| CORE
 
-  MAIN -->|TtsRequest| Q4
+  CORE -->|TtsRequest| Q4
   Q4 -->|TtsRequest| TTS
 
   TTS -->|TtsResult| Q5
-  Q5 -->|TtsResult| MAIN
+  Q5 -->|TtsResult| CORE
 
-  GUI -->|start/end| Q6
-  Q6 -->|command| MAIN
+  CORE -->|start/end| Q6
+  Q6 -->|command| CORE
 
-  MAIN -->|chat tuple| Q7
-  Q7 -->|poll| GUI
+  CORE -->|cancel| Q7
+  Q7 -->|cancel| TTS
 
-  MAIN -->|cancel| Q8
-  Q8 -->|cancel| TTS
+  WS -->|audio chunk| Q8
+  Q8 -->|PCM16| STT
 
-  GUI -. conversation_active_event .- MAIN
-  GUI -. stt_enabled_event .- STT
+  CORE -->|audio log| Q9
+  Q9 -->|manifest/wav/mp3| LOG
 
-  GUI -. stop_event .- STT
-  GUI -. stop_event .- DIALBB
-  GUI -. stop_event .- TTS
-  GUI -. stop_event .- MAIN
+  WS -. conversation_active_event .- CORE
+  WS -. stt_enabled_event .- STT
+
+  WS -. stop_event .- STT
+  WS -. stop_event .- DIALBB
+  WS -. stop_event .- TTS
+  WS -. stop_event .- CORE
 
   classDef thread fill:#e6f4ff,stroke:#5b8fb9,color:#1f2937;
-  class STT,MAIN,DIALBB,TTS thread;
+  class STT,CORE,DIALBB,TTS thread;
 ```
 
-注: STT -> MAIN の RecognitionEvent には `speech_started` / `partial_transcript` / `speech_ended` / `final_transcript` / `error` が含まれる。
+注: STT -> CORE の RecognitionEvent には `speech_started` / `partial_transcript` / `speech_ended` / `final_transcript` / `aux_data` / `error` が含まれる。
 
 ## 3. メッセージ型定義
 
@@ -103,11 +110,12 @@ flowchart LR
 - `speech_ended`: 音声区間の終了を検知したイベント（発話終了通知）。
 - `partial_transcript`: 認識途中の中間テキストを通知するイベント。
 - `final_transcript`: 認識が確定した最終テキストを通知するイベント。
+- `aux_data`: WebSocket で受け取った追加情報を一時保持するイベント。
 - `error`: 音声認識処理中の例外・失敗を通知するイベント。
 
 ### 3.2 RecognitionEvent
 
-使用Queue：stt_event_queue（STT -> MAIN）
+使用Queue：stt_event_queue（STT -> CORE）
 
 | 項目 | 型 | 説明 |
 |---|---|---|
@@ -119,7 +127,7 @@ flowchart LR
 
 ### 3.3 DialbbRequest
 
-使用Queue：dialbb_request_queue（MAIN -> DIALBB）
+使用Queue：dialbb_request_queue（CORE -> DIALBB）
 
 | 項目 | 型 | 説明 |
 |---|---|---|
@@ -130,17 +138,18 @@ flowchart LR
 
 ### 3.4 DialbbResponse
 
-使用Queue：dialbb_response_queue（DIALBB -> MAIN）
+使用Queue：dialbb_response_queue（DIALBB -> CORE）
 
 | 項目 | 型 | 説明 |
 |---|---|---|
 | session_id | str | セッション識別子 |
 | system_text | str | DialBB層からの応答テキスト |
 | is_final | bool | True の場合、対話の最終応答（以降のユーザー入力を受け付けない） |
+| aux_data | dict | システム応答に付随する追加情報 |
 
 ### 3.5 TtsRequest
 
-使用Queue：tts_request_queue（MAIN -> TTS）
+使用Queue：tts_request_queue（CORE -> TTS）
 
 | 項目 | 型 | 説明 |
 |---|---|---|
@@ -149,7 +158,7 @@ flowchart LR
 
 ### 3.6 TtsResult
 
-使用Queue：tts_result_queue（TTS -> MAIN）
+使用Queue：tts_result_queue（TTS -> CORE）
 
 | 項目 | 型 | 説明 |
 |---|---|---|
@@ -161,40 +170,44 @@ flowchart LR
 
 ```mermaid
 sequenceDiagram
-  participant GUI as GUI
   participant U as ユーザ
   participant STT as ASRスレッド
-  participant MAIN as メインスレッド
+  participant CORE as COREスレッド
   participant D as DialBBスレッド
   participant T as TTSスレッド
 
-  GUI->>MAIN: gui_command_queue.put("start")
-  MAIN->>MAIN: 状態リセット + Queueドレイン
-  MAIN->>MAIN: conversation_active_event/stt_enabled_event を set
-  MAIN->>D: DialbbRequest(is_initial=True)
-  D->>MAIN: DialbbResponse(session_id, system_text)
-  MAIN->>T: TtsRequest(session_id, system_text)
-  T->>MAIN: TtsResult(completed=True)
-  MAIN->>STT: stt_enabled_event = set（ユーザ発話待ち）
+  CORE->>CORE: command_queue.put("start")
+  CORE->>CORE: 状態リセット + Queueドレイン
+  CORE->>CORE: conversation_active_event/stt_enabled_event を set
+  CORE->>D: DialbbRequest(is_initial=True)
+  D->>CORE: DialbbResponse(session_id, system_text)
+  CORE->>T: TtsRequest(session_id, system_text)
+  T->>CORE: TtsResult(completed=True)
+  CORE->>STT: stt_enabled_event = set（ユーザ発話待ち）
 
   U->>STT: 発話
-  STT->>MAIN: RecognitionEvent(speech_started)
-  STT->>MAIN: RecognitionEvent(partial_transcript)
-  STT->>MAIN: RecognitionEvent(speech_ended)
-  STT->>MAIN: RecognitionEvent(final_transcript, text)
+  STT->>CORE: RecognitionEvent(speech_started)
+  STT->>CORE: RecognitionEvent(partial_transcript)
+  STT->>CORE: RecognitionEvent(speech_ended)
+  STT->>CORE: RecognitionEvent(aux_data)
+  STT->>CORE: RecognitionEvent(final_transcript, text)
 
-  MAIN->>D: DialbbRequest(session_id, user_text, aux_data)
-  D->>MAIN: DialbbResponse(session_id, system_text)
+  CORE->>D: DialbbRequest(session_id, user_text, aux_data)
+  D->>CORE: DialbbResponse(session_id, system_text)
 
-  MAIN->>T: TtsRequest(session_id, system_text)
-  T->>MAIN: TtsResult(session_id, text, completed=True)
+  CORE->>T: TtsRequest(session_id, system_text)
+  T->>CORE: TtsResult(session_id, text, completed=True)
 
   alt システム発話中に partial_transcript を受信
-    MAIN->>T: tts_cancel_queue.put("cancel")
+    CORE->>T: tts_cancel_queue.put("cancel")
+  end
+
+  alt WebSocket から aux_data を受信
+    CORE->>CORE: _pending_user_aux_data に保持
   end
 
   alt ユーザ発話待ちが max_user_wait_time を超過
-    MAIN->>D: DialbbRequest(session_id, "user_silence")
+    CORE->>D: DialbbRequest(session_id, "user_silence")
   end
 ```
 
@@ -207,38 +220,38 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
   participant STT as STTスレッド
-  participant MAIN as メインスレッド
+  participant CORE as COREスレッド
   participant D as DialBBスレッド
   participant TTS as TTSスレッド
 
-  MAIN->>TTS: TtsRequest送信
+  CORE->>TTS: TtsRequest送信
   note over TTS: 再生開始
   note over TTS: system_speaking=True
   TTS->>TTS: 音声再生中...
 
-  STT->>MAIN: RecognitionEvent(partial_transcript)
-  note over MAIN: システム発話中を検知
+  STT->>CORE: RecognitionEvent(partial_transcript)
+  note over CORE: システム発話中を検知
 
   alt is_final_response=False の場合
-    MAIN->>TTS: tts_cancel_queue.put("cancel")
-    note over MAIN: バージイン送信
+    CORE->>TTS: tts_cancel_queue.put("cancel")
+    note over CORE: バージイン送信
     TTS->>TTS: 再生中断
-    TTS->>MAIN: TtsResult(completed=False)
+    TTS->>CORE: TtsResult(completed=False)
   else is_final_response=True の場合
-    note over MAIN: 最終応答中のためバージイン不可
+    note over CORE: 最終応答中のためバージイン不可
   end
 
-  STT->>MAIN: RecognitionEvent(final_transcript, text="ユーザー発話")
-  note over MAIN: ユーザー確定発話
+  STT->>CORE: RecognitionEvent(final_transcript, text="ユーザー発話")
+  note over CORE: ユーザー確定発話
 
   alt system_speaking=True かつ is_final_response=False の場合
-    MAIN->>D: DialbbRequest(aux_data with barge_in=True)
+    CORE->>D: DialbbRequest(aux_data with barge_in=True)
     note over D: バージイン付きでユーザー発話を再処理
   else 通常の発話（バージイン無し）
-    MAIN->>D: DialbbRequest(aux_data empty)
+    CORE->>D: DialbbRequest(aux_data empty)
   end
 
-  D->>MAIN: DialbbResponse返信
+  D->>CORE: DialbbResponse返信
 ```
 
 ### 5.2 バージイン発火の条件
@@ -256,25 +269,25 @@ sequenceDiagram
 
 #### 段階1: partial_transcript 時の中間バージイン
 
-1. MAIN が `partial_transcript` を受信する。
+1. CORE が `partial_transcript` を受信する。
 2. `system_speaking && !is_final_response && !_barge_in_sent` を判定する。
 3. 条件が真なら、`tts_cancel_queue.put("cancel")` を送信する。
 4. 重複送信防止のため `_barge_in_sent = True` にする。
-5. TTS は再生を中断し、`TtsResult(completed=False)` を MAIN に返す。
-6. MAIN は `completed=False` を受け、`system_speaking=False` に戻す。
+5. TTS は再生を中断し、`TtsResult(completed=False)` を CORE に返す。
+6. CORE は `completed=False` を受け、`system_speaking=False` に戻す。
 
 #### 段階2: final_transcript 時の確定バージイン
 
-1. MAIN が `final_transcript(text)` を受信する。
-2. MAIN は `user_speaking=False`、`user_waiting=False` に更新する。
+1. CORE が `final_transcript(text)` を受信する。
+2. CORE は `user_speaking=False`、`user_waiting=False` に更新する。
 3. `system_speaking && !is_final_response` の場合、`aux_data={"barge_in": True}` を付けて DialBB に送る。
 4. それ以外は `aux_data={}` で通常発話として DialBB に送る。
-5. DialBB は応答を返し、MAIN は新しい応答で TTS 再生に進む。
+5. DialBB は応答を返し、CORE は新しい応答で TTS 再生に進む。
 
 #### 段階3: バージイン不可（最終応答中）
 
-1. MAIN が `DialbbResponse(is_final=True)` を受信する。
-2. MAIN は `is_final_response=True` に設定し、`stt_enabled_event.clear()` で入力受付を止める。
+1. CORE が `DialbbResponse(is_final=True)` を受信する。
+2. CORE は `is_final_response=True` に設定し、`stt_enabled_event.clear()` で入力受付を止める。
 3. 最終応答を TTS で再生する。
 4. 再生中は新しい STT 入力を受け付けないため、バージインは発生しない。
 5. `TtsResult(completed=True)` を受信したら、`conversation_active_event.clear()` で対話終了に遷移する。
@@ -287,17 +300,17 @@ sequenceDiagram
 | **重複送信防止** | `_barge_in_sent` フラグで、`partial_transcript` が複数到達しても TTS キャンセルは1回のみ送信 |
 | **冪等性** | `final_transcript` 受信時は `partial_transcript` でキャンセル済みでも再度キャンセル送信（冪等） |
 | **最終応答対応** | `is_final_response=True` 時はバージイン処理をスキップ、STT入力そのものを受け付けない |
-| **aux_data マーク** | DialBB に「バージイン発生」を明示することで、応答生成ロジック側で適切な判断を可能にする |
+| **aux_data マーク** | WebSocket の `aux_data` を DialBB まで引き継ぎ、バージイン発生も同じ経路で付与する |
 | **イベント駆動** | キャンセルは queue を用いた非同期通知で、TTS スレッドの即座な対応を実現 |
 
 ## 6. 停止・エラールール
 
 - stop_event は全ワーカスレッドで共有する。
-- stop_event は GUI の「終了」または Ctrl+C でセットされる。
-- GUI の「対話終了」はアプリ終了ではなく対話停止として扱う。
+- stop_event は外部制御または Ctrl+C でセットされる。
+- 対話終了はアプリ終了ではなく対話停止として扱う。
   - conversation_active_event を clear
   - stt_enabled_event を clear
-- RecognitionEventType.error は MAIN がログ出力し、対話継続可否は上位運用方針で決める（現実装では stop_event は自動セットしない）。
+- RecognitionEventType.ERROR は CORE がログ出力し、対話継続可否は上位運用方針で決める（現実装では stop_event は自動セットしない）。
 - 各ワーカループは stop_event がセットされたら終了する。
 
 ## 7. 編集メモ（Word / Google ドキュメント）
