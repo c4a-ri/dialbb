@@ -133,8 +133,7 @@ dialbb-test = "dialbb.util.test:main"
 dialbb-send-test-requests = "dialbb.util.send_test_requests:main"
 dialbb-uninstall = "dialbb.uninstall:main"
 dialbb-sim-tester = "dialbb.sim_tester.main:main"
-dialbb-mm-client = "dialbb.multimodal.start_mm_client:main"
-dialbb-mm-client-server = "dialbb.multimodal.server:main"
+dialbb-mm-server = "dialbb.multimodal.server:main"
 
 [tool.setuptools]
 include-package-data = false

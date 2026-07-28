@@ -1,6 +1,6 @@
 """mm_client Server.
 
-FastAPI による REST API + WebSocket サーバ。
+REST API and WebSocket server powered by FastAPI.
 """
 
 from __future__ import annotations
@@ -10,11 +10,13 @@ import asyncio
 import base64
 import binascii
 from concurrent.futures import Future as ConcurrentFuture
-import os
+import queue
+import sys
 import threading
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, cast
+from dotenv import load_dotenv
 
 import uvicorn
 import yaml
@@ -23,12 +25,22 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from dialbb.util.logger import get_logger
 from .core import DialogueEvent
+<<<<<<< HEAD
 from .engine import DialogueEngineManager, SessionConfig
 from .main.messages import RecognitionEvent, RecognitionEventType
 from .tts.speech_synthesizer import split_tts_segments
+=======
+from .engine import DialogueEngineManager, Settings
+from .tts.speech_synthesizer import (
+    TTS_AUDIO_FORMAT,
+    TTS_SAMPLE_RATE_HZ,
+    split_tts_audio_chunks,
+    split_tts_segments,
+)
+>>>>>>> origin/feature/mm-nakano
 
 logger = get_logger(__name__)
-
+TTS_CHUNK_BUFFER_WINDOW = 3
 
 @dataclass
 class SessionConnections:
@@ -36,6 +48,7 @@ class SessionConnections:
 
 
 class WebSocketSessionHub:
+
     def __init__(self) -> None:
         self._connections: dict[str, SessionConnections] = {}
         self._lock = asyncio.Lock()
@@ -94,11 +107,16 @@ class WebSocketSessionHub:
 
 
 def create_app(
-    config_file: str | None = None,
-    default_config: SessionConfig | None = None,
-) -> tuple[FastAPI, DialogueEngineManager, WebSocketSessionHub]:
-    """FastAPI アプリケーション及びエンジンマネージャを作成する。"""
-    app = FastAPI(title="DialBB mm_client server")
+        config_file: str,
+        debug: bool,
+        audio_logging: bool
+) -> FastAPI:
+    """
+    Creates FastAPI app and engine manager.
+    """
+
+    app = FastAPI(title="DialBB MM Server")
+
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
@@ -107,8 +125,7 @@ def create_app(
         allow_headers=["*"],
     )
 
-    if default_config is None:
-        default_config = _load_config(config_file)
+    settings: Settings = _determine_settings(config_file, debug, audio_logging)
 
     session_hub = WebSocketSessionHub()
 
@@ -141,11 +158,11 @@ def create_app(
         elif event.event_type == "chat" and event.data.get("role") == "user":
             transcript = str(event.data.get("text") or "")
             if engine_manager.flush_user_audio_log(session_id, transcript):
-                logger.info("[SERVER] user audio log flushed on final transcript: session=%s", session_id)
+                logger.info(f"[SERVER] user audio log flushed on final transcript: session=%s", session_id)
         logger.debug("[SERVER] Event handled: session=%s, type=%s", session_id, event.event_type)
 
-    def on_tts_audio(session_id: str, segment_index: int, segment_count: int, audio_bytes: bytes) -> None:
-        """TTS 合成音声を送信し、再生完了 ack まで待つ。"""
+    def on_tts_audio(session_id: str, segment_index: int, segment_count: int, audio_bytes: bytes) -> bool:
+        """Send synthesized speech in buffered 100ms chunks and wait for final playback."""
         if engine_manager.is_tts_cancel_requested(session_id):
             logger.debug(
                 "[SERVER] TTS audio dropped by cancel flag: session=%s segment=%d/%d bytes=%d",
@@ -154,71 +171,118 @@ def create_app(
                 segment_count,
                 len(audio_bytes),
             )
-            return
+            return False
+        audio_chunks = split_tts_audio_chunks(audio_bytes)
+        if not audio_chunks:
+            logger.warning("[SERVER] empty TTS audio ignored: session=%s", session_id)
+            return False
+
         session = engine_manager.get_session(session_id)
         utterance_id = 0
         aux_data: dict[str, Any] = {}
         if session:
             with session.tts_state_lock:
                 utterance_id = session.current_tts_utterance_id
+                session.current_tts_total_segments = len(audio_chunks)
+
             if segment_index == 1 and session.pending_tts_aux_data:
                 aux_data = dict(session.pending_tts_aux_data)
                 session.pending_tts_aux_data.clear()
-        engine_manager.record_system_audio_chunk(
-            session_id,
-            audio_bytes,
-            utterance_id,
-            segment_index,
-            segment_count,
-        )
-        audio_b64 = base64.b64encode(audio_bytes).decode("utf-8")
-        audio_payload: dict[str, Any] = {
-            "audio": audio_b64,
-            "format": "mp3",
-            "utterance_id": utterance_id,
-            "segment_index": segment_index,
-            "segment_count": segment_count,
-        }
-        if aux_data:
-            audio_payload["aux_data"] = aux_data
-        session_hub.emit_from_thread(
-            session_id,
-            "audio_data",
-            audio_payload,
-        )
-        logger.debug(
-            "[SERVER] TTS audio emitted: session=%s utterance=%s segment=%d/%d bytes=%d",
-            session_id,
-            utterance_id,
-            segment_index,
-            segment_count,
-            len(audio_bytes),
-        )
+
+        total_chunks = len(audio_chunks)
+        for chunk_index, chunk_bytes in enumerate(audio_chunks, start=1):
+            if engine_manager.is_tts_cancel_requested(session_id):
+                logger.info(
+                    "[SERVER] cancel detected, stop sending remaining chunks: session=%s utterance=%s next_chunk=%d/%d",
+                    session_id,
+                    utterance_id,
+                    chunk_index,
+                    total_chunks,
+                )
+                return False
+
+            engine_manager.record_system_audio_chunk(
+                session_id,
+                chunk_bytes,
+                utterance_id,
+                chunk_index,
+                total_chunks,
+                audio_format=TTS_AUDIO_FORMAT,
+                sample_rate=TTS_SAMPLE_RATE_HZ,
+            )
+            audio_b64 = base64.b64encode(chunk_bytes).decode("utf-8")
+            session_hub.emit_from_thread(
+                session_id,
+                "audio_data",
+                {
+                    "audio": audio_b64,
+                    "format": TTS_AUDIO_FORMAT,
+                    "utterance_id": utterance_id,
+                    "segment_index": chunk_index,
+                    "segment_count": total_chunks,
+                },
+            )
+            logger.debug(
+                "[SERVER] TTS audio emitted: session=%s utterance=%s chunk=%d/%d bytes=%d",
+                session_id,
+                utterance_id,
+                chunk_index,
+                total_chunks,
+                len(chunk_bytes),
+            )
+
+            ack_target = chunk_index - TTS_CHUNK_BUFFER_WINDOW
+            if ack_target <= 0:
+                continue
+
+            if not engine_manager.wait_for_tts_segment_playback_done(
+                session_id,
+                utterance_id,
+                ack_target,
+            ):
+                logger.info(
+                    "[SERVER] playback wait interrupted: session=%s utterance=%s chunk=%d/%d ack_target=%d",
+                    session_id,
+                    utterance_id,
+                    chunk_index,
+                    total_chunks,
+                    ack_target,
+                )
+                return False
+
+            logger.debug(
+                "[SERVER] buffered playback ack confirmed: session=%s utterance=%s chunk=%d/%d ack_target=%d",
+                session_id,
+                utterance_id,
+                chunk_index,
+                total_chunks,
+                ack_target,
+            )
 
         if not engine_manager.wait_for_tts_segment_playback_done(
             session_id,
             utterance_id,
-            segment_index,
+            total_chunks,
         ):
             logger.info(
-                "[SERVER] playback wait interrupted: session=%s utterance=%s segment=%d/%d",
+                "[SERVER] final playback wait interrupted: session=%s utterance=%s final_chunk=%d/%d",
                 session_id,
                 utterance_id,
-                segment_index,
-                segment_count,
+                total_chunks,
+                total_chunks,
             )
-            return
+            return False
 
         logger.debug(
-            "[SERVER] playback ack confirmed: session=%s utterance=%s segment=%d/%d",
+            "[SERVER] final playback ack confirmed: session=%s utterance=%s total_chunks=%d",
             session_id,
             utterance_id,
-            segment_index,
-            segment_count,
+            total_chunks,
         )
+        return True
 
     engine_manager = DialogueEngineManager(
-        default_config,
+        settings=settings,
         event_callback=on_event,
         tts_audio_callback=cast(Any, on_tts_audio),
     )
@@ -231,19 +295,19 @@ def create_app(
 
     @app.on_event("shutdown")
     async def on_shutdown() -> None:
-        logger.info("[SERVER] shutdown 開始")
+        logger.info("[SERVER] shutdown started")
         active_sessions = engine_manager.list_sessions()
-        logger.info("[SERVER] shutdown 対象セッション: %s", active_sessions)
+        logger.info("[SERVER] session to shutdown: %s", active_sessions)
         for session_id in active_sessions:
             session = engine_manager.get_session(session_id)
             if session and session.is_active:
-                logger.info("[SERVER] active session を停止: %s", session_id)
+                logger.info("[SERVER] halting active session: %s", session_id)
                 engine_manager.stop_session(session_id)
         logger.info(
-            "[SERVER] shutdown 時の生存スレッド: %s",
+            "[SERVER] threads alive at shutdown: %s",
             ", ".join(thread.name for thread in threading.enumerate()),
         )
-        logger.info("[SERVER] shutdown 完了")
+        logger.info("[SERVER] shutdown finished")
 
     @app.get("/health")
     async def health() -> dict[str, str]:
@@ -256,7 +320,7 @@ def create_app(
 
     @app.post("/sessions/{session_id}/start")
     async def start_session(session_id: str) -> dict[str, str]:
-        success = engine_manager.start_session(session_id)
+        success = engine_manager.start_session(session_id, settings)
         if not success:
             raise HTTPException(status_code=400, detail="Failed to start session")
         return {"status": "started"}
@@ -295,7 +359,7 @@ def create_app(
                 payload = await websocket.receive_json()
                 action = payload.get("action")
                 if action == "start_dialogue":
-                    await _handle_start_dialogue(websocket, engine_manager, session_id)
+                    await _handle_start_dialogue(websocket, engine_manager, session_id, settings)
                 elif action == "end_dialogue":
                     await _handle_end_dialogue(websocket, engine_manager, session_id)
                 elif action == "cancel_tts":
@@ -322,8 +386,8 @@ def create_app(
                             if _session:
                                 _session.audio_chunk_queue.put(audio_bytes)
                                 engine_manager.record_user_audio_chunk(session_id, audio_bytes)
-                                # バージインは STT の partial/final で判定する。
-                                # 生の音声チャンク到着だけでは割り込みキャンセルしない。
+                                # Determine barge-in from STT partial/final events.
+                                # Do not cancel on raw audio chunk arrival alone.
                         except (ValueError, binascii.Error):
                             logger.warning("[WEBSOCKET] Invalid audio chunk: session=%s", session_id)
                     else:
@@ -361,7 +425,7 @@ def create_app(
                         continue
 
                     played_segments, total_segments, system_speaking = result
-                    logger.info(
+                    logger.debug(
                         "[WEBSOCKET] playback done: session=%s utterance=%s segment=%d/%d played=%d/%d speaking=%s",
                         session_id,
                         utterance_id,
@@ -380,7 +444,7 @@ def create_app(
         finally:
             await session_hub.disconnect(session_id, websocket)
 
-    return app, engine_manager, session_hub
+    return app
 
 
 def _request_tts_cancel(engine_manager: DialogueEngineManager, session_id: str) -> None:
@@ -393,11 +457,12 @@ def _request_tts_cancel(engine_manager: DialogueEngineManager, session_id: str) 
 
 
 async def _handle_start_dialogue(
-    websocket: WebSocket,
-    engine_manager: DialogueEngineManager,
-    session_id: str,
+        websocket: WebSocket,
+        engine_manager: DialogueEngineManager,
+        session_id: str,
+        settings: Settings
 ) -> None:
-    success = engine_manager.start_session(session_id)
+    success = engine_manager.start_session(session_id, settings)
     if not success:
         await websocket.send_json(
             {"event": "error", "payload": {"message": "Failed to start dialogue"}}
@@ -420,62 +485,74 @@ async def _handle_end_dialogue(
     logger.info("[WEBSOCKET] Dialogue stopped: %s", session_id)
 
 
-def _load_config(config_file: str | None = None) -> SessionConfig:
-    """設定ファイルから SessionConfig を読み込む。"""
-    config_path = Path(config_file or "config.yml").expanduser().resolve()
-    logger.info("[SERVER] 設定ファイル: %s", config_path)
+def _determine_settings(config_file: str, debug: bool, audio_logging: bool) -> Settings:
+    """Load SessionConfig from a configuration file."""
+    config_path = Path(config_file).expanduser().resolve()
+    logger.info(f"[SERVER] reading config file {config_path}")
 
-    config_data: dict[str, Any] = {}
+    config: dict[str, Any] = {}
     if config_path.exists():
         with config_path.open(encoding="utf-8") as config_fp:
-            config_data = yaml.safe_load(config_fp) or {}
+            config = yaml.safe_load(config_fp) or {}
 
-    mm_config = config_data.get("multimodal") or {}
-    stt_cfg = mm_config.get("stt") or {}
-    main_cfg = mm_config.get("main") or {}
-
-    stt_key = stt_cfg.get("key_file")
-    if stt_key:
-        stt_key_path = Path(stt_key).expanduser()
-        if not stt_key_path.is_absolute():
-            stt_key_path = config_path.parent / stt_key_path
-        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = str(stt_key_path.resolve())
-
-    return SessionConfig(
-        dialbb_config=config_file,
-        stt_key_file=stt_cfg.get("key_file"),
-        loop_period=float(main_cfg.get("loop_period", 0.1)),
-        max_user_wait_time=float(main_cfg.get("max_user_wait_time", 30.0)),
-        audio_logging=bool(main_cfg.get("audio_logging", False)),
+    return Settings(
+        config_file=config_file,
+        config=config,
+        cycle=float(config.get("cycle", 0.1)),
+        user_timeout=float(config.get("user_timeout", 30.0)),
+        audio_logging=bool(config.get("audio_logging", False)),
     )
 
 
-def run_server(
-    host: str = "0.0.0.0",
-    port: int = 5000,
-    config_file: str | None = None,
-    debug: bool = False,
-) -> None:
-    """サーバを起動する。"""
-    app, _, _ = create_app(config_file)
+def _parse_factory_args(argv: list[str]) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument("config")
+    parser.add_argument("--host", default="0.0.0.0")
+    parser.add_argument("--port", type=int, default=5000)
+    parser.add_argument("--debug", action="store_true")
+    parser.add_argument("--audio_logging", action="store_true")
+    args, _ = parser.parse_known_args(argv)
+    return args
+
+
+def create_configured_app() -> FastAPI:
+    args = _parse_factory_args(sys.argv[1:])
+    return create_app(args.config, args.debug, args.audio_logging)
+
+
+def run_server(config_file: str, host: str, port: int, debug: bool, audio_logging: bool) -> None:
+    """Start the server."""
+
     logger.info("[SERVER] Starting mm_client_server on %s:%d", host, port)
-    uvicorn.run(app, host=host, port=port, reload=debug)
+    uvicorn.run(
+        "dialbb.multimodal.server:create_configured_app",
+        host=host,
+        port=port,
+        reload=debug,
+        factory=True,
+    )
 
 
 def main() -> None:
     """CLI entry point for mm_client server."""
+
+    env_path = Path.cwd() / ".env"
+    load_dotenv(env_path)
+
     parser = argparse.ArgumentParser(description="DialBB mm_client server")
+    parser.add_argument("config", help="Config file path", )
     parser.add_argument("--host", default="0.0.0.0", help="Server host")
     parser.add_argument("--port", type=int, default=5000, help="Server port")
-    parser.add_argument("--config", help="Config file path")
-    parser.add_argument("--debug", action="store_true", help="Enable debug mode")
+    parser.add_argument("--debug", action="store_true", help="Toggle debug mode")
+    parser.add_argument("--audio_logging", action="store_true", help="Enable audio logging")
     args = parser.parse_args()
 
     run_server(
+        args.config,
         host=args.host,
         port=args.port,
-        config_file=args.config,
         debug=args.debug,
+        audio_logging=args.audio_logging
     )
 
 

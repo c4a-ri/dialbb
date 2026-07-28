@@ -1,4 +1,5 @@
 from collections.abc import Iterable, Iterator
+from itertools import chain
 import threading
 import time
 from queue import Queue
@@ -147,7 +148,20 @@ def run_stt_worker(
                 logger.info("[STT] WebSocket audio mode: waiting for audio chunks...")
                 ws_audio = WebSocketAudioInput(audio_chunk_queue, listening_enabled_event, stop_event)
                 try:
-                    for recognition_event in recognizer.stream(ws_audio.chunks()):
+                    first_chunk = None
+                    while not stop_event.is_set():
+                        if listening_enabled_event and not listening_enabled_event.is_set():
+                            break
+                        try:
+                            first_chunk = audio_chunk_queue.get(timeout=0.1)
+                            break
+                        except _q.Empty:
+                            continue
+
+                    if first_chunk is None:
+                        continue
+
+                    for recognition_event in recognizer.stream(chain((first_chunk,), ws_audio.chunks())):
                         if stop_event.is_set():
                             break
                         if listening_enabled_event and not listening_enabled_event.is_set():

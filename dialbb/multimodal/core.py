@@ -90,10 +90,11 @@ class CoreDialogueEngine:
         conversation_active_event: Event,
         stt_enabled_event: Event,
         tts_cancel_queue: Optional[Queue] = None,
+        set_tts_cancel_requested: Optional[Callable[[bool], None]] = None,
     ) -> None:
         """対話開始コマンドを処理"""
         del tts_request_queue
-        logger.info("[CORE] start コマンド受信")
+        logger.info("[CORE] start command received")
         self._emit_event(DialogueEvent(event_type="status", data={"message": "対話初期化中"}))
         self._reset_state()
         self._drain(stt_event_queue)
@@ -102,9 +103,11 @@ class CoreDialogueEngine:
         self._drain(tts_result_queue)
         if tts_cancel_queue is not None:
             self._drain(tts_cancel_queue)
+        if set_tts_cancel_requested is not None:
+            set_tts_cancel_requested(False)
         conversation_active_event.set()
         stt_enabled_event.set()
-        logger.info("[CORE] CORE->DialBB 初期化要求送信")
+        logger.info("[CORE] CORE->DialBB reset request sent")
         self._emit_event(DialogueEvent(event_type="status", data={"message": "システム応答待ち"}))
         dialbb_request_queue.put(
             DialbbRequest(session_id="", user_text="", is_initial=True)
@@ -120,12 +123,15 @@ class CoreDialogueEngine:
         conversation_active_event: Event,
         stt_enabled_event: Event,
         tts_cancel_queue: Optional[Queue] = None,
+        set_tts_cancel_requested: Optional[Callable[[bool], None]] = None,
     ) -> None:
         """対話終了コマンドを処理"""
-        logger.info("[CORE] end コマンド受信")
+        logger.info("[CORE] end command received")
         self._emit_event(DialogueEvent(event_type="status", data={"message": "待機中"}))
         if tts_cancel_queue is not None:
             tts_cancel_queue.put("cancel")
+        if set_tts_cancel_requested is not None:
+            set_tts_cancel_requested(True)
         stt_enabled_event.clear()
         conversation_active_event.clear()
         self._reset_state()
@@ -141,22 +147,23 @@ class CoreDialogueEngine:
         conversation_active_event: Event,
         dialbb_request_queue: Queue,
         tts_cancel_queue: Optional[Queue] = None,
+        set_tts_cancel_requested: Optional[Callable[[bool], None]] = None,
     ) -> None:
         """STT イベントを処理"""
         if not conversation_active_event.is_set():
             return
 
         if stt_event.event_type == RecognitionEventType.SPEECH_STARTED:
-            logger.debug("[CORE] 音声区間開始")
+            logger.debug("[CORE] User speech segment started.")
             self.user_speaking = True
             self._emit_event(DialogueEvent(event_type="status", data={"message": "音声認識中"}))
 
         elif stt_event.event_type == RecognitionEventType.SPEECH_ENDED:
-            logger.debug("[CORE] 音声区間終了")
+            logger.debug("[CORE] User speech segment ended")
             self.user_speaking = False
 
         elif stt_event.event_type == RecognitionEventType.PARTIAL_TRANSCRIPT:
-            logger.debug("[CORE] 認識中... %s", stt_event.text)
+            logger.debug("[CORE] Recognizing speech... %s", stt_event.text)
             self._emit_event(DialogueEvent(event_type="status", data={"message": "音声認識中"}))
             logger.debug("[CORE] STT->CORE system_speaking: %s, is_final_response: %s, tts_cancel_queue: %s, _barge_in_sent: %s", self.system_speaking, self.is_final_response, tts_cancel_queue, self._barge_in_sent)
             if (
@@ -165,13 +172,16 @@ class CoreDialogueEngine:
                 and tts_cancel_queue is not None
                 and not self._barge_in_sent
             ):
+                logger.info("[CORE] barge-in detected")
                 tts_cancel_queue.put("cancel")
+                if set_tts_cancel_requested is not None:
+                    set_tts_cancel_requested(True)
                 self._barge_in_sent = True
-                logger.info("[CORE] CORE->TTS cancel 送信（★barge-in）")
+                logger.info("[CORE] CORE->TTS cancel sent")
 
         elif stt_event.event_type == RecognitionEventType.FINAL_TRANSCRIPT:
             text = stt_event.text.strip()
-            logger.info("[CORE] STT->CORE final: ★ %s", text)
+            logger.info("[CORE] STT->CORE final: %s", text)
             self._emit_event(DialogueEvent(event_type="status", data={"message": "応答生成中"}))
             self.user_speaking = False
             self.user_waiting = False
@@ -192,7 +202,9 @@ class CoreDialogueEngine:
             self._pending_user_aux_data = {}
             if tts_cancel_queue is not None and not self.is_final_response:
                 tts_cancel_queue.put("cancel")
-                logger.debug("[CORE] CORE->TTS cancel 冪等送信")
+                if set_tts_cancel_requested is not None:
+                    set_tts_cancel_requested(True)
+                logger.debug("[CORE] CORE->TTS: idempotent transmission of cancel order")
             self._emit_event(DialogueEvent(event_type="chat", data={"role": "user", "text": text}))
 
         elif stt_event.event_type == RecognitionEventType.AUX_DATA:
@@ -214,8 +226,8 @@ class CoreDialogueEngine:
         stt_enabled_event: Event,
     ) -> None:
         """DialBB 応答を処理"""
-        logger.info("[CORE] CORE<-DialBB 応答受信")
-        logger.debug("[CORE] DialBB応答: %s", dialbb_response.system_text)
+        logger.info("[CORE] CORE<-DialBB: response received")
+        logger.debug("[CORE] DialBB response: %s", dialbb_response.system_text)
         self.session_id = dialbb_response.session_id
         if dialbb_response.is_final:
             self.is_final_response = True
@@ -225,8 +237,8 @@ class CoreDialogueEngine:
             logger.debug("[CORE] 対話停止中のため DialBB 応答を破棄します。")
             return
 
-        if self.user_speaking and self.system_speaking:
-            logger.debug("[CORE] バージイン中のため DialBB 応答を無視します。")
+        if self.user_speaking:
+            logger.debug("[CORE] User is speaking, so the DialBB response is ignored.")
             return
 
         system_text = dialbb_response.system_text.strip()
@@ -326,6 +338,7 @@ class CoreDialogueEngine:
         stop_event: Event,
         command_queue: Queue,
         tts_cancel_queue: Optional[Queue] = None,
+        set_tts_cancel_requested: Optional[Callable[[bool], None]] = None,
         loop_period: float = 0.1,
         max_user_wait_time: float = 30.0,
     ) -> None:
@@ -348,6 +361,7 @@ class CoreDialogueEngine:
                             conversation_active_event,
                             stt_enabled_event,
                             tts_cancel_queue,
+                            set_tts_cancel_requested,
                         )
                     elif cmd == "end":
                         self.process_end_command(
@@ -359,6 +373,7 @@ class CoreDialogueEngine:
                             conversation_active_event,
                             stt_enabled_event,
                             tts_cancel_queue,
+                            set_tts_cancel_requested,
                         )
                 except Empty:
                     pass
@@ -374,6 +389,7 @@ class CoreDialogueEngine:
                         conversation_active_event,
                         dialbb_request_queue,
                         tts_cancel_queue,
+                        set_tts_cancel_requested,
                     )
 
                 # 3. DialBB 応答処理
