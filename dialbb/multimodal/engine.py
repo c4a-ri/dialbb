@@ -18,7 +18,7 @@ from dialbb.util.logger import get_logger
 from .core import CoreDialogueEngine, DialogueEvent
 from .asr.google_stt_client import run_stt_worker
 from .main.dialbb_client import run_dialbb_worker
-from .tts.speech_synthesizer import run_tts_worker
+from .tts.speech_synthesizer import run_tts_worker, split_tts_segments
 
 logger = get_logger(__name__)
 
@@ -100,18 +100,19 @@ class DialogueEngineManager:
         settings: Settings,
         event_callback: Optional[Callable[[str, DialogueEvent], None]] = None,
         tts_audio_callback: Optional[Callable[[str, int, int, bytes], bool]] = None,
+        tts_stop_callback: Optional[Callable[[str, str, int], None]] = None,
     ) -> None:
 
         self._settings = settings
         self.sessions: dict[str, DialogueSession] = {}
         self.event_callback = event_callback
         self.tts_audio_callback = tts_audio_callback
+        self.tts_stop_callback = tts_stop_callback
         self._lock = threading.Lock()
 
     @staticmethod
     def _split_tts_segments(text: str) -> list[str]:
-        normalized = text.strip()
-        return [normalized] if normalized else []
+        return split_tts_segments(text)
 
     def create_session(self) -> str:
         """Create a new session and return its session_id."""
@@ -541,6 +542,7 @@ class DialogueEngineManager:
             session.current_tts_played_segments.clear()
             session.tts_cancel_requested = False
             session.system_speaking = True
+            session.tts_state_lock.notify_all()
             return session.current_tts_utterance_id
 
     def set_tts_cancel_requested(self, session_id: str, requested: bool) -> bool:
@@ -549,10 +551,23 @@ class DialogueEngineManager:
         if not session:
             return False
         with session.tts_state_lock:
+            was_requested = session.tts_cancel_requested
+            utterance_id = session.current_tts_utterance_id
             session.tts_cancel_requested = requested
             if requested:
                 session.system_speaking = False
+            session.tts_state_lock.notify_all()
+        if requested and not was_requested and self.tts_stop_callback is not None:
+            self.tts_stop_callback(session_id, "cancel", utterance_id)
         return True
+
+    def get_current_tts_utterance_id(self, session_id: str) -> int:
+        """Return the current utterance id for the session, or 0 if none exists."""
+        session = self.sessions.get(session_id)
+        if not session:
+            return 0
+        with session.tts_state_lock:
+            return session.current_tts_utterance_id
 
     def is_tts_cancel_requested(self, session_id: str) -> bool:
         """Return the current TTS send suppression state."""

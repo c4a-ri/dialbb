@@ -29,12 +29,10 @@ from .engine import DialogueEngineManager, Settings
 from .tts.speech_synthesizer import (
     TTS_AUDIO_FORMAT,
     TTS_SAMPLE_RATE_HZ,
-    split_tts_audio_chunks,
     split_tts_segments,
 )
 
 logger = get_logger(__name__)
-TTS_CHUNK_BUFFER_WINDOW = 3
 
 @dataclass
 class SessionConnections:
@@ -139,8 +137,15 @@ def create_app(
                 logger.info(f"[SERVER] user audio log flushed on final transcript: session=%s", session_id)
         logger.debug("[SERVER] Event handled: session=%s, type=%s", session_id, event.event_type)
 
+    def on_tts_stop(session_id: str, reason: str, utterance_id: int) -> None:
+        session_hub.emit_from_thread(
+            session_id,
+            "stop_audio",
+            {"reason": reason, "utterance_id": utterance_id},
+        )
+
     def on_tts_audio(session_id: str, segment_index: int, segment_count: int, audio_bytes: bytes) -> bool:
-        """Send synthesized speech in buffered 100ms chunks and wait for final playback."""
+        """Send each synthesized TTS segment as one audio payload and wait for playback."""
         if engine_manager.is_tts_cancel_requested(session_id):
             logger.debug(
                 "[SERVER] TTS audio dropped by cancel flag: session=%s segment=%d/%d bytes=%d",
@@ -150,8 +155,7 @@ def create_app(
                 len(audio_bytes),
             )
             return False
-        audio_chunks = split_tts_audio_chunks(audio_bytes)
-        if not audio_chunks:
+        if not audio_bytes:
             logger.warning("[SERVER] empty TTS audio ignored: session=%s", session_id)
             return False
 
@@ -160,97 +164,68 @@ def create_app(
         if session:
             with session.tts_state_lock:
                 utterance_id = session.current_tts_utterance_id
-                session.current_tts_total_segments = len(audio_chunks)
+                session.current_tts_total_segments = segment_count
 
-        total_chunks = len(audio_chunks)
-        for chunk_index, chunk_bytes in enumerate(audio_chunks, start=1):
-            if engine_manager.is_tts_cancel_requested(session_id):
-                logger.info(
-                    "[SERVER] cancel detected, stop sending remaining chunks: session=%s utterance=%s next_chunk=%d/%d",
-                    session_id,
-                    utterance_id,
-                    chunk_index,
-                    total_chunks,
-                )
-                return False
-
-            engine_manager.record_system_audio_chunk(
-                session_id,
-                chunk_bytes,
-                utterance_id,
-                chunk_index,
-                total_chunks,
-                audio_format=TTS_AUDIO_FORMAT,
-                sample_rate=TTS_SAMPLE_RATE_HZ,
-            )
-            audio_b64 = base64.b64encode(chunk_bytes).decode("utf-8")
-            session_hub.emit_from_thread(
-                session_id,
-                "audio_data",
-                {
-                    "audio": audio_b64,
-                    "format": TTS_AUDIO_FORMAT,
-                    "utterance_id": utterance_id,
-                    "segment_index": chunk_index,
-                    "segment_count": total_chunks,
-                },
-            )
-            logger.debug(
-                "[SERVER] TTS audio emitted: session=%s utterance=%s chunk=%d/%d bytes=%d",
+        if engine_manager.is_tts_cancel_requested(session_id):
+            logger.info(
+                "[SERVER] cancel detected, drop segment before emit: session=%s utterance=%s segment=%d/%d",
                 session_id,
                 utterance_id,
-                chunk_index,
-                total_chunks,
-                len(chunk_bytes),
+                segment_index,
+                segment_count,
             )
+            return False
 
-            ack_target = chunk_index - TTS_CHUNK_BUFFER_WINDOW
-            if ack_target <= 0:
-                continue
-
-            if not engine_manager.wait_for_tts_segment_playback_done(
-                session_id,
-                utterance_id,
-                ack_target,
-            ):
-                logger.info(
-                    "[SERVER] playback wait interrupted: session=%s utterance=%s chunk=%d/%d ack_target=%d",
-                    session_id,
-                    utterance_id,
-                    chunk_index,
-                    total_chunks,
-                    ack_target,
-                )
-                return False
-
-            logger.debug(
-                "[SERVER] buffered playback ack confirmed: session=%s utterance=%s chunk=%d/%d ack_target=%d",
-                session_id,
-                utterance_id,
-                chunk_index,
-                total_chunks,
-                ack_target,
-            )
+        engine_manager.record_system_audio_chunk(
+            session_id,
+            audio_bytes,
+            utterance_id,
+            segment_index,
+            segment_count,
+            audio_format=TTS_AUDIO_FORMAT,
+            sample_rate=TTS_SAMPLE_RATE_HZ,
+        )
+        audio_b64 = base64.b64encode(audio_bytes).decode("utf-8")
+        session_hub.emit_from_thread(
+            session_id,
+            "audio_data",
+            {
+                "audio": audio_b64,
+                "format": TTS_AUDIO_FORMAT,
+                "utterance_id": utterance_id,
+                "segment_index": segment_index,
+                "segment_count": segment_count,
+            },
+        )
+        logger.debug(
+            "[SERVER] TTS audio emitted: session=%s utterance=%s segment=%d/%d bytes=%d",
+            session_id,
+            utterance_id,
+            segment_index,
+            segment_count,
+            len(audio_bytes),
+        )
 
         if not engine_manager.wait_for_tts_segment_playback_done(
             session_id,
             utterance_id,
-            total_chunks,
+            segment_index,
         ):
             logger.info(
-                "[SERVER] final playback wait interrupted: session=%s utterance=%s final_chunk=%d/%d",
+                "[SERVER] playback wait interrupted: session=%s utterance=%s segment=%d/%d",
                 session_id,
                 utterance_id,
-                total_chunks,
-                total_chunks,
+                segment_index,
+                segment_count,
             )
             return False
 
         logger.debug(
-            "[SERVER] final playback ack confirmed: session=%s utterance=%s total_chunks=%d",
+            "[SERVER] playback ack confirmed: session=%s utterance=%s segment=%d/%d",
             session_id,
             utterance_id,
-            total_chunks,
+            segment_index,
+            segment_count,
         )
         return True
 
@@ -258,6 +233,7 @@ def create_app(
         settings=settings,
         event_callback=on_event,
         tts_audio_callback=cast(Any, on_tts_audio),
+        tts_stop_callback=on_tts_stop,
     )
     app.state.engine_manager = engine_manager
     app.state.session_hub = session_hub
@@ -334,7 +310,7 @@ def create_app(
                 if action == "start_dialogue":
                     await _handle_start_dialogue(websocket, engine_manager, session_id, settings)
                 elif action == "end_dialogue":
-                    await _handle_end_dialogue(websocket, engine_manager, session_id)
+                    await _handle_end_dialogue(websocket, engine_manager, session_hub, session_id)
                 elif action == "cancel_tts":
                     _request_tts_cancel(engine_manager, session_id)
                     logger.info("[WEBSOCKET] TTS cancel requested: session=%s", session_id)
@@ -391,6 +367,12 @@ def create_app(
                         total_segments,
                         system_speaking,
                     )
+                elif action == "stop_audio_done":
+                    logger.debug(
+                        "[WEBSOCKET] stop audio ack: session=%s reason=%s",
+                        session_id,
+                        payload.get("reason"),
+                    )
                 else:
                     await websocket.send_json(
                         {"event": "error", "payload": {"message": "Unsupported action"}}
@@ -430,8 +412,17 @@ async def _handle_start_dialogue(
 async def _handle_end_dialogue(
     websocket: WebSocket,
     engine_manager: DialogueEngineManager,
+    session_hub: WebSocketSessionHub,
     session_id: str,
 ) -> None:
+    session_hub.emit_from_thread(
+        session_id,
+        "stop_audio",
+        {
+            "reason": "end_dialogue",
+            "utterance_id": engine_manager.get_current_tts_utterance_id(session_id),
+        },
+    )
     success = engine_manager.stop_session(session_id)
     if not success:
         await websocket.send_json(

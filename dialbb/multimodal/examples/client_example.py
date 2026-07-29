@@ -6,6 +6,7 @@ import signal
 import sys
 import argparse
 import wave
+from dataclasses import dataclass
 
 import pyaudio
 import websockets
@@ -15,7 +16,6 @@ RATE = 16000
 CHANNELS = 1
 FORMAT = pyaudio.paInt16
 CHUNK = 1600
-PLAYBACK_PRIME_CHUNKS = 1   # Number of audio chunks to buffer before playback to reduce latency
 
 AUX_DATA_DEBUG = {
     "debug": True,
@@ -25,6 +25,19 @@ AUX_DATA_DEBUG = {
 running = True
 
 
+@dataclass
+class PlaybackState:
+    generation: int = 0
+    stop_reason: str = "cancel"
+    stopped_utterance_id: int = 0
+
+
+def request_playback_stop(playback_state: PlaybackState, reason: str, utterance_id: int = 0) -> None:
+    playback_state.generation += 1
+    playback_state.stop_reason = reason or "cancel"
+    playback_state.stopped_utterance_id = max(playback_state.stopped_utterance_id, utterance_id)
+
+
 def signal_handler(sig, frame):
     global running
     running = False
@@ -32,6 +45,10 @@ def signal_handler(sig, frame):
 
 
 signal.signal(signal.SIGINT, signal_handler)
+
+
+def log_client(message: str) -> None:
+    print(f"[CLIENT] {message}", flush=True)
 
 
 # sends a message over the WebSocket connection in a thread-safe manner. It uses an asyncio lock to ensure that only one send operation occurs at a time, preventing
@@ -52,11 +69,13 @@ def print_aux_data(message: dict) -> None:
 
 
 # continuously reads audio data from the microphone, encodes it in base64, and sends it to the server over the WebSocket connection. It uses a lock to ensure that only one send operation occurs at a time, preventing potential race conditions.
-async def send_microphone(websocket, send_lock, mic):
+async def send_microphone(websocket, send_lock, mic, playback_state):
     global running
+    del playback_state
 
     while running:
         pcm = mic.read(CHUNK, exception_on_overflow=False)
+
         message = {
             "action": "send_audio_chunk",
             "audio_data": base64.b64encode(pcm).decode("utf-8"),
@@ -64,7 +83,6 @@ async def send_microphone(websocket, send_lock, mic):
         }
         await safe_send(websocket, send_lock, message)
         await asyncio.sleep(0)
-
 
 # notifies the server that a TTS segment has finished playing. It sends a message with the utterance ID, segment index, and segment count to inform the server that the playback of the specified segment is complete.
 async def send_tts_segment_playback_done(
@@ -86,6 +104,52 @@ async def send_tts_segment_playback_done(
             "aux_data": AUX_DATA_DEBUG,
         },
     )
+    log_client(
+        f"playback_done sent: utterance={utterance_id} segment={segment_index}/{segment_count}"
+    )
+
+
+async def send_stop_audio_done(websocket, send_lock, reason: str) -> None:
+    await safe_send(
+        websocket,
+        send_lock,
+        {
+            "action": "stop_audio_done",
+            "reason": reason,
+            "aux_data": AUX_DATA_DEBUG,
+        },
+    )
+    log_client(f"stop_audio_done sent: reason={reason}")
+
+
+async def handle_stop_audio_control(websocket, send_lock, playback_queue, playback_state) -> None:
+    preserved_items = []
+    dropped_items = 0
+    while True:
+        try:
+            queued_item = playback_queue.get_nowait()
+        except asyncio.QueueEmpty:
+            break
+        if queued_item is None:
+            preserved_items.append(None)
+            break
+        if queued_item.get("_control") == "stop_audio":
+            continue
+        if int(queued_item.get("utterance_id") or 0) <= playback_state.stopped_utterance_id:
+            dropped_items += 1
+            continue
+        preserved_items.append(queued_item)
+
+    for queued_item in preserved_items:
+        await playback_queue.put(queued_item)
+
+    log_client(
+        "stop_audio handled: "
+        f"reason={playback_state.stop_reason} stopped_utterance={playback_state.stopped_utterance_id} "
+        f"preserved={len(preserved_items)} dropped={dropped_items}"
+    )
+
+    await send_stop_audio_done(websocket, send_lock, playback_state.stop_reason)
 
 
 # decodes a WAV audio payload from bytes and returns the raw PCM audio data. It uses the wave module to read the WAV file format and extract the audio frames.
@@ -95,8 +159,22 @@ def decode_wav_payload(wav_bytes: bytes) -> bytes:
         return wav_file.readframes(wav_file.getnframes())
 
 
+def play_pcm_interruptible(
+    output_stream,
+    pcm_bytes: bytes,
+    playback_state: PlaybackState,
+    generation: int,
+) -> bool:
+    bytes_per_chunk = CHUNK * CHANNELS * 2
+    for offset in range(0, len(pcm_bytes), bytes_per_chunk):
+        if generation != playback_state.generation:
+            return True
+        output_stream.write(pcm_bytes[offset:offset + bytes_per_chunk])
+    return generation != playback_state.generation
+
+
 # handles the playback of audio segments received from the server. It reads audio data from a queue, decodes it, and plays it through the audio output stream. It also notifies the server when each segment has finished playing.
-async def playback_worker(websocket, send_lock, playback_queue, pa):
+async def playback_worker(websocket, send_lock, playback_queue, playback_state, pa):
     global running
 
     # Open an audio output stream for playback
@@ -119,52 +197,86 @@ async def playback_worker(websocket, send_lock, playback_queue, pa):
             if payload is None:
                 break
 
+            if payload.get("_control") == "stop_audio":
+                log_client(
+                    f"stop_audio received in playback loop: reason={payload.get('reason')} "
+                    f"utterance={int(payload.get('utterance_id') or 0)}"
+                )
+                request_playback_stop(
+                    playback_state,
+                    str(payload.get("reason") or "cancel"),
+                    int(payload.get("utterance_id") or 0),
+                )
+                output_stream.stop_stream()
+                output_stream.start_stream()
+                await handle_stop_audio_control(websocket, send_lock, playback_queue, playback_state)
+                continue
+
             # Extract segment information from the payload
+            generation = playback_state.generation
+            utterance_id = int(payload.get("utterance_id") or 0)
             segment_index = int(payload["segment_index"])
             segment_count = int(payload["segment_count"])
-            utterance_id = int(payload.get("utterance_id") or 0)
 
-            buffered = [payload]
-            # Buffer additional segments if available, up to PLAYBACK_PRIME_CHUNKS
-            for _ in range(PLAYBACK_PRIME_CHUNKS - 1):
-                try:
-                    # Wait for the next payload with a short timeout to avoid blocking indefinitely
-                    next_payload = await asyncio.wait_for(playback_queue.get(), timeout=0.03)
-                except asyncio.TimeoutError:
-                    break
-                if next_payload is None:
-                    break
-
-                # Check if the next payload belongs to the same utterance and is the next segment
-                buffered.append(next_payload)
-
-            # Play the buffered audio segments in order
-            for item in buffered:
-                if not running:
-                    break
-
-                # Decode the base64-encoded WAV audio data and convert it to PCM bytes
-                wav_bytes = base64.b64decode(item["audio"])
-                pcm_bytes = decode_wav_payload(wav_bytes)
-
-                # Play the PCM audio data in a separate thread to avoid blocking the event loop
-                await asyncio.to_thread(output_stream.write, pcm_bytes)
-
-                # Notify the server that the TTS segment playback is done
-                await send_tts_segment_playback_done(
-                    websocket,
-                    send_lock,
-                    int(item.get("utterance_id") or 0),
-                    int(item["segment_index"]),
-                    int(item["segment_count"]),
+            if utterance_id <= playback_state.stopped_utterance_id:
+                log_client(
+                    f"audio skipped as stopped: utterance={utterance_id} segment={segment_index}/{segment_count} "
+                    f"stopped_utterance={playback_state.stopped_utterance_id}"
                 )
+                continue
+
+            if int(payload.get("_generation", generation)) != generation:
+                log_client(
+                    f"audio skipped as stale generation: utterance={utterance_id} "
+                    f"segment={segment_index}/{segment_count} payload_generation={payload.get('_generation')} "
+                    f"current_generation={generation}"
+                )
+                continue
+
+            # Decode the base64-encoded WAV audio data and convert it to PCM bytes
+            wav_bytes = base64.b64decode(payload["audio"])
+            pcm_bytes = decode_wav_payload(wav_bytes)
+            log_client(
+                f"playback start: utterance={utterance_id} segment={segment_index}/{segment_count} "
+                f"wav_bytes={len(wav_bytes)} pcm_bytes={len(pcm_bytes)} generation={generation}"
+            )
+
+            interrupted = await asyncio.to_thread(
+                play_pcm_interruptible,
+                output_stream,
+                pcm_bytes,
+                playback_state,
+                generation,
+            )
+
+            if generation != playback_state.generation or interrupted:
+                log_client(
+                    f"playback interrupted: utterance={utterance_id} segment={segment_index}/{segment_count} "
+                    f"start_generation={generation} current_generation={playback_state.generation}"
+                )
+                output_stream.stop_stream()
+                output_stream.start_stream()
+                continue
+
+            log_client(
+                f"playback finished: utterance={utterance_id} segment={segment_index}/{segment_count}"
+            )
+
+            # Notify the server that the TTS segment playback is done
+            await send_tts_segment_playback_done(
+                websocket,
+                send_lock,
+                utterance_id,
+                segment_index,
+                segment_count,
+            )
     finally:
         output_stream.stop_stream()
         output_stream.close()
 
 
 # handles incoming messages from the server over the WebSocket connection. It processes different types of events, such as audio data, session join notifications, and error messages. Audio data is added to a playback queue for processing by the playback worker.
-async def receiver(websocket, playback_queue):
+async def receiver(websocket, playback_queue, playback_state):
     global running
 
     while running:
@@ -175,15 +287,54 @@ async def receiver(websocket, playback_queue):
         if event == "audio_data":
             # Add the received audio data payload to the playback queue for processing by the playback worker
             print_aux_data(message)
-            await playback_queue.put(message["payload"])
+            payload = dict(message["payload"])
+            log_client(
+                f"event audio_data: utterance={int(payload.get('utterance_id') or 0)} "
+                f"segment={int(payload.get('segment_index') or 0)}/{int(payload.get('segment_count') or 0)} "
+                f"wav_bytes={len(base64.b64decode(payload['audio']))} current_generation={playback_state.generation}"
+            )
+            if int(payload.get("utterance_id") or 0) <= playback_state.stopped_utterance_id:
+                log_client(
+                    f"audio_data dropped before queue: utterance={int(payload.get('utterance_id') or 0)} "
+                    f"stopped_utterance={playback_state.stopped_utterance_id}"
+                )
+                continue
+            payload["_generation"] = playback_state.generation
+            await playback_queue.put(payload)
+            log_client(
+                f"audio queued: utterance={int(payload.get('utterance_id') or 0)} "
+                f"segment={int(payload.get('segment_index') or 0)}/{int(payload.get('segment_count') or 0)} "
+                f"queue_size={playback_queue.qsize()} generation={payload['_generation']}"
+            )
+        elif event == "stop_audio":
+            print_aux_data(message)
+            log_client(
+                f"event stop_audio: reason={message.get('payload', {}).get('reason')} "
+                f"utterance={int(message.get('payload', {}).get('utterance_id') or 0)}"
+            )
+            request_playback_stop(
+                playback_state,
+                str(message.get("payload", {}).get("reason") or "cancel"),
+                int(message.get("payload", {}).get("utterance_id") or 0),
+            )
+            await playback_queue.put(
+                {
+                    "_control": "stop_audio",
+                    "reason": playback_state.stop_reason,
+                    "utterance_id": playback_state.stopped_utterance_id,
+                }
+            )
         elif event == "joined_session":
             print_aux_data(message)
             print("joined:", message["payload"]["session_id"], flush=True)
+            log_client(f"joined session: {message['payload']['session_id']}")
         elif event == "error":
             print_aux_data(message)
             print("error:", message["payload"]["message"], flush=True)
+            log_client(f"event error: {message['payload']['message']}")
         else:
             print_aux_data(message)
+            log_client(f"event {event}: {json.dumps(message.get('payload', {}), ensure_ascii=False)}")
 
 
 # runs the WebSocket client, connecting to the server and managing the microphone input, audio playback, and message handling. It sets up tasks for sending microphone data, receiving messages, and playing back audio segments.
@@ -204,6 +355,7 @@ async def run_client(session_id: str, server_url: str = "ws://localhost:5000") -
     )
 
     playback_queue = asyncio.Queue()
+    playback_state = PlaybackState()
     send_lock = asyncio.Lock()
 
     try:
@@ -226,9 +378,11 @@ async def run_client(session_id: str, server_url: str = "ws://localhost:5000") -
             )
 
             # Create tasks for sending microphone data, receiving messages, and playing back audio segments
-            send_task = asyncio.create_task(send_microphone(websocket, send_lock, mic))
-            recv_task = asyncio.create_task(receiver(websocket, playback_queue))
-            play_task = asyncio.create_task(playback_worker(websocket, send_lock, playback_queue, pa))
+            send_task = asyncio.create_task(send_microphone(websocket, send_lock, mic, playback_state))
+            recv_task = asyncio.create_task(receiver(websocket, playback_queue, playback_state))
+            play_task = asyncio.create_task(
+                playback_worker(websocket, send_lock, playback_queue, playback_state, pa)
+            )
 
             try:
                 while running:
