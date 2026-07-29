@@ -5,6 +5,9 @@ import json
 import signal
 import sys
 import argparse
+import urllib.error
+import urllib.parse
+import urllib.request
 import wave
 from dataclasses import dataclass
 
@@ -49,6 +52,64 @@ signal.signal(signal.SIGINT, signal_handler)
 
 def log_client(message: str) -> None:
     print(f"[CLIENT] {message}", flush=True)
+
+
+def to_http_base_url(server_url: str) -> str:
+    parsed = urllib.parse.urlparse(server_url)
+    scheme = parsed.scheme.lower()
+    if scheme == "ws":
+        target_scheme = "http"
+    elif scheme == "wss":
+        target_scheme = "https"
+    elif scheme in {"http", "https"}:
+        target_scheme = scheme
+    else:
+        raise ValueError(f"Unsupported server URL scheme: {server_url}")
+
+    netloc = parsed.netloc or parsed.path
+    if not netloc:
+        raise ValueError(f"Invalid server URL: {server_url}")
+    return f"{target_scheme}://{netloc}"
+
+
+def to_ws_base_url(server_url: str) -> str:
+    parsed = urllib.parse.urlparse(server_url)
+    scheme = parsed.scheme.lower()
+    if scheme == "http":
+        target_scheme = "ws"
+    elif scheme == "https":
+        target_scheme = "wss"
+    elif scheme in {"ws", "wss"}:
+        target_scheme = scheme
+    else:
+        raise ValueError(f"Unsupported server URL scheme: {server_url}")
+
+    netloc = parsed.netloc or parsed.path
+    if not netloc:
+        raise ValueError(f"Invalid server URL: {server_url}")
+    return f"{target_scheme}://{netloc}"
+
+
+def looks_like_server_url(value: str) -> bool:
+    return "://" in value
+
+
+def create_session_id(server_url: str) -> str:
+    http_base_url = to_http_base_url(server_url)
+    request = urllib.request.Request(
+        f"{http_base_url}/sessions",
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request) as response:
+            payload = json.load(response)
+    except urllib.error.URLError as exc:
+        raise RuntimeError(f"Failed to create session via {http_base_url}/sessions: {exc}") from exc
+
+    session_id = str(payload.get("session_id") or "").strip()
+    if not session_id:
+        raise RuntimeError("Server response did not include session_id")
+    return session_id
 
 
 # sends a message over the WebSocket connection in a thread-safe manner. It uses an asyncio lock to ensure that only one send operation occurs at a time, preventing
@@ -339,7 +400,8 @@ async def receiver(websocket, playback_queue, playback_state):
 
 # runs the WebSocket client, connecting to the server and managing the microphone input, audio playback, and message handling. It sets up tasks for sending microphone data, receiving messages, and playing back audio segments.
 async def run_client(session_id: str, server_url: str = "ws://localhost:5000") -> None:
-    ws_url = f"{server_url}/dialogue/ws/{session_id}"
+    ws_base_url = to_ws_base_url(server_url)
+    ws_url = f"{ws_base_url}/dialogue/ws/{session_id}"
     print(f"Connecting to {ws_url}...", flush=True)
 
     # Initialize PyAudio for microphone input
@@ -418,7 +480,7 @@ async def run_client(session_id: str, server_url: str = "ws://localhost:5000") -
 
 async def main():
     parser = argparse.ArgumentParser(description="WebSocket client example")
-    parser.add_argument("session_id", help="Session ID")
+    parser.add_argument("session_id", nargs="?", help="Session ID")
     parser.add_argument("server_url", nargs="?", default="ws://localhost:5000",
         help="WebSocket server URL (default: %(default)s)"
     )
@@ -426,6 +488,16 @@ async def main():
 
     session_id = args.session_id
     server_url = args.server_url
+
+    if session_id and looks_like_server_url(session_id) and server_url == parser.get_default("server_url"):
+        server_url = session_id
+        session_id = None
+
+    if not session_id:
+        session_id = await asyncio.to_thread(create_session_id, server_url)
+        print(f"Created session: {session_id}", flush=True)
+        log_client(f"session created automatically: {session_id}")
+
     await run_client(session_id, server_url)
 
 
