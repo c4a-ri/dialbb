@@ -333,8 +333,8 @@ sequenceDiagram
 
 ### 送受信メッセージの観点
 
-- クライアント -> サーバ: `{"action": "start_dialogue" | "end_dialogue" | "send_audio_chunk" | "cancel_tts" | "tts_segment_playback_done", ...}`
-- サーバ -> クライアント: `{"event": "joined_session" | "system_message" | "audio_data" | "error", "payload": {...}}`
+- クライアント -> サーバ: `{"action": "start_dialogue" | "end_dialogue" | "send_audio_chunk" | "cancel_tts" | "tts_segment_playback_done" | "stop_audio_done", ...}`
+- サーバ -> クライアント: `{"event": "joined_session" | "audio_data" | "stop_audio" | "error", "payload": {...}}`
 
 ---
 

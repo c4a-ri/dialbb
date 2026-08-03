@@ -301,7 +301,10 @@
                         message.payload.segment_count,
                     );
                     log(`🔊 音声データ受信 (${message.payload.segment_index}/${message.payload.segment_count})`);
+                    log(`🔊 音声データ受信 (utterance=${message.payload.utterance_id})`);
                     log(`★ aux_data: ${JSON.stringify(message.payload.aux_data)}`);
+                } else if (message.event === 'stop_audio') {
+                    stopTtsPlayback(message.payload.reason || 'cancel');
                 } else if (message.event === 'joined_session') {
                     log(`✓ Joined session: ${message.payload.session_id}`);
                 } else if (message.event === 'error') {
@@ -518,7 +521,9 @@
         let ttsScheduling = false;
         let ttsScheduledSourceCount = 0;
         let ttsNextStartTime = 0;
-        let ttsCurrentSource = null;
+        let ttsPlaybackGeneration = 0;
+        const ttsActiveSources = new Set();
+        const TTS_SCHEDULE_HEADROOM_SECONDS = 0.12;
         const ttsCtx = new (window.AudioContext || window.webkitAudioContext)();
 
         function enqueueAudio(base64Audio, format, utteranceId, segmentIndex, segmentCount) {
@@ -530,6 +535,33 @@
                 segmentCount,
             });
             if (!ttsScheduling) void drainTtsQueue();
+        }
+
+        function stopTtsPlayback(reason = 'cancel') {
+            ttsPlaybackGeneration += 1;
+            ttsQueue.length = 0;
+            ttsNextStartTime = 0;
+            ttsPlaying = false;
+            ttsScheduling = false;
+            ttsScheduledSourceCount = 0;
+
+            for (const src of ttsActiveSources) {
+                src.onended = null;
+                try {
+                    src.stop();
+                } catch (err) {
+                    console.warn('Failed to stop source', err);
+                }
+            }
+            ttsActiveSources.clear();
+
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({
+                    action: 'stop_audio_done',
+                    reason,
+                }));
+            }
+            log(`⏹️ 音声停止 (${reason})`);
         }
 
         async function drainTtsQueue() {
@@ -544,11 +576,13 @@
 
             ttsScheduling = true;
             ttsPlaying = true;
+            const playbackGeneration = ttsPlaybackGeneration;
             try {
                 // ttsCtx が suspended の場合は再開（iOS Safari 対策）
                 if (ttsCtx.state === 'suspended') await ttsCtx.resume();
 
                 while (ttsQueue.length > 0) {
+                    if (playbackGeneration !== ttsPlaybackGeneration) break;
                     const item = ttsQueue.shift();
                     try {
                         const binary = atob(item.audio);
@@ -556,20 +590,23 @@
                         for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
 
                         const audioBuf = await ttsCtx.decodeAudioData(bytes.buffer.slice(0));
+                        if (playbackGeneration !== ttsPlaybackGeneration) break;
                         const src = ttsCtx.createBufferSource();
                         src.buffer = audioBuf;
                         src.connect(ttsCtx.destination);
+                        ttsActiveSources.add(src);
 
-                        const startAt = Math.max(ttsCtx.currentTime + 0.02, ttsNextStartTime);
+                        const startAt = Math.max(
+                            ttsCtx.currentTime + TTS_SCHEDULE_HEADROOM_SECONDS,
+                            ttsNextStartTime,
+                        );
                         ttsNextStartTime = startAt + audioBuf.duration;
                         ttsScheduledSourceCount += 1;
-                        ttsCurrentSource = src;
 
                         src.onended = () => {
+                            ttsActiveSources.delete(src);
+                            if (playbackGeneration !== ttsPlaybackGeneration) return;
                             ttsScheduledSourceCount = Math.max(0, ttsScheduledSourceCount - 1);
-                            if (ttsCurrentSource === src) {
-                                ttsCurrentSource = null;
-                            }
                             notifyPlaybackDone(item);
                             if (ttsScheduledSourceCount === 0 && ttsQueue.length === 0) {
                                 ttsPlaying = false;

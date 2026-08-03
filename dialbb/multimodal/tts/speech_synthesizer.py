@@ -1,4 +1,5 @@
 import io
+import re
 import threading
 import wave
 from queue import Empty, Queue
@@ -18,7 +19,8 @@ _LANGUAGE_CODE = "ja-JP"
 _VOICE_NAME = "ja-JP-Neural2-B"
 TTS_AUDIO_FORMAT = "wav"
 TTS_SAMPLE_RATE_HZ = 16000
-TTS_CHUNK_MILLISECONDS = 100
+TTS_CHUNK_MILLISECONDS = 200
+TTS_MAX_SEGMENT_CHARS = 40
 _AUDIO_ENCODING: texttospeech.AudioEncoding = cast(
     texttospeech.AudioEncoding,
     texttospeech.AudioEncoding.LINEAR16,
@@ -105,9 +107,37 @@ def split_tts_audio_chunks(
 
 
 def split_tts_segments(text: str) -> list[str]:
-    """Treat the full text as a single segment for TTS synthesis."""
+    """Split text into shorter synthesis units for lower barge-in latency."""
     normalized = text.strip()
-    return [normalized] if normalized else []
+    if not normalized:
+        return []
+
+    sentence_like_units = [
+        part.strip()
+        for part in re.split(r"(?<=[。．.!?！？\n])\s*", normalized)
+        if part.strip()
+    ]
+    if not sentence_like_units:
+        sentence_like_units = [normalized]
+
+    segments: list[str] = []
+    current = ""
+    for unit in sentence_like_units:
+        if not current:
+            current = unit
+            continue
+
+        if len(current) + 1 + len(unit) <= TTS_MAX_SEGMENT_CHARS:
+            current = f"{current} {unit}"
+            continue
+
+        segments.append(current)
+        current = unit
+
+    if current:
+        segments.append(current)
+
+    return segments
 
 
 def run_tts_worker(
