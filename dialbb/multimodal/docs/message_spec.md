@@ -2,13 +2,13 @@
 
 ## 1. 目的と適用範囲
 
-本書は、マルチモーダルクライアントにおけるモジュール／スレッド間のメッセージ契約と、queue.Queue を用いた通信方式を定義する。
+本書は、マルチモーダルサーバにおけるモジュール／スレッド間のメッセージ契約と、queue.Queue を用いた通信方式を定義する。
 
 ## 1.1 基本の仕組み
 
 本モジュールは「コアエンジン + 4つのワーカースレッド」で構成される。 CoreDialogueEngine と DialogueEngineManager を中心に動作する。
 
--COREスレッド: 全体の司令塔。認識結果を受けて対話要求を作り、応答をTTSへ渡す。
+- COREスレッド: 全体の司令塔。認識結果を受けて対話要求を作り、応答をTTSへ渡す。
 - STTスレッド: 音声認識（Google STT）結果を生成する（RecognitionEvent）。
 - DialBBスレッド: DialogueProcessor を呼び出してシステム応答を生成する。
 - TTSスレッド: 音声合成（Google TTS）を実行する。
@@ -26,6 +26,7 @@ Queue はスレッド間のメッセージ受け渡し口であり、非同期�
   - tts_cancel_queue: CORE -> TTS に再生キャンセルを渡す。
 
 補足:
+
 - 現行実装には WebSocket 音声入力用の `audio_chunk_queue` と、音声ログ保存用の `audio_log_queue` がある。
 - `chat_queue` は現行の `CoreDialogueEngine` では使わず、`DialogueEvent` のコールバック経由で外部へ通知する。
 
@@ -118,7 +119,7 @@ flowchart LR
 使用Queue：stt_event_queue（STT -> CORE）
 
 | 項目 | 型 | 説明 |
-|---|---|---|
+| --- | --- | --- |
 | event_type | RecognitionEventType | イベント種別 |
 | text | str | 認識テキスト（中間／確定／エラー文） |
 | confidence | float or None | 確定認識時の信頼度 |
@@ -130,7 +131,7 @@ flowchart LR
 使用Queue：dialbb_request_queue（CORE -> DIALBB）
 
 | 項目 | 型 | 説明 |
-|---|---|---|
+| --- | --- | --- |
 | session_id | str | セッション識別子 |
 | user_text | str | ユーザ確定発話テキスト |
 | is_initial | bool | True の場合は対話開始要求（DialBB初回要求） |
@@ -141,7 +142,7 @@ flowchart LR
 使用Queue：dialbb_response_queue（DIALBB -> CORE）
 
 | 項目 | 型 | 説明 |
-|---|---|---|
+| --- | --- | --- |
 | session_id | str | セッション識別子 |
 | system_text | str | DialBB層からの応答テキスト |
 | is_final | bool | True の場合、対話の最終応答（以降のユーザー入力を受け付けない） |
@@ -152,7 +153,7 @@ flowchart LR
 使用Queue：tts_request_queue（CORE -> TTS）
 
 | 項目 | 型 | 説明 |
-|---|---|---|
+| --- | --- | --- |
 | session_id | str | セッション識別子 |
 | text | str | 合成対象テキスト |
 
@@ -161,7 +162,7 @@ flowchart LR
 使用Queue：tts_result_queue（TTS -> CORE）
 
 | 項目 | 型 | 説明 |
-|---|---|---|
+| --- | --- | --- |
 | session_id | str | セッション識別子 |
 | text | str | 合成テキスト |
 | completed | bool | 合成完了フラグ |
@@ -259,7 +260,7 @@ sequenceDiagram
 バージインが発火するのは、以下の条件をすべて満たす場合である：
 
 | 条件 | 詳細 |
-|---|---|
+| --- | --- |
 | **システム発話中** | `system_speaking == True` |
 | **ユーザー音声入力** | `partial_transcript` または `final_transcript` イベント受信 |
 | **最終応答フラグ未設定** | `is_final_response == False` |
@@ -296,7 +297,7 @@ sequenceDiagram
 ### 5.4 バージイン実装のポイント
 
 | 項目 | 説明 |
-|---|---|
+| --- | --- |
 | **重複送信防止** | `_barge_in_sent` フラグで、`partial_transcript` が複数到達しても TTS キャンセルは1回のみ送信 |
 | **冪等性** | `final_transcript` 受信時は `partial_transcript` でキャンセル済みでも再度キャンセル送信（冪等） |
 | **最終応答対応** | `is_final_response=True` 時はバージイン処理をスキップ、STT入力そのものを受け付けない |

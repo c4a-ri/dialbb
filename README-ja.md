@@ -14,6 +14,8 @@ ver. 2.0.0
 
 詳細な仕様やアプリケーションの構築法は[ドキュメント](https://c4a-ri.github.io/dialbb/document-ja/build/html/)を参照して下さい．
 
+マルチモーダルサーバの現行 API 仕様は[dialbb/multimodal/PHASE2_API.md](dialbb/multimodal/PHASE2_API.md)を参照してください．
+
 本READMEがリリース版ではない場合は，[本READMEと同じバージョンのドキュメント](docs/files/document-ja.zip)をダウンロードしてください．）また，ノーコードツールについては[本READMEと同じバージョンのノーコードツールのドキュメント](docs/no-code/index-ja.md)を参照してください．
 
 
@@ -90,7 +92,7 @@ uv が未インストールの場合は先に導入してください．
 有効化後は，たとえば以下でサーバ起動できます．
 
 ```sh
-dialbb-mm-client-server --config dialbb/multimodal/config/mm_client_config.yml
+dialbb-mm-server sample_apps/llm_dialogue_ja/config.yml
 ```
 
 ### サンプルアプリケーションのダウンロード

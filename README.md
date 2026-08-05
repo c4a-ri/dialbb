@@ -12,6 +12,8 @@ Please refer to [the project main page](https://c4a-ri.github.io/dialbb/), which
 
 Please refer to the [document](https://c4a-ri.github.io/dialbb/document-en/build/html/) for detailed specification and the way of application development. (If this README is not for a released version, please download the [document for the same version as this README](docs/files/document-en.zip).)
 
+For the current multimodal server API specification, see [dialbb/multimodal/PHASE2_API.md](dialbb/multimodal/PHASE2_API.md).
+
 
 ## Citation
 
@@ -95,7 +97,7 @@ If uv is not installed yet:
 After activation, you can run commands such as:
 
 ```sh
-dialbb-mm-client-server --config dialbb/multimodal/config/mm_client_config.yml
+dialbb-mm-server sample_apps/llm_dialogue_ja/config.yml
 ```
 
 ### Download the Sample Applications

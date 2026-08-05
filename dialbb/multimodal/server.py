@@ -9,21 +9,21 @@ import argparse
 import asyncio
 import base64
 import binascii
-from concurrent.futures import Future as ConcurrentFuture
-import queue
 import sys
 import threading
+from concurrent.futures import Future as ConcurrentFuture
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, cast
-from dotenv import load_dotenv
 
-import uvicorn
-import yaml
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+import uvicorn
+import yaml
 
 from dialbb.util.logger import get_logger
+
 from .core import DialogueEvent
 from .engine import DialogueEngineManager, Settings
 from .main.messages import RecognitionEvent, RecognitionEventType
@@ -151,7 +151,7 @@ def create_app(
         elif event.event_type == "chat" and event.data.get("role") == "user":
             transcript = str(event.data.get("text") or "")
             if engine_manager.flush_user_audio_log(session_id, transcript):
-                logger.info(f"[SERVER] user audio log flushed on final transcript: session=%s", session_id)
+                logger.info("[SERVER] user audio log flushed on final transcript: session=%s", session_id)
         logger.debug("[SERVER] Event handled: session=%s, type=%s", session_id, event.event_type)
 
     def on_tts_stop(session_id: str, reason: str, utterance_id: int) -> None:
@@ -474,20 +474,31 @@ async def _handle_end_dialogue(
 
 def _determine_settings(config_file: str, debug: bool, audio_logging: bool) -> Settings:
     """Load SessionConfig from a configuration file."""
+    del debug
     config_path = Path(config_file).expanduser().resolve()
-    logger.info(f"[SERVER] reading config file {config_path}")
+    logger.info("[SERVER] reading config file %s", config_path)
 
     config: dict[str, Any] = {}
     if config_path.exists():
         with config_path.open(encoding="utf-8") as config_fp:
             config = yaml.safe_load(config_fp) or {}
 
+    multimodal_config = config.get("multimodal") if isinstance(config, dict) else None
+    if not isinstance(multimodal_config, dict):
+        multimodal_config = {}
+
+    cycle = float(multimodal_config.get("cycle", config.get("cycle", 0.1)))
+    user_timeout = float(multimodal_config.get("user_timeout", config.get("user_timeout", 30.0)))
+    audio_logging_enabled = bool(
+        multimodal_config.get("audio_logging", config.get("audio_logging", False))
+    ) or audio_logging
+
     return Settings(
         config_file=config_file,
         config=config,
-        cycle=float(config.get("cycle", 0.1)),
-        user_timeout=float(config.get("user_timeout", 30.0)),
-        audio_logging=bool(config.get("audio_logging", False)),
+        cycle=cycle,
+        user_timeout=user_timeout,
+        audio_logging=audio_logging_enabled,
     )
 
 
@@ -510,7 +521,13 @@ def create_configured_app() -> FastAPI:
 def run_server(config_file: str, host: str, port: int, debug: bool, audio_logging: bool) -> None:
     """Start the server."""
 
-    logger.info("[SERVER] Starting mm_client_server on %s:%d", host, port)
+    logger.info(
+        "[SERVER] Starting mm_client_server: config=%s host=%s port=%d audio_logging=%s",
+        config_file,
+        host,
+        port,
+        audio_logging,
+    )
     uvicorn.run(
         "dialbb.multimodal.server:create_configured_app",
         host=host,

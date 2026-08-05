@@ -50,7 +50,7 @@ dialbb-mm-server <config_file> [--host HOST] [--port PORT] [--debug] [--audio_lo
 ### 3.3 引数
 
 | 引数 | 必須 | デフォルト | 説明 |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `config_file` | 必須 | なし | DialBB アプリ設定ファイルへのパス |
 | `--host` | 任意 | `0.0.0.0` | 待受ホスト |
 | `--port` | 任意 | `5000` | 待受ポート |
@@ -65,17 +65,18 @@ dialbb-mm-server <config_file> [--host HOST] [--port PORT] [--debug] [--audio_lo
 ## 4. 設定仕様
 
 サーバは `config_file` から YAML を読み込む。
-現行実装で参照されるトップレベル設定は以下のみである。
+現行実装では `multimodal` セクションを優先して参照し、後方互換としてトップレベルも参照する。
 
 | 設定キー | 型 | デフォルト | 説明 |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `cycle` | float | `0.1` | コアエンジンのループ周期 |
 | `user_timeout` | float | `30.0` | ユーザ発話待ちタイムアウト秒数 |
 | `audio_logging` | bool | `False` | 音声ログ保存の有効化 |
 
 補足:
 
-- CLI の `--audio_logging` が指定されても、現行実装では YAML の `audio_logging` 値で上書きされる
+- `multimodal` セクションが存在する場合、`cycle` / `user_timeout` / `audio_logging` は同セクション値を優先する
+- CLI の `--audio_logging` が指定された場合、設定ファイル値に加えて音声ログを強制有効化する
 - `sample_rate` は現行実装では `16000` 固定である
 - `language_code` は現行実装では `ja-JP` 固定である
 
@@ -451,7 +452,7 @@ TTS 音声セグメントを通知する。
 項目仕様:
 
 | 項目 | 型 | 説明 |
-|---|---|---|
+| --- | --- | --- |
 | `audio` | string | WAV 音声データの base64 文字列 |
 | `format` | string | 現行実装では常に `wav` |
 | `utterance_id` | integer | 発話単位の連番 |
@@ -569,7 +570,7 @@ audio_logs/{session_id}/
 - `GET /sessions` はアクティブセッションのみ返す
 - WebSocket の `cancel_tts` 失敗時は HTTP 例外がそのまま上位へ伝播しうる
 - `send_audio_chunk` の入力形式検証は最小限で、base64 として復号できるかのみを主に見ている
-- `audio_logging` の有効可否は実装上 YAML 設定値が優先される
+- `audio_logging` は設定ファイル値に加えて CLI `--audio_logging` でも有効化できる
 
 ## 12. 実装参照
 

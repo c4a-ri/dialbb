@@ -262,6 +262,12 @@ class CoreDialogueEngine:
             aux_data: dict = dict(self._pending_user_aux_data)
             if self.system_speaking and not self.is_final_response:
                 aux_data["barge_in"] = True
+            if aux_data:
+                logger.info(
+                    "[CORE] STT final aux_data: session=%s aux_data=%s",
+                    self.session_id,
+                    aux_data,
+                )
             logger.info("[CORE] CORE->DialBB 発話要求送信")
             dialbb_request_queue.put(
                 DialbbRequest(

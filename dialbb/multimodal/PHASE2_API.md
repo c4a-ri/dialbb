@@ -1,42 +1,53 @@
-# mm_client Phase 1/2 実装ガイド
+# DialBB Multimodal API Spec (Current)
 
-## 概要
+この文書は、`dialbb.multimodal.server` の現行 API 仕様をまとめたものです。
 
-Phase 1 でコアエンジンを分離し、Phase 2 で FastAPI ベースの REST + WebSocket サーバを構築しました。
+対象コード:
 
-- **dialbb.multimodal.core**: 会話状態管理（UI非依存）
-- **dialbb.multimodal.engine**: セッション・ワーカー管理（マルチセッション対応）
-- **dialbb.multimodal.server**: REST API + WebSocket（FastAPI ネイティブ）
+- `dialbb/multimodal/server.py`
+- `dialbb/multimodal/engine.py`
+- `dialbb/multimodal/core.py`
 
----
+## 1. サーバ起動
 
-## 1. インストール
+CLI エントリポイント:
 
-### 依存パッケージ
-```bash
-pip install fastapi uvicorn websockets
+```sh
+dialbb-mm-server <config_file> [--host HOST] [--port PORT] [--debug] [--audio_logging]
 ```
 
-または pyproject.toml で定義されている場合：
-```bash
-poetry install
+- `config_file`: DialBB アプリの設定ファイル。
+- `--host`: デフォルト `0.0.0.0`
+- `--port`: デフォルト `5000`
+- `--debug`: Uvicorn reload を有効化
+- `--audio_logging`: 音声ログを強制有効化
+
+起動時にカレントディレクトリの `.env` を読み込みます。
+
+## 2. 設定仕様
+
+`config_file` から YAML を読み込み、`multimodal` セクションを優先して参照します。
+後方互換として、トップレベルにも同名キーを置けます。
+
+```yaml
+multimodal:
+  audio_logging: true
+  cycle: 0.1
+  user_timeout: 10.0
 ```
 
-### エントリポイント
-```bash
-# サーバモード
-dialbb-mm-client-server --host 0.0.0.0 --port 5000 --config config/mm_client_config.yml
-```
+| キー | 型 | デフォルト | 説明 |
+| --- | --- | --- | --- |
+| `audio_logging` | bool | `false` | ユーザ音声/システム音声ログを保存 |
+| `cycle` | float | `0.1` | Core エンジンのループ周期（秒） |
+| `user_timeout` | float | `30.0` | ユーザ無音タイムアウト（秒） |
 
----
+## 3. REST API
 
-## 2. REST API
+### 3.1 `GET /health`
 
-### ヘルスチェック
-```
-GET /health
-```
-**レスポンス:**
+レスポンス:
+
 ```json
 {
   "status": "ok",
@@ -44,416 +55,227 @@ GET /health
 }
 ```
 
-### セッション作成
-```
-POST /sessions
-```
-**レスポンス (201):**
+### 3.2 `POST /sessions`
+
+新規セッションを作成します。
+
+レスポンス (201):
+
 ```json
 {
-  "session_id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  "session_id": "550e8400-e29b-41d4-a716-446655440000"
 }
 ```
 
-### セッション開始（対話開始）
-```
-POST /sessions/<session_id>/start
-```
-**レスポンス:**
+### 3.3 `POST /sessions/{session_id}/start`
+
+指定セッションを開始します。
+
+レスポンス:
+
 ```json
 {
   "status": "started"
 }
 ```
 
-### セッション停止（対話終了）
-```
-POST /sessions/<session_id>/stop
+失敗時は `400` を返します。
+
+### 3.4 `POST /sessions/{session_id}/stop`
+
+指定セッションを停止します。
+
+レスポンス:
+
+```json
+{
+  "status": "stopped"
+}
 ```
 
-### セッション削除
-```
-DELETE /sessions/<session_id>
+失敗時は `400` を返します。
+
+### 3.5 `DELETE /sessions/{session_id}`
+
+指定セッションを削除します。
+
+レスポンス:
+
+```json
+{
+  "status": "deleted"
+}
 ```
 
-### セッション一覧
-```
-GET /sessions
-```
-**レスポンス:**
+セッションが存在しない場合は `404` を返します。
+
+### 3.6 `GET /sessions`
+
+現在アクティブなセッション ID 一覧を返します。
+
 ```json
 {
   "sessions": ["session_id_1", "session_id_2"]
 }
 ```
 
----
+## 4. WebSocket API
 
-## 3. WebSocket API
+接続先:
 
-### 接続
-
-FastAPI ネイティブ WebSocket を使用します。接続先は `/dialogue/ws/{session_id}` です。
-
-```javascript
-const sessionId = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx';
-const socket = new WebSocket(`ws://localhost:5000/dialogue/ws/${sessionId}`);
-
-socket.onopen = () => {
-  console.log('Connected');
-};
-
-socket.onmessage = (event) => {
-  const message = JSON.parse(event.data);
-  console.log('Message:', message.event, message.payload);
-};
-
-socket.onerror = (error) => {
-  console.error('Error:', error.message);
-};
+```text
+/dialogue/ws/{session_id}
 ```
 
-### クライアント → サーバ（送信）
+セッションが存在しない場合は接続を拒否します。
 
-クライアントは `{ action, ...payload }` 形式で送信します。
+### 4.1 クライアント -> サーバ
 
-#### `start_dialogue`
-対話開始
-```javascript
-socket.send(JSON.stringify({
-  action: 'start_dialogue'
-}));
+メッセージ形式:
+
+```json
+{
+  "action": "...",
+  "...": "payload"
+}
 ```
 
-#### `end_dialogue`
-対話終了
-```javascript
-socket.send(JSON.stringify({
-  action: 'end_dialogue'
-}));
-```
+サポートされる `action`:
 
-#### `cancel_tts`
-TTS 再生のキャンセル要求
-```javascript
-socket.send(JSON.stringify({
-  action: 'cancel_tts'
-}));
-```
+- `start_dialogue`
+- `end_dialogue`
+- `cancel_tts`
+- `send_audio_chunk`
+- `tts_segment_playback_done`
+- `stop_audio_done`
 
 #### `send_audio_chunk`
-音声チャンク送信
-```javascript
-socket.send(JSON.stringify({
-  action: 'send_audio_chunk',
-  audio_data: '<base64 encoded PCM16>'
-}));
+
+```json
+{
+  "action": "send_audio_chunk",
+  "audio_data": "<base64 encoded PCM16>",
+  "aux_data": {"key": "value"}
+}
 ```
 
-`aux_data` を付ける場合は同時に送れます。実装では STT 側へ渡す追加情報として扱います。
+- `audio_data`: base64 の音声データ
+- `aux_data`: 任意。直後の STT 結果に紐づける追加情報
 
 #### `tts_segment_playback_done`
-音声セグメント再生完了 ack
-```javascript
-socket.send(JSON.stringify({
-  action: 'tts_segment_playback_done',
-  utterance_id: 1,
-  segment_index: 1,
-  segment_count: 2
-}));
+
+```json
+{
+  "action": "tts_segment_playback_done",
+  "utterance_id": 1,
+  "segment_index": 1,
+  "segment_count": 3
+}
 ```
 
-### サーバ → クライアント（受信）
+`utterance_id` / `segment_index` / `segment_count` は正の整数が必要です。不正値は `error` イベントで通知されます。
 
-サーバは `{ event, payload, ... }` 形式で送信します。音声専用クライアントでは、`joined_session` / `system_message` / `audio_data` / `error` を扱います。
+### 4.2 サーバ -> クライアント
 
-#### `joined_session`
-セッション参加確認（接続時に自動送信）
-```javascript
-socket.onmessage = (event) => {
-  const message = JSON.parse(event.data);
-  if (message.event === 'joined_session') {
-    console.log('Joined session:', message.payload.session_id);
-  }
-};
+送信形式:
+
+```json
+{
+  "event": "...",
+  "payload": {}
+}
 ```
+
+主な `event`:
+
+- `joined_session`
+- `system_message`
+- `audio_data`
+- `stop_audio`
+- `error`
 
 #### `system_message`
-システム発話開始通知
-```javascript
-socket.onmessage = (event) => {
-  const message = JSON.parse(event.data);
-  if (message.event === 'system_message') {
-    console.log('System message:', message.payload.text, message.payload.utterance_id);
+
+```json
+{
+  "event": "system_message",
+  "payload": {
+    "text": "...",
+    "aux_data": {},
+    "utterance_id": 12
   }
-};
+}
 ```
 
 #### `audio_data`
-システム音声セグメント送信
-```javascript
-socket.onmessage = (event) => {
-  const message = JSON.parse(event.data);
-  if (message.event === 'audio_data') {
-    console.log('Audio segment:', message.payload.utterance_id, message.payload.segment_index);
+
+```json
+{
+  "event": "audio_data",
+  "payload": {
+    "audio": "<base64>",
+    "format": "wav",
+    "utterance_id": 12,
+    "segment_index": 1,
+    "segment_count": 3,
+    "aux_data": {}
   }
-};
-```
-
-#### `error`
-エラー通知
-```javascript
-socket.onmessage = (event) => {
-  const message = JSON.parse(event.data);
-  if (message.event === 'error') {
-    console.error('Error:', message.payload.message);
-  }
-};
-```
-
-**event_type 一覧:**
-- `status`: ステータス更新（message フィールド）
-- `chat`: チャットメッセージ（role, text フィールド）
-- `final`: 対話終了
-- `error`: エラー（source, message フィールド）
-
-### クライアント実装例
-
-本リポジトリには、WebSocket を使用したクライアント実装例が用意されています。
-
-**Python クライアント:**
-```bash
-python client_example.py <session_id>
-python client_example.py 550e8400-e29b-41d4-a716-446655440000 ws://192.168.1.100:5000
-```
-→ `client_example.py`（非同期対話ループ）
-
-**JavaScript/HTML クライアント:**
-ブラウザで `client_example.html` を開くと、ウェブベースのチャットインターフェースでテストできます。
-
----
-
-## 4. スレッド・接続構成（スマホ / WebSocket 対応）
-
-FastAPI サーバでは、クライアント（スマホブラウザ／Webブラウザ）と WebSocket 接続を維持しつつ、内部の対話エンジンはワーカースレッドで動作する。
-
-```mermaid
-flowchart LR
-  subgraph Clients
-    SP[Smartphone Client]
-    WB[Web Browser Client]
-  end
-
-  subgraph ASGI
-    WS[WebSocket Endpoint]
-    HUB[WebSocket Session Hub]
-    REST[REST API]
-  end
-
-  subgraph Workers
-    CORE[Core Worker]
-    STT[STT Worker]
-    DIALBB[DialBB Worker]
-    TTS[TTS Worker]
-    QREQ[dialbb_request_queue]
-  end
-
-  SP <-->|ws json| WS
-  WB <-->|ws json| WS
-  WS --> HUB
-
-  REST -->|session control| CORE
-  WS -->|audio chunk| STT
-  WS -->|text utterance| QREQ
-  QREQ --> DIALBB
-
-  STT --> CORE
-  DIALBB --> CORE
-  TTS --> CORE
-  TTS -->|mp3 segments| WS
-
-  CORE -. dialogue event callback .-> HUB
-  HUB -. thread safe emit .-> WS
+}
 ```
 
 補足:
-- WebSocket の送受信は FastAPI のイベントループで実行。
-- 対話処理（STT/DialBB/TTS）は `DialogueEngineManager` 配下のワーカースレッドで実行。
-- スレッド側イベントは `WebSocketSessionHub.emit_from_thread()` が `asyncio.run_coroutine_threadsafe()` でイベントループに橋渡しする。
-- `audio_data` には `audio` / `format` / `utterance_id` / `segment_index` / `segment_count` が含まれ、必要に応じて `aux_data` を 1 セグメント目へ引き継ぐ。
 
-## 5. シーケンス図（スマホクライアント / WebSocket）
+- `format` は現行実装では `wav`
+- `aux_data` は必要時のみ 1 セグメント目へ引き継がれます
 
-```mermaid
-sequenceDiagram
-  participant C as Smartphone/Web Client
-  participant R as REST API
-  participant W as WebSocket Endpoint
-  participant H as WebSocketSessionHub
-  participant E as DialogueEngineManager
-  participant STT as STT Worker
-  participant CORE as Core Worker
-  participant D as DialBB Worker
-  participant T as TTS Worker
+#### `stop_audio`
 
-  C->>R: POST /sessions
-  R->>E: create_session()
-  E-->>R: session_id
-  R-->>C: 201 session_id
-
-  C->>W: connect websocket by session id
-  W->>H: connect(session_id, websocket)
-  W-->>C: joined_session event
-
-  C->>W: action start_dialogue
-  W->>E: start_session(session_id)
-
-  C->>W: action send_audio_chunk with base64 PCM16
-  W->>E: audio_chunk_queue.put(...)
-  E->>STT: audio chunk
-  STT->>CORE: RecognitionEvent(final_transcript, text)
-  CORE->>D: DialbbRequest(session_id, user_text, aux_data)
-  D->>CORE: DialbbResponse(session_id, system_text)
-  CORE->>T: TtsRequest(session_id, system_text)
-  T->>CORE: TtsResult(session_id, text, completed=True)
-
-  D->>H: emit_from_thread system_message
-  H-->>W: system_message payload
-  T->>H: emit_from_thread audio_data
-  H-->>W: audio_data payload
-
-  C->>W: action tts_segment_playback_done
-  W->>E: record_tts_segment_playback_done()
-
-  C->>W: action end_dialogue
-  W->>E: stop_session(session_id)
-  C-xW: WebSocket close
-  W->>H: disconnect(session_id, websocket)
+```json
+{
+  "event": "stop_audio",
+  "payload": {
+    "reason": "cancel",
+    "utterance_id": 12
+  }
+}
 ```
 
-### 送受信メッセージの観点
+## 5. 対話制御の要点
 
-- クライアント -> サーバ: `{"action": "start_dialogue" | "end_dialogue" | "send_audio_chunk" | "cancel_tts" | "tts_segment_playback_done" | "stop_audio_done", ...}`
-- サーバ -> クライアント: `{"event": "joined_session" | "audio_data" | "stop_audio" | "error", "payload": {...}}`
+### 5.1 バージイン
 
----
+- システム発話中に STT 側でユーザ発話が検知されると、サーバは TTS 停止を要求します。
+- クライアントには `stop_audio` を通知します。
 
-## 6. Python 内部 API
+### 5.2 セグメント再生同期
 
-### コアエンジンの直接利用
+- サーバは `audio_data` をセグメント単位で送信します。
+- 各セグメントごとに `tts_segment_playback_done` を受け取るまで次を送らない実装です。
 
-```python
-from dialbb.multimodal.core import CoreDialogueEngine, DialogueEvent
-from dialbb.multimodal.engine import DialogueEngineManager, Configurtion
+### 5.3 最終応答
 
-# 設定
-config = Configurtion(
-    dialbb_config='path/to/dialbb/config.yml',
-    stt_key_file='path/to/stt/key.json',
-    loop_period=0.1,
-    max_user_wait_time=30.0,
-)
+- DialBB が `final=true` を返した場合、最終音声の再生完了後に内部状態を終了へ遷移します。
 
+### 5.4 無音タイムアウト
 
-# エンジンマネージャを作成
-def on_event(session_id: str, event: DialogueEvent) -> None:
-    print(f"[{session_id}] {event.event_type}: {event.data}")
+- `user_timeout` 秒を超えてユーザ発話が来ない場合、`user_silence` を DialBB へ送信します。
 
+## 6. 音声ログ
 
-manager = DialogueEngineManager(config, event_callback=on_event)
+`audio_logging` が有効な場合:
 
-# セッション管理
-session_id = manager.create_session()
-manager.start_session(session_id)
-manager.stop_session(session_id)
-manager.delete_session(session_id)
-```
+- 保存先: `audio_logs/<session_id>/`
+- ユーザ音声: 発話単位で WAV 保存
+- システム音声: セグメント単位で保存
+- メタ情報: `manifest.jsonl`
 
-## 7. 設定ファイル（mm_client_config.yml）
+## 7. 既知の注意点
 
-既存のフォーマット継続：
+- `GET /sessions` は「存在する全セッション」ではなく「アクティブなセッション」を返します。
+- `service` フィールド値は `mm-client-server` です（CLI 名 `dialbb-mm-server` と文字列は異なります）。
 
-```yaml
-main:
-  loop_period: 0.1
-  max_user_wait_time: 30.0
-  audio_logging: false
-stt:
-  key_file: path/to/google-credentials.json
-```
+## 8. 参考資料
 
----
-
-## 8. 推奨される利用方法
-
-### Web UI（スマホ対応）
-1. サーバ起動:
-```bash
-dialbb-mm-client-server --config config/mm_client_config.yml
-```
-
-2. Web UI（Vue.js など）から接続:
-```javascript
-// セッション作成 → start_dialogue → send_audio_chunk
-```
-
-### バックエンド統合
-
-```python
-from dialbb.multimodal import DialogueEngineManager, Configurtion
-
-# 既存システムに組み込み
-engine_manager = DialogueEngineManager(config)
-session_id = engine_manager.create_session()
-```
-
----
-
-## 9. Phase 3 へのロードマップ
-
-### 音声ストリーム対応（WebSocket 経由）
-- `send_audio_chunk` と `tts_segment_playback_done` の両方が必要
-- STT クライアントを WebSocket 経由で動作
-- TTS 音声をクライアントへ送信
-
-### モバイル UI の完成
-- React Native / Flutter でのネイティブ化検討
-
-### パフォーマンス最適化
-- マルチセッション負荷試験
-- オートスケーリング対応
-
----
-
-## トラブルシューティング
-
-### セッションが見つからない
-```python
-# セッションが作成されているか確認
-sessions = manager.list_sessions()
-print(sessions)  # アクティブなセッション一覧
-```
-
-### WebSocket 接続エラー
-- CORS を確認: サーバ起動時に `cors_allowed_origins="*"` を設定済み
-- ファイアウォールを確認: ポート 5000 が開いているか
-
-### STT エラー
-```bash
-# Google Cloud 認証キーを確認
-echo $GOOGLE_APPLICATION_CREDENTIALS
-cat path/to/key.json
-```
-
----
-
-## まとめ
-
-Phase 1/2 で以下が実現できます：
-
-✅ **UI 非依存の会話エンジン** (core.py)  
-✅ **マルチセッション対応** (engine.py)  
-✅ **REST + WebSocket API** (server.py)  
-✅ **スマホ対応の基盤完成**
-
-次のステップ（Phase 3）は音声ストリーミング統合です。
+- 詳細仕様: `dialbb/multimodal/docs/server_spec.md`
+- ワーカ間メッセージ: `dialbb/multimodal/docs/message_spec.md`
+- 動作確認用クライアント: `dialbb/multimodal/examples/client_example.html`

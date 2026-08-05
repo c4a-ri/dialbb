@@ -1,84 +1,146 @@
-# DialBB音声マルチモーダルクライアント
+# DialBB音声マルチモーダルサーバ
 
-## 1. 全体の仕組み
-1. エントリポイント(GUI)で 4 スレッドを起動  
-MAINスレッド/STTスレッド/DialBBスレッド/TTSスレッド
-2. スレッド間は queue.Queue で非同期連携  
-	- 主な通信イメージ： STT → MAIN → DialBB → MAIN → TTS → MAIN
-	- 通信Queueには、情報受け渡しの`データQueue` と 動作指示の`制御Queue` がある
-3. GUI（Tkinter）の対話開始/対話終了で、対話状態と音声入力受付を制御  
-4. アプリ終了は GUI の終了ボタンで共通 stop_event を発行し、全スレッドを停止  
+## 概要
 
-## 1.1. 使っている技術
-- 音声認識: Google Cloud Speech-to-Text（STT） ストリーミング API  
-- 音声合成: Google Cloud Text-to-Speech (TTS) 
-- 対話エンジン接続: DialBB の DialogueProcessor を呼び出して応答を生成  
+`dialbb.multimodal` は、DialBB を音声対話用のサーバとして動かすための実装です。現行版は FastAPI ベースで、REST API によるセッション管理と WebSocket による音声対話を提供します。
 
-　※Google Cloud STT/TTSを使用するためにサービスアカウントキーが必要です。  
+内部では 1 セッションごとに以下のワーカが動作します。
 
-## 1.2. スレッド間メッセージ仕様
+- STT worker
+- DialBB worker
+- TTS worker
+- Core dialogue engine worker
+- audio log worker（`audio_logging` 有効時のみ）
 
-- Queueを用いたメッセージ通信の詳細は [メッセージ仕様](docs/message_spec.md) を参照。
+Google Cloud Speech-to-Text と Google Cloud Text-to-Speech を利用するため、実行環境では Google Cloud の認証情報が必要です。
 
-## 2. 実装ファイル
-| ファイル名 | 概要 |
-|---|---|
-| start_mm_client.py | クライアント全体の起動エントリポイント。GUIと各ワーカスレッド、Queue、Eventを初期化して実行を開始する。 |
-| main/main_module.py | メインモジュール。STT/DialBB/TTS間のメッセージを中継し、対話状態を制御する。 |
-| asr/google_stt_client.py | 音声認識ワーカ。Google Cloud STT を使ったストリーミング音声認識を担当する。 |
-| asr/audio_input.py | Websocket を使って マイク音声を非同期で取得し、PCM16のバイト列として逐次取り出す。 |
-| main/dialbb_client.py | DialBB連携ワーカー。対話開始要求時に初回応答を生成し、以降の対話を処理する。 |
-| tts/speech_synthesizer.py | 音声合成ワーカー。Google Cloud TTS で合成した音声データにする、再生キャンセルに対応。 |
-| main/messages.py | スレッド間でやり取りするメッセージ型（dataclass/enum）を定義する。 |
+## 主要モジュール
 
-## 3. 主要アーキテクチャ
-- Main ハブ型：main_module.py  
-Main がイベント集約・状態管理・ルーティングを担当し、各ワーカーは単機能化。  
-イベント監視ループは`ループ周期-処理時間`を計算し一定間隔でループするようにsleepする、stop_eventを受信した時にループは終了。ループ周期はdefault=0.1秒で設定（configで変更可）  
-- メッセージ駆動設計  ：messages.py
-dataclass と Enum でスレッド間でやり取りするデータを型として明示。  
-- Event駆動の対話制御  
-`conversation_active_event` と `stt_enabled_event` で対話状態と音声入力受付を切り替える。  
-- 非同期ポーリング処理  
-Queue の get_nowait を使ってブロックを抑えたループ実装。  
+| ファイル | 役割 |
+| --- | --- |
+| `server.py` | FastAPI アプリ本体。REST API、WebSocket 接続、クライアント向けイベント送信を担当します。 |
+| `engine.py` | セッション単位の状態を管理し、ワーカースレッドを起動・停止します。 |
+| `core.py` | 対話の状態遷移を扱うコアロジックです。UI には依存しません。 |
+| `main/dialbb_client.py` | DialBB アプリ設定ファイルを使って対話エンジンを呼び出します。 |
+| `asr/google_stt_client.py` | WebSocket で受け取った PCM16 音声を Google STT に流し、認識イベントへ変換します。 |
+| `tts/speech_synthesizer.py` | システム発話を Google TTS で合成し、セグメント単位でクライアントへ返します。 |
+| `docs/message_spec.md` | ワーカ間のメッセージ仕様です。 |
+| `docs/server_spec.md` | REST API / WebSocket API の詳細仕様です。 |
 
-## 5. インストール方法
+## 現行の処理フロー
 
-1. `pip install ./dialbb-x.x.x-py3-none-any.whl`  
-dialbb, mm_client の2つがインストールされる
-1. `pip show dialbb`  
-インストールしたdialbbのバージョンが表示されること
+1. クライアントは `POST /sessions` でセッションを作成します。
+2. クライアントは `/dialogue/ws/{session_id}` に WebSocket 接続します。
+3. `start_dialogue` または `POST /sessions/{session_id}/start` により、セッションごとのワーカ群が起動します。
+4. 音声入力は `send_audio_chunk` で base64 化した PCM16 音声として送信され、STT worker が Google STT に流します。
+5. STT の中間結果はバージイン検知に使われ、確定結果は DialBB worker に送られます。
+6. DialBB 応答を受けた Core engine は `system_message` を通知し、続けて TTS worker に合成を依頼します。
+7. TTS worker は発話テキストを短いセグメントに分割し、各セグメントを個別に合成して `audio_data` として送信します。
+8. クライアントは各音声セグメントの再生完了後に `tts_segment_playback_done` を返します。サーバはこの通知を待ってから次のセグメントを送ります。
+9. DialBB が最終応答を返した場合は、その再生完了後に `final` イベントを出して対話を終了状態へ遷移させます。
 
-### 5.1 設定ファイル（mm_client_config.yml）
-- dialbbリポジトリのテンプレート `dialbb/multimodal/config/mm_client_config.yml` を使用して作成してください
-- `config/mm_client_config.yml` があるディレクトリで起動コマンドを投入するとdefaultのConfigとして読み込みます
+### バージイン
 
-| 設定項目 | 概要 |
-|---|---|
-| `stt.key_file` | Google STT サービスアカウントキー(JSON)へのパス
-| `dialbb.config_file` | DialBB のアプリ設定(`config.yml`)へのパス
-| `main.loop_period` | Main ループ周期（秒）
-| `main.max_user_wait_time` | ユーザ発話待ちタイムアウト（秒、超過で `user_silence` を送信）
+- システム発話中に STT の中間認識または確定認識が入ると、Core engine は TTS 停止を要求します。
+- サーバは `stop_audio` イベントをクライアントへ送り、再生停止を促します。
+- 割り込み時の最終認識結果には `aux_data` として `barge_in: true` が DialBB に渡されます。
 
-パスは絶対パス、または設定ファイルからの相対パスで指定できる。
+### 無音タイムアウト
 
-## 6. 起動方法
-### 6.1 起動コマンド
+- システム発話終了後はユーザ発話待ち状態に入ります。
+- `user_timeout` 秒を超えて発話が来ない場合、Core engine は DialBB に `user_silence` を送ります。
 
-1. `dialbb-mm-client [config/mm_client_config.yml]` ※ default 以外の設定を使う場合は引数にパスを指定する
+### 音声ログ
 
-### 6.2 GUI操作
+- `audio_logging` が有効な場合、ユーザ音声とシステム音声を `audio_logs/<session_id>/` に保存します。
+- ユーザ音声は確定認識時に 1 発話分をまとめて WAV 保存します。
+- システム音声は送信セグメントごとに保存し、`manifest.jsonl` にメタデータを追記します。
 
-- `対話開始`: GUI から Main へ start コマンドを送り、Main が初回 DialBB 要求を発行する。
-- `対話終了`: 対話を停止し、各スレッドは待機状態へ戻る（音声入力は受け付けない）。
-- `終了`: `stop_event` を発行して全ワーカースレッドを終了し、GUIを閉じる。
+## 起動方法
 
-### 6.2.1 最終応答（対話終了フロー）
+CLI エントリポイントは `dialbb-mm-server` です。
 
-DialBB が `"final": true` を返した場合、自動的に対話が終了します：
+```sh
+dialbb-mm-server <config_file> [--host HOST] [--port PORT] [--debug] [--audio_logging]
+```
 
-1. **最終応答の受信**: Main が `is_final=true` 付きの DialbbResponse を受け取る
-2. **再生中の入力禁止**: TTS が最終応答を再生する間、ユーザーからの新しい音声入力と割り込み（バージイン）を禁止する
-3. **対話終了に遷移**: 最後の音声合成再生が完了すると、自動的に対話終了状態に遷移し、`conversation_active_event` がクリアされる
-4. **状態リセット**: 内部の全ての対話関連フラグ（`user_speaking`, `system_speaking`, `is_final_response`など）がリセットされる
-5. **GUI 待機**: GUI の 「対話開始」ボタンで再び対話を開始できる
+- `config_file` には DialBB のアプリ設定ファイルを指定します。
+- `--audio_logging` を指定すると、設定ファイル側の値に加えて音声ログを強制的に有効化できます。
+
+## 設定ファイル
+
+現行実装では、サーバ設定は DialBB アプリ設定ファイル内の `multimodal` セクションから読み込みます。後方互換のため、同じキーをトップレベルに置いた場合も読み取れます。
+
+```yaml
+multimodal:
+  audio_logging: true
+  cycle: 0.1
+  user_timeout: 10.0
+```
+
+読み込まれるキーは以下です。
+
+| キー | 既定値 | 説明 |
+| --- | --- | --- |
+| `audio_logging` | `false` | 音声ログ保存の有無 |
+| `cycle` | `0.1` | Core engine のメインループ周期（秒） |
+| `user_timeout` | `30.0` | ユーザ発話待ちタイムアウト（秒） |
+
+## REST API
+
+- `GET /health`
+- `POST /sessions`
+- `POST /sessions/{session_id}/start`
+- `POST /sessions/{session_id}/stop`
+- `DELETE /sessions/{session_id}`
+- `GET /sessions`
+
+`GET /sessions` は現在アクティブなセッションのみ返します。
+
+## WebSocket API
+
+接続先:
+
+```text
+/dialogue/ws/{session_id}
+```
+
+### クライアント -> サーバ
+
+- `start_dialogue`
+- `end_dialogue`
+- `cancel_tts`
+- `send_audio_chunk`
+- `tts_segment_playback_done`
+- `stop_audio_done`
+
+`send_audio_chunk` は以下の形式です。
+
+```json
+{
+  "action": "send_audio_chunk",
+  "audio_data": "<base64 encoded PCM16>",
+  "aux_data": {"key": "value"}
+}
+```
+
+### サーバ -> クライアント
+
+- `joined_session`
+- `system_message`
+- `audio_data`
+- `stop_audio`
+- `error`
+
+`system_message` は音声送信前のテキスト通知です。`audio_data` には `audio`、`format`、`utterance_id`、`segment_index`、`segment_count`、必要に応じて `aux_data` が含まれます。
+
+## 動作確認用クライアント
+
+- `examples/client_example.html`
+
+このサンプルはセッション作成、WebSocket 接続、マイク入力、`tts_segment_playback_done` 応答まで含めた現行フローに対応しています。
+
+## 参考資料
+
+- 詳細な外部仕様: [docs/server_spec.md](docs/server_spec.md)
+- ワーカ間メッセージ仕様: [docs/message_spec.md](docs/message_spec.md)
