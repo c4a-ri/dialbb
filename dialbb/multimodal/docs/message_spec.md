@@ -60,7 +60,7 @@ flowchart LR
   Q6[(Q6: command_queue\nQueue of str)]
   Q7[(Q7: tts_cancel_queue\nQueue of str)]
   Q8[(Q8: audio_chunk_queue\nQueue of bytes)]
-  Q9[(Q9: audio_log_queue\nQueue of AudioLogEntry | None)]
+  Q9[(Q9: audio_log_queue\nQueue of AudioLogEntry or None)]
 
   STT -->|RecognitionEvent| Q1
   Q1 -->|RecognitionEvent| CORE
