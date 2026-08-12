@@ -826,7 +826,7 @@ def set_main_frame(root_frame) -> None:
     # ユーザ入力枠
     u_input_frame = tk.Frame(root_frame)
     u_input_frame.pack(pady=(2, 10))
-    u_input_label = tk.Label(u_input_frame, text="ユーザ入力:")
+    u_input_label = tk.Label(u_input_frame, text=gui_text("label_user_input"))
     u_input_label.pack(side=tk.LEFT)
     u_input = tk.Entry(u_input_frame, width=60, state=tk.DISABLED)
     u_input.pack(side=tk.LEFT)
