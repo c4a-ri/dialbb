@@ -487,10 +487,30 @@ def _determine_settings(config_file: str, debug: bool, audio_logging: bool) -> S
     if not isinstance(multimodal_config, dict):
         multimodal_config = {}
 
-    cycle = float(multimodal_config.get("cycle", config.get("cycle", 0.1)))
-    user_timeout = float(multimodal_config.get("user_timeout", config.get("user_timeout", 30.0)))
+    # Backward compatibility:
+    # - current format: multimodal.cycle / multimodal.user_timeout / multimodal.audio_logging
+    # - older format:   multimodal.main.loop_period / multimodal.main.max_user_wait_time / multimodal.main.audio_logging
+    multimodal_main_config = multimodal_config.get("main") if isinstance(multimodal_config, dict) else None
+    if not isinstance(multimodal_main_config, dict):
+        multimodal_main_config = {}
+
+    cycle = float(
+        multimodal_config.get(
+            "cycle",
+            multimodal_main_config.get("loop_period", config.get("cycle", 0.1)),
+        )
+    )
+    user_timeout = float(
+        multimodal_config.get(
+            "user_timeout",
+            multimodal_main_config.get("max_user_wait_time", config.get("user_timeout", 30.0)),
+        )
+    )
     audio_logging_enabled = bool(
-        multimodal_config.get("audio_logging", config.get("audio_logging", False))
+        multimodal_config.get(
+            "audio_logging",
+            multimodal_main_config.get("audio_logging", config.get("audio_logging", False)),
+        )
     ) or audio_logging
 
     return Settings(
