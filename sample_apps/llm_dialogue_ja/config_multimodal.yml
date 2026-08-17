@@ -1,0 +1,29 @@
+# configuration file for an LLM-based Japanese application
+
+blocks:
+  - name: llm_dialogue
+    block_class: dialbb.builtin_blocks.llm_dialogue.LLMDialogue
+    input:
+      dialogue_history: dialogue_history
+      aux_data: aux_data
+    output:
+      system_utterance: system_utterance
+      aux_data: aux_data
+      final: final
+    user_name: ユーザ
+    system_name: システム
+    first_system_utterance: "こんにちは。私の名前は由衣。少しお話させてね。スイーツって好き？"
+    prompt_template: prompt_template.txt
+    model: gpt-5.4-nano
+    # model: google_genai:gemini-2.5-flash
+    # temperature: 0.7
+    # multi_party: False
+
+multimodal:  # multimodal server config
+  audio_logging: true # 音声ログ保存の有無
+  cycle: 0.1 # メインループ周期 (秒)
+  user_timeout: 10.0  # ユーザ発話待ちタイムアウト (秒)  T.Oで "user_silence"通知
+  stop_at_barge_in: false
+  system_barge_in_ratio: 1.0
+
+
