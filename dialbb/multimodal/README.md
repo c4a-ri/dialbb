@@ -44,6 +44,7 @@ Google Cloud Speech-to-Text と Google Cloud Text-to-Speech を利用するた�
 - システム発話中に STT の中間認識または確定認識が入ると、Core engine は TTS 停止を要求します。
 - サーバは `stop_audio` イベントをクライアントへ送り、再生停止を促します。
 - 割り込み時の最終認識結果には `aux_data` として `barge_in: true` が DialBB に渡されます。
+- `examples/client_example.html` は直前のシステム発話について、どの程度再生済みだったかを `system_utterance_completion_ratio` として `send_audio_chunk.aux_data` に自動付与します。
 
 ### 無音タイムアウト
 
@@ -75,6 +76,8 @@ dialbb-mm-server <config_file> [--host HOST] [--port PORT] [--debug] [--audio_lo
 multimodal:
   audio_logging: true
   cycle: 0.1
+  stop_at_barge_in: true
+  system_barge_in_ratio: 0.0
   user_timeout: 10.0
 ```
 
@@ -84,7 +87,15 @@ multimodal:
 | --- | --- | --- |
 | `audio_logging` | `false` | 音声ログ保存の有無 |
 | `cycle` | `0.1` | Core engine のメインループ周期（秒） |
+| `stop_at_barge_in` | `true` | ユーザのバージイン検知時に再生中のシステム発話を停止するか |
+| `system_barge_in_ratio` | `0.0` | システム発話中の `partial_transcript` を DialBB に先行送信して割り込ませる確率 |
 | `user_timeout` | `30.0` | ユーザ発話待ちタイムアウト（秒） |
+
+トップレベルの `language` も参照し、`ja` なら `ja-JP`、`en` なら `en-US` を STT/TTS の `language_code` として使います。その他の値は現在 `ja-JP` 扱いです。
+
+`stop_at_barge_in` が `false` の場合、システム発話中にユーザ発話を検知しても TTS 停止は要求しません。ただし、確定したユーザ発話は通常どおり DialBB に送られ、`aux_data.barge_in` も付与されます。
+
+`system_barge_in_ratio` は `0.0` 以上で有効です。`1.0` なら毎回、`0.5` なら半分の確率で、システム発話中の `partial_transcript` を DialBB に先行送信します。`0.0` は既定値で、先行送信は行いません。partial 由来の応答は、ユーザがまだ話している途中でも保留せずに TTS を開始します。
 
 ## REST API
 
@@ -120,9 +131,13 @@ multimodal:
 {
   "action": "send_audio_chunk",
   "audio_data": "<base64 encoded PCM16>",
-  "aux_data": {"key": "value"}
+  "aux_data": {
+    "system_utterance_completion_ratio": 0.6
+  }
 }
 ```
+
+`aux_data.system_utterance_completion_ratio` は任意です。値域は `0.0` から `1.0` で、直前のシステム発話がどこまで再生されたかを表します。クライアント実装によっては他の `aux_data` と併用できます。
 
 ### サーバ -> クライアント
 
@@ -139,6 +154,8 @@ multimodal:
 - `examples/client_example.html`
 
 このサンプルはセッション作成、WebSocket 接続、マイク入力、`tts_segment_playback_done` 応答まで含めた現行フローに対応しています。
+
+現在のサンプル実装では、ユーザ音声送信時に `system_utterance_completion_ratio` を自動計算して `aux_data` に付与します。
 
 ## 参考資料
 

@@ -291,7 +291,10 @@
             socket.onmessage = (event) => {
                 const message = JSON.parse(event.data);
 
-                if (message.event === 'audio_data') {
+                if (message.event === 'system_message') {
+                    resetTtsProgressState(message.payload.utterance_id || 0);
+                    log(`🗣️ システム発話開始 (utterance=${message.payload.utterance_id})`);
+                } else if (message.event === 'audio_data') {
                     // TTS 音声データを受信して再生キューに追加
                     enqueueAudio(
                         message.payload.audio,
@@ -353,9 +356,10 @@
                 audio_data: audioData,
             };
 
-            // aux_dataの送信有無を判定
-            const auxData = readAuxData();
+            // 手入力 aux_data に、システム発話の再生進捗を自動付与する
+            let auxData = readAuxData();
             if (auxData === null) return null;
+            auxData = appendSystemUtteranceCompletionRatio(auxData);
             if (Object.keys(auxData).length > 0) {
                 payload.aux_data = auxData;
             }
@@ -525,8 +529,82 @@
         const ttsActiveSources = new Set();
         const TTS_SCHEDULE_HEADROOM_SECONDS = 0.12;
         const ttsCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const SYSTEM_UTTERANCE_COMPLETION_RATIO_KEY = 'system_utterance_completion_ratio';
+        const ttsProgressState = {
+            utteranceId: 0,
+            segmentCount: 0,
+            completedSegments: 0,
+            activeSegmentIndex: 0,
+            activeSegmentStartTime: 0,
+            activeSegmentDuration: 0,
+            frozenCompletionRatio: null,
+        };
+
+        function resetTtsProgressState(utteranceId = 0) {
+            ttsProgressState.utteranceId = utteranceId;
+            ttsProgressState.segmentCount = 0;
+            ttsProgressState.completedSegments = 0;
+            ttsProgressState.activeSegmentIndex = 0;
+            ttsProgressState.activeSegmentStartTime = 0;
+            ttsProgressState.activeSegmentDuration = 0;
+            ttsProgressState.frozenCompletionRatio = utteranceId > 0 ? 0 : null;
+        }
+
+        function ensureTtsProgressUtterance(utteranceId) {
+            if (!utteranceId) return;
+            if (ttsProgressState.utteranceId !== utteranceId) {
+                resetTtsProgressState(utteranceId);
+            }
+        }
+
+        function getSystemUtteranceCompletionRatio() {
+            if (!ttsProgressState.utteranceId || ttsProgressState.segmentCount <= 0) {
+                return null;
+            }
+
+            let completedUnits = ttsProgressState.completedSegments;
+            if (
+                ttsProgressState.activeSegmentIndex > 0
+                && ttsProgressState.activeSegmentDuration > 0
+            ) {
+                const elapsed = Math.max(
+                    0,
+                    Math.min(
+                        ttsCtx.currentTime - ttsProgressState.activeSegmentStartTime,
+                        ttsProgressState.activeSegmentDuration,
+                    ),
+                );
+                completedUnits = (ttsProgressState.activeSegmentIndex - 1)
+                    + (elapsed / ttsProgressState.activeSegmentDuration);
+            }
+
+            const liveRatio = completedUnits / ttsProgressState.segmentCount;
+            const baseRatio = ttsProgressState.frozenCompletionRatio ?? 0;
+            return Math.min(1, Math.max(baseRatio, liveRatio));
+        }
+
+        function freezeSystemUtteranceCompletionRatio() {
+            const ratio = getSystemUtteranceCompletionRatio();
+            if (ratio !== null) {
+                ttsProgressState.frozenCompletionRatio = ratio;
+            }
+            ttsProgressState.activeSegmentIndex = 0;
+            ttsProgressState.activeSegmentStartTime = 0;
+            ttsProgressState.activeSegmentDuration = 0;
+        }
+
+        function appendSystemUtteranceCompletionRatio(auxData) {
+            const ratio = getSystemUtteranceCompletionRatio();
+            if (ratio === null) return auxData;
+            return {
+                ...auxData,
+                [SYSTEM_UTTERANCE_COMPLETION_RATIO_KEY]: Number(ratio.toFixed(3)),
+            };
+        }
 
         function enqueueAudio(base64Audio, format, utteranceId, segmentIndex, segmentCount) {
+            ensureTtsProgressUtterance(utteranceId);
+            ttsProgressState.segmentCount = Math.max(ttsProgressState.segmentCount, segmentCount || 0);
             ttsQueue.push({
                 audio: base64Audio,
                 format,
@@ -538,6 +616,7 @@
         }
 
         function stopTtsPlayback(reason = 'cancel') {
+            freezeSystemUtteranceCompletionRatio();
             ttsPlaybackGeneration += 1;
             ttsQueue.length = 0;
             ttsNextStartTime = 0;
@@ -600,6 +679,14 @@
                             ttsCtx.currentTime + TTS_SCHEDULE_HEADROOM_SECONDS,
                             ttsNextStartTime,
                         );
+                        ensureTtsProgressUtterance(item.utteranceId);
+                        ttsProgressState.segmentCount = Math.max(
+                            ttsProgressState.segmentCount,
+                            item.segmentCount || 0,
+                        );
+                        ttsProgressState.activeSegmentIndex = item.segmentIndex;
+                        ttsProgressState.activeSegmentStartTime = startAt;
+                        ttsProgressState.activeSegmentDuration = audioBuf.duration;
                         ttsNextStartTime = startAt + audioBuf.duration;
                         ttsScheduledSourceCount += 1;
 
@@ -607,6 +694,24 @@
                             ttsActiveSources.delete(src);
                             if (playbackGeneration !== ttsPlaybackGeneration) return;
                             ttsScheduledSourceCount = Math.max(0, ttsScheduledSourceCount - 1);
+                            ensureTtsProgressUtterance(item.utteranceId);
+                            ttsProgressState.segmentCount = Math.max(
+                                ttsProgressState.segmentCount,
+                                item.segmentCount || 0,
+                            );
+                            ttsProgressState.completedSegments = Math.max(
+                                ttsProgressState.completedSegments,
+                                item.segmentIndex,
+                            );
+                            ttsProgressState.activeSegmentIndex = 0;
+                            ttsProgressState.activeSegmentStartTime = 0;
+                            ttsProgressState.activeSegmentDuration = 0;
+                            if (ttsProgressState.segmentCount > 0) {
+                                ttsProgressState.frozenCompletionRatio = Math.min(
+                                    1,
+                                    ttsProgressState.completedSegments / ttsProgressState.segmentCount,
+                                );
+                            }
                             notifyPlaybackDone(item);
                             if (ttsScheduledSourceCount === 0 && ttsQueue.length === 0) {
                                 ttsPlaying = false;
@@ -653,14 +758,14 @@
             try {
                 const parsed = JSON.parse(raw);
                 if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-                return parsed;
+                    return parsed;
                 }
                 throw new Error('aux_data must be an object');
             } catch (error) {
                 log(`✗ aux_data の JSON が不正です: ${error.message}`, 'error');
                 return null;
             }
-       }
+        }
     </script>
 </body>
 </html>

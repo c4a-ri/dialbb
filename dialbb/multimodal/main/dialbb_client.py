@@ -93,6 +93,7 @@ def run_dialbb_worker(
                         system_text=init_text,
                         is_final=is_final,
                         aux_data=init_aux_data if isinstance(init_aux_data, dict) else {},
+                        source="initial",
                     )
                 )
                 logger.info("[Dialbb] DialBB->MAIN 初回応答送信")
@@ -142,6 +143,7 @@ def run_dialbb_worker(
                     system_text=system_text,
                     is_final=is_final,
                     aux_data=response_aux_data if isinstance(response_aux_data, dict) else {},
+                    source=request.source,
                 )
             )
             if is_final:

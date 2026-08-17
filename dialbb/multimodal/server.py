@@ -35,6 +35,13 @@ from .tts.speech_synthesizer import (
 
 logger = get_logger(__name__)
 
+
+def _map_config_language_to_bcp47(language: Any) -> str:
+    normalized = str(language or "").strip().lower()
+    if normalized == "en":
+        return "en-US"
+    return "ja-JP"
+
 @dataclass
 class SessionConnections:
     sockets: set[WebSocket] = field(default_factory=set)
@@ -487,8 +494,15 @@ def _determine_settings(config_file: str, debug: bool, audio_logging: bool) -> S
     if not isinstance(multimodal_config, dict):
         multimodal_config = {}
 
+    language_code = _map_config_language_to_bcp47(config.get("language", "ja"))
     cycle = float(multimodal_config.get("cycle", config.get("cycle", 0.1)))
     user_timeout = float(multimodal_config.get("user_timeout", config.get("user_timeout", 30.0)))
+    stop_at_barge_in = bool(
+        multimodal_config.get("stop_at_barge_in", config.get("stop_at_barge_in", True))
+    )
+    system_barge_in_ratio = float(
+        multimodal_config.get("system_barge_in_ratio", config.get("system_barge_in_ratio", 0.0))
+    )
     audio_logging_enabled = bool(
         multimodal_config.get("audio_logging", config.get("audio_logging", False))
     ) or audio_logging
@@ -498,6 +512,9 @@ def _determine_settings(config_file: str, debug: bool, audio_logging: bool) -> S
         config=config,
         cycle=cycle,
         user_timeout=user_timeout,
+        stop_at_barge_in=stop_at_barge_in,
+        system_barge_in_ratio=system_barge_in_ratio,
+        language_code=language_code,
         audio_logging=audio_logging_enabled,
     )
 
