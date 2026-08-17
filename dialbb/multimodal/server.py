@@ -371,12 +371,6 @@ def create_app(
                             logger.warning("[WEBSOCKET] Invalid audio chunk: session=%s", session_id)
                     else:
                         logger.debug("[WEBSOCKET] Audio chunk received (empty): session=%s", session_id)
-                    logger.debug(
-                        "[WEBSOCKET] received payload: session=%s action=%s aux_data=%s",
-                        session_id,
-                        action,
-                        payload.get("aux_data"),
-                    )
                 elif action == "tts_segment_playback_done":
                     utterance_id = int(payload.get("utterance_id") or 0)
                     segment_index = int(payload.get("segment_index") or 0)
@@ -503,9 +497,25 @@ def _determine_settings(config_file: str, debug: bool, audio_logging: bool) -> S
     system_barge_in_ratio = float(
         multimodal_config.get("system_barge_in_ratio", config.get("system_barge_in_ratio", 0.0))
     )
+    tts_voice_name = multimodal_config.get("tts_voice_name", config.get("tts_voice_name"))
+    if tts_voice_name is not None:
+        tts_voice_name = str(tts_voice_name).strip() or None
+    tts_speaking_rate = float(
+        multimodal_config.get("tts_speaking_rate", config.get("tts_speaking_rate", 1.0))
+    )
     audio_logging_enabled = bool(
         multimodal_config.get("audio_logging", config.get("audio_logging", False))
     ) or audio_logging
+
+    logger.info(
+        "[SERVER] multimodal settings resolved: language_code=%s stop_at_barge_in=%s system_barge_in_ratio=%s tts_voice_name=%s tts_speaking_rate=%s audio_logging=%s",
+        language_code,
+        stop_at_barge_in,
+        system_barge_in_ratio,
+        tts_voice_name,
+        tts_speaking_rate,
+        audio_logging_enabled,
+    )
 
     return Settings(
         config_file=config_file,
@@ -514,6 +524,8 @@ def _determine_settings(config_file: str, debug: bool, audio_logging: bool) -> S
         user_timeout=user_timeout,
         stop_at_barge_in=stop_at_barge_in,
         system_barge_in_ratio=system_barge_in_ratio,
+        tts_voice_name=tts_voice_name,
+        tts_speaking_rate=tts_speaking_rate,
         language_code=language_code,
         audio_logging=audio_logging_enabled,
     )

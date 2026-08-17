@@ -78,6 +78,8 @@ multimodal:
   cycle: 0.1
   stop_at_barge_in: true
   system_barge_in_ratio: 0.0
+  tts_speaking_rate: 1.0
+  tts_voice_name: ja-JP-Neural2-B
   user_timeout: 10.0
 ```
 
@@ -89,11 +91,13 @@ multimodal:
 | `cycle` | `0.1` | Core engine のメインループ周期（秒） |
 | `stop_at_barge_in` | `true` | ユーザのバージイン検知時に再生中のシステム発話を停止するか |
 | `system_barge_in_ratio` | `0.0` | システム発話中の `partial_transcript` を DialBB に先行送信して割り込ませる確率 |
+| `tts_speaking_rate` | `1.0` | Google TTS の発話速度 |
+| `tts_voice_name` | `null` | Google TTS の話者名。未指定時は `language_code` に応じた既定音声 |
 | `user_timeout` | `30.0` | ユーザ発話待ちタイムアウト（秒） |
 
 トップレベルの `language` も参照し、`ja` なら `ja-JP`、`en` なら `en-US` を STT/TTS の `language_code` として使います。その他の値は現在 `ja-JP` 扱いです。
 
-`stop_at_barge_in` が `false` の場合、システム発話中にユーザ発話を検知しても TTS 停止は要求しません。ただし、確定したユーザ発話は通常どおり DialBB に送られ、`aux_data.barge_in` も付与されます。
+`stop_at_barge_in` が `false` の場合、システム発話中にユーザ発話を検知しても TTS 停止は要求しません。`system_barge_in_ratio` により `partial_transcript` を DialBB に先行送信する場合も同様です。ただし、確定したユーザ発話は通常どおり DialBB に送られ、`aux_data.barge_in` も付与されます。
 
 `system_barge_in_ratio` は `0.0` 以上で有効です。`1.0` なら毎回、`0.5` なら半分の確率で、システム発話中の `partial_transcript` を DialBB に先行送信します。`0.0` は既定値で、先行送信は行いません。partial 由来の応答は、ユーザがまだ話している途中でも保留せずに TTS を開始します。
 

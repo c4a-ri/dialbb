@@ -73,11 +73,13 @@ dialbb-mm-server <config_file> [--host HOST] [--port PORT] [--debug] [--audio_lo
 | `user_timeout` | float | `30.0` | ユーザ発話待ちタイムアウト秒数 |
 | `stop_at_barge_in` | bool | `True` | ユーザバージイン時にシステム発話停止を要求するか |
 | `system_barge_in_ratio` | float | `0.0` | `partial_transcript` を DialBB に先行送信して割り込ませる確率 |
+| `tts_speaking_rate` | float | `1.0` | Google TTS の発話速度 |
+| `tts_voice_name` | string \| null | `None` | Google TTS の話者名。未指定時は `language_code` に応じた既定音声 |
 | `audio_logging` | bool | `False` | 音声ログ保存の有効化 |
 
 補足:
 
-- `multimodal` セクションが存在する場合、`cycle` / `user_timeout` / `stop_at_barge_in` / `system_barge_in_ratio` / `audio_logging` は同セクション値を優先する
+- `multimodal` セクションが存在する場合、`cycle` / `user_timeout` / `stop_at_barge_in` / `system_barge_in_ratio` / `tts_speaking_rate` / `tts_voice_name` / `audio_logging` は同セクション値を優先する
 - CLI の `--audio_logging` が指定された場合、設定ファイル値に加えて音声ログを強制有効化する
 - `sample_rate` は現行実装では `16000` 固定である
 - トップレベル `language` が `ja` なら `language_code=ja-JP`、`en` なら `language_code=en-US` として STT/TTS に使う

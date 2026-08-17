@@ -302,11 +302,12 @@ class CoreDialogueEngine:
                 and self._should_send_system_barge_in_partial(system_barge_in_ratio)
             ):
                 aux_data = self._build_user_aux_data()
-                self._request_barge_in_cancel(
-                    tts_cancel_queue=tts_cancel_queue,
-                    set_tts_cancel_requested=set_tts_cancel_requested,
-                    trigger="system_barge_in_partial",
-                )
+                if stop_at_barge_in:
+                    self._request_barge_in_cancel(
+                        tts_cancel_queue=tts_cancel_queue,
+                        set_tts_cancel_requested=set_tts_cancel_requested,
+                        trigger="system_barge_in_partial",
+                    )
                 if aux_data:
                     logger.info(
                         "[CORE] STT partial aux_data: session=%s aux_data=%s",

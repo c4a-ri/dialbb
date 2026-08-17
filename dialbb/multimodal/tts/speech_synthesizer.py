@@ -38,17 +38,20 @@ def _synthesize_with_encoding(
     text: str,
     audio_encoding: texttospeech.AudioEncoding,
     language_code: str = _LANGUAGE_CODE,
+    voice_name: str | None = None,
+    speaking_rate: float = 1.0,
 ) -> bytes:
     """Run Google Cloud TTS synthesis with the specified encoding."""
     synthesis_input = texttospeech.SynthesisInput(text=text)
-    voice_name = _default_voice_name(language_code)
+    selected_voice_name = voice_name or _default_voice_name(language_code)
     voice_kwargs = {"language_code": language_code}
-    if voice_name:
-        voice_kwargs["name"] = voice_name
+    if selected_voice_name:
+        voice_kwargs["name"] = selected_voice_name
     voice = texttospeech.VoiceSelectionParams(**voice_kwargs)
     audio_config = texttospeech.AudioConfig(
         audio_encoding=audio_encoding,
         sample_rate_hertz=TTS_SAMPLE_RATE_HZ,
+        speaking_rate=speaking_rate,
     )
     response = client.synthesize_speech(
         input=synthesis_input,
@@ -62,9 +65,18 @@ def _synthesize(
     client: texttospeech.TextToSpeechClient,
     text: str,
     language_code: str = _LANGUAGE_CODE,
+    voice_name: str | None = None,
+    speaking_rate: float = 1.0,
 ) -> bytes:
     """Synthesize text with Google Cloud TTS and return bytes in the default format."""
-    return _synthesize_with_encoding(client, text, _AUDIO_ENCODING, language_code=language_code)
+    return _synthesize_with_encoding(
+        client,
+        text,
+        _AUDIO_ENCODING,
+        language_code=language_code,
+        voice_name=voice_name,
+        speaking_rate=speaking_rate,
+    )
 
 
 def _encode_wav_chunk(
@@ -161,13 +173,21 @@ def run_tts_worker(
     cancel_state_clear_callback: Callable[[str], None] | None = None,
     audio_send_callback: Callable[[int, int, bytes], bool] | None = None,
     language_code: str = _LANGUAGE_CODE,
+    voice_name: str | None = None,
+    speaking_rate: float = 1.0,
 ) -> None:
     """Speech synthesis worker thread backed by Google Cloud TTS.
 
     In client audio mode, each utterance is synthesized as a whole and
     passed to the client through audio_send_callback.
     """
-    logger.info("[TTS] worker start: thread=%s", threading.current_thread().name)
+    logger.info(
+        "[TTS] worker start: thread=%s language_code=%s voice_name=%s speaking_rate=%s",
+        threading.current_thread().name,
+        language_code,
+        voice_name,
+        speaking_rate,
+    )
     try:
         client = texttospeech.TextToSpeechClient()
         active_event = conversation_active_event or Event()
@@ -219,7 +239,13 @@ def run_tts_worker(
 
                 logger.debug("[TTS] synthesizing: %s", segment)
                 try:
-                    audio_bytes = _synthesize(client, segment, language_code=language_code)
+                    audio_bytes = _synthesize(
+                        client,
+                        segment,
+                        language_code=language_code,
+                        voice_name=voice_name,
+                        speaking_rate=speaking_rate,
+                    )
                 except (GoogleAPICallError, RetryError, OSError):
                     logger.exception("[TTS] synthesis error: %s", segment)
                     completed = False
