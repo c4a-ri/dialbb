@@ -4,6 +4,7 @@ Multi-session dialogue engine management.
 """
 from datetime import datetime
 from contextlib import closing
+import io
 import json
 from pathlib import Path
 import time
@@ -77,6 +78,9 @@ class DialogueSession:
 class AudioLogEntry:
     sequence: int
     timestamp_ns: int
+    start_timestamp_ns: int
+    end_timestamp_ns: int
+    logged_at_ns: int
     source: str
     audio_format: str
     audio_bytes: bytes
@@ -385,7 +389,11 @@ class DialogueEngineManager:
     def _append_manifest_entry(self, manifest_path: Path, entry: AudioLogEntry, file_name: str) -> None:
         record = {
             "sequence": entry.sequence,
+            # Backward compatibility: timestamp_ns is the start timestamp.
             "timestamp_ns": entry.timestamp_ns,
+            "start_timestamp_ns": entry.start_timestamp_ns,
+            "end_timestamp_ns": entry.end_timestamp_ns,
+            "logged_at_ns": entry.logged_at_ns,
             "source": entry.source,
             "audio_format": entry.audio_format,
             "file_name": file_name,
@@ -433,6 +441,7 @@ class DialogueEngineManager:
             return False
 
         audio_bytes = b"".join(chunk.audio_bytes for chunk in audio_chunks)
+        start_timestamp_ns = audio_chunks[0].timestamp_ns
         return self._record_audio_log(
             session_id,
             source="user",
@@ -440,6 +449,7 @@ class DialogueEngineManager:
             audio_bytes=audio_bytes,
             transcript=normalized_text,
             sample_rate=self._settings.sample_rate,
+            start_timestamp_ns=start_timestamp_ns,
         )
 
     def record_system_audio_chunk(
@@ -474,17 +484,32 @@ class DialogueEngineManager:
         segment_index: int | None = None,
         segment_count: int | None = None,
         sample_rate: int | None = None,
+        start_timestamp_ns: int | None = None,
+        end_timestamp_ns: int | None = None,
     ) -> bool:
         session = self.sessions.get(session_id)
         if not session:
             return False
+
+        logged_at_ns = time.time_ns()
+        duration_ns = self._estimate_audio_duration_ns(audio_format, audio_bytes, sample_rate)
+        effective_start_timestamp_ns = start_timestamp_ns if start_timestamp_ns is not None else logged_at_ns
+        if end_timestamp_ns is not None:
+            effective_end_timestamp_ns = end_timestamp_ns
+        elif duration_ns is not None:
+            effective_end_timestamp_ns = effective_start_timestamp_ns + duration_ns
+        else:
+            effective_end_timestamp_ns = effective_start_timestamp_ns
 
         with session.audio_lock:
             session.audio_log_sequence += 1
             session.audio_log_queue.put(
                 AudioLogEntry(
                     sequence=session.audio_log_sequence,
-                    timestamp_ns=time.time_ns(),
+                    timestamp_ns=effective_start_timestamp_ns,
+                    start_timestamp_ns=effective_start_timestamp_ns,
+                    end_timestamp_ns=effective_end_timestamp_ns,
+                    logged_at_ns=logged_at_ns,
                     source=source,
                     audio_format=audio_format,
                     audio_bytes=audio_bytes,
@@ -496,6 +521,32 @@ class DialogueEngineManager:
                 )
             )
         return True
+
+    def _estimate_audio_duration_ns(
+        self,
+        audio_format: str,
+        audio_bytes: bytes,
+        sample_rate: int | None,
+    ) -> int | None:
+        normalized_format = audio_format.strip().lower()
+
+        if normalized_format == "wav":
+            if audio_bytes.startswith(b"RIFF") and audio_bytes[8:12] == b"WAVE":
+                try:
+                    with closing(cast(wave.Wave_read, wave.open(io.BytesIO(audio_bytes), "rb"))) as wf:
+                        frame_rate = wf.getframerate()
+                        frame_count = wf.getnframes()
+                        if frame_rate > 0:
+                            return int(round(frame_count * 1_000_000_000 / frame_rate))
+                except (wave.Error, EOFError):
+                    pass
+
+            if sample_rate is None or sample_rate <= 0:
+                return None
+            # User-side chunks are PCM16 mono at the configured sample rate.
+            return int(round(len(audio_bytes) * 1_000_000_000 / (2 * sample_rate)))
+
+        return None
 
     def delete_session(self, session_id: str) -> bool:
         """Delete a session."""

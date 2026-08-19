@@ -549,7 +549,10 @@ audio_logs/{session_id}/
 `manifest.jsonl` の各レコード項目:
 
 - `sequence`
-- `timestamp_ns`
+- `timestamp_ns`（後方互換: `start_timestamp_ns` と同じ値）
+- `start_timestamp_ns`（音声先頭サンプル時刻）
+- `end_timestamp_ns`（音声末尾サンプル時刻）
+- `logged_at_ns`（manifest 追記時刻）
 - `source`
 - `audio_format`
 - `file_name`
