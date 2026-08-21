@@ -33,6 +33,10 @@ dialbb-mm-server <config_file> [--host HOST] [--port PORT] [--debug] [--audio_lo
 multimodal:
   audio_logging: true
   cycle: 0.1
+  stop_at_barge_in: true
+  system_barge_in_ratio: 0.0
+  tts_speaking_rate: 1.0
+  tts_voice_name: ja-JP-Neural2-B
   user_timeout: 10.0
 ```
 
@@ -40,7 +44,13 @@ multimodal:
 | --- | --- | --- | --- |
 | `audio_logging` | bool | `false` | ユーザ音声/システム音声ログを保存 |
 | `cycle` | float | `0.1` | Core エンジンのループ周期（秒） |
+| `stop_at_barge_in` | bool | `true` | ユーザのバージイン検知時にシステム発話を停止する |
+| `system_barge_in_ratio` | float | `0.0` | `partial_transcript` を DialBB に先行送信して割り込ませる確率 |
+| `tts_speaking_rate` | float | `1.0` | Google TTS の発話速度 |
+| `tts_voice_name` | string \| null | `null` | Google TTS の話者名。未指定時は `language_code` に応じた既定音声 |
 | `user_timeout` | float | `30.0` | ユーザ無音タイムアウト（秒） |
+
+トップレベルの `language` も参照し、`ja` なら `ja-JP`、`en` なら `en-US` を STT/TTS の `language_code` として使います。その他の値は現在 `ja-JP` 扱いです。
 
 ## 3. REST API
 
@@ -155,12 +165,21 @@ multimodal:
 {
   "action": "send_audio_chunk",
   "audio_data": "<base64 encoded PCM16>",
-  "aux_data": {"key": "value"}
+  "aux_data": {
+    "system_utterance_completion_ratio": 0.6
+  }
 }
 ```
 
 - `audio_data`: base64 の音声データ
 - `aux_data`: 任意。直後の STT 結果に紐づける追加情報
+- `aux_data.system_utterance_completion_ratio`: 任意。`0.0` から `1.0` の数値で、直前のシステム発話の再生完了率を表す
+
+補足:
+
+- この値はクライアント側で算出して送る
+- バージイン時は、再生済みセグメントと再生中セグメントの進捗から算出した比率を送ってよい
+- サーバはこの値を解釈せず、そのまま STT 結果に対応する `aux_data` として DialBB 側へ渡す
 
 #### `tts_segment_playback_done`
 
@@ -246,6 +265,9 @@ multimodal:
 
 - システム発話中に STT 側でユーザ発話が検知されると、サーバは TTS 停止を要求します。
 - クライアントには `stop_audio` を通知します。
+- `stop_at_barge_in=false` の場合、ユーザ発話を検知しても TTS 停止要求と `stop_audio` 通知は行いません。`system_barge_in_ratio` による partial 先行送信時も同様です。
+- いずれの場合も、システム発話中に確定したユーザ発話には `aux_data.barge_in=true` が付与されます。
+- `system_barge_in_ratio>0.0` により `partial_transcript` を DialBB へ送った場合、その応答は `user_speaking=true` でも保留せずに TTS 開始します。
 
 ### 5.2 セグメント再生同期
 

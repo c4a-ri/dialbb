@@ -71,14 +71,18 @@ dialbb-mm-server <config_file> [--host HOST] [--port PORT] [--debug] [--audio_lo
 | --- | --- | --- | --- |
 | `cycle` | float | `0.1` | コアエンジンのループ周期 |
 | `user_timeout` | float | `30.0` | ユーザ発話待ちタイムアウト秒数 |
+| `stop_at_barge_in` | bool | `True` | ユーザバージイン時にシステム発話停止を要求するか |
+| `system_barge_in_ratio` | float | `0.0` | `partial_transcript` を DialBB に先行送信して割り込ませる確率 |
+| `tts_speaking_rate` | float | `1.0` | Google TTS の発話速度 |
+| `tts_voice_name` | string \| null | `None` | Google TTS の話者名。未指定時は `language_code` に応じた既定音声 |
 | `audio_logging` | bool | `False` | 音声ログ保存の有効化 |
 
 補足:
 
-- `multimodal` セクションが存在する場合、`cycle` / `user_timeout` / `audio_logging` は同セクション値を優先する
+- `multimodal` セクションが存在する場合、`cycle` / `user_timeout` / `stop_at_barge_in` / `system_barge_in_ratio` / `tts_speaking_rate` / `tts_voice_name` / `audio_logging` は同セクション値を優先する
 - CLI の `--audio_logging` が指定された場合、設定ファイル値に加えて音声ログを強制有効化する
 - `sample_rate` は現行実装では `16000` 固定である
-- `language_code` は現行実装では `ja-JP` 固定である
+- トップレベル `language` が `ja` なら `language_code=ja-JP`、`en` なら `language_code=en-US` として STT/TTS に使う
 
 ## 5. REST API 仕様
 
@@ -327,15 +331,23 @@ dialbb-mm-server <config_file> [--host HOST] [--port PORT] [--debug] [--audio_lo
 ```json
 {
   "action": "send_audio_chunk",
-  "audio_data": "<base64>"
+  "audio_data": "<base64>",
+  "aux_data": {
+    "system_utterance_completion_ratio": 0.6
+  }
 }
 ```
 
 動作:
 
 - `audio_data` を base64 デコードする
+- `aux_data` が辞書なら、直後の STT 結果に紐づく追加情報として保持する
 - デコード成功時はセッションの `audio_chunk_queue` に投入する
 - `audio_logging` 有効時はユーザ音声ログ用バッファにも蓄積する
+
+`aux_data` の例:
+
+- `system_utterance_completion_ratio`: `0.0` から `1.0` の数値。直前のシステム発話の再生完了率
 
 異常系:
 
@@ -349,6 +361,14 @@ dialbb-mm-server <config_file> [--host HOST] [--port PORT] [--debug] [--audio_lo
 - STT worker へそのまま転送されるため、クライアントは STT 実装と整合する形式で送る必要がある
 
 ### 7.5 `tts_segment_playback_done`
+
+## 8. バージイン設定
+
+- `stop_at_barge_in=True` の場合、システム発話中にユーザ発話を検知すると TTS 停止を要求する
+- `stop_at_barge_in=False` の場合、システム発話中のユーザ発話を受け付けても TTS 停止は要求しない
+- `stop_at_barge_in=False` でも、システム発話中に確定したユーザ発話には `aux_data.barge_in=true` が付与される
+- `system_barge_in_ratio>0.0` により `partial_transcript` を DialBB へ送った場合、その応答は `user_speaking=True` でも保留せずに TTS 開始する
+
 
 クライアントで 1 セグメントの TTS 再生が完了したことを通知する。
 

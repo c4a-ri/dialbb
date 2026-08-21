@@ -3,6 +3,7 @@ mm_client Core Engine
 会話状態管理・ロジックを担当するコアエンジン
 Queue 依存を抽象化し、異なるUIやサーバから再利用可能
 """
+import random
 import time
 import threading
 from dataclasses import dataclass, field
@@ -48,6 +49,7 @@ class CoreDialogueEngine:
         self.is_final_response: bool = False
         self._pending_user_aux_data: Dict[str, Any] = {}
         self._pending_dialbb_response: Optional[DialbbResponse] = None
+        self._partial_barge_in_request_sent: bool = False
         # イベント通知コールバック
         self._event_callback: Optional[Callable[[DialogueEvent], None]] = None
 
@@ -94,6 +96,42 @@ class CoreDialogueEngine:
         self.is_final_response = False
         self._pending_user_aux_data = {}
         self._pending_dialbb_response = None
+        self._partial_barge_in_request_sent = False
+
+    def _build_user_aux_data(self) -> Dict[str, Any]:
+        aux_data = dict(self._pending_user_aux_data)
+        if self.system_speaking and not self.is_final_response:
+            aux_data["barge_in"] = True
+        return aux_data
+
+    def _send_user_utterance_to_dialbb(
+        self,
+        text: str,
+        dialbb_request_queue: Queue,
+        aux_data: Dict[str, Any],
+        source: str,
+    ) -> None:
+        logger.info("[CORE] CORE->DialBB 発話要求送信: source=%s", source)
+        dialbb_request_queue.put(
+            DialbbRequest(
+                session_id=self.session_id,
+                user_text=text,
+                aux_data=aux_data,
+                source=source,
+            )
+        )
+        if aux_data:
+            logger.debug("[CORE] DialBB aux_data=%s", aux_data)
+
+    @staticmethod
+    def _should_send_system_barge_in_partial(system_barge_in_ratio: float) -> bool:
+        if system_barge_in_ratio < 0:
+            return False
+        if system_barge_in_ratio == 0:
+            return False
+        if system_barge_in_ratio >= 1:
+            return True
+        return random.random() < system_barge_in_ratio
 
     def _start_system_response(
         self,
@@ -228,6 +266,8 @@ class CoreDialogueEngine:
         dialbb_request_queue: Queue,
         tts_cancel_queue: Optional[Queue] = None,
         set_tts_cancel_requested: Optional[Callable[[bool], None]] = None,
+        stop_at_barge_in: bool = True,
+        system_barge_in_ratio: float = -1.0,
     ) -> None:
         """STT イベントを処理"""
         if not conversation_active_event.is_set():
@@ -236,6 +276,7 @@ class CoreDialogueEngine:
         if stt_event.event_type == RecognitionEventType.SPEECH_STARTED:
             logger.debug("[CORE] User speech segment started.")
             self.user_speaking = True
+            self._partial_barge_in_request_sent = False
             self._emit_event(DialogueEvent(event_type="status", data={"message": "音声認識中"}))
 
         elif stt_event.event_type == RecognitionEventType.SPEECH_ENDED:
@@ -243,14 +284,44 @@ class CoreDialogueEngine:
             self.user_speaking = False
 
         elif stt_event.event_type == RecognitionEventType.PARTIAL_TRANSCRIPT:
-            logger.debug("[CORE] Recognizing speech... %s", stt_event.text)
+            text = stt_event.text.strip()
+            logger.debug("[CORE] Recognizing speech... %s", text)
             self._emit_event(DialogueEvent(event_type="status", data={"message": "音声認識中"}))
             logger.debug("[CORE] STT->CORE system_speaking: %s, is_final_response: %s, tts_cancel_queue: %s, _barge_in_sent: %s", self.system_speaking, self.is_final_response, tts_cancel_queue, self._barge_in_sent)
-            self._request_barge_in_cancel(
-                tts_cancel_queue=tts_cancel_queue,
-                set_tts_cancel_requested=set_tts_cancel_requested,
-                trigger="partial_transcript",
-            )
+            if stop_at_barge_in:
+                self._request_barge_in_cancel(
+                    tts_cancel_queue=tts_cancel_queue,
+                    set_tts_cancel_requested=set_tts_cancel_requested,
+                    trigger="partial_transcript",
+                )
+            if (
+                text
+                and self.system_speaking
+                and not self.is_final_response
+                and not self._partial_barge_in_request_sent
+                and self._should_send_system_barge_in_partial(system_barge_in_ratio)
+            ):
+                aux_data = self._build_user_aux_data()
+                if stop_at_barge_in:
+                    self._request_barge_in_cancel(
+                        tts_cancel_queue=tts_cancel_queue,
+                        set_tts_cancel_requested=set_tts_cancel_requested,
+                        trigger="system_barge_in_partial",
+                    )
+                if aux_data:
+                    logger.info(
+                        "[CORE] STT partial aux_data: session=%s aux_data=%s",
+                        self.session_id,
+                        aux_data,
+                    )
+                self._send_user_utterance_to_dialbb(
+                    text,
+                    dialbb_request_queue,
+                    aux_data,
+                    source="partial_transcript",
+                )
+                self._pending_user_aux_data = {}
+                self._partial_barge_in_request_sent = True
 
         elif stt_event.event_type == RecognitionEventType.FINAL_TRANSCRIPT:
             text = stt_event.text.strip()
@@ -259,27 +330,25 @@ class CoreDialogueEngine:
             self.user_speaking = False
             self.user_waiting = False
             self.user_wait_start_time = None
-            aux_data: dict = dict(self._pending_user_aux_data)
-            if self.system_speaking and not self.is_final_response:
-                aux_data["barge_in"] = True
+            aux_data = self._build_user_aux_data()
             if aux_data:
                 logger.info(
                     "[CORE] STT final aux_data: session=%s aux_data=%s",
                     self.session_id,
                     aux_data,
                 )
-            logger.info("[CORE] CORE->DialBB 発話要求送信")
-            dialbb_request_queue.put(
-                DialbbRequest(
-                    session_id=self.session_id,
-                    user_text=text,
-                    aux_data=aux_data,
+            if self._partial_barge_in_request_sent:
+                logger.info("[CORE] partial_transcript を DialBB へ送信済みのため final は転送しません")
+            else:
+                self._send_user_utterance_to_dialbb(
+                    text,
+                    dialbb_request_queue,
+                    aux_data,
+                    source="final_transcript",
                 )
-            )
-            if aux_data:
-                logger.debug("[CORE] DialBB aux_data=%s", aux_data)
             self._pending_user_aux_data = {}
-            if tts_cancel_queue is not None and self.system_speaking and not self.is_final_response:
+            self._partial_barge_in_request_sent = False
+            if stop_at_barge_in and tts_cancel_queue is not None and self.system_speaking and not self.is_final_response:
                 tts_cancel_queue.put("cancel")
                 if set_tts_cancel_requested is not None:
                     set_tts_cancel_requested(True)
@@ -306,11 +375,13 @@ class CoreDialogueEngine:
     ) -> None:
         """DialBB 応答を処理"""
         logger.info("[CORE] CORE<-DialBB: response received")
-        logger.debug("[CORE] DialBB response: %s", dialbb_response.system_text)
-        if self.user_speaking:
+        logger.debug("[CORE] DialBB response: source=%s text=%s", dialbb_response.source, dialbb_response.system_text)
+        if self.user_speaking and dialbb_response.source != "partial_transcript":
             self._pending_dialbb_response = dialbb_response
             logger.info("[CORE] User is speaking, so the DialBB response is deferred.")
             return
+        if self.user_speaking and dialbb_response.source == "partial_transcript":
+            logger.info("[CORE] partial_transcript 由来の応答のため、ユーザ発話中でもシステム応答を開始します。")
 
         self._start_system_response(
             dialbb_response,
@@ -399,6 +470,8 @@ class CoreDialogueEngine:
         set_tts_cancel_requested: Optional[Callable[[bool], None]] = None,
         loop_period: float = 0.1,
         max_user_wait_time: float = 30.0,
+        stop_at_barge_in: bool = True,
+        system_barge_in_ratio: float = -1.0,
     ) -> None:
         """メインループ（既存 MultimodalMainModule.run と同じロジック）"""
         logger.info("[CORE] run start: thread=%s", threading.current_thread().name)
@@ -448,6 +521,8 @@ class CoreDialogueEngine:
                         dialbb_request_queue,
                         tts_cancel_queue,
                         set_tts_cancel_requested,
+                        stop_at_barge_in,
+                        system_barge_in_ratio,
                     )
 
                 # 3. DialBB 応答処理

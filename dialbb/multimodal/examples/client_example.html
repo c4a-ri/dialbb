@@ -291,7 +291,11 @@
             socket.onmessage = (event) => {
                 const message = JSON.parse(event.data);
 
-                if (message.event === 'audio_data') {
+                if (message.event === 'system_message') {
+                    resetTtsProgressState(message.payload.utterance_id || 0);
+                    pendingInterruptedAuxData = null;
+                    log(`🗣️ システム発話開始 (utterance=${message.payload.utterance_id})`);
+                } else if (message.event === 'audio_data') {
                     // TTS 音声データを受信して再生キューに追加
                     enqueueAudio(
                         message.payload.audio,
@@ -353,9 +357,15 @@
                 audio_data: audioData,
             };
 
-            // aux_dataの送信有無を判定
-            const auxData = readAuxData();
+            let auxData = readAuxData();
             if (auxData === null) return null;
+            if (pendingInterruptedAuxData) {
+                auxData = {
+                    ...auxData,
+                    ...pendingInterruptedAuxData,
+                };
+                pendingInterruptedAuxData = null;
+            }
             if (Object.keys(auxData).length > 0) {
                 payload.aux_data = auxData;
             }
@@ -525,8 +535,72 @@
         const ttsActiveSources = new Set();
         const TTS_SCHEDULE_HEADROOM_SECONDS = 0.12;
         const ttsCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const SYSTEM_UTTERANCE_COMPLETION_RATIO_KEY = 'system_utterance_completion_ratio';
+        let pendingInterruptedAuxData = null;
+        const ttsProgressState = {
+            utteranceId: 0,
+            segmentCount: 0,
+            completedSegments: 0,
+            activeSegmentIndex: 0,
+            activeSegmentStartTime: 0,
+            activeSegmentDuration: 0,
+        };
+
+        function resetTtsProgressState(utteranceId = 0) {
+            ttsProgressState.utteranceId = utteranceId;
+            ttsProgressState.segmentCount = 0;
+            ttsProgressState.completedSegments = 0;
+            ttsProgressState.activeSegmentIndex = 0;
+            ttsProgressState.activeSegmentStartTime = 0;
+            ttsProgressState.activeSegmentDuration = 0;
+        }
+
+        function ensureTtsProgressUtterance(utteranceId) {
+            if (!utteranceId) return;
+            if (ttsProgressState.utteranceId !== utteranceId) {
+                resetTtsProgressState(utteranceId);
+            }
+        }
+
+        function getSystemUtteranceCompletionRatio() {
+            if (!ttsProgressState.utteranceId || ttsProgressState.segmentCount <= 0) {
+                return null;
+            }
+
+            let completedUnits = ttsProgressState.completedSegments;
+            if (
+                ttsProgressState.activeSegmentIndex > 0
+                && ttsProgressState.activeSegmentDuration > 0
+            ) {
+                const elapsed = Math.max(
+                    0,
+                    Math.min(
+                        ttsCtx.currentTime - ttsProgressState.activeSegmentStartTime,
+                        ttsProgressState.activeSegmentDuration,
+                    ),
+                );
+                completedUnits = Math.max(
+                    completedUnits,
+                    (ttsProgressState.activeSegmentIndex - 1)
+                        + (elapsed / ttsProgressState.activeSegmentDuration),
+                );
+            }
+
+            return Math.min(1, Math.max(0, completedUnits / ttsProgressState.segmentCount));
+        }
+
+        function rememberInterruptedSystemUtteranceRatio(reason) {
+            if (reason !== 'cancel') return;
+            const ratio = getSystemUtteranceCompletionRatio();
+            if (ratio === null) return;
+            pendingInterruptedAuxData = {
+                [SYSTEM_UTTERANCE_COMPLETION_RATIO_KEY]: Number(ratio.toFixed(3)),
+            };
+        }
 
         function enqueueAudio(base64Audio, format, utteranceId, segmentIndex, segmentCount) {
+            ensureTtsProgressUtterance(utteranceId);
+            ttsProgressState.segmentCount = Math.max(ttsProgressState.segmentCount, segmentCount || 0);
             ttsQueue.push({
                 audio: base64Audio,
                 format,
@@ -538,6 +612,7 @@
         }
 
         function stopTtsPlayback(reason = 'cancel') {
+            rememberInterruptedSystemUtteranceRatio(reason);
             ttsPlaybackGeneration += 1;
             ttsQueue.length = 0;
             ttsNextStartTime = 0;
@@ -600,6 +675,14 @@
                             ttsCtx.currentTime + TTS_SCHEDULE_HEADROOM_SECONDS,
                             ttsNextStartTime,
                         );
+                        ensureTtsProgressUtterance(item.utteranceId);
+                        ttsProgressState.segmentCount = Math.max(
+                            ttsProgressState.segmentCount,
+                            item.segmentCount || 0,
+                        );
+                        ttsProgressState.activeSegmentIndex = item.segmentIndex;
+                        ttsProgressState.activeSegmentStartTime = startAt;
+                        ttsProgressState.activeSegmentDuration = audioBuf.duration;
                         ttsNextStartTime = startAt + audioBuf.duration;
                         ttsScheduledSourceCount += 1;
 
@@ -607,6 +690,18 @@
                             ttsActiveSources.delete(src);
                             if (playbackGeneration !== ttsPlaybackGeneration) return;
                             ttsScheduledSourceCount = Math.max(0, ttsScheduledSourceCount - 1);
+                            ensureTtsProgressUtterance(item.utteranceId);
+                            ttsProgressState.segmentCount = Math.max(
+                                ttsProgressState.segmentCount,
+                                item.segmentCount || 0,
+                            );
+                            ttsProgressState.completedSegments = Math.max(
+                                ttsProgressState.completedSegments,
+                                item.segmentIndex,
+                            );
+                            ttsProgressState.activeSegmentIndex = 0;
+                            ttsProgressState.activeSegmentStartTime = 0;
+                            ttsProgressState.activeSegmentDuration = 0;
                             notifyPlaybackDone(item);
                             if (ttsScheduledSourceCount === 0 && ttsQueue.length === 0) {
                                 ttsPlaying = false;
@@ -653,14 +748,14 @@
             try {
                 const parsed = JSON.parse(raw);
                 if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-                return parsed;
+                    return parsed;
                 }
                 throw new Error('aux_data must be an object');
             } catch (error) {
                 log(`✗ aux_data の JSON が不正です: ${error.message}`, 'error');
                 return null;
             }
-       }
+        }
     </script>
 </body>
 </html>

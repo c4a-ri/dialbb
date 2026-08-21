@@ -26,13 +26,17 @@ logger = get_logger(__name__)
 
 @dataclass
 class Settings:
-     config_file: str = ""
-     config: dict[str, object] | None = None
-     cycle: float = 0.1
-     user_timeout: float = 30.0
-     sample_rate: int = 16000
-     language_code: str = "ja-JP"
-     audio_logging: bool = False
+    config_file: str = ""
+    config: dict[str, object] | None = None
+    cycle: float = 0.1
+    user_timeout: float = 30.0
+    stop_at_barge_in: bool = True
+    system_barge_in_ratio: float = 0.0
+    tts_voice_name: str | None = None
+    tts_speaking_rate: float = 1.0
+    sample_rate: int = 16000
+    language_code: str = "ja-JP"
+    audio_logging: bool = False
 
 
 @dataclass
@@ -223,6 +227,9 @@ class DialogueEngineManager:
                     "tts_cancel_queue": session.tts_cancel_queue,
                     "cancel_state_clear_callback": self.clear_tts_cancel_requested,
                     "audio_send_callback": tts_audio_cb,
+                    "language_code": settings.language_code,
+                    "voice_name": settings.tts_voice_name,
+                    "speaking_rate": settings.tts_speaking_rate,
                 },
                 name=f"tts-worker-{session.session_id[:8]}",
                 daemon=False,
@@ -244,6 +251,8 @@ class DialogueEngineManager:
                     "set_tts_cancel_requested": lambda requested, sid=session.session_id: self.set_tts_cancel_requested(sid, requested),
                     "loop_period": settings.cycle,
                     "max_user_wait_time": settings.user_timeout,
+                    "stop_at_barge_in": settings.stop_at_barge_in,
+                    "system_barge_in_ratio": settings.system_barge_in_ratio,
                 },
                 name=f"core-engine-{session.session_id[:8]}",
                 daemon=False,

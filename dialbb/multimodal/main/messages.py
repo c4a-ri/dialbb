@@ -47,6 +47,8 @@ class DialbbRequest:
     is_initial: bool = False
     # バージイン時など追加情報を渡す辞書。{"barge_in": True} など。
     aux_data: dict = field(default_factory=dict)
+    # 要求の由来。"final_transcript" / "partial_transcript" / "initial" など。
+    source: str = "final_transcript"
 
 
 @dataclass(slots=True)
@@ -58,6 +60,8 @@ class DialbbResponse:
     # True の場合は対話の最終応答（以降入力を受け付けない）。
     is_final: bool = False
     aux_data: dict = field(default_factory=dict)
+    # 応答を引き起こした DialBB 要求の由来。
+    source: str = "final_transcript"
 
 
 @dataclass(slots=True)
