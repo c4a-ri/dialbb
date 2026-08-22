@@ -1,5 +1,7 @@
 # configuration file for an LLM-based Japanese application
 
+language: ja
+
 blocks:
   - name: llm_dialogue
     block_class: dialbb.builtin_blocks.llm_dialogue.LLMDialogue

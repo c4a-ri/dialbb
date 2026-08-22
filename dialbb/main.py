@@ -38,7 +38,7 @@ from dialbb.util.context_db import ContextDB
 from dialbb.util.globals import DEBUG
 from dialbb.abstract_block import AbstractBlock
 from dialbb.util.error_handlers import abort_during_building
-from dialbb.util.logger import get_logger
+from dialbb.util.logger import configure_dialbb_logging, get_logger
 
 
 ANY_FLAG: str = "Any"
@@ -90,6 +90,7 @@ class DialogueProcessor:
 
         env_path = Path.cwd() / ".env"
         load_dotenv(env_path)
+        configure_dialbb_logging()
 
         # print("cwd:", Path.cwd())
         # print("find_dotenv:", find_dotenv())

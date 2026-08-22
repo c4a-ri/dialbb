@@ -22,9 +22,50 @@ __author__ = 'Mikio Nakano'
 __copyright__ = 'C4A Research Institute, Inc.'
 
 
-from dialbb.util.globals import DEBUG
 import logging
+import os
 import sys
+
+
+_MANAGED_LOGGERS: set[str] = set()
+
+
+def _is_debug_enabled() -> bool:
+    return os.environ.get("DIALBB_DEBUG", "no").lower() in ("yes", "true")
+
+
+def _get_logging_config() -> tuple[int, str]:
+    if _is_debug_enabled():
+        return logging.DEBUG, '%(funcName)s: %(message)s'
+    return (
+        logging.INFO,
+        '%(asctime)s %(name)s:%(lineno)s %(funcName)s [%(levelname)s]: %(message)s',
+    )
+
+
+def _configure_logger(logger: logging.Logger) -> logging.Logger:
+    level, format_string = _get_logging_config()
+    logger.setLevel(level)
+
+    formatter = logging.Formatter(format_string)
+    stream_handlers = [h for h in logger.handlers if isinstance(h, logging.StreamHandler)]
+    if not stream_handlers:
+        stream_handlers = [logging.StreamHandler(sys.stdout)]
+        logger.addHandler(stream_handlers[0])
+
+    for handler in stream_handlers:
+        handler.setFormatter(formatter)
+        handler.setLevel(logging.DEBUG)
+        handler.stream = sys.stdout
+
+    logger.propagate = False
+    return logger
+
+
+def configure_dialbb_logging() -> None:
+    for logger_name in _MANAGED_LOGGERS:
+        logger = logging.getLogger(logger_name)
+        _configure_logger(logger)
 
 
 def get_logger(name) -> logging.Logger:
@@ -35,24 +76,7 @@ def get_logger(name) -> logging.Logger:
     :return: logger
     """
 
-    # create and add handler
     logger = logging.getLogger(name)
-
-    # set loglevel
-    if DEBUG:
-        logger.setLevel(logging.DEBUG)
-        format_string = '%(funcName)s: %(message)s'
-    else:
-        logger.setLevel(logging.INFO)
-        format_string = '%(asctime)s %(name)s:%(lineno)s %(funcName)s [%(levelname)s]: %(message)s'
-
-    if not any(isinstance(h, logging.StreamHandler) for h in logger.handlers):
-        handler = logging.StreamHandler(sys.stdout)
-        formatter = logging.Formatter(format_string)
-        handler.setFormatter(formatter)
-        handler.setLevel(logging.DEBUG)
-        logger.addHandler(handler)
-
-    logger.propagate = False
-    return logger
+    _MANAGED_LOGGERS.add(name)
+    return _configure_logger(logger)
 

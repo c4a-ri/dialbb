@@ -22,7 +22,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import yaml
 
-from dialbb.util.logger import get_logger
+from dialbb.util.logger import configure_dialbb_logging, get_logger
 
 from .core import DialogueEvent
 from .engine import DialogueEngineManager, Settings
@@ -549,6 +549,9 @@ def _parse_factory_args(argv: list[str]) -> argparse.Namespace:
 
 
 def create_configured_app() -> FastAPI:
+    env_path = Path.cwd() / ".env"
+    load_dotenv(env_path)
+    configure_dialbb_logging()
     args = _parse_factory_args(sys.argv[1:])
     return create_app(args.config, args.debug, args.audio_logging)
 
@@ -577,6 +580,7 @@ def main() -> None:
 
     env_path = Path.cwd() / ".env"
     load_dotenv(env_path)
+    configure_dialbb_logging()
 
     parser = argparse.ArgumentParser(description="DialBB mm_client server")
     parser.add_argument("config", help="Config file path", )

@@ -50,7 +50,10 @@ class CoreDialogueEngine:
         self.is_final_response: bool = False
         self._pending_user_aux_data: Dict[str, Any] = {}
         self._pending_dialbb_response: Optional[DialbbResponse] = None
+        self._pending_final_request: Optional[DialbbRequest] = None
         self._partial_barge_in_request_sent: bool = False
+        self._active_response_source: Optional[str] = None
+        self._partial_response_interrupted: bool = False
         # イベント通知コールバック
         self._event_callback: Optional[Callable[[DialogueEvent], None]] = None
 
@@ -97,7 +100,10 @@ class CoreDialogueEngine:
         self.is_final_response = False
         self._pending_user_aux_data = {}
         self._pending_dialbb_response = None
+        self._pending_final_request = None
         self._partial_barge_in_request_sent = False
+        self._active_response_source = None
+        self._partial_response_interrupted = False
 
     def _build_user_aux_data(self) -> Dict[str, Any]:
         aux_data = dict(self._pending_user_aux_data)
@@ -124,6 +130,21 @@ class CoreDialogueEngine:
         if aux_data:
             logger.debug("[CORE] DialBB aux_data=%s", aux_data)
 
+    def _send_pending_final_request(self, dialbb_request_queue: Queue) -> bool:
+        if self._pending_final_request is None:
+            return False
+
+        pending_request = self._pending_final_request
+        self._pending_final_request = None
+        logger.info("[CORE] 保留していた final_transcript を DialBB へ送信します")
+        self._send_user_utterance_to_dialbb(
+            pending_request.user_text,
+            dialbb_request_queue,
+            dict(pending_request.aux_data),
+            pending_request.source,
+        )
+        return True
+
     @staticmethod
     def _should_send_system_barge_in_partial(system_barge_in_ratio: float) -> bool:
         if system_barge_in_ratio < 0:
@@ -142,6 +163,7 @@ class CoreDialogueEngine:
         stt_enabled_event: Event,
     ) -> None:
         self.session_id = dialbb_response.session_id
+        self._active_response_source = dialbb_response.source
         if dialbb_response.is_final:
             self.is_final_response = True
             logger.info("[CORE] DialBB 最終応答を受信（対話終了予定）")
@@ -156,6 +178,8 @@ class CoreDialogueEngine:
             self._emit_event(DialogueEvent(event_type="status", data={"message": "音声入力待ち"}))
             self.user_waiting = True
             self.user_wait_start_time = time.monotonic()
+            if dialbb_response.source == "partial_transcript":
+                self._partial_response_interrupted = False
             if not self.is_final_response:
                 stt_enabled_event.set()
             return
@@ -339,7 +363,24 @@ class CoreDialogueEngine:
                     aux_data,
                 )
             if self._partial_barge_in_request_sent:
-                logger.info("[CORE] partial_transcript を DialBB へ送信済みのため final は転送しません")
+                if self.system_speaking and self._active_response_source == "partial_transcript":
+                    logger.info("[CORE] partial_transcript 応答の完了待ちのため final を保留します")
+                    self._pending_final_request = DialbbRequest(
+                        session_id=self.session_id,
+                        user_text=text,
+                        aux_data=dict(aux_data),
+                        source="final_transcript",
+                    )
+                elif self._partial_response_interrupted:
+                    logger.info("[CORE] partial_transcript 応答が中断されたため final を DialBB へ再送します")
+                    self._send_user_utterance_to_dialbb(
+                        text,
+                        dialbb_request_queue,
+                        aux_data,
+                        source="final_transcript",
+                    )
+                else:
+                    logger.info("[CORE] partial_transcript を DialBB へ送信済みのため final は転送しません")
             else:
                 self._send_user_utterance_to_dialbb(
                     text,
@@ -349,6 +390,7 @@ class CoreDialogueEngine:
                 )
             self._pending_user_aux_data = {}
             self._partial_barge_in_request_sent = False
+            self._partial_response_interrupted = False
             if stop_at_barge_in and tts_cancel_queue is not None and self.system_speaking and not self.is_final_response:
                 tts_cancel_queue.put("cancel")
                 if set_tts_cancel_requested is not None:
@@ -396,18 +438,27 @@ class CoreDialogueEngine:
         tts_result: TtsResult,
         conversation_active_event: Event,
         stt_enabled_event: Event,
+        dialbb_request_queue: Queue,
     ) -> None:
         """TTS 完了を処理"""
         logger.info("[CORE] CORE<-TTS 結果受信")
         if tts_result.completed:
             logger.info("[CORE] TTS 合成処理完了。再生完了通知を待機します")
+            self._pending_final_request = None
         else:
             logger.info("[CORE] システム発話中断またはエラー")
             logger.debug("[CORE] TTS結果詳細: %s", tts_result.text)
-            if conversation_active_event.is_set():
+            resent_pending_final = False
+            if self._active_response_source == "partial_transcript":
+                self._partial_response_interrupted = True
+                if self._send_pending_final_request(dialbb_request_queue):
+                    resent_pending_final = True
+                    self._emit_event(DialogueEvent(event_type="status", data={"message": "応答生成中"}))
+            if conversation_active_event.is_set() and not resent_pending_final:
                 self._emit_event(DialogueEvent(event_type="status", data={"message": "音声入力待ち"}))
             self.system_speaking = False
             self._barge_in_sent = False
+            self._active_response_source = None
 
     def process_tts_playback_event(
         self,
@@ -426,6 +477,9 @@ class CoreDialogueEngine:
         )
         self.system_speaking = False
         self._barge_in_sent = False
+        self._active_response_source = None
+        self._pending_final_request = None
+        self._partial_response_interrupted = False
 
         if self.is_final_response:
             logger.info("[CORE] 最終応答の実再生完了：対話終了に遷移")
@@ -573,6 +627,7 @@ class CoreDialogueEngine:
                         tts_result,
                         conversation_active_event,
                         stt_enabled_event,
+                        dialbb_request_queue,
                     )
 
                 while True:
