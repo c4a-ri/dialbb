@@ -54,6 +54,8 @@ class CoreDialogueEngine:
         self._partial_barge_in_request_sent: bool = False
         self._active_response_source: Optional[str] = None
         self._partial_response_interrupted: bool = False
+        self._last_status_message: Optional[str] = None
+        self._last_partial_transcript: Optional[str] = None
         # イベント通知コールバック
         self._event_callback: Optional[Callable[[DialogueEvent], None]] = None
 
@@ -66,6 +68,13 @@ class CoreDialogueEngine:
         if self._event_callback:
             self._event_callback(event)
         logger.debug("[CORE] Event: %s", event)
+
+    def _emit_status(self, message: str) -> None:
+        if self._last_status_message == message:
+            return
+
+        self._last_status_message = message
+        self._emit_event(DialogueEvent(event_type="status", data={"message": message}))
 
     def _request_barge_in_cancel(
         self,
@@ -104,6 +113,8 @@ class CoreDialogueEngine:
         self._partial_barge_in_request_sent = False
         self._active_response_source = None
         self._partial_response_interrupted = False
+        self._last_status_message = None
+        self._last_partial_transcript = None
 
     def _build_user_aux_data(self) -> Dict[str, Any]:
         aux_data = dict(self._pending_user_aux_data)
@@ -175,7 +186,7 @@ class CoreDialogueEngine:
         system_text = dialbb_response.system_text.strip()
         if not system_text:
             logger.info("[CORE] DialBB空応答: ユーザ発話待ちへ遷移")
-            self._emit_event(DialogueEvent(event_type="status", data={"message": "音声入力待ち"}))
+            self._emit_status("音声入力待ち")
             self.user_waiting = True
             self.user_wait_start_time = time.monotonic()
             if dialbb_response.source == "partial_transcript":
@@ -188,7 +199,7 @@ class CoreDialogueEngine:
         self._emit_event(DialogueEvent(event_type="chat", data={"role": "system", "text": system_text,
                                                                 "aux_data": dict(dialbb_response.aux_data or {}),}))
         logger.info("[CORE] CORE->TTS 合成要求送信. system_speaking=%s, is_final_response=%s", self.system_speaking, self.is_final_response)
-        self._emit_event(DialogueEvent(event_type="status", data={"message": "音声合成中"}))
+        self._emit_status("音声合成中")
         tts_request_queue.put(TtsRequest(session_id=self.session_id, text=system_text))
         if self.is_final_response:
             logger.debug("[CORE] 最終応答再生中: 新規 STT 入力を無効化")
@@ -238,7 +249,7 @@ class CoreDialogueEngine:
         """対話開始コマンドを処理"""
         del tts_request_queue
         logger.info("[CORE] start command received")
-        self._emit_event(DialogueEvent(event_type="status", data={"message": "対話初期化中"}))
+        self._emit_status("対話初期化中")
         self._reset_state()
         self._drain(stt_event_queue)
         self._drain(dialbb_request_queue)
@@ -251,7 +262,7 @@ class CoreDialogueEngine:
         conversation_active_event.set()
         stt_enabled_event.set()
         logger.info("[CORE] CORE->DialBB reset request sent")
-        self._emit_event(DialogueEvent(event_type="status", data={"message": "システム応答待ち"}))
+        self._emit_status("システム応答待ち")
         dialbb_request_queue.put(
             DialbbRequest(session_id="", user_text="", is_initial=True)
         )
@@ -270,7 +281,7 @@ class CoreDialogueEngine:
     ) -> None:
         """対話終了コマンドを処理"""
         logger.info("[CORE] end command received")
-        self._emit_event(DialogueEvent(event_type="status", data={"message": "待機中"}))
+        self._emit_status("待機中")
         if tts_cancel_queue is not None:
             tts_cancel_queue.put("cancel")
         if set_tts_cancel_requested is not None:
@@ -302,17 +313,21 @@ class CoreDialogueEngine:
             logger.debug("[CORE] User speech segment started.")
             self.user_speaking = True
             self._partial_barge_in_request_sent = False
-            self._emit_event(DialogueEvent(event_type="status", data={"message": "音声認識中"}))
+            self._last_partial_transcript = None
+            self._emit_status("音声認識中")
 
         elif stt_event.event_type == RecognitionEventType.SPEECH_ENDED:
             logger.debug("[CORE] User speech segment ended")
             self.user_speaking = False
+            self._last_partial_transcript = None
 
         elif stt_event.event_type == RecognitionEventType.PARTIAL_TRANSCRIPT:
             text = stt_event.text.strip()
-            logger.debug("[CORE] Recognizing speech... %s", text)
-            self._emit_event(DialogueEvent(event_type="status", data={"message": "音声認識中"}))
-            logger.debug("[CORE] STT->CORE system_speaking: %s, is_final_response: %s, tts_cancel_queue: %s, _barge_in_sent: %s", self.system_speaking, self.is_final_response, tts_cancel_queue, self._barge_in_sent)
+            self._emit_status("音声認識中")
+            if text != self._last_partial_transcript:
+                logger.debug("[CORE] Recognizing speech... %s", text)
+                logger.debug("[CORE] STT->CORE system_speaking: %s, is_final_response: %s, tts_cancel_queue: %s, _barge_in_sent: %s", self.system_speaking, self.is_final_response, tts_cancel_queue, self._barge_in_sent)
+                self._last_partial_transcript = text
             if stop_at_barge_in:
                 self._request_barge_in_cancel(
                     tts_cancel_queue=tts_cancel_queue,
@@ -351,7 +366,8 @@ class CoreDialogueEngine:
         elif stt_event.event_type == RecognitionEventType.FINAL_TRANSCRIPT:
             text = stt_event.text.strip()
             logger.info("[CORE] STT->CORE final: %s", text)
-            self._emit_event(DialogueEvent(event_type="status", data={"message": "応答生成中"}))
+            self._last_partial_transcript = None
+            self._emit_status("応答生成中")
             self.user_speaking = False
             self.user_waiting = False
             self.user_wait_start_time = None
@@ -453,9 +469,9 @@ class CoreDialogueEngine:
                 self._partial_response_interrupted = True
                 if self._send_pending_final_request(dialbb_request_queue):
                     resent_pending_final = True
-                    self._emit_event(DialogueEvent(event_type="status", data={"message": "応答生成中"}))
+                    self._emit_status("応答生成中")
             if conversation_active_event.is_set() and not resent_pending_final:
-                self._emit_event(DialogueEvent(event_type="status", data={"message": "音声入力待ち"}))
+                self._emit_status("音声入力待ち")
             self.system_speaking = False
             self._barge_in_sent = False
             self._active_response_source = None
@@ -483,13 +499,13 @@ class CoreDialogueEngine:
 
         if self.is_final_response:
             logger.info("[CORE] 最終応答の実再生完了：対話終了に遷移")
-            self._emit_event(DialogueEvent(event_type="status", data={"message": "対話終了"}))
+            self._emit_status("対話終了")
             self._emit_event(DialogueEvent(event_type="final"))
             self._reset_state()
             conversation_active_event.clear()
             return
 
-        self._emit_event(DialogueEvent(event_type="status", data={"message": "音声入力待ち"}))
+        self._emit_status("音声入力待ち")
         self.user_waiting = True
         self.user_wait_start_time = time.monotonic()
         stt_enabled_event.set()
