@@ -55,7 +55,7 @@ def test_with_dialbb(
     if output_file and not json_output:
         out_fp = open(output_file, mode='w', encoding='utf-8')
 
-    results = []  # results in JSON
+    json_results = []  # results in JSON
 
     for simulator_config in test_config.get("configs"):
         simulator_config_file = os.path.join(test_config_dir, simulator_config)
@@ -73,14 +73,14 @@ def test_with_dialbb(
                 yield next(result)
         except StopIteration as e:
             # Retrieve JSON results in bulk
-            results.append(e.value)
+            json_results.append(e.value)
 
     if out_fp:
         out_fp.close()
 
     if output_file and json_output:  # JSON mode
         with open(output_file, mode='w', encoding='utf-8') as fp:
-            json.dump(results, fp, indent=2, ensure_ascii=False)
+            json.dump(json_results, fp, indent=2, ensure_ascii=False)
 
 def test_one_simulator_config(
     app_to_test: DialogueProcessor,
