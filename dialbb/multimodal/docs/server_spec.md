@@ -70,7 +70,7 @@ dialbb-mm-server <config_file> [--host HOST] [--port PORT] [--debug] [--audio_lo
 | 設定キー | 型 | デフォルト | 説明 |
 | --- | --- | --- | --- |
 | `cycle` | float | `0.1` | コアエンジンのループ周期 |
-| `user_timeout` | float | `30.0` | ユーザ発話待ちタイムアウト秒数 |
+| `user_timeout` | float | `10.0` | ユーザ発話待ちタイムアウト秒数 |
 | `stop_at_barge_in` | bool | `True` | ユーザバージイン時にシステム発話停止を要求するか |
 | `system_barge_in_ratio` | float | `0.0` | `partial_transcript` を DialBB に先行送信して割り込ませる確率 |
 | `tts_speaking_rate` | float | `1.0` | Google TTS の発話速度 |

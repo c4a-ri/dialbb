@@ -17,6 +17,7 @@ from .main.messages import (
     DialbbResponse,
     RecognitionEvent,
     RecognitionEventType,
+    TtsPlaybackEvent,
     TtsRequest,
     TtsResult,
 )
@@ -399,21 +400,7 @@ class CoreDialogueEngine:
         """TTS 完了を処理"""
         logger.info("[CORE] CORE<-TTS 結果受信")
         if tts_result.completed:
-            logger.info("[CORE] システム発話終了")
-            self.system_speaking = False
-            self._barge_in_sent = False
-
-            if self.is_final_response:
-                logger.info("[CORE] 最終応答の再生完了：対話終了に遷移")
-                self._emit_event(DialogueEvent(event_type="status", data={"message": "対話終了"}))
-                self._emit_event(DialogueEvent(event_type="final"))
-                self._reset_state()
-                conversation_active_event.clear()
-            else:
-                self._emit_event(DialogueEvent(event_type="status", data={"message": "音声入力待ち"}))
-                self.user_waiting = True
-                self.user_wait_start_time = time.monotonic()
-                stt_enabled_event.set()
+            logger.info("[CORE] TTS 合成処理完了。再生完了通知を待機します")
         else:
             logger.info("[CORE] システム発話中断またはエラー")
             logger.debug("[CORE] TTS結果詳細: %s", tts_result.text)
@@ -421,6 +408,37 @@ class CoreDialogueEngine:
                 self._emit_event(DialogueEvent(event_type="status", data={"message": "音声入力待ち"}))
             self.system_speaking = False
             self._barge_in_sent = False
+
+    def process_tts_playback_event(
+        self,
+        playback_event: TtsPlaybackEvent,
+        conversation_active_event: Event,
+        stt_enabled_event: Event,
+    ) -> None:
+        """TTS 再生完了を処理"""
+        if not playback_event.completed:
+            return
+
+        logger.info(
+            "[CORE] システム発話再生完了: session=%s utterance=%s",
+            playback_event.session_id,
+            playback_event.utterance_id,
+        )
+        self.system_speaking = False
+        self._barge_in_sent = False
+
+        if self.is_final_response:
+            logger.info("[CORE] 最終応答の実再生完了：対話終了に遷移")
+            self._emit_event(DialogueEvent(event_type="status", data={"message": "対話終了"}))
+            self._emit_event(DialogueEvent(event_type="final"))
+            self._reset_state()
+            conversation_active_event.clear()
+            return
+
+        self._emit_event(DialogueEvent(event_type="status", data={"message": "音声入力待ち"}))
+        self.user_waiting = True
+        self.user_wait_start_time = time.monotonic()
+        stt_enabled_event.set()
 
     def check_user_wait_timeout(
         self,
@@ -462,6 +480,7 @@ class CoreDialogueEngine:
         dialbb_response_queue: Queue,
         tts_request_queue: Queue,
         tts_result_queue: Queue,
+        tts_playback_event_queue: Queue,
         conversation_active_event: Event,
         stt_enabled_event: Event,
         stop_event: Event,
@@ -552,6 +571,17 @@ class CoreDialogueEngine:
                         break
                     self.process_tts_result(
                         tts_result,
+                        conversation_active_event,
+                        stt_enabled_event,
+                    )
+
+                while True:
+                    try:
+                        playback_event = tts_playback_event_queue.get_nowait()
+                    except Empty:
+                        break
+                    self.process_tts_playback_event(
+                        playback_event,
                         conversation_active_event,
                         stt_enabled_event,
                     )

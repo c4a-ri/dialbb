@@ -48,7 +48,7 @@ multimodal:
 | `system_barge_in_ratio` | float | `0.0` | `partial_transcript` を DialBB に先行送信して割り込ませる確率 |
 | `tts_speaking_rate` | float | `1.0` | Google TTS の発話速度 |
 | `tts_voice_name` | string \| null | `null` | Google TTS の話者名。未指定時は `language_code` に応じた既定音声 |
-| `user_timeout` | float | `30.0` | ユーザ無音タイムアウト（秒） |
+| `user_timeout` | float | `10.0` | ユーザ無音タイムアウト（秒） |
 
 トップレベルの `language` も参照し、`ja` なら `ja-JP`、`en` なら `en-US` を STT/TTS の `language_code` として使います。その他の値は現在 `ja-JP` 扱いです。
 

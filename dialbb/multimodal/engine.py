@@ -18,6 +18,7 @@ from dialbb.util.logger import get_logger
 from .core import CoreDialogueEngine, DialogueEvent
 from .asr.google_stt_client import run_stt_worker
 from .main.dialbb_client import run_dialbb_worker
+from .main.messages import TtsPlaybackEvent
 from .tts.speech_synthesizer import run_tts_worker, split_tts_segments
 
 logger = get_logger(__name__)
@@ -28,7 +29,7 @@ class Settings:
     config_file: str = ""
     config: dict[str, object] | None = None
     cycle: float = 0.1
-    user_timeout: float = 30.0
+    user_timeout: float = 10.0
     stop_at_barge_in: bool = True
     system_barge_in_ratio: float = 0.0
     tts_voice_name: str | None = None
@@ -49,6 +50,7 @@ class DialogueSession:
     dialbb_response_queue: "queue.Queue" = field(default_factory=queue.Queue)
     tts_request_queue: "queue.Queue" = field(default_factory=queue.Queue)
     tts_result_queue: "queue.Queue" = field(default_factory=queue.Queue)
+    tts_playback_event_queue: "queue.Queue" = field(default_factory=queue.Queue)
     tts_cancel_queue: "queue.Queue" = field(default_factory=queue.Queue)
     command_queue: "queue.Queue" = field(default_factory=queue.Queue)
     # WebSocket audio input queue for forwarding client PCM16 chunks to STT.
@@ -239,6 +241,7 @@ class DialogueEngineManager:
                     "dialbb_response_queue": session.dialbb_response_queue,
                     "tts_request_queue": session.tts_request_queue,
                     "tts_result_queue": session.tts_result_queue,
+                    "tts_playback_event_queue": session.tts_playback_event_queue,
                     "conversation_active_event": session.conversation_active_event,
                     "stt_enabled_event": session.stt_enabled_event,
                     "stop_event": session.stop_event,
@@ -606,9 +609,18 @@ class DialogueEngineManager:
 
             session.current_tts_played_segments.add(segment_index)
             played_segments = len(session.current_tts_played_segments)
-            if played_segments >= segment_count or session.tts_cancel_requested:
+            playback_completed = played_segments >= segment_count
+            if playback_completed or session.tts_cancel_requested:
                 session.system_speaking = False
             session.tts_state_lock.notify_all()
+            if playback_completed:
+                session.tts_playback_event_queue.put(
+                    TtsPlaybackEvent(
+                        session_id=session_id,
+                        utterance_id=utterance_id,
+                        completed=True,
+                    )
+                )
             return played_segments, segment_count, session.system_speaking
 
     def wait_for_tts_segment_playback_done(

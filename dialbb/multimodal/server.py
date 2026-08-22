@@ -408,6 +408,12 @@ def create_app(
                         total_segments,
                         system_speaking,
                     )
+                    if played_segments >= total_segments:
+                        logger.info(
+                            "[WEBSOCKET] utterance playback completed: session=%s utterance=%s",
+                            session_id,
+                            utterance_id,
+                        )
                 elif action == "stop_audio_done":
                     logger.debug(
                         "[WEBSOCKET] stop audio ack: session=%s reason=%s",
@@ -490,7 +496,7 @@ def _determine_settings(config_file: str, debug: bool, audio_logging: bool) -> S
 
     language_code = _map_config_language_to_bcp47(config.get("language", "ja"))
     cycle = float(multimodal_config.get("cycle", config.get("cycle", 0.1)))
-    user_timeout = float(multimodal_config.get("user_timeout", config.get("user_timeout", 30.0)))
+    user_timeout = float(multimodal_config.get("user_timeout", config.get("user_timeout", 10.0)))
     stop_at_barge_in = bool(
         multimodal_config.get("stop_at_barge_in", config.get("stop_at_barge_in", True))
     )
