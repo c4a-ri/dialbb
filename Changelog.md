@@ -1,41 +1,60 @@
 # Changelog
 
-## 2.0.0 (2026.7.7)
+## 2.0.1
 
-- Default GPT model changed to gpt-5.4-nano
+- Bugs related to placeholders in prompts fixed
 
-- Created a RAG sample app
+## 2.0.0 (2026.7.8)
 
-- Added a new passage search block for RAG
+- Added the following built-in blocks:
 
-- Changed automatically generated `session_id` values to shorter strings when not using the context DB
+  - DST with LLM block
 
-- Changed the system to support loading environment variable settings from `.env`
+  - LLM dialogue block
 
-- Built-in STN Manager block
+  - Passage retrieval block for RAG
+
+- Deprecated the following built-in blocks:
+
+  - ChatGPT dialogue block
+
+  - Japanese canonicalizer block
+
+  - Simple canonicalizer block
+
+  - LR-CRF understander block 
+
+  - ChatGPT understander block
+
+  - ChatGPT NER block
+
+  - spaCy-based NER block
+
+- Changed the sample apps to the following three:
+
+  - LLM dialogue application
+
+  - DST-STN application
+
+  - RAG application
+
+- STN Manager built-in block
 
   - Changed LLM calls to use LangChain
 
-  - Changed the block to accept `dialogue_history` as input
+  - Changed it so `dialogue_history` can be accepted as input
 
-- Added a new built-in DST with LLM block
+- No-code tool
 
-- Added a new built-in LLM Dialogue block
+  - Changed it so LLM-based DST can be used instead of language understanding and named entity extraction
 
-- Deprecated the built-in ChatGPT Dialogue block
+- Changed from Poetry to a uv-based setup
 
-- Deprecated the built-in Japanese canonicalizer block
+- Changed the default LLM to `gpt-5.4-nano`
 
-- Deprecated the built-in Simple Canonicalizer block
+- When not using the context DB, changed automatically generated `session_id` values to shorter strings.
 
-- Deprecated the built-in LR-CRF Understander block
-
-- Deprecated the built-in ChatGPT Understander block
-
-- Deprecated the built-in ChatGPT NER block
-
-- Deprecated the builtin spaCy-Based NER block
-
+- Changed it so environment variable settings can be loaded from `.env`.
 ## 1.2.4 (2026.5.21)
 
 - No-code tool

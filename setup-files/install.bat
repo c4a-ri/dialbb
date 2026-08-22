@@ -19,21 +19,9 @@ if %errorlevel% neq 0 (
     exit /b
 )
 
-:: Get wheel file name
-set WHL=dialbb*-py3-none-any.whl
-
-for %%f in (%WHL%) do (
-    set PKG=%%f
-)
-if "%PKG%"=="" (
-    echo "dialbb pakage was not found."
-    pause
-    exit /b
-)
-
 :: install dialbb pakcage.
-echo Installing dialbb package:%PKG%
-pip install --force-reinstall %PKG%
+echo Installing dialbb package
+pip install --force-reinstall dialbb
 if %errorlevel% neq 0 (
     echo Failed to install dialbb package. Please check Python or pip environment.
 ) else (

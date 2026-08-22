@@ -35,8 +35,7 @@ from dialbb.builtin_blocks.stn_management.util import scenario_function_log_debu
 from dialbb.util.globals import CHATGPT_INSTRUCTIONS
 
 #  [[[....{<tag1>}....{<tag2>}....]]]
-REMAINING_TAGS_PATTERN = re.compile( r"\[\[\[(?=.*\{[A-Za-z0-9_]+\})(?:[^\{\]]|\{[A-Za-z0-9_]+\})*\]\]\]",
-                                     re.DOTALL)
+REMAINING_TAGS_PATTERN = re.compile(r"\[\[\[[^\]]*\{[A-Za-z0-9_]+\}[^\]]*\]\]\]", re.DOTALL)
 
 DEFAULT_LLM = 'gpt-5.4-nano'
 LLM_TIMEOUT = 10
