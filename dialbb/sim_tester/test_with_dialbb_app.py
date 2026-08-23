@@ -106,9 +106,7 @@ def test_one_simulator_config(
     sim_session_id = sim_res['session_id']
 
     request_to_app = {"user_id": USER_ID, "aux_data": aux_data}  # initial request
-    log_text += "----settings\n"
-    log_text += "---\n"
-    log_text += "----init\n"
+    log_text += f"----config: {simulator_config_file}\n"
     log_text += f"aux data: {str(aux_data)}\n"
 
     response = app_to_test.process(request_to_app, initial=True)
@@ -154,6 +152,6 @@ def test_one_simulator_config(
     print(log_text)
 
     if out_fp:
-        print(log_text, file=out_fp)
+        print(log_text, file=out_fp, flush=True)
 
     return result

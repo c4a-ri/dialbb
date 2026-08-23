@@ -1,0 +1,5 @@
+max_turns: 10
+
+configs:
+  - config1.yml
+  - config2.yml
