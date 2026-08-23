@@ -94,7 +94,7 @@ class AppFileFrame(ttk.Frame):
     """アプリファイル選択UIで使う拡張Frame（型情報用）。"""
 
     spec_app: tk.Label
-    edit_box: tk.Entry
+    selected_file_path: str
 
 
 # -------- Scenario Editor -------------------------------------
@@ -240,33 +240,13 @@ def set_file_frame(parent_frame, settings, label_text, file_type_list) -> AppFil
     # ラベルの作成
     # file_frame = ttk.Frame(parent_frame, style="My.TLabelframe")
     file_frame = AppFileFrame(parent_frame)
+    file_frame.selected_file_path = ""
     file_frame.spec_app = tk.Label(file_frame)
-    file_frame.spec_app.grid(column=1, columnspan=2, row=0, sticky=tk.W, padx=5)
+    file_frame.spec_app.grid(column=0, row=0, sticky=tk.W, padx=5)
     # アプリ名の表示エリアを登録して保存アプリ名を表示する
     settings.reg_disp_area(file_frame.spec_app)
 
-    label = tk.Label(file_frame, text=gui_text("main_import"))
-    # label.grid(column=0, row=1, padx=0, sticky=tk.E)
-    label.grid(column=0, row=1, padx=0, pady=5, sticky=tk.E)
-
-    # テキストボックスの作成
-    file_frame.edit_box = tk.Entry(file_frame)
-    file_frame.edit_box.grid(column=1, row=1, padx=20, sticky=tk.E + tk.W)
-    file_frame.grid_columnconfigure(0, weight=0)
-    file_frame.grid_rowconfigure(1, weight=1)
-
-    # select button
-    select_button = ttk.Button(
-        file_frame,
-        text=gui_text("btn_select"),
-        command=lambda: set_file_path_command(
-            file_frame.edit_box, settings, label_text, file_type_list
-        ),
-    )
-    # select_button.grid(column=2, row=1, padx=5)
-    select_button.grid(column=2, row=1, padx=5, pady=5)
-
-    file_frame.columnconfigure(1, weight=1)  # Entryを伸縮可能に
+    file_frame.grid_columnconfigure(0, weight=1)
 
     return file_frame
 
@@ -320,14 +300,12 @@ def on_cancel(frame) -> None:
 
 
 # [select]ボタン：アプリファイルの読み込み
-def set_file_path_command(edit_box, _settings, title, file_type_list) -> None:
-    """ファイル選択ダイアログで選んだパスを入力欄へ反映する。"""
+def set_file_path_command(file_frame, _settings, title, file_type_list) -> None:
+    """ファイル選択ダイアログで選んだパスを読み込む。"""
     file_path = filedialog.askopenfilename(title=title, filetypes=file_type_list)
     if file_path:
-        # パスをテキストボックスに設定する
-        edit_box.delete(0, tk.END)
-        edit_box.insert(tk.END, file_path)
-        import_application_file(edit_box, _settings, file_type_list)
+        file_frame.selected_file_path = file_path
+        import_application_file(file_path, _settings, file_type_list)
 
 
 def clear_app_dir_except_gitignore() -> None:
@@ -345,9 +323,8 @@ def clear_app_dir_except_gitignore() -> None:
             os.unlink(path)
 
 
-def import_application_file(edit_box, settings, _file_type_list) -> None:
+def import_application_file(file_path, settings, _file_type_list) -> None:
     """zip形式のアプリファイルを展開して設定へ反映する。"""
-    file_path = edit_box.get()
     if file_path:
         logger.info("%s decompress to %s", file_path, APP_FILE_DIR)
         try:
@@ -750,17 +727,27 @@ def set_main_frame(root_frame) -> None:
         text=gui_text("btn_create"),
         command=lambda: create_app_files(application_frame, settings),
     )
-    # create_btn.pack(side=tk.LEFT, padx=10, pady=10)
     create_btn.grid(row=1, column=0, padx=5, pady=10)
+
+    select_btn = ttk.Button(
+        application_frame,
+        text=gui_text("btn_select"),
+        command=lambda: set_file_path_command(
+            file_frame,
+            settings,
+            gui_text("msg_appfile_select"),
+            [("zip File", "*.zip")],
+        ),
+    )
+    select_btn.grid(row=1, column=1, padx=5, pady=10)
 
     # export ボタン:アプリファイルのzip保存
     export_btn = ttk.Button(
         application_frame,
         text=gui_text("btn_export"),
-        command=lambda: export_app_file(file_frame.edit_box.get(), settings),
+        command=lambda: export_app_file(file_frame.selected_file_path, settings),
     )
-    # export_btn.pack(side=tk.LEFT, padx=10, pady=10)
-    export_btn.grid(row=1, column=1, padx=5, pady=10)
+    export_btn.grid(row=1, column=2, padx=5, pady=10)
 
     application_frame.columnconfigure(0, weight=1)
     application_frame.columnconfigure(1, weight=1)
