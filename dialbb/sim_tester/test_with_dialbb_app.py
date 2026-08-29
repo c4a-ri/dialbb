@@ -107,6 +107,18 @@ def test_one_simulator_config(
 
     log_text += f"----config: {simulator_config_file}\n"
 
+
+    request_to_app = {"user_id": USER_ID}  # initial request
+    response = app_to_test.process(request_to_app, initial=True)
+    if not start_by_simulator:
+        print("response: " + str(response))
+        system_utterance: str = response['system_utterance']
+        print("SYS> " + system_utterance)
+        result['dialogue'].append({"speaker": "system", "utterance": system_utterance})
+        log_text += f"System: {system_utterance}\n"
+        yield log_text
+    session_id = response['session_id']
+
     sim_res = simulator_app.process({"user_id": USER_ID}, initial=True)
     if start_by_simulator:
         sim_user_utterance: str = sim_res.get("system_utterance", "")
@@ -115,21 +127,26 @@ def test_one_simulator_config(
         yield f"User: {sim_user_utterance}\n"
         num_turns += 1
         print("USR> " + sim_user_utterance)
+        request = {
+            "user_id": USER_ID,
+            "session_id": session_id,
+            "user_utterance": sim_user_utterance,
+            "aux_data": sim_res.get("aux_data", {})
+        }
+        print("request: " + str(request))
+        response = app_to_test.process(request, initial=False)
+        print("response: " + str(response))
+        system_utterance = response['system_utterance']
+        print("SYS> " + system_utterance)
+        result['dialogue'].append({"speaker": "system", "utterance": system_utterance})
+        log_text += f"System: {system_utterance}\n"
+        yield f"System: {system_utterance}\n"
+
     # aux_data = sim_res.get("aux_data", {})
     sim_session_id = sim_res['session_id']
 
-    request_to_app = {"user_id": USER_ID}  # initial request
 
     # log_text += f"aux data: {str(aux_data)}\n"
-
-    response = app_to_test.process(request_to_app, initial=True)
-    print("response: " + str(response))
-    system_utterance: str = response['system_utterance']
-    print("SYS> " + system_utterance)
-    result['dialogue'].append({"speaker": "system", "utterance": system_utterance})
-    log_text += f"System: {system_utterance}\n"
-    yield log_text
-    session_id = response['session_id']
 
     while True:
         request_to_simulator: dict[str, object] = {
