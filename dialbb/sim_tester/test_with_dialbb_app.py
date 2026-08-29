@@ -48,6 +48,7 @@ def test_with_dialbb(
     :return: list of logs in JSON format
     """
 
+    start_by_simulator: bool = test_config.get('start_by_simulator', False)
     max_turns: int = test_config.get('max_turns', DEFAULT_MAX_TURNS)
 
     # setting output file
@@ -64,7 +65,8 @@ def test_with_dialbb(
             app_to_test,
             simulator_config_file,
             max_turns,
-            out_fp
+            out_fp,
+            start_by_simulator
         )
 
         try:
@@ -82,11 +84,13 @@ def test_with_dialbb(
         with open(output_file, mode='w', encoding='utf-8') as fp:
             json.dump(json_results, fp, indent=2, ensure_ascii=False)
 
+
 def test_one_simulator_config(
     app_to_test: DialogueProcessor,
     simulator_config_file: str,
     max_turns: int,
     out_fp,
+    start_by_simulator: bool
 ) -> Generator[str, None, dict[str, object]]:
 
     result = {"config": simulator_config_file}
@@ -101,13 +105,22 @@ def test_one_simulator_config(
 
     result['dialogue'] = []
 
+    log_text += f"----config: {simulator_config_file}\n"
+
     sim_res = simulator_app.process({"user_id": USER_ID}, initial=True)
-    aux_data = sim_res.get("aux_data", {})
+    if start_by_simulator:
+        sim_user_utterance: str = sim_res.get("system_utterance", "")
+        result['dialogue'].append({"speaker": "user", "utterance": sim_user_utterance})
+        log_text += f"User: {sim_user_utterance}\n"
+        yield f"User: {sim_user_utterance}\n"
+        num_turns += 1
+        print("USR> " + sim_user_utterance)
+    # aux_data = sim_res.get("aux_data", {})
     sim_session_id = sim_res['session_id']
 
-    request_to_app = {"user_id": USER_ID, "aux_data": aux_data}  # initial request
-    log_text += f"----config: {simulator_config_file}\n"
-    log_text += f"aux data: {str(aux_data)}\n"
+    request_to_app = {"user_id": USER_ID}  # initial request
+
+    # log_text += f"aux data: {str(aux_data)}\n"
 
     response = app_to_test.process(request_to_app, initial=True)
     print("response: " + str(response))
