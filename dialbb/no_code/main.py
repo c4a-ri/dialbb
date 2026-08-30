@@ -60,6 +60,7 @@ APP_FILE_DIR: str = APP_DIR
 PYEDITOR_DIR: str = os.path.join(DIALBB_DIR, "pyeditor")
 PYEDITOR_EDITOR_SCRIPT: str = os.path.join(PYEDITOR_DIR, "scenario_editor.py")
 PYEDITOR_STATE_GRAPH_JSON: str = os.path.join(PYEDITOR_DIR, "data", "state_graph.json")
+MULTIMODAL_SERVER_MODULE: str = "dialbb.multimodal.server"
 
 
 APP_FILES: Dict[str, str] = {
@@ -82,6 +83,7 @@ class RuntimeProcesses:
 
     editor_process: Optional[ProcessManager] = None
     dialbb_proc: Optional[ProcessManager] = None
+    multimodal_proc: Optional[ProcessManager] = None
 
 
 PROCESS_STATE = RuntimeProcesses()
@@ -192,8 +194,21 @@ def convert_excel_to_json(xlsx: str, json: str) -> bool:
 
 
 # -------- DialBBサーバ関連 -------------------------------------
+def update_server_toggle_buttons(dialbb_button, multimodal_button) -> None:
+    """片方のサーバ起動中はもう片方の起動ボタンを無効化する。"""
+    if PROCESS_STATE.dialbb_proc:
+        multimodal_button.config(state=tk.DISABLED)
+    else:
+        multimodal_button.config(state=tk.NORMAL)
+
+    if PROCESS_STATE.multimodal_proc:
+        dialbb_button.config(state=tk.DISABLED)
+    else:
+        dialbb_button.config(state=tk.NORMAL)
+
+
 # DialBBサーバ起動/停止
-def exec_dialbb(app_file, button) -> None:
+def exec_dialbb(app_file, button, multimodal_button) -> None:
     """DialBBサーバの起動/停止をトグルする。"""
     if PROCESS_STATE.dialbb_proc:
         # DialBBサーバ停止
@@ -201,7 +216,13 @@ def exec_dialbb(app_file, button) -> None:
         PROCESS_STATE.dialbb_proc = None
         # ボタン表示切替
         button.config(text=gui_text("btn_dialbb_start"))
+        update_server_toggle_buttons(button, multimodal_button)
     else:
+        if PROCESS_STATE.multimodal_proc:
+            messagebox.showwarning("Warning", gui_text("msg_warn_exclusive_multimodal"))
+            update_server_toggle_buttons(button, multimodal_button)
+            return
+
         logger.info("app_file:%s", app_file)
         # サーバ起動
         cmd = os.path.join(DIALBB_DIR, r"server/run_server.py")
@@ -210,9 +231,37 @@ def exec_dialbb(app_file, button) -> None:
         if ret:
             # ボタン表示切替
             button.config(text=gui_text("btn_dialbb_stop"))
+            update_server_toggle_buttons(button, multimodal_button)
         else:
             messagebox.showerror("Error", gui_text("msg_dialbb_err_start"))
             PROCESS_STATE.dialbb_proc = None
+            update_server_toggle_buttons(button, multimodal_button)
+
+
+def exec_multimodal(app_file, button, dialbb_button) -> None:
+    """Multimodalサーバの起動/停止をトグルする。"""
+    if PROCESS_STATE.multimodal_proc:
+        PROCESS_STATE.multimodal_proc.stop()
+        PROCESS_STATE.multimodal_proc = None
+        button.config(text=gui_text("btn_multimodal_start"))
+        update_server_toggle_buttons(dialbb_button, button)
+    else:
+        if PROCESS_STATE.dialbb_proc:
+            messagebox.showwarning("Warning", gui_text("msg_warn_exclusive_dialbb"))
+            update_server_toggle_buttons(dialbb_button, button)
+            return
+
+        PROCESS_STATE.multimodal_proc = ProcessManager(
+            "-m", [MULTIMODAL_SERVER_MODULE, app_file]
+        )
+        ret = PROCESS_STATE.multimodal_proc.start()
+        if ret:
+            button.config(text=gui_text("btn_multimodal_stop"))
+            update_server_toggle_buttons(dialbb_button, button)
+        else:
+            messagebox.showerror("Error", gui_text("msg_multimodal_err_start"))
+            PROCESS_STATE.multimodal_proc = None
+            update_server_toggle_buttons(dialbb_button, button)
 
 
 # Show log
@@ -287,6 +336,11 @@ def close_dialbb_nc(root) -> None:
         # エディタ用サーバ停止
         PROCESS_STATE.editor_process.stop()
         messagebox.showwarning("Warning", gui_text("msg_warn_forced_process_stop") % "editor-process")
+
+    if PROCESS_STATE.multimodal_proc:
+        # multimodalサーバ停止
+        PROCESS_STATE.multimodal_proc.stop()
+        messagebox.showwarning("Warning", gui_text("msg_warn_forced_process_stop") % "multimodal-server")
 
     # 画面を閉じる
     root.quit()
@@ -776,7 +830,7 @@ def set_main_frame(root_frame) -> None:
         dialbb_label,
         text=gui_text("btn_dialbb_start"),
         command=lambda: exec_dialbb(
-            os.path.join(APP_FILE_DIR, APP_FILES["config"]), dialbb_btn
+            os.path.join(APP_FILE_DIR, APP_FILES["config"]), dialbb_btn, multimodal_btn
         ),
     )
     # start_btn.pack(side=tk.LEFT, padx=10)
@@ -789,7 +843,20 @@ def set_main_frame(root_frame) -> None:
     # show_log_btn.pack(side=tk.LEFT, padx=10)
     show_log_btn.grid(row=0, column=3, padx=5, pady=5)
 
-    dialbb_label.columnconfigure((0, 1, 2, 3, 4), weight=1)
+    multimodal_btn = ttk.Button(
+        dialbb_label,
+        text=gui_text("btn_multimodal_start"),
+        command=lambda: exec_multimodal(
+            os.path.join(APP_FILE_DIR, APP_FILES["config"]),
+            multimodal_btn,
+            dialbb_btn,
+        ),
+    )
+    multimodal_btn.grid(row=0, column=5, padx=5, pady=5)
+
+    update_server_toggle_buttons(dialbb_btn, multimodal_btn)
+
+    dialbb_label.columnconfigure((0, 1, 2, 3, 4, 5), weight=1)
     dialbb_label.pack(fill=tk.BOTH, padx=10, pady=10)
 
     # フレームの配置

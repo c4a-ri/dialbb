@@ -65,6 +65,14 @@ btn_view_log:
   ja: "サーバログ表示"
   en: "Show Server log"
 
+btn_multimodal_start:
+  ja: "マルチモーダル起動"
+  en: "Start Multimodal"
+
+btn_multimodal_stop:
+  ja: "マルチモーダル停止"
+  en: "Stop Multimodal"
+
 btn_ok:
   ja: "OK"
   en: "OK"
@@ -155,6 +163,10 @@ msg_dialbb_err_start:
   ja: "DialBBサーバの起動に失敗しました。"
   en: "Failed to start the DialBB server."
 
+msg_multimodal_err_start:
+  ja: "Multimodalサーバの起動に失敗しました。"
+  en: "Failed to start the multimodal server."
+
 msg_dialbb_warn_no_log:
   ja: "ログファイルが見つかりません。"
   en: "Log file not found."
@@ -234,6 +246,14 @@ msg_warn_error_node_exists:
 msg_warn_forced_process_stop:
   ja: "Warning: %sが残っていたので停止しました。"
   en: "Warning: %s was still running so it was stopped."
+
+msg_warn_exclusive_dialbb:
+  ja: "DialBBサーバが起動中のため、マルチモーダルは起動できません。"
+  en: "Multimodal cannot start while the DialBB server is running."
+
+msg_warn_exclusive_multimodal:
+  ja: "マルチモーダルが起動中のため、DialBBサーバは起動できません。"
+  en: "DialBB server cannot start while Multimodal is running."
 
 msg_chat_no_response:
   ja: "システム発話がありません。"
@@ -360,6 +380,38 @@ conf_edt_persona:
 conf_edt_cautions:
   ja: "注意事項:"
   en: "Cautions:"
+
+conf_edt_multimodal:
+  ja: "Multimodal設定"
+  en: "Multimodal Settings"
+
+conf_edt_mm_audio_logging:
+  ja: "音声ログ保存"
+  en: "Enable Audio Logging"
+
+conf_edt_mm_stop_at_barge_in:
+  ja: "バージイン時に発話停止"
+  en: "Stop TTS at Barge-in"
+
+conf_edt_mm_cycle:
+  ja: "メインループ周期(秒):"
+  en: "Main Loop Cycle (sec):"
+
+conf_edt_mm_user_timeout:
+  ja: "ユーザ待機タイムアウト(秒):"
+  en: "User Timeout (sec):"
+
+conf_edt_mm_system_barge_in_ratio:
+  ja: "システムバージイン比率:"
+  en: "System Barge-in Ratio:"
+
+conf_edt_mm_tts_speaking_rate:
+  ja: "TTS話速:"
+  en: "TTS Speaking Rate:"
+
+conf_edt_mm_tts_voice_name:
+  ja: "TTS音声名:"
+  en: "TTS Voice Name:"
 
 # 関数編集ダイアログ
 func_edt_title:

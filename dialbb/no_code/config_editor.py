@@ -148,6 +148,17 @@ class ConfigManager:
             # リストにして空行削除
             llm[label] = [a for a in data.split("\n") if a != ""]
 
+    def get_multimodal_setting(self, key: str, default: Any) -> Any:
+        multimodal_conf = self.config.get("multimodal")
+        if not multimodal_conf:
+            return default
+        return multimodal_conf.get(key, default)
+
+    def set_multimodal_setting(self, key: str, value: Any) -> None:
+        if "multimodal" not in self.config or not self.config.get("multimodal"):
+            self.config["multimodal"] = {}
+        self.config["multimodal"][key] = value
+
     # config.ymlへ書き込み
     def write(self) -> None:
         with open(self.file_path, mode="w", encoding="utf-8") as file:
@@ -177,7 +188,7 @@ def edit_app_config(parent, file_path, template_path, settings):
         + parent.winfo_height() // 10
         - sub_menu.winfo_height() // 2
     )
-    sub_menu.geometry(f"400x600+{parent_x}+{parent_y}")
+    sub_menu.geometry(f"480x760+{parent_x}+{parent_y}")
 
     # DST Frameを作成
     dst_fr = ttk.Labelframe(
@@ -186,7 +197,6 @@ def edit_app_config(parent, file_path, template_path, settings):
         padding=(10),
         style="My.TLabelframe",
     )
-    dst_fr.pack(expand=True, fill=tk.Y, padx=5, pady=5)
 
     # LLM Radio Button
     dst_val = tk.StringVar()
@@ -207,8 +217,6 @@ def edit_app_config(parent, file_path, template_path, settings):
         padding=(10),
         style="My.TLabelframe",
     )
-    # ウィンドウ幅に合わせて横方向にも広がるようにする
-    llm_mng_fr.pack(expand=True, fill=tk.BOTH, padx=5, pady=5)
     # ［ChatGPTモデル］プルダウンメニュー
     label1 = tk.Label(llm_mng_fr, text=gui_text("conf_edt_model"))
     models = settings.get_llm_models()
@@ -290,6 +298,85 @@ def edit_app_config(parent, file_path, template_path, settings):
     llm_mng_fr.grid_rowconfigure(4, weight=1)
     llm_mng_fr.grid_rowconfigure(6, weight=1)
 
+    # Multimodal Frameを作成
+    mm_fr = ttk.Labelframe(
+        sub_menu,
+        text=gui_text("conf_edt_multimodal"),
+        padding=(10),
+        style="My.TLabelframe",
+    )
+
+    mm_audio_logging_var = tk.BooleanVar(
+        value=bool(config_manager.get_multimodal_setting("audio_logging", False))
+    )
+    mm_stop_at_barge_in_var = tk.BooleanVar(
+        value=bool(config_manager.get_multimodal_setting("stop_at_barge_in", True))
+    )
+    mm_cycle_var = tk.StringVar(
+        value=str(config_manager.get_multimodal_setting("cycle", 0.1))
+    )
+    mm_user_timeout_var = tk.StringVar(
+        value=str(config_manager.get_multimodal_setting("user_timeout", 10.0))
+    )
+    mm_system_barge_in_ratio_var = tk.StringVar(
+        value=str(config_manager.get_multimodal_setting("system_barge_in_ratio", 0.0))
+    )
+    mm_tts_speaking_rate_var = tk.StringVar(
+        value=str(config_manager.get_multimodal_setting("tts_speaking_rate", 1.0))
+    )
+    mm_tts_voice_name_var = tk.StringVar(
+        value=str(config_manager.get_multimodal_setting("tts_voice_name", ""))
+    )
+
+    mm_audio_logging_chk = ttk.Checkbutton(
+        mm_fr,
+        text=gui_text("conf_edt_mm_audio_logging"),
+        variable=mm_audio_logging_var,
+    )
+    mm_audio_logging_chk.grid(column=0, row=0, columnspan=2, sticky=tk.W, padx=5, pady=2)
+
+    mm_stop_at_barge_in_chk = ttk.Checkbutton(
+        mm_fr,
+        text=gui_text("conf_edt_mm_stop_at_barge_in"),
+        variable=mm_stop_at_barge_in_var,
+    )
+    mm_stop_at_barge_in_chk.grid(column=0, row=1, columnspan=2, sticky=tk.W, padx=5, pady=2)
+
+    mm_cycle_label = tk.Label(mm_fr, text=gui_text("conf_edt_mm_cycle"))
+    mm_cycle_entry = tk.Entry(mm_fr, textvariable=mm_cycle_var, width=14)
+    mm_cycle_label.grid(column=0, row=2, sticky=tk.W, padx=5, pady=2)
+    mm_cycle_entry.grid(column=1, row=2, sticky=tk.EW, padx=5, pady=2)
+
+    mm_user_timeout_label = tk.Label(mm_fr, text=gui_text("conf_edt_mm_user_timeout"))
+    mm_user_timeout_entry = tk.Entry(mm_fr, textvariable=mm_user_timeout_var, width=14)
+    mm_user_timeout_label.grid(column=0, row=3, sticky=tk.W, padx=5, pady=2)
+    mm_user_timeout_entry.grid(column=1, row=3, sticky=tk.EW, padx=5, pady=2)
+
+    mm_system_barge_in_ratio_label = tk.Label(
+        mm_fr, text=gui_text("conf_edt_mm_system_barge_in_ratio")
+    )
+    mm_system_barge_in_ratio_entry = tk.Entry(
+        mm_fr, textvariable=mm_system_barge_in_ratio_var, width=14
+    )
+    mm_system_barge_in_ratio_label.grid(column=0, row=4, sticky=tk.W, padx=5, pady=2)
+    mm_system_barge_in_ratio_entry.grid(column=1, row=4, sticky=tk.EW, padx=5, pady=2)
+
+    mm_tts_speaking_rate_label = tk.Label(
+        mm_fr, text=gui_text("conf_edt_mm_tts_speaking_rate")
+    )
+    mm_tts_speaking_rate_entry = tk.Entry(
+        mm_fr, textvariable=mm_tts_speaking_rate_var, width=14
+    )
+    mm_tts_speaking_rate_label.grid(column=0, row=5, sticky=tk.W, padx=5, pady=2)
+    mm_tts_speaking_rate_entry.grid(column=1, row=5, sticky=tk.EW, padx=5, pady=2)
+
+    mm_tts_voice_name_label = tk.Label(mm_fr, text=gui_text("conf_edt_mm_tts_voice_name"))
+    mm_tts_voice_name_entry = tk.Entry(mm_fr, textvariable=mm_tts_voice_name_var, width=14)
+    mm_tts_voice_name_label.grid(column=0, row=6, sticky=tk.W, padx=5, pady=2)
+    mm_tts_voice_name_entry.grid(column=1, row=6, sticky=tk.EW, padx=5, pady=2)
+
+    mm_fr.grid_columnconfigure(1, weight=1)
+
     # OKボタン
     ok_btn = ttk.Button(
         sub_menu, text=gui_text("btn_ok"), command=lambda: ok_btn_click()
@@ -305,6 +392,7 @@ def edit_app_config(parent, file_path, template_path, settings):
     # Layout
     dst_fr.pack(fill=tk.X, padx=5, pady=5)
     llm_mng_fr.pack(fill=tk.BOTH, padx=5, pady=5)
+    mm_fr.pack(fill=tk.X, padx=5, pady=5)
     cancel_btn.pack(side="right", padx=5, pady=5)
     ok_btn.pack(side="right", padx=5, pady=5)
     # central_position(sub_menu, width=250, height=130)  # サイズ＆表示位置の指定
@@ -372,6 +460,31 @@ def edit_app_config(parent, file_path, template_path, settings):
         situation = stt.get(1.0, tk.END)
         persona = psn.get(1.0, tk.END)
         cautions = ctn.get(1.0, tk.END)
+        mm_tts_voice_name = mm_tts_voice_name_var.get()
+
+        try:
+            mm_cycle = float(mm_cycle_var.get())
+        except ValueError:
+            mm_cycle = config_manager.get_multimodal_setting("cycle", 0.1)
+
+        try:
+            mm_user_timeout = float(mm_user_timeout_var.get())
+        except ValueError:
+            mm_user_timeout = config_manager.get_multimodal_setting("user_timeout", 10.0)
+
+        try:
+            mm_system_barge_in_ratio = float(mm_system_barge_in_ratio_var.get())
+        except ValueError:
+            mm_system_barge_in_ratio = config_manager.get_multimodal_setting(
+                "system_barge_in_ratio", 0.0
+            )
+
+        try:
+            mm_tts_speaking_rate = float(mm_tts_speaking_rate_var.get())
+        except ValueError:
+            mm_tts_speaking_rate = config_manager.get_multimodal_setting(
+                "tts_speaking_rate", 1.0
+            )
 
         # change config data (overwrite even if there's no change)
         config_manager.set_dst(if_use_dst)
@@ -379,6 +492,21 @@ def edit_app_config(parent, file_path, template_path, settings):
         config_manager.set_llm_list("situation", situation)
         config_manager.set_llm_list("persona", persona)
         config_manager.set_llm_list("cautions", cautions)
+        config_manager.set_multimodal_setting(
+            "audio_logging", mm_audio_logging_var.get()
+        )
+        config_manager.set_multimodal_setting(
+            "stop_at_barge_in", mm_stop_at_barge_in_var.get()
+        )
+        config_manager.set_multimodal_setting("cycle", mm_cycle)
+        config_manager.set_multimodal_setting("user_timeout", mm_user_timeout)
+        config_manager.set_multimodal_setting(
+            "system_barge_in_ratio", mm_system_barge_in_ratio
+        )
+        config_manager.set_multimodal_setting(
+            "tts_speaking_rate", mm_tts_speaking_rate
+        )
+        config_manager.set_multimodal_setting("tts_voice_name", mm_tts_voice_name)
 
         # write config.yml
         config_manager.write()

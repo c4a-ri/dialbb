@@ -19,6 +19,7 @@ from typing import Any, cast
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 import uvicorn
 import yaml
 
@@ -128,6 +129,7 @@ def create_app(
     settings: Settings = _determine_settings(config_file, debug, audio_logging)
 
     session_hub = WebSocketSessionHub()
+    frontend_dist_dir = Path(__file__).resolve().parent / "static" / "mobile"
 
     def on_event(session_id: str, event: DialogueEvent) -> None:
         if event.event_type == "chat" and event.data.get("role") == "system":
@@ -157,6 +159,15 @@ def create_app(
             )
         elif event.event_type == "chat" and event.data.get("role") == "user":
             transcript = str(event.data.get("text") or "")
+            aux_data = event.data.get("aux_data") or {}
+            session_hub.emit_from_thread(
+                session_id,
+                "user_message",
+                {
+                    "text": transcript,
+                    "aux_data": aux_data if isinstance(aux_data, dict) else {},
+                },
+            )
             if engine_manager.flush_user_audio_log(session_id, transcript):
                 logger.info("[SERVER] user audio log flushed on final transcript: session=%s", session_id)
         logger.debug("[SERVER] Event handled: session=%s, type=%s", session_id, event.event_type)
@@ -422,6 +433,12 @@ def create_app(
             logger.info("[WEBSOCKET] Client disconnected: session=%s", session_id)
         finally:
             await session_hub.disconnect(session_id, websocket)
+
+    if frontend_dist_dir.exists():
+        app.mount("/", StaticFiles(directory=str(frontend_dist_dir), html=True), name="mm_frontend")
+        logger.info("[SERVER] serving multimodal frontend: %s", frontend_dist_dir)
+    else:
+        logger.warning("[SERVER] multimodal frontend not found: %s", frontend_dist_dir)
 
     return app
 
