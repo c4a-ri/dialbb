@@ -5,11 +5,12 @@ import json
 import signal
 import sys
 import argparse
+import threading
 import urllib.error
 import urllib.parse
 import urllib.request
 import wave
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import pyaudio
 import websockets
@@ -24,6 +25,7 @@ AUX_DATA_DEBUG = {
     "debug": True,
     "source": "client_example.py",
 }
+SYSTEM_UTTERANCE_COMPLETION_RATIO_KEY = "system_utterance_completion_ratio"
 
 running = True
 
@@ -33,9 +35,121 @@ class PlaybackState:
     generation: int = 0
     stop_reason: str = "cancel"
     stopped_utterance_id: int = 0
+    current_utterance_id: int = 0
+    segment_count: int = 0
+    completed_segments: int = 0
+    active_segment_index: int = 0
+    active_segment_pcm_bytes: int = 0
+    active_segment_bytes_played: int = 0
+    pending_interrupted_aux_data: dict[str, float] | None = None
+    progress_lock: threading.Lock = field(default_factory=threading.Lock)
+
+
+def reset_tts_progress_state(playback_state: PlaybackState, utterance_id: int = 0) -> None:
+    with playback_state.progress_lock:
+        playback_state.current_utterance_id = utterance_id
+        playback_state.segment_count = 0
+        playback_state.completed_segments = 0
+        playback_state.active_segment_index = 0
+        playback_state.active_segment_pcm_bytes = 0
+        playback_state.active_segment_bytes_played = 0
+        playback_state.pending_interrupted_aux_data = None
+
+
+def ensure_tts_progress_utterance(playback_state: PlaybackState, utterance_id: int) -> None:
+    if not utterance_id:
+        return
+
+    with playback_state.progress_lock:
+        if playback_state.current_utterance_id != utterance_id:
+            playback_state.current_utterance_id = utterance_id
+            playback_state.segment_count = 0
+            playback_state.completed_segments = 0
+            playback_state.active_segment_index = 0
+            playback_state.active_segment_pcm_bytes = 0
+            playback_state.active_segment_bytes_played = 0
+            playback_state.pending_interrupted_aux_data = None
+
+
+def register_tts_segment_start(
+    playback_state: PlaybackState,
+    utterance_id: int,
+    segment_index: int,
+    segment_count: int,
+    pcm_bytes_length: int,
+) -> None:
+    ensure_tts_progress_utterance(playback_state, utterance_id)
+    with playback_state.progress_lock:
+        playback_state.segment_count = max(playback_state.segment_count, segment_count)
+        playback_state.active_segment_index = segment_index
+        playback_state.active_segment_pcm_bytes = pcm_bytes_length
+        playback_state.active_segment_bytes_played = 0
+
+
+def mark_tts_segment_progress(playback_state: PlaybackState, played_pcm_bytes: int) -> None:
+    with playback_state.progress_lock:
+        if playback_state.active_segment_pcm_bytes <= 0:
+            return
+        playback_state.active_segment_bytes_played = min(
+            playback_state.active_segment_pcm_bytes,
+            max(playback_state.active_segment_bytes_played, played_pcm_bytes),
+        )
+
+
+def mark_tts_segment_completed(
+    playback_state: PlaybackState,
+    utterance_id: int,
+    segment_index: int,
+    segment_count: int,
+) -> None:
+    ensure_tts_progress_utterance(playback_state, utterance_id)
+    with playback_state.progress_lock:
+        playback_state.segment_count = max(playback_state.segment_count, segment_count)
+        playback_state.completed_segments = max(playback_state.completed_segments, segment_index)
+        playback_state.active_segment_index = 0
+        playback_state.active_segment_pcm_bytes = 0
+        playback_state.active_segment_bytes_played = 0
+
+
+def consume_pending_interrupted_aux_data(playback_state: PlaybackState) -> dict[str, float]:
+    with playback_state.progress_lock:
+        pending_aux_data = dict(playback_state.pending_interrupted_aux_data or {})
+        playback_state.pending_interrupted_aux_data = None
+        return pending_aux_data
+
+
+def remember_interrupted_system_utterance_ratio(
+    playback_state: PlaybackState,
+    reason: str,
+) -> None:
+    if reason != "cancel":
+        return
+
+    with playback_state.progress_lock:
+        if playback_state.pending_interrupted_aux_data is not None:
+            return
+        if not playback_state.current_utterance_id or playback_state.segment_count <= 0:
+            return
+
+        completed_units = playback_state.completed_segments
+        if playback_state.active_segment_index > 0 and playback_state.active_segment_pcm_bytes > 0:
+            active_progress = min(
+                1.0,
+                playback_state.active_segment_bytes_played / playback_state.active_segment_pcm_bytes,
+            )
+            completed_units = max(
+                completed_units,
+                (playback_state.active_segment_index - 1) + active_progress,
+            )
+
+        ratio = min(1.0, max(0.0, completed_units / playback_state.segment_count))
+        playback_state.pending_interrupted_aux_data = {
+            SYSTEM_UTTERANCE_COMPLETION_RATIO_KEY: round(ratio, 3),
+        }
 
 
 def request_playback_stop(playback_state: PlaybackState, reason: str, utterance_id: int = 0) -> None:
+    remember_interrupted_system_utterance_ratio(playback_state, reason or "cancel")
     playback_state.generation += 1
     playback_state.stop_reason = reason or "cancel"
     playback_state.stopped_utterance_id = max(playback_state.stopped_utterance_id, utterance_id)
@@ -132,15 +246,16 @@ def print_aux_data(message: dict) -> None:
 # continuously reads audio data from the microphone, encodes it in base64, and sends it to the server over the WebSocket connection. It uses a lock to ensure that only one send operation occurs at a time, preventing potential race conditions.
 async def send_microphone(websocket, send_lock, mic, playback_state):
     global running
-    del playback_state
 
     while running:
         pcm = mic.read(CHUNK, exception_on_overflow=False)
+        aux_data = dict(AUX_DATA_DEBUG)
+        aux_data.update(consume_pending_interrupted_aux_data(playback_state))
 
         message = {
             "action": "send_audio_chunk",
             "audio_data": base64.b64encode(pcm).decode("utf-8"),
-            "aux_data": AUX_DATA_DEBUG,
+            "aux_data": aux_data,
         }
         await safe_send(websocket, send_lock, message)
         await asyncio.sleep(0)
@@ -231,6 +346,10 @@ def play_pcm_interruptible(
         if generation != playback_state.generation:
             return True
         output_stream.write(pcm_bytes[offset:offset + bytes_per_chunk])
+        mark_tts_segment_progress(
+            playback_state,
+            min(len(pcm_bytes), offset + bytes_per_chunk),
+        )
     return generation != playback_state.generation
 
 
@@ -297,6 +416,13 @@ async def playback_worker(websocket, send_lock, playback_queue, playback_state, 
             # Decode the base64-encoded WAV audio data and convert it to PCM bytes
             wav_bytes = base64.b64decode(payload["audio"])
             pcm_bytes = decode_wav_payload(wav_bytes)
+            register_tts_segment_start(
+                playback_state,
+                utterance_id,
+                segment_index,
+                segment_count,
+                len(pcm_bytes),
+            )
             log_client(
                 f"playback start: utterance={utterance_id} segment={segment_index}/{segment_count} "
                 f"wav_bytes={len(wav_bytes)} pcm_bytes={len(pcm_bytes)} generation={generation}"
@@ -322,6 +448,12 @@ async def playback_worker(websocket, send_lock, playback_queue, playback_state, 
             log_client(
                 f"playback finished: utterance={utterance_id} segment={segment_index}/{segment_count}"
             )
+            mark_tts_segment_completed(
+                playback_state,
+                utterance_id,
+                segment_index,
+                segment_count,
+            )
 
             # Notify the server that the TTS segment playback is done
             await send_tts_segment_playback_done(
@@ -344,6 +476,13 @@ async def receiver(websocket, playback_queue, playback_state):
         # Wait for a message from the server
         message = json.loads(await websocket.recv())
         event = message["event"]
+
+        if event == "system_message":
+            payload = message.get("payload", {})
+            utterance_id = int(payload.get("utterance_id") or 0)
+            reset_tts_progress_state(playback_state, utterance_id)
+            log_client(f"event system_message: utterance={utterance_id}")
+            continue
 
         if event == "audio_data":
             # Add the received audio data payload to the playback queue for processing by the playback worker
