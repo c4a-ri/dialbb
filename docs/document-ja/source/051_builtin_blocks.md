@@ -48,7 +48,7 @@
 
 - `temperature` （float，デフォルト値は`0.7`）
 
-  LLM呼び出しの際の温度パラメータです．LLMが`gpt-5x`の場合は無視されます。
+  LLM呼び出しの際の温度パラメータです．LLMが`gpt-5x`の場合は無視されます．
 
 - `instruction` (文字列, デフォルト値は[このファイル](https://github.com/c4a-ri/dialbb/blob/main/dialbb/util/globals.py)を参照．)
 
@@ -584,6 +584,10 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
 
   文字列そのままを意味します．
 
+#### 条件関数による文脈情報のアップデート
+
+条件に用いられる関数が呼び出され、その中で文脈情報がアップデートされた場合、条件が満たされなくても文脈情報は**もとに戻りません**。
+
 
 (realization_in_system_utterance)=
 
@@ -722,11 +726,11 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
 
   - `temperature` (float)
 
-    LLMの温度パラメータです．デフォルト値は`0.7`です．LLMが`gpt-5x`の場合は無視されます。
+    LLMの温度パラメータです．デフォルト値は`0.7`です．LLMが`gpt-5x`の場合は無視されます．
 
   - `temperature_for_checking` (float)
 
-    条件判定の際に用いるLLMの温度パラメータです．これが指定されていない場合は，`temperature`の値が用いられます．LLMが`gpt-5x`の場合は無視されます。
+    条件判定の際に用いるLLMの温度パラメータです．これが指定されていない場合は，`temperature`の値が用いられます．LLMが`gpt-5x`の場合は無視されます．
 
   - `situation` （文字列のリスト）
 
@@ -1000,6 +1004,8 @@ def get_ramen_location(ramen: str, variable: str, context: Dict[str, Any]) -> No
 
 例えば，`_set(&_reaction, "そうですね")`というアクション関数を実行した後に遷移した状態のシステム発話が`"ところで今日はいい天気ですね"`であれば，`"そうですね ところで今日はいい天気ですね"`という発話をシステム発話として返します．
 
+遷移先状態が`#initial`の時は、この機能は使えません。
+
 ### Subdialogue
 
 遷移先の状態名が`#gosub:<状態名1>:<状態名2>`の形の場合，`<状態名1>`の状態に遷移して，そこから始まるsubdialogueを実行します．そして，その後の対話で，遷移先が`:exit`になったら，`<状態名2>`の状態に移ります．
@@ -1008,14 +1014,14 @@ def get_ramen_location(ramen: str, variable: str, context: Dict[str, Any]) -> No
 
 subdialogueの中でsubdialogueに遷移することも可能です．
 
-(handling_speech_input)=
-
 ### 外部データベースへの文脈情報の保存
 
 コンフィギュレーションに`context_db`要素があるとき，文脈情報を外部DB（MongoDB)に保存します．`context_db`の指定の仕方は，{numref}`context_db`を見てください．
 
 (ver. 1.2でcontext_dbはブロックコンフィギュレーションではなく，コンフィグレーションのトップレベルでしていするように変更されました．)
 
+
+(handling_speech_input)=
 
 ### 音声入力を扱うための仕組み
 

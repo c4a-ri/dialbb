@@ -1,18 +1,37 @@
 import io
 import os
+import sys
 import threading
 from contextlib import redirect_stdout
 from queue import Empty, Queue
 from threading import Event
 from typing import Any
 
-from dialbb.util.logger import get_logger
+from dialbb.util.logger import configure_dialbb_logging, get_logger
 from dialbb.main import DialogueProcessor
 from .messages import DialbbRequest, DialbbResponse
 
 
 logger = get_logger(__name__)
 DEFAULT_DIALBB_USER_ID = "mm-client"
+
+
+class _TeeStdout:
+    def __init__(self, primary: Any, secondary: io.StringIO) -> None:
+        self._primary = primary
+        self._secondary = secondary
+
+    def write(self, data: str) -> int:
+        self._primary.write(data)
+        self._secondary.write(data)
+        return len(data)
+
+    def flush(self) -> None:
+        self._primary.flush()
+        self._secondary.flush()
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self._primary, name)
 
 
 def run_dialbb_worker(
@@ -38,11 +57,13 @@ def run_dialbb_worker(
         logger.info("[Dialbb] DialogueProcessor 初期化")
         logger.debug("[Dialbb] config=%s", resolved_config)
         captured = io.StringIO()
+        tee_stdout = _TeeStdout(sys.stdout, captured)
         try:
-            # stdout を横取りして初期化エラーメッセージを捕捉する。
-            with redirect_stdout(captured):
+            # stdout を画面に流しつつ初期化エラーメッセージを捕捉する。
+            with redirect_stdout(tee_stdout):
                 dialogue_processor = DialogueProcessor(resolved_config)
         except (ValueError, RuntimeError, OSError) as exc:
+            configure_dialbb_logging()
             output = captured.getvalue().strip()
             # dialbb は sys.exit()（SystemExit）で終了するため stdout に出力されたメッセージを優先する。
             # "Encountered an error" を含む行だけ抽出してユーザへ見せる。
@@ -56,6 +77,7 @@ def run_dialbb_worker(
             if error_queue is not None:
                 error_queue.put(msg)
             return
+        configure_dialbb_logging()
         # 初回セッション ID は引数で差し込める（テスト用）。通常は None でよい。
         active_session_id = (initial_session_id or "").strip() or None
 

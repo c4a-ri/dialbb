@@ -1,5 +1,7 @@
 # configuration file for an LLM-based Japanese application
 
+language: ja
+
 blocks:
   - name: llm_dialogue
     block_class: dialbb.builtin_blocks.llm_dialogue.LLMDialogue
@@ -23,8 +25,8 @@ multimodal:  # multimodal server config
   audio_logging: false # 音声ログ保存の有無
   cycle: 0.1 # メインループ周期 (秒)
   user_timeout: 10.0  # ユーザ発話待ちタイムアウト (秒)  T.Oで "user_silence"通知
-  stop_at_barge_in: false
+  stop_at_barge_in: true
   system_barge_in_ratio: 1.0
-  tts_voice_name: ja-JP-Neural2-D
-  tts_speaking_rate: 1.5
+  tts_voice_name: ja-JP-Neural2-B
+  tts_speaking_rate: 1.2
 

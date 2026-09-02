@@ -80,3 +80,12 @@ class TtsResult:
     text: str
     # True の場合は当該テキストの合成処理完了を表す。
     completed: bool
+
+
+@dataclass(slots=True)
+class TtsPlaybackEvent:
+    """音声再生完了通知。"""
+
+    session_id: str
+    utterance_id: int
+    completed: bool

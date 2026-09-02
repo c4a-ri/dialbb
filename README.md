@@ -1,8 +1,8 @@
-# [DialBB](https://c4a-ri.github.io/dialbb/): A Framework for Building Dialogue Systems
+# DialBB: A Framework for Building Dialogue Systems
 
-ver. 2.0.0
+ver. 2.0.1
 
-[<img src="./docs/images/japan_national_flag.jpg" width="5%">日本語](README-ja.md)
+[日本語](README-ja.md)
 
 ## Project Main Page
 
@@ -44,22 +44,19 @@ The following instructions assume that you are working with bash on Ubuntu. If y
   $ source venv/bin/activate   # Enter the virtual environment
   ```
 
-- Download `dialbb-*-py3-none-any.whl` file from [distribution directory](dist).
-
 - Execute the following.
 
   ```sh
-  $ pip install <downloaded whl file>
+  $ pip install dialbb
   ```
 
-- If you use the RAG passage retrieval block, also install the optional document loader dependencies.
+- If you use the RAG passage retrieval block, also execute the following.
 
   ```sh
-  $ pip install '<downloaded whl file>[rag]'
-  (e.g., pip install dialbb-2.0.0-py3-none-any.whl[rag])
+  $ pip install dialbb[rag]
   ```
-
-  This can only be installed with Python 3.11–3.13.
+  
+This can only be installed with Python 3.11–3.13.
 
 
 ### Debug Environment With uv
@@ -163,7 +160,7 @@ If the hostname or IP address of the server from which the application is launch
 http://<hostname>:8080 
 ```
 
-If the server is running on Windows 10, the dialog screen may not appear in your browser. In this case, a simple dialog screen will appear when you connect to the following URL.
+If the server is running on Windows 11, the dialog screen may not appear in your browser. In this case, a simple dialog screen will appear when you connect to the following URL.
 
 ```
 http://<hostname>:8080/test
@@ -208,6 +205,8 @@ $ dialbb-server sample_apps/llm_dialogue_en/config.yml
   $ dialbb-server sample_apps/llm_dialogue_ja/config.yml
   ```
 
+Access `http://<hostname>:8080` or `http://<hostname>:8080/test` from a browser.
+
 #### Testing with user simulation
 
 You can also test these applications with LLM-based user simulation.
@@ -250,19 +249,25 @@ These application also use OpenAI's ChatGPT. In the same way as LLM Dialogue App
   $ dialbb-server sample_apps/dst_stn_ja/config.yml # Japanese app
   ```
 
+Access `http://<hostname>:8080` or `http://<hostname>:8080/test` from a browser.
+
 #### Testing with user simulation
 
 You can also test these applications with LLM-based user simulation.
 
 Japanese version:
 
-    $ dialbb-sim-tester --app_config sample_apps/dst_stn_ja/config.yml \
-      --test_config sample_apps/dst_stn_ja/simulation/config.yml
+```sh
+$ dialbb-sim-tester --app_config sample_apps/dst_stn_ja/config.yml \
+  --test_config sample_apps/dst_stn_ja/simulation/config.yml
+```
 
 English version:
 
-    $ dialbb-sim-tester --app_config sample_apps/dst_stn_en/config.yml \
-      --test_config sample_apps/dst_stn_en/simulation/config.yml
+```sh
+$ dialbb-sim-tester --app_config sample_apps/dst_stn_en/config.yml \
+  --test_config sample_apps/dst_stn_en/simulation/config.yml
+```
 
 #### Testing by sending auxiliary data
 
@@ -285,15 +290,18 @@ Sample RAG applications are available at `sample_apps/rag_en/` (English) and `sa
 To run this application, you need to install additional libraries. Please run the following:
 
 ```sh
-$ pip install <downloaded dialbb-*.whl file>[rag]
-（e.g., pip install dialbb-2.0.0-py3-none-any.whl[rag]）
+$ pip install dialbb[rag]
 ```
 
 #### Setting environment variables
 
 These applications also use OpenAI's ChatGPT and embeddings by default. As with the LLM Dialogue Applications, set the OpenAI API key in the environment variable `OPENAI_API_KEY` or write it in `.env`.
 
-The passage retrieval block also requires the optional document loader dependencies. If you installed the base wheel only, run `pip install 'dialbb[rag]'` additionally.
+Additional libraries must be installed to run this application. Please run the following command:
+
+```sh
+$ pip install dialbb[rag]
+```
 
 #### Startup
 

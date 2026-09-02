@@ -23,7 +23,7 @@ from fastapi.staticfiles import StaticFiles
 import uvicorn
 import yaml
 
-from dialbb.util.logger import get_logger
+from dialbb.util.logger import configure_dialbb_logging, get_logger
 
 from .core import DialogueEvent
 from .engine import DialogueEngineManager, Settings
@@ -419,6 +419,12 @@ def create_app(
                         total_segments,
                         system_speaking,
                     )
+                    if played_segments >= total_segments:
+                        logger.info(
+                            "[WEBSOCKET] utterance playback completed: session=%s utterance=%s",
+                            session_id,
+                            utterance_id,
+                        )
                 elif action == "stop_audio_done":
                     logger.debug(
                         "[WEBSOCKET] stop audio ack: session=%s reason=%s",
@@ -512,20 +518,9 @@ def _determine_settings(config_file: str, debug: bool, audio_logging: bool) -> S
     if not isinstance(multimodal_main_config, dict):
         multimodal_main_config = {}
 
-    cycle = float(
-        multimodal_config.get(
-            "cycle",
-            multimodal_main_config.get("loop_period", config.get("cycle", 0.1)),
-        )
-    )
-    user_timeout = float(
-        multimodal_config.get(
-            "user_timeout",
-            multimodal_main_config.get("max_user_wait_time", config.get("user_timeout", 30.0)),
-        )
-    )
-
     language_code = _map_config_language_to_bcp47(config.get("language", "ja"))
+    cycle = float(multimodal_config.get("cycle", config.get("cycle", 0.1)))
+    user_timeout = float(multimodal_config.get("user_timeout", config.get("user_timeout", 10.0)))
     stop_at_barge_in = bool(
         multimodal_config.get("stop_at_barge_in", config.get("stop_at_barge_in", True))
     )
@@ -582,6 +577,9 @@ def _parse_factory_args(argv: list[str]) -> argparse.Namespace:
 
 
 def create_configured_app() -> FastAPI:
+    env_path = Path.cwd() / ".env"
+    load_dotenv(env_path)
+    configure_dialbb_logging()
     args = _parse_factory_args(sys.argv[1:])
     return create_app(args.config, args.debug, args.audio_logging)
 
@@ -610,6 +608,7 @@ def main() -> None:
 
     env_path = Path.cwd() / ".env"
     load_dotenv(env_path)
+    configure_dialbb_logging()
 
     parser = argparse.ArgumentParser(description="DialBB mm_client server")
     parser.add_argument("config", help="Config file path", )

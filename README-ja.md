@@ -1,33 +1,31 @@
-# [DialBB](https://c4a-ri.github.io/dialbb/index-ja.html): 対話システム構築フレームワーク
+# DialBB: 対話システム構築フレームワーク
 
-ver. 2.0.0 
+ver. 2.0.1
 
 [English](README.md)
 	
 
 ## プロジェクトWebサイト
 
-[プロジェクトのメインWebサイト](https://c4a-ri.github.io/dialbb/index-ja.html)に，DialBBの概要，
-詳細な仕様を記述したドキュメント，チュートリアルスライド，ノーコードツールのドキュメントなどへのリンクがあります．
+[プロジェクトのメインWebサイト](https://c4a-ri.github.io/dialbb/index-ja.html)に、DialBBの概要、
+詳細な仕様を記述したドキュメント、チュートリアルスライド、ノーコードツールのドキュメントなどへのリンクがあります。
 
 ## ドキュメント
 
-詳細な仕様やアプリケーションの構築法は[ドキュメント](https://c4a-ri.github.io/dialbb/document-ja/build/html/)を参照して下さい．
+詳細な仕様やアプリケーションの構築法は[ドキュメント](https://c4a-ri.github.io/dialbb/document-ja/build/html/)を参照して下さい。
 
-マルチモーダルサーバの現行 API 仕様は[dialbb/multimodal/PHASE2_API.md](dialbb/multimodal/PHASE2_API.md)を参照してください．
-
-本READMEがリリース版ではない場合は，[本READMEと同じバージョンのドキュメント](docs/files/document-ja.zip)をダウンロードしてください．）また，ノーコードツールについては[本READMEと同じバージョンのノーコードツールのドキュメント](docs/no-code/index-ja.md)を参照してください．
+本READMEがリリース版ではない場合は、[本READMEと同じバージョンのドキュメント](docs/files/document-ja.zip)をダウンロードしてください。また、ノーコードツールについては[本READMEと同じバージョンのノーコードツールのドキュメント](docs/no-code/index-ja.md)を参照してください。
 
 
 ## 引用
 
-DialBBを用いた研究に関する論文発表をする際には，以下の論文の引用をお願いします．
+DialBBを用いた研究に関する論文発表をする際には、以下の論文の引用をお願いします。
 
 - Mikio Nakano and Kazunori Komatani. [DialBB: A Dialogue System Development Framework as an Educational Material](https://aclanthology.org/2024.sigdial-1.56). In Proceedings of the 25th Annual Meeting of the Special Interest Group on Discourse and Dialogue (SIGDIAL-24), pages 664–668, Kyoto, Japan. Association for Computational Linguistics, 2024.
 
 ## ライセンス
 
-DialBBはApache License 2.0の下で公開されています．
+DialBBはApache License 2.0の下で公開されています。
 
 ## サンプルアプリケーションの起動の仕方
 
@@ -37,25 +35,30 @@ Windows/MacOS/Ubuntu上のPython 3.11-3.14で動作しますが、すべての�
 
 なお、後述のRAGアプリケーションはPython 3.11-3.13でしか動作しません。
 
-以下の説明はUbuntu上のbashで作業することを仮定しています．他のシェルやWindowsコマンドプロンプトを用いる場合は，適宜読み替えてください．
+以下の説明はUbuntu上のbashで作業することを仮定しています。他のシェルやWindowsコマンドプロンプトを用いる場合は、適宜読み替えてください。
 
 ### DialBBのインストール
 
-- 必要なら仮想環境を構築します．以下はvenvの例です．
+- 必要なら仮想環境を構築します。以下はvenvの例です。
 
   ```sh
   $ python -m venv venv        # 仮想環境をvenvという名前で構築
   $ source venv/bin/activate   # 仮想環境に入る
   ```
 
-- [配布用ディレクトリ](dist)から`dialbb-*-py3-none-any.whl`ファイルをダウンロードします．
-
-- 以下を実行します．
+- 以下を実行します。
 
   ```sh
-  $ pip install <ダウンロードしたwhlファイル>
-  （例： pip install dialbb-2.0.0-py3-none-any.whl)
+  $ pip install dialbb
   ```
+
+- RAGのパッセージ検索ブロックを使用する場合は、以下を実行してください。
+
+  ```sh
+  $ pip install dialbb[rag]
+  ```
+
+
 
 ### uvを使ったデバッグ用仮想環境
 
@@ -97,13 +100,13 @@ dialbb-mm-server sample_apps/llm_dialogue_ja/config.yml
 
 ### サンプルアプリケーションのダウンロード
 
-サンプルアプリケーションファイルを[docs/files/sample_apps.zip](docs/files/sample_apps.zip)からダウンロードし，適当なところに展開します．
+サンプルアプリケーションファイルを[docs/files/sample_apps.zip](docs/files/sample_apps.zip)からダウンロードし、適当なところに展開します。
 
 ### オウム返しサンプルアプリケーション
 
 #### 起動
 
-ただオウム返しを行うアプリケーションです．組み込みブロッククラスは使っていません．
+ただオウム返しを行うアプリケーションです。組み込みブロッククラスは使っていません。
 
 ```sh
 $ dialbb-server sample_apps/parrot/config.yml
@@ -111,14 +114,14 @@ $ dialbb-server sample_apps/parrot/config.yml
 
 #### ターミナルからの動作確認
 
-別のターミナルから以下を実行してください．curlをインストールしていない場合は，後述するようにブラウザからテストしてください．
+別のターミナルから以下を実行してください。curlをインストールしていない場合は、後述するようにブラウザからテストしてください。
 
 
 - ```sh
   $ curl -X POST -H "Content-Type: application/json" \
     -d '{"user_id":"user1"}' http://localhost:8080/init
   ```
-   以下のレスポンスが返ります．
+   以下のレスポンスが返ります。
   
   ```json
   {"aux_data":null, 
@@ -134,7 +137,7 @@ $ dialbb-server sample_apps/parrot/config.yml
     -d '{"user_utterance": "こんにちは", "user_id":"user1", "session_id":"dialbb_session1"}' \
     http://localhost:8080/dialogue
   ```
-   以下のレスポンスが返ります．
+   以下のレスポンスが返ります。
 
   ```json
   {"aux_data":null,
@@ -146,13 +149,13 @@ $ dialbb-server sample_apps/parrot/config.yml
 
 #### ブラウザからの動作確認
 
-上記でアプリケーションを起動したサーバのホスト名かIPアドレスを`<hostname>`としたとき，ブラウザから以下のURLに接続すると対話画面が現れますので，そこで対話してみてください．
+上記でアプリケーションを起動したサーバのホスト名かIPアドレスを`<hostname>`としたとき、ブラウザから以下のURLに接続すると対話画面が現れますので、そこで対話してみてください。
 
 ```
 http://<hostname>:8080 
 ```
 
-サーバをWindows 11上で動作させた場合，ブラウザ上に対話画面が出ないことがあります．その場合は，以下のURLに接続すると，簡易な対話画面が出ます．
+サーバをWindows 11上で動作させた場合、ブラウザ上に対話画面が出ないことがあります。その場合は、以下のURLに接続すると、簡易な対話画面が出ます。
 
 ```
 http://<hostname>:8080/test
@@ -160,25 +163,25 @@ http://<hostname>:8080/test
 
 ### LLM対話アプリケーション
 
-LLM（大規模言語モデル）を単一プロンプトテンプレートを用いて対話を行います．
+LLM（大規模言語モデル）を単一プロンプトテンプレートを用いて対話を行います。
 
 - LLM対話ブロック
 
 #### 環境変数の設定
 
- 本アプリケーションはデフォルトでOpenAIのChatGPTを使います．そのため，環境変数`OPENAI_API_KEY`にOpenAIのAPIキーを設定します．以下はbashの例です．
+ 本アプリケーションはデフォルトでOpenAIのChatGPTを使います。そのため、環境変数`OPENAI_API_KEY`にOpenAIのAPIキーを設定します。以下はbashの例です。
 
   ```sh
 $ export OPENAI_API_KEY=<OpenAIのAPIキー>
   ```
 
-ワーキングディレクトリの`.env`  に書いても構いません．
+ワーキングディレクトリの`.env`  に書いても構いません。
 
 ```
 OPENAI_API_KEY=<OpenAI's API key>
 ```
 
-コンフィギュレーションファイルを変更して他のLLMを使うこともできます．その場合は，必要なキーを環境変数に設定するか`.env`に書いてください．
+コンフィギュレーションファイルを変更して他のLLMを使うこともできます。その場合は、必要なキーを環境変数に設定するか`.env`に書いてください。
 
 #### サーバ起動方法
 
@@ -216,18 +219,18 @@ $ dialbb-sim-tester --app_config sample_apps/llm_dialogue_en/config.yml \
 
 ### DST-STNアプリケーション
 
-`sample_apps/dst_stn_ja/` （日本語）`sample_apps/dst_stn_en/` （英語）に以下の組み込みブロックを用いたアプリケーションがあります．様々な機能を試すためのアプリケーションです．以下の組み込みブロックを用いています
+`sample_apps/dst_stn_ja/` （日本語）`sample_apps/dst_stn_en/` （英語）に以下の組み込みブロックを用いたアプリケーションがあります。様々な機能を試すためのアプリケーションです。以下の組み込みブロックを用いています
 
 - LLMを用いたスロット抽出ブロック
 - 状態遷移ネットワークベースの対話管理ブロック
 
 #### 環境変数の設定
 
- 本アプリケーションでもデフォルトでOpenAIのChatGPTを使います．LLM対話アプリケーションと同様にOpenAIのAPIキーを環境変数にセットしてください．
+ 本アプリケーションでもデフォルトでOpenAIのChatGPTを使います。LLM対話アプリケーションと同様にOpenAIのAPIキーを環境変数にセットしてください。
 
 #### Graphvizのインストール
 
-[Graphvizのサイト](https://graphviz.org/download/)などを参考にGraphvizをインストールします．ただ，Graphvizがなくてもアプリケーションを動作させることは**可能**です．
+[Graphvizのサイト](https://graphviz.org/download/)などを参考にGraphvizをインストールします。ただ、Graphvizがなくてもアプリケーションを動作させることは**可能**です。
 
 #### 起動方法
 
@@ -258,7 +261,7 @@ $ dialbb-sim-tester --app_config sample_apps/dst_stn_en/config.yml \
 
 #### 補助データを送信するテスト
 
-  以下のコマンドで，ユーザ発話と共に補助データを送信して様々な機能をテストすることができます．
+  以下のコマンドで、ユーザ発話と共に補助データを送信して様々な機能をテストすることができます。
 
   ```sh
   $ dialbb-send-test-requests sample_apps/dst_stn_ja/config.yml sample_apps/dst_stn_ja/test_requests.json # 日本語アプリ
@@ -267,7 +270,7 @@ $ dialbb-sim-tester --app_config sample_apps/dst_stn_en/config.yml \
 
 ### RAGアプリケーション
 
-`sample_apps/rag_ja/`（日本語）と`sample_apps/rag_en/`（英語）にRAGアプリケーションがあります．FAQ文書から関連パッセージを検索し，その内容をLLMに渡して応答します．以下の組み込みブロックを用いています．
+`sample_apps/rag_ja/`（日本語）と`sample_apps/rag_en/`（英語）にRAGアプリケーションがあります。FAQ文書から関連パッセージを検索し、その内容をLLMに渡して応答します。以下の組み込みブロックを用いています。
 
 - パッセージ検索ブロック
 - LLM対話ブロック
@@ -277,15 +280,12 @@ $ dialbb-sim-tester --app_config sample_apps/dst_stn_en/config.yml \
 このアプリケーションを実行するには追加のライブラリのインストールが必要です。以下を実行してください。
 
 ```sh
-$ pip install <ダウンロードしたdialbb-*.whlファイル>[rag]
-（例：pip install dialbb-2.0.0-py3-none-any.whl[rag]）
+$ pip install dialbb[rag]
 ```
-
-これはPython 3.11-3.13でしかインストールできません。
 
 #### 環境変数の設定
 
-本アプリケーションでもデフォルトでOpenAIのChatGPTと埋め込みモデルを使います．LLM対話アプリケーションと同様に，環境変数`OPENAI_API_KEY`にOpenAIのAPIキーをセットするか，`.env`に記述してください．
+本アプリケーションでもデフォルトでOpenAIのChatGPTと埋め込みモデルを使います。LLM対話アプリケーションと同様に、環境変数`OPENAI_API_KEY`にOpenAIのAPIキーをセットするか、`.env`に記述してください。
 
 #### サーバ起動方法
 
@@ -301,7 +301,7 @@ $ dialbb-server sample_apps/rag_ja/config.yml
 $ dialbb-server sample_apps/rag_en/config.yml
   ```
 
-起動時にパッセージ検索ブロックが`docs/`配下のファイルを読み込み，必要に応じて`vector_db/`以下にベクトルDBを構築します．ベクトルDBを毎回作り直したい場合は，アプリケーション設定で`clear_before_ingest: True`を有効にしてください．
+起動時にパッセージ検索ブロックが`docs/`配下のファイルを読み込み、必要に応じて`vector_db/`以下にベクトルDBを構築します。ベクトルDBを毎回作り直したい場合は、アプリケーション設定で`clear_before_ingest: True`を有効にしてください。
 
 ブラウザから`http://<hostname>:8080` または`http://<hostname>:8080/test`にアクセスしてください。
 
@@ -335,7 +335,7 @@ $ dialbb-nc
 
 ### DialBBのアンインストール
 
-以下でアンインストールできます．
+以下でアンインストールできます。
 
 ```sh
 $ dialbb-uninstall
@@ -344,7 +344,7 @@ $ pip uninstall -y dialbb
 
 ## 要望・質問・バグ報告
 
-DialBBに関するご要望・ご質問・バグ報告は以下のところに気軽にお寄せください．些細なことや漠然とした質問でも構いません．
+DialBBに関するご要望・ご質問・バグ報告は以下のところに気軽にお寄せください。些細なことや漠然とした質問でも構いません。
 
   - バグ報告・ドキュメントの不備指摘など: [GitHub Issues](https://github.com/c4a-ri/dialbb/issues)
 
