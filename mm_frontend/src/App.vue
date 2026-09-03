@@ -19,10 +19,7 @@ interface ChatMessage {
   text: string
 }
 
-const AUX_DATA_DEBUG = {
-  debug: true,
-  source: 'pwa_mobile_client'
-}
+const SYSTEM_UTTERANCE_COMPLETION_RATIO_KEY = 'system_utterance_completion_ratio'
 
 const MIC_VISUAL_BOOST = 2.6
 const TTS_VISUAL_BOOST = 1.0
@@ -79,6 +76,15 @@ const playbackQueue: AudioPayload[] = []
 let playbackDraining = false
 let playbackGeneration = 0
 let stoppedUtteranceId = 0
+let pendingInterruptedAuxData: Record<string, number> | null = null
+const ttsProgressState = {
+  utteranceId: 0,
+  segmentCount: 0,
+  completedSegments: 0,
+  activeSegmentIndex: 0,
+  activeSegmentStartTime: 0,
+  activeSegmentDuration: 0
+}
 
 let visualizerFrameId = 0
 
@@ -220,12 +226,68 @@ function base64ToArrayBuffer(base64: string): ArrayBuffer {
   return bytes.buffer
 }
 
+function resetTtsProgressState(utteranceId = 0): void {
+  ttsProgressState.utteranceId = utteranceId
+  ttsProgressState.segmentCount = 0
+  ttsProgressState.completedSegments = 0
+  ttsProgressState.activeSegmentIndex = 0
+  ttsProgressState.activeSegmentStartTime = 0
+  ttsProgressState.activeSegmentDuration = 0
+}
+
+function ensureTtsProgressUtterance(utteranceId: number): void {
+  if (utteranceId && ttsProgressState.utteranceId !== utteranceId) {
+    resetTtsProgressState(utteranceId)
+  }
+}
+
+function getSystemUtteranceCompletionRatio(): number | null {
+  if (!ttsContext || !ttsProgressState.utteranceId || ttsProgressState.segmentCount <= 0) {
+    return null
+  }
+
+  let completedUnits = ttsProgressState.completedSegments
+  if (ttsProgressState.activeSegmentIndex > 0 && ttsProgressState.activeSegmentDuration > 0) {
+    const elapsed = Math.max(0, Math.min(
+      ttsContext.currentTime - ttsProgressState.activeSegmentStartTime,
+      ttsProgressState.activeSegmentDuration
+    ))
+    completedUnits = Math.max(
+      completedUnits,
+      (ttsProgressState.activeSegmentIndex - 1) + (elapsed / ttsProgressState.activeSegmentDuration)
+    )
+  }
+
+  return Math.min(1, Math.max(0, completedUnits / ttsProgressState.segmentCount))
+}
+
+function rememberInterruptedSystemUtteranceRatio(reason: string): void {
+  if (reason !== 'cancel') {
+    return
+  }
+  const ratio = getSystemUtteranceCompletionRatio()
+  if (ratio !== null) {
+    pendingInterruptedAuxData = {
+      [SYSTEM_UTTERANCE_COMPLETION_RATIO_KEY]: Number(ratio.toFixed(3))
+    }
+  }
+}
+
+function consumeInterruptedAudioChunkAuxData(): Record<string, number> | null {
+  const auxData = pendingInterruptedAuxData
+  pendingInterruptedAuxData = null
+  return auxData
+}
+
 function enqueueAudio(payload: AudioPayload): void {
+  ensureTtsProgressUtterance(payload.utteranceId)
+  ttsProgressState.segmentCount = Math.max(ttsProgressState.segmentCount, payload.segmentCount)
   playbackQueue.push(payload)
   void drainPlaybackQueue()
 }
 
 function stopPlayback(reason: string, utteranceId: number): void {
+  rememberInterruptedSystemUtteranceRatio(reason)
   playbackGeneration += 1
   stoppedUtteranceId = Math.max(stoppedUtteranceId, utteranceId)
   playbackQueue.length = 0
@@ -241,8 +303,7 @@ function stopPlayback(reason: string, utteranceId: number): void {
   }
   sendSocketMessage({
     action: 'stop_audio_done',
-    reason,
-    aux_data: AUX_DATA_DEBUG
+    reason
   })
 }
 
@@ -313,6 +374,11 @@ async function drainPlaybackQueue(): Promise<void> {
             source.disconnect()
             resolve()
           }
+          ensureTtsProgressUtterance(item.utteranceId)
+          ttsProgressState.segmentCount = Math.max(ttsProgressState.segmentCount, item.segmentCount)
+          ttsProgressState.activeSegmentIndex = item.segmentIndex
+          ttsProgressState.activeSegmentStartTime = ttsContext.currentTime
+          ttsProgressState.activeSegmentDuration = decodedBuffer.duration
           source.start()
         })
 
@@ -324,9 +390,13 @@ async function drainPlaybackQueue(): Promise<void> {
           action: 'tts_segment_playback_done',
           utterance_id: item.utteranceId,
           segment_index: item.segmentIndex,
-          segment_count: item.segmentCount,
-          aux_data: AUX_DATA_DEBUG
+          segment_count: item.segmentCount
         })
+        ensureTtsProgressUtterance(item.utteranceId)
+        ttsProgressState.completedSegments = Math.max(ttsProgressState.completedSegments, item.segmentIndex)
+        ttsProgressState.activeSegmentIndex = 0
+        ttsProgressState.activeSegmentStartTime = 0
+        ttsProgressState.activeSegmentDuration = 0
       } catch (error) {
         console.error('Audio playback failed', error)
       }
@@ -345,6 +415,8 @@ function setupSocketHandlers(ws: WebSocket): void {
 
     if (message.event === 'system_message') {
       const payload = message.payload || {}
+      resetTtsProgressState(Number(payload.utterance_id || 0))
+      pendingInterruptedAuxData = null
       pushChatMessage('system', String(payload.text || ''))
       return
     }
@@ -450,11 +522,15 @@ async function startMicrophone(): Promise<void> {
     if (!pcm16k.length) {
       return
     }
-    sendSocketMessage({
+    const payload: Record<string, unknown> = {
       action: 'send_audio_chunk',
-      audio_data: float32ToBase64Pcm16(pcm16k),
-      aux_data: AUX_DATA_DEBUG
-    })
+      audio_data: float32ToBase64Pcm16(pcm16k)
+    }
+    const auxData = consumeInterruptedAudioChunkAuxData()
+    if (auxData) {
+      payload.aux_data = auxData
+    }
+    sendSocketMessage(payload)
   }
 
   micSource.connect(micAnalyser)
@@ -691,7 +767,7 @@ async function startClient(): Promise<void> {
     websocket = await openWebSocket(activeServerInput, sessionId)
     setupSocketHandlers(websocket)
 
-    sendSocketMessage({ action: 'start_dialogue', aux_data: AUX_DATA_DEBUG })
+    sendSocketMessage({ action: 'start_dialogue' })
     await startMicrophone()
 
     stoppedUtteranceId = 0
@@ -718,7 +794,7 @@ async function stopClient(skipServerCall = false): Promise<void> {
   stopPlayback('end_dialogue', Number.MAX_SAFE_INTEGER)
 
   if (!skipServerCall) {
-    sendSocketMessage({ action: 'end_dialogue', aux_data: AUX_DATA_DEBUG })
+    sendSocketMessage({ action: 'end_dialogue' })
   }
 
   if (websocket) {
