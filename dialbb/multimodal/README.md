@@ -76,6 +76,7 @@ dialbb-mm-server <config_file> [--host HOST] [--port PORT] [--debug] [--audio_lo
 multimodal:
   audio_logging: true
   cycle: 0.1
+  response_delay: 0.0
   stop_at_barge_in: true
   system_barge_in_ratio: 0.0
   tts_speaking_rate: 1.0
@@ -89,6 +90,7 @@ multimodal:
 | --- | --- | --- |
 | `audio_logging` | `false` | 音声ログ保存の有無 |
 | `cycle` | `0.1` | Core engine のメインループ周期（秒） |
+| `response_delay` | `0.0` | 最終認識結果を DialBB に送る前の基準待機時間（秒）。`t` を指定すると、確率 `1/2^n` で `(n-1)t` 秒待ってから送信します。待機中に次の発話が認識された場合は待機をリセットし、前回の最終認識結果と今回の最終認識結果を連結して再スケジュールします。 |
 | `stop_at_barge_in` | `true` | ユーザのバージイン検知時に再生中のシステム発話を停止するか |
 | `system_barge_in_ratio` | `0.0` | システム発話中の `partial_transcript` を DialBB に先行送信して割り込ませる確率 |
 | `tts_speaking_rate` | `1.0` | Google TTS の発話速度 |
@@ -98,6 +100,8 @@ multimodal:
 トップレベルの `language` も参照し、`ja` なら `ja-JP`、`en` なら `en-US` を STT/TTS の `language_code` として使います。その他の値は現在 `ja-JP` 扱いです。
 
 `stop_at_barge_in` が `false` の場合、システム発話中にユーザ発話を検知しても TTS 停止は要求しません。`system_barge_in_ratio` により `partial_transcript` を DialBB に先行送信する場合も同様です。ただし、確定したユーザ発話は通常どおり DialBB に送られ、`aux_data.barge_in` も付与されます。
+
+`response_delay` は最終認識結果 (`final_transcript`) にだけ適用されます。`0.0` の場合は遅延なしで直ちに DialBB に送信されます。`0.0` より大きい値を指定した場合、サーバは送信前に確率的な待機を入れます。待機中に新しい発話が始まって最終認識まで到達した場合は、前回の最終認識結果と今回の最終認識結果を連結したテキストを、あらためて `response_delay` ベースで再スケジュールして送信します。
 
 `system_barge_in_ratio` は `0.0` 以上で有効です。`1.0` なら毎回、`0.5` なら半分の確率で、システム発話中の `partial_transcript` を DialBB に先行送信します。`0.0` は既定値で、先行送信は行いません。partial 由来の応答は、ユーザがまだ話している途中でも保留せずに TTS を開始します。
 
