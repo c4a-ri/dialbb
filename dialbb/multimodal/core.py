@@ -4,6 +4,7 @@ mm_client Core Engine
 Queue 依存を抽象化し、異なるUIやサーバから再利用可能
 """
 import random
+import re
 import time
 import threading
 from dataclasses import dataclass, field
@@ -51,6 +52,8 @@ class CoreDialogueEngine:
         self._pending_user_aux_data: Dict[str, Any] = {}
         self._pending_dialbb_response: Optional[DialbbResponse] = None
         self._pending_final_request: Optional[DialbbRequest] = None
+        self._pending_final_request_due_at: Optional[float] = None
+        self._pending_final_request_waiting_for_merge: bool = False
         self._partial_barge_in_request_sent: bool = False
         self._active_response_source: Optional[str] = None
         self._partial_response_interrupted: bool = False
@@ -110,6 +113,8 @@ class CoreDialogueEngine:
         self._pending_user_aux_data = {}
         self._pending_dialbb_response = None
         self._pending_final_request = None
+        self._pending_final_request_due_at = None
+        self._pending_final_request_waiting_for_merge = False
         self._partial_barge_in_request_sent = False
         self._active_response_source = None
         self._partial_response_interrupted = False
@@ -141,13 +146,95 @@ class CoreDialogueEngine:
         if aux_data:
             logger.debug("[CORE] DialBB aux_data=%s", aux_data)
 
-    def _send_pending_final_request(self, dialbb_request_queue: Queue) -> bool:
+    @staticmethod
+    def _sample_response_delay(response_delay: float) -> float:
+        if response_delay <= 0:
+            return 0.0
+
+        interval_count = 0
+        while random.random() < 0.5:
+            interval_count += 1
+        return interval_count * response_delay
+
+    @staticmethod
+    def _merge_transcripts(left: str, right: str) -> str:
+        if not left:
+            return right
+        if not right:
+            return left
+        if re.search(r"[A-Za-z0-9]$", left) and re.match(r"^[A-Za-z0-9]", right):
+            return f"{left} {right}"
+        return f"{left}{right}"
+
+    def _schedule_final_request(
+        self,
+        text: str,
+        aux_data: Dict[str, Any],
+        response_delay: float,
+    ) -> None:
+        sampled_delay = self._sample_response_delay(response_delay)
+        self._pending_final_request = DialbbRequest(
+            session_id=self.session_id,
+            user_text=text,
+            aux_data=dict(aux_data),
+            source="final_transcript",
+        )
+        self._pending_final_request_due_at = time.monotonic() + sampled_delay
+        self._pending_final_request_waiting_for_merge = False
+        logger.info("[CORE] final_transcript scheduled to be sent to DialBB after %.3f seconds", sampled_delay)
+
+    def _hold_pending_final_request_for_merge(self) -> bool:
         if self._pending_final_request is None:
+            return False
+
+        self._pending_final_request_due_at = None
+        self._pending_final_request_waiting_for_merge = True
+        logger.info(
+            "[CORE] new speech detected while final_transcript was pending; reset delayed send: pending=%s",
+            self._pending_final_request.user_text,
+        )
+        return True
+
+    def _schedule_merged_final_request(
+        self,
+        text: str,
+        aux_data: Dict[str, Any],
+        response_delay: float,
+    ) -> bool:
+        if self._pending_final_request is None or not self._pending_final_request_waiting_for_merge:
+            return False
+
+        merged_text = self._merge_transcripts(self._pending_final_request.user_text, text)
+        merged_aux_data = dict(self._pending_final_request.aux_data)
+        merged_aux_data.update(aux_data)
+        logger.info(
+            "[CORE] merging pending and current final_transcript, then rescheduling: previous=%s current=%s merged=%s",
+            self._pending_final_request.user_text,
+            text,
+            merged_text,
+        )
+        self._schedule_final_request(merged_text, merged_aux_data, response_delay)
+        return True
+
+    def _send_pending_final_request(self, dialbb_request_queue: Queue, *, force: bool = False) -> bool:
+        if self._pending_final_request is None:
+            return False
+
+        if self._pending_final_request_waiting_for_merge:
+            return False
+
+        due_at = self._pending_final_request_due_at
+        if not force and due_at is not None and time.monotonic() < due_at:
             return False
 
         pending_request = self._pending_final_request
         self._pending_final_request = None
-        logger.info("[CORE] 保留していた final_transcript を DialBB へ送信します")
+        self._pending_final_request_due_at = None
+        self._pending_final_request_waiting_for_merge = False
+        logger.info(
+            "[CORE] sending pending final_transcript to DialBB: text=%s",
+            pending_request.user_text,
+        )
         self._send_user_utterance_to_dialbb(
             pending_request.user_text,
             dialbb_request_queue,
@@ -304,6 +391,7 @@ class CoreDialogueEngine:
         set_tts_cancel_requested: Optional[Callable[[bool], None]] = None,
         stop_at_barge_in: bool = True,
         system_barge_in_ratio: float = -1.0,
+        response_delay: float = 0.0,
     ) -> None:
         """STT イベントを処理"""
         if not conversation_active_event.is_set():
@@ -328,6 +416,8 @@ class CoreDialogueEngine:
                 logger.debug("[CORE] Recognizing speech... %s", text)
                 logger.debug("[CORE] STT->CORE system_speaking: %s, is_final_response: %s, tts_cancel_queue: %s, _barge_in_sent: %s", self.system_speaking, self.is_final_response, tts_cancel_queue, self._barge_in_sent)
                 self._last_partial_transcript = text
+            if text:
+                self._hold_pending_final_request_for_merge()
             if stop_at_barge_in:
                 self._request_barge_in_cancel(
                     tts_cancel_queue=tts_cancel_queue,
@@ -378,32 +468,33 @@ class CoreDialogueEngine:
                     self.session_id,
                     aux_data,
                 )
-            if self._partial_barge_in_request_sent:
+            merged_with_pending = False
+            if self._pending_final_request is not None:
+                if not self._pending_final_request_waiting_for_merge:
+                    self._hold_pending_final_request_for_merge()
+                merged_with_pending = self._schedule_merged_final_request(text, aux_data, response_delay)
+
+            if merged_with_pending:
+                self._send_pending_final_request(dialbb_request_queue)
+            elif self._partial_barge_in_request_sent:
                 if self.system_speaking and self._active_response_source == "partial_transcript":
-                    logger.info("[CORE] partial_transcript 応答の完了待ちのため final を保留します")
-                    self._pending_final_request = DialbbRequest(
-                        session_id=self.session_id,
-                        user_text=text,
-                        aux_data=dict(aux_data),
-                        source="final_transcript",
-                    )
+                    logger.info("[CORE] holding final_transcript until the partial_transcript response completes")
+                    if not self._pending_final_request_waiting_for_merge:
+                        self._schedule_final_request(text, aux_data, response_delay)
                 elif self._partial_response_interrupted:
-                    logger.info("[CORE] partial_transcript 応答が中断されたため final を DialBB へ再送します")
-                    self._send_user_utterance_to_dialbb(
-                        text,
-                        dialbb_request_queue,
-                        aux_data,
-                        source="final_transcript",
-                    )
+                    logger.info("[CORE] partial_transcript response was interrupted; resending final_transcript to DialBB")
+                    if not self._pending_final_request_waiting_for_merge:
+                        self._schedule_final_request(text, aux_data, response_delay)
+                    self._send_pending_final_request(dialbb_request_queue)
                 else:
-                    logger.info("[CORE] partial_transcript を DialBB へ送信済みのため final は転送しません")
+                    logger.info("[CORE] partial_transcript already sent to DialBB, so final_transcript will be skipped")
+                    self._pending_final_request = None
+                    self._pending_final_request_due_at = None
+                    self._pending_final_request_waiting_for_merge = False
             else:
-                self._send_user_utterance_to_dialbb(
-                    text,
-                    dialbb_request_queue,
-                    aux_data,
-                    source="final_transcript",
-                )
+                if not self._pending_final_request_waiting_for_merge:
+                    self._schedule_final_request(text, aux_data, response_delay)
+                self._send_pending_final_request(dialbb_request_queue)
             self._pending_user_aux_data = {}
             self._partial_barge_in_request_sent = False
             self._partial_response_interrupted = False
@@ -460,7 +551,6 @@ class CoreDialogueEngine:
         logger.info("[CORE] CORE<-TTS 結果受信")
         if tts_result.completed:
             logger.info("[CORE] TTS 合成処理完了。再生完了通知を待機します")
-            self._pending_final_request = None
         else:
             logger.info("[CORE] システム発話中断またはエラー")
             logger.debug("[CORE] TTS結果詳細: %s", tts_result.text)
@@ -561,6 +651,7 @@ class CoreDialogueEngine:
         max_user_wait_time: float = 30.0,
         stop_at_barge_in: bool = True,
         system_barge_in_ratio: float = -1.0,
+        response_delay: float = 0.0,
     ) -> None:
         """メインループ（既存 MultimodalMainModule.run と同じロジック）"""
         logger.info("[CORE] run start: thread=%s", threading.current_thread().name)
@@ -612,7 +703,10 @@ class CoreDialogueEngine:
                         set_tts_cancel_requested,
                         stop_at_barge_in,
                         system_barge_in_ratio,
+                        response_delay,
                     )
+
+                self._send_pending_final_request(dialbb_request_queue)
 
                 # 3. DialBB 応答処理
                 while True:
@@ -626,7 +720,6 @@ class CoreDialogueEngine:
                         tts_request_queue,
                         stt_enabled_event,
                     )
-
                 self._flush_pending_dialbb_response(
                     conversation_active_event,
                     tts_request_queue,

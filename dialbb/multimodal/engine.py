@@ -31,6 +31,7 @@ class Settings:
     config: dict[str, object] | None = None
     cycle: float = 0.1
     user_timeout: float = 10.0
+    response_delay: float = 0.0
     stop_at_barge_in: bool = True
     system_barge_in_ratio: float = 0.0
     tts_voice_name: str | None = None
@@ -256,6 +257,7 @@ class DialogueEngineManager:
                     "max_user_wait_time": settings.user_timeout,
                     "stop_at_barge_in": settings.stop_at_barge_in,
                     "system_barge_in_ratio": settings.system_barge_in_ratio,
+                    "response_delay": settings.response_delay,
                 },
                 name=f"core-engine-{session.session_id[:8]}",
                 daemon=False,

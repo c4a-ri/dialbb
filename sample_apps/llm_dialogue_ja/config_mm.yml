@@ -26,7 +26,7 @@ multimodal:  # multimodal server config
   cycle: 0.1 # メインループ周期 (秒)
   user_timeout: 10.0  # ユーザ発話待ちタイムアウト (秒)  T.Oで "user_silence"通知
   stop_at_barge_in: true
-  system_barge_in_ratio: 1.0
+  #system_barge_in_ratio: 1.0
   tts_voice_name: ja-JP-Neural2-B
   tts_speaking_rate: 1.2
-
+  response_delay: 5.0
