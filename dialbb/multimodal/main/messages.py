@@ -70,6 +70,8 @@ class TtsRequest:
 
     session_id: str
     text: str
+    # この要求が属する発話ID。合成完了時に古い発話と取り違えないよう明示的に持たせる。
+    utterance_id: int = 0
 
 
 @dataclass(slots=True)

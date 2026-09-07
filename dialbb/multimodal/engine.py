@@ -109,8 +109,8 @@ class DialogueEngineManager:
     def __init__(
         self,
         settings: Settings,
-        event_callback: Optional[Callable[[str, DialogueEvent], None]] = None,
-        tts_audio_callback: Optional[Callable[[str, int, int, bytes], bool]] = None,
+        event_callback: Optional[Callable[[str, DialogueEvent], Any]] = None,
+        tts_audio_callback: Optional[Callable[[str, int, int, int, bytes], bool]] = None,
         tts_stop_callback: Optional[Callable[[str, str, int], None]] = None,
     ) -> None:
 
@@ -184,8 +184,9 @@ class DialogueEngineManager:
         if self.tts_audio_callback:
             _cb = self.tts_audio_callback
             _sid = session.session_id
-            tts_audio_cb = lambda segment_index, segment_count, audio_bytes: _cb(  # noqa: E731
+            tts_audio_cb = lambda utterance_id, segment_index, segment_count, audio_bytes: _cb(  # noqa: E731
                 _sid,
+                utterance_id,
                 segment_index,
                 segment_count,
                 audio_bytes,

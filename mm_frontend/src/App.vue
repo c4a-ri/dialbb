@@ -72,6 +72,7 @@ let ttsMasterGain: GainNode | null = null
 let ttsAnalyser: AnalyserNode | null = null
 let ttsAnalyserBuffer: Uint8Array | null = null
 let activePlaybackSource: AudioBufferSourceNode | null = null
+let activePlaybackResolve: (() => void) | null = null
 const playbackQueue: AudioPayload[] = []
 let playbackDraining = false
 let playbackGeneration = 0
@@ -301,6 +302,12 @@ function stopPlayback(reason: string, utteranceId: number): void {
     activePlaybackSource.disconnect()
     activePlaybackSource = null
   }
+  // stop()ではonendedが発火しないため、待機中のdrainPlaybackQueueを手動で解放する
+  if (activePlaybackResolve) {
+    const resolve = activePlaybackResolve
+    activePlaybackResolve = null
+    resolve()
+  }
   sendSocketMessage({
     action: 'stop_audio_done',
     reason
@@ -361,6 +368,7 @@ async function drainPlaybackQueue(): Promise<void> {
 
           const source = ttsContext.createBufferSource()
           activePlaybackSource = source
+          activePlaybackResolve = resolve
           source.buffer = decodedBuffer
           if (ttsMasterGain) {
             source.connect(ttsMasterGain)
@@ -371,6 +379,7 @@ async function drainPlaybackQueue(): Promise<void> {
             if (activePlaybackSource === source) {
               activePlaybackSource = null
             }
+            activePlaybackResolve = null
             source.disconnect()
             resolve()
           }
@@ -763,6 +772,13 @@ async function startClient(): Promise<void> {
 
   try {
     await preparePlaybackContext()
+    // 前回セッションの再生関連の状態を初期化。
+    playbackGeneration += 1
+    stoppedUtteranceId = 0
+    playbackQueue.length = 0
+    pendingInterruptedAuxData = null
+    resetTtsProgressState()
+
     sessionId = await createSession(activeServerInput)
     websocket = await openWebSocket(activeServerInput, sessionId)
     setupSocketHandlers(websocket)
@@ -770,7 +786,6 @@ async function startClient(): Promise<void> {
     sendSocketMessage({ action: 'start_dialogue' })
     await startMicrophone()
 
-    stoppedUtteranceId = 0
     state.value = 'running'
     updateStatus('接続中 / 音声送受信中')
   } catch (error) {

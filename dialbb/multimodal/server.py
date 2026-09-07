@@ -131,7 +131,7 @@ def create_app(
     session_hub = WebSocketSessionHub()
     frontend_dist_dir = Path(__file__).resolve().parent / "static" / "mobile"
 
-    def on_event(session_id: str, event: DialogueEvent) -> None:
+    def on_event(session_id: str, event: DialogueEvent) -> int | None:
         if event.event_type == "chat" and event.data.get("role") == "system":
             # utterance_id = engine_manager.begin_tts_utterance(session_id, str(event.data.get("text") or ""))
             text = str(event.data.get("text") or "")
@@ -157,6 +157,8 @@ def create_app(
                 len(split_tts_segments(str(event.data.get("text") or ""))),
                 event.data.get("text"),
             )
+            # CORE側でTtsRequestに紐付けるため、採番したutterance_idを呼び出し元へ返す。
+            return utterance_id
         elif event.event_type == "chat" and event.data.get("role") == "user":
             transcript = str(event.data.get("text") or "")
             aux_data = event.data.get("aux_data") or {}
@@ -179,8 +181,28 @@ def create_app(
             {"reason": reason, "utterance_id": utterance_id},
         )
 
-    def on_tts_audio(session_id: str, segment_index: int, segment_count: int, audio_bytes: bytes) -> bool:
-        """Send each synthesized TTS segment as one audio payload and wait for playback."""
+    def on_tts_audio(
+        session_id: str,
+        utterance_id: int,
+        segment_index: int,
+        segment_count: int,
+        audio_bytes: bytes,
+    ) -> bool:
+        """Send each synthesized TTS segment as one audio payload and wait for playback.
+
+        utterance_id is the id assigned when this TtsRequest was created (not the
+        session's current counter), so a stale/superseded request never gets
+        mislabeled with a newer utterance's id.
+        """
+        if utterance_id != engine_manager.get_current_tts_utterance_id(session_id):
+            logger.info(
+                "[SERVER] stale TTS request dropped (utterance superseded): session=%s utterance=%s segment=%d/%d",
+                session_id,
+                utterance_id,
+                segment_index,
+                segment_count,
+            )
+            return False
         if engine_manager.is_tts_cancel_requested(session_id):
             logger.debug(
                 "[SERVER] TTS audio dropped by cancel flag: session=%s segment=%d/%d bytes=%d",
@@ -195,11 +217,9 @@ def create_app(
             return False
 
         session = engine_manager.get_session(session_id)
-        utterance_id = 0
         aux_data: dict[str, Any] = {}
         if session:
             with session.tts_state_lock:
-                utterance_id = session.current_tts_utterance_id
                 session.current_tts_total_segments = segment_count
 
             if segment_index == 1 and session.pending_tts_aux_data:

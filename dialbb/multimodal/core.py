@@ -57,17 +57,19 @@ class CoreDialogueEngine:
         self._last_status_message: Optional[str] = None
         self._last_partial_transcript: Optional[str] = None
         # イベント通知コールバック
-        self._event_callback: Optional[Callable[[DialogueEvent], None]] = None
+        self._event_callback: Optional[Callable[[DialogueEvent], Any]] = None
 
-    def set_event_callback(self, callback: Callable[[DialogueEvent], None]) -> None:
+    def set_event_callback(self, callback: Callable[[DialogueEvent], Any]) -> None:
         """イベント通知用のコールバックを登録"""
         self._event_callback = callback
 
-    def _emit_event(self, event: DialogueEvent) -> None:
-        """イベントを外部へ通知"""
+    def _emit_event(self, event: DialogueEvent) -> Any:
+        """イベントを外部へ通知し、コールバックの戻り値を返す"""
+        result = None
         if self._event_callback:
-            self._event_callback(event)
+            result = self._event_callback(event)
         logger.debug("[CORE] Event: %s", event)
+        return result
 
     def _emit_status(self, message: str) -> None:
         if self._last_status_message == message:
@@ -196,11 +198,20 @@ class CoreDialogueEngine:
             return
 
         self.system_speaking = True
-        self._emit_event(DialogueEvent(event_type="chat", data={"role": "system", "text": system_text,
+        # コールバック側（サーバ）が採番した utterance_id を受け取り、TTS要求に紐付ける。
+        # session側の共有カウンタを合成完了時に読み直すと、連続バージインで
+        # 別発話のIDと取り違える恐れがあるため、要求生成時点のIDを固定して渡す。
+        utterance_id = self._emit_event(DialogueEvent(event_type="chat", data={"role": "system", "text": system_text,
                                                                 "aux_data": dict(dialbb_response.aux_data or {}),}))
         logger.info("[CORE] CORE->TTS 合成要求送信. system_speaking=%s, is_final_response=%s", self.system_speaking, self.is_final_response)
         self._emit_status("音声合成中")
-        tts_request_queue.put(TtsRequest(session_id=self.session_id, text=system_text))
+        tts_request_queue.put(
+            TtsRequest(
+                session_id=self.session_id,
+                text=system_text,
+                utterance_id=int(utterance_id) if utterance_id else 0,
+            )
+        )
         if self.is_final_response:
             logger.debug("[CORE] 最終応答再生中: 新規 STT 入力を無効化")
             stt_enabled_event.clear()
