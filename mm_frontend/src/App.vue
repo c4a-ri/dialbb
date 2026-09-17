@@ -9,6 +9,8 @@ type WebAudioWindow = Window & {
 
 interface AudioPayload {
   audio: string
+  format: 'wav' | 'pcm16'
+  sampleRate: number
   utteranceId: number
   segmentIndex: number
   segmentCount: number
@@ -24,6 +26,8 @@ const SYSTEM_UTTERANCE_COMPLETION_RATIO_KEY = 'system_utterance_completion_ratio
 const MIC_VISUAL_BOOST = 2.6
 const TTS_VISUAL_BOOST = 1.0
 const BASE_WAVE_FLOOR = 0.03
+const realtimePrototype = new URLSearchParams(window.location.search).get('realtime') === '1'
+const audioInputSampleRate = realtimePrototype ? 24000 : 16000
 
 const state = ref<ClientState>('idle')
 const statusText = ref('待機中')
@@ -77,6 +81,7 @@ const playbackQueue: AudioPayload[] = []
 let playbackDraining = false
 let playbackGeneration = 0
 let stoppedUtteranceId = 0
+let realtimeAudioChunksSent = 0
 let pendingInterruptedAuxData: Record<string, number> | null = null
 const ttsProgressState = {
   utteranceId: 0,
@@ -99,7 +104,7 @@ const activeServerInput = (() => {
     return fromEnv.trim()
   }
   if (import.meta.env.DEV) {
-    return 'http://localhost:5000'
+    return realtimePrototype ? 'http://localhost:5010' : 'http://localhost:5000'
   }
   if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
     return window.location.origin
@@ -172,8 +177,7 @@ function sendSocketMessage(payload: Record<string, unknown>): void {
   websocket.send(JSON.stringify(payload))
 }
 
-function downsampleTo16k(input: Float32Array, sourceRate: number): Float32Array {
-  const targetRate = 16000
+function downsampleToTarget(input: Float32Array, sourceRate: number, targetRate: number): Float32Array {
   if (sourceRate === targetRate) {
     return input
   }
@@ -225,6 +229,19 @@ function base64ToArrayBuffer(base64: string): ArrayBuffer {
     bytes[i] = binary.charCodeAt(i)
   }
   return bytes.buffer
+}
+
+function decodePcm16Audio(audio: ArrayBuffer, sampleRate: number): AudioBuffer {
+  if (!ttsContext) {
+    throw new Error('AudioContextが利用できません')
+  }
+  const pcm16 = new Int16Array(audio)
+  const buffer = ttsContext.createBuffer(1, pcm16.length, sampleRate)
+  const channel = buffer.getChannelData(0)
+  for (let i = 0; i < pcm16.length; i += 1) {
+    channel[i] = pcm16[i] / 0x8000
+  }
+  return buffer
 }
 
 function resetTtsProgressState(utteranceId = 0): void {
@@ -349,13 +366,15 @@ async function drainPlaybackQueue(): Promise<void> {
         break
       }
 
-      if (item.utteranceId <= stoppedUtteranceId) {
+      if (item.format === 'wav' && item.utteranceId <= stoppedUtteranceId) {
         continue
       }
 
       try {
-        const wavBuffer = base64ToArrayBuffer(item.audio)
-        const decodedBuffer = await ttsContext.decodeAudioData(wavBuffer.slice(0))
+        const audioBuffer = base64ToArrayBuffer(item.audio)
+        const decodedBuffer = item.format === 'pcm16'
+          ? decodePcm16Audio(audioBuffer, item.sampleRate)
+          : await ttsContext.decodeAudioData(audioBuffer.slice(0))
         if (currentGeneration !== playbackGeneration) {
           break
         }
@@ -395,12 +414,14 @@ async function drainPlaybackQueue(): Promise<void> {
           break
         }
 
-        sendSocketMessage({
-          action: 'tts_segment_playback_done',
-          utterance_id: item.utteranceId,
-          segment_index: item.segmentIndex,
-          segment_count: item.segmentCount
-        })
+        if (item.format === 'wav') {
+          sendSocketMessage({
+            action: 'tts_segment_playback_done',
+            utterance_id: item.utteranceId,
+            segment_index: item.segmentIndex,
+            segment_count: item.segmentCount
+          })
+        }
         ensureTtsProgressUtterance(item.utteranceId)
         ttsProgressState.completedSegments = Math.max(ttsProgressState.completedSegments, item.segmentIndex)
         ttsProgressState.activeSegmentIndex = 0
@@ -440,6 +461,8 @@ function setupSocketHandlers(ws: WebSocket): void {
       const payload = message.payload || {}
       enqueueAudio({
         audio: String(payload.audio || ''),
+        format: payload.format === 'pcm16' ? 'pcm16' : 'wav',
+        sampleRate: Number(payload.sample_rate || 16000),
         utteranceId: Number(payload.utterance_id || 0),
         segmentIndex: Number(payload.segment_index || 0),
         segmentCount: Number(payload.segment_count || 0)
@@ -527,13 +550,19 @@ async function startMicrophone(): Promise<void> {
       return
     }
     const input = event.inputBuffer.getChannelData(0)
-    const pcm16k = downsampleTo16k(input, micSampleRate)
-    if (!pcm16k.length) {
+    const pcm = downsampleToTarget(input, micSampleRate, audioInputSampleRate)
+    if (!pcm.length) {
       return
     }
     const payload: Record<string, unknown> = {
       action: 'send_audio_chunk',
-      audio_data: float32ToBase64Pcm16(pcm16k)
+      audio_data: float32ToBase64Pcm16(pcm)
+    }
+    if (realtimePrototype) {
+      realtimeAudioChunksSent += 1
+      if (realtimeAudioChunksSent === 1) {
+        updateStatus('マイク音声をGatewayへ送信中')
+      }
     }
     const auxData = consumeInterruptedAudioChunkAuxData()
     if (auxData) {
@@ -779,12 +808,13 @@ async function startClient(): Promise<void> {
     pendingInterruptedAuxData = null
     resetTtsProgressState()
 
+    await startMicrophone()
+
     sessionId = await createSession(activeServerInput)
     websocket = await openWebSocket(activeServerInput, sessionId)
     setupSocketHandlers(websocket)
 
     sendSocketMessage({ action: 'start_dialogue' })
-    await startMicrophone()
 
     state.value = 'running'
     updateStatus('接続中 / 音声送受信中')
