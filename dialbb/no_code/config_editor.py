@@ -215,13 +215,17 @@ def edit_app_config(parent, file_path, template_path, settings):
     if not models:
         # default設定
         models = [
-            "gpt-4o",
-            "gpt-4o-mini",
+            "gpt-5.6-luna",
+            "gpt-5.6-terra",
+            "gpt-5.6-sol",
             "gpt-5.4-nano",
             "gpt-5.4-mini",
             "gpt-5.4",
             "google_genai:gemini-2.5-flash",
             "google_genai:gemini-2.5-flash-lite",
+            "google_genai:gemini-3.1-flash-lite",
+            "google_genai:gemini-3.5-flash",
+            "google_genai:gemini-3.5-flash-lite",
             "anthropic:claude-haiku-4-5"
         ]
     v = tk.StringVar()
@@ -456,13 +460,17 @@ def edit_test_config(parent, file_path: str, settings) -> None:
     if not models:
         # default設定
         models = [
-            "gpt-4o",
-            "gpt-4o-mini",
+            "gpt-5.6-luna",
+            "gpt-5.6-terra",
+            "gpt-5.6-sol",
             "gpt-5.4-nano",
             "gpt-5.4-mini",
             "gpt-5.4",
             "google_genai:gemini-2.5-flash",
             "google_genai:gemini-2.5-flash-lite",
+            "google_genai:gemini-3.1-flash-lite",
+            "google_genai:gemini-3.5-flash",
+            "google_genai:gemini-3.5-flash-lite",
             "anthropic:claude-haiku-4-5"
         ]
     current_model = config.get("model", "")

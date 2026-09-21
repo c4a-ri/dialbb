@@ -27,7 +27,7 @@ from typing import Dict, Any, List
 from langchain.chat_models import init_chat_model
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
-DEFAULT_GPT_MODEL: str = "gpt-5.4-nano"
+DEFAULT_GPT_MODEL: str = "gpt-5.6-luna"
 DIALOGUE_HISTORY_TAG: str = '{dialogue_history}'
 DIALOGUE_HISTORY_OLD_TAG: str = '@dialogue_history'
 TIMEOUT: int = 10
