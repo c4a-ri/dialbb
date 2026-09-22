@@ -115,6 +115,9 @@ class LLMTester:
                 [self._convert_message(message) for message in self._messages]
             )
             user_utterance = response.content if hasattr(response, "content") else str(response)
+            if type(user_utterance) != str:  # gemini-3.1-flash-lite
+                user_utterance = user_utterance[0]['text']
+
         except Exception:
             traceback.print_exc()
             raise Exception
