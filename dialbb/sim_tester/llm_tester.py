@@ -27,7 +27,7 @@ from typing import Dict, Any, List
 from langchain.chat_models import init_chat_model
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
-DEFAULT_GPT_MODEL: str = "gpt-5.4-nano"
+DEFAULT_GPT_MODEL: str = "gpt-5.6-luna"
 DIALOGUE_HISTORY_TAG: str = '{dialogue_history}'
 DIALOGUE_HISTORY_OLD_TAG: str = '@dialogue_history'
 TIMEOUT: int = 10
@@ -115,6 +115,9 @@ class LLMTester:
                 [self._convert_message(message) for message in self._messages]
             )
             user_utterance = response.content if hasattr(response, "content") else str(response)
+            if type(user_utterance) != str:  # gemini-3.1-flash-lite
+                user_utterance = user_utterance[0]['text']
+
         except Exception:
             traceback.print_exc()
             raise Exception

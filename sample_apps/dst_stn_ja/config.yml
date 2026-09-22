@@ -13,7 +13,7 @@ blocks:  # ブロックのリスト
     output: 
       aux_data: aux_data
     knowledge_file: dst_knowledge_ja.xlsx  # 知識記述ファイル
-    model: gpt-5.4-nano
+    model: gpt-5.6-luna
     flags_to_use: 
       - 'Y'
       - 'T'
@@ -44,7 +44,7 @@ blocks:  # ブロックのリスト
       - 'Y'
       - 'T'
     llm:
-      model: gpt-5.4-nano
+      model: gpt-5.6-luna
       # temperature: 0.7
       temperature_for_checking: 0.0
       instruction: あなたは雑談対話システムで、ユーザと食べ物に関して話しています。食べ物に関係ないことを答えてはいけません。

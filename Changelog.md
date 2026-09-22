@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.0.1 (2026.7.24)
+## 2.0.1 (2026.7.25)
 
 - Bugs related to placeholders in prompts fixed
 

@@ -98,7 +98,7 @@ blocks:
     system_name: System
     first_system_utterance: "Hello! Let's talk about food. What kind of cuisine do you like?"
     prompt_template: prompt_template.txt
-    model: gpt-5.4-nano
+    model: gpt-5.6-luna
     # temperature: 0.7
 ```
 
@@ -203,7 +203,7 @@ blocks:
     output:
       aux_data: aux_data
     knowledge_file: dst_knowledge_en.xlsx
-    gpt_model: gpt-5.4-nano
+    gpt_model: gpt-5.6-luna
     flags_to_use:
       - 'Y'
       - 'T'
@@ -234,7 +234,7 @@ blocks:
       - 'Y'
       - 'T'
     llm:
-      model: gpt-5.4-nano
+      model: gpt-5.6-luna
       # temperature: 0.7
       situation:
         - You are a dialogue system and chatting with the user.
@@ -450,7 +450,7 @@ The sample application configures the `llm` section of the STN Manager block so 
 
 ```yaml
 llm:
-  model: gpt-5.4-nano
+  model: gpt-5.6-luna
   # temperature: 0.7
   situation:
     - You are a dialogue system and chatting with the user.
@@ -595,7 +595,7 @@ blocks:
     system_name: System
     first_system_utterance: "Thank you for calling Blue Ocean Rent-A-Car. How may I help you today?"
     prompt_template: prompt_template.txt
-    model: gpt-5.4-nano
+    model: gpt-5.6-luna
     # temperature: 0.7
 ```
 
