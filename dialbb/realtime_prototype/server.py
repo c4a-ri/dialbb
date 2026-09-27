@@ -28,6 +28,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class PrototypeSession:
+    # ブラウザ側のセッションとDialBB側の会話セッションを対応付けて保持する。
     session_id: str
     websocket: WebSocket | None = None
     realtime: Any = None
@@ -52,6 +53,7 @@ class RealtimeConnection:
         self.audio_response_delta_count = 0
 
     async def connect(self) -> None:
+        # DialogueProcessorは接続開始時に遅延importし、Gatewayのヘルスチェックを軽く保つ。
         from dialbb.main import DialogueProcessor
 
         api_key = os.getenv("OPENAI_API_KEY")
@@ -62,6 +64,7 @@ class RealtimeConnection:
             "Authorization": f"Bearer {api_key}",
         }
         try:
+            # GatewayからOpenAI Realtime APIへサーバー間WebSocket接続を張る。
             self.session.realtime = await websockets.connect(
                 REALTIME_URL,
                 additional_headers=headers,
@@ -74,6 +77,8 @@ class RealtimeConnection:
                 max_size=None,
             )
 
+        # Realtimeの音声形式、VAD、システム指示、DialBB用Functionを登録する。
+        # Functionの実体をAPIへ渡すのではなく、モデルが生成する呼び出し仕様だけを登録する。
         await self.send({
             "type": "session.update",
             "session": {
@@ -117,6 +122,7 @@ class RealtimeConnection:
             },
         })
 
+        # DialBBを初期化し、最初のDialBB session_idを取得する。
         self.session.processor = DialogueProcessor(self.config_file)
         initial = await asyncio.to_thread(
             self.session.processor.process,
@@ -145,6 +151,7 @@ class RealtimeConnection:
             self.audio_chunks_received += 1
             if self.audio_chunks_received == 1:
                 logger.info("Realtime audio input started: session=%s", self.session.session_id)
+            # ブラウザのPCM16音声をRealtimeの入力バッファへ中継する。
             await self.send({"type": "input_audio_buffer.append", "audio": audio_data})
 
     async def say_exactly(self, text: str) -> None:
@@ -155,6 +162,7 @@ class RealtimeConnection:
         })
 
     async def request_response(self, response: dict[str, Any] | None = None) -> None:
+        # 応答の二重生成を防ぐ。Realtimeは同時に複数のresponseを生成できない。
         async with self.response_lock:
             if self.response_active:
                 self.response_pending = True
@@ -163,8 +171,10 @@ class RealtimeConnection:
             await self.send({"type": "response.create", "response": response or {"output_modalities": ["audio"]}})
 
     async def handle_function_call(self, event: dict[str, Any]) -> None:
+        # Realtimeが生成したFunction Callを受け、ここで初めてPython/DialBBを実行する。
         call_id = str(event.get("call_id") or "")
         try:
+            # Function CallのJSON引数から、DialBBへ渡すユーザー発話を取り出す。
             arguments = json.loads(str(event.get("arguments") or "{}"))
             user_text = str(arguments.get("user_text") or "").strip()
             if not user_text:
@@ -172,6 +182,7 @@ class RealtimeConnection:
             if self.session.processor is None or not self.session.dialbb_session_id:
                 raise RuntimeError("DialBB session is not initialized")
 
+            # DialBBの履歴を壊さないよう、同一セッションのターンを直列実行する。
             with self.session.dialbb_lock:
                 response = await asyncio.to_thread(
                     self.session.processor.process,
@@ -183,6 +194,8 @@ class RealtimeConnection:
                     False,
                 )
             self.session.dialbb_session_id = str(response["session_id"])
+            # DialBBのsystem_utteranceをFunction Callの結果としてRealtimeへ返す。
+            # 返却後のresponse.createで、Realtimeがその結果を音声化する。
             await self.send({
                 "type": "conversation.item.create",
                 "item": {
@@ -224,12 +237,14 @@ class RealtimeConnection:
                     self.response_active = False
                     logger.warning("Realtime response cancelled: session=%s event=%s", self.session.session_id, event)
                 if event_type == "response.output_audio.delta":
+                    # 音声deltaは細切れで届くため、完了イベントまでPCMを結合する。
                     delta = str(event.get("delta") or "")
                     if delta:
                         self.audio_response_buffer.extend(base64.b64decode(delta))
                         self.audio_response_delta_count += 1
                 elif event_type == "response.output_audio.done":
                     if self.audio_response_buffer:
+                        # 応答全体を1つの音声としてブラウザへ送るプロトタイプ実装。
                         audio = base64.b64encode(self.audio_response_buffer).decode("ascii")
                         logger.info(
                             "Realtime audio response complete: session=%s deltas=%d bytes=%d",
@@ -258,6 +273,7 @@ class RealtimeConnection:
                 elif event_type == "response.done":
                     self.response_active = False
                     self.response_done.set()
+                    # response.doneのoutputにFunction Callが含まれていればDialBBを実行する。
                     for output in (event.get("response") or {}).get("output", []):
                         if output.get("type") == "function_call" and output.get("name") == "dialbb_turn":
                             await self.handle_function_call(output)
@@ -278,6 +294,7 @@ class RealtimeConnection:
 
 
 async def emit(session: PrototypeSession, event_name: str, payload: dict[str, Any]) -> None:
+    # Gateway内部のイベントを、接続中のブラウザWebSocketへJSONで通知する。
     if session.websocket is not None and not session.closed:
         await session.websocket.send_json({"event": event_name, "payload": payload})
 
@@ -309,6 +326,7 @@ def create_app(config_file: str) -> FastAPI:
 
     @app.post("/sessions", status_code=201)
     async def create_session() -> dict[str, str]:
+        # ブラウザ接続用のGatewayセッションを作成する。DialBBはまだ初期化しない。
         session_id = str(uuid.uuid4())
         sessions[session_id] = PrototypeSession(session_id=session_id)
         return {"session_id": session_id}
@@ -336,6 +354,7 @@ def create_app(config_file: str) -> FastAPI:
                 payload = await websocket.receive_json()
                 action = payload.get("action")
                 if action == "start_dialogue":
+                    # WebSocket接続後にRealtime接続、DialBB初期化、初回応答を開始する。
                     try:
                         realtime = RealtimeConnection(session, config_file)
                         await realtime.connect()
