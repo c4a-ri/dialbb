@@ -200,7 +200,7 @@
 <span class="w">    </span><span class="nt">system_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">システム</span>
 <span class="w">    </span><span class="nt">first_system_utterance</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;こんにちは．私の名前は由衣．少しお話させてね．スイーツって好き？&quot;</span>
 <span class="w">    </span><span class="nt">prompt_template</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prompt_template.txt</span>
-<span class="w">    </span><span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpt-5.4-nano</span>
+<span class="w">    </span><span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpt-5.6-luna</span>
 <span class="w">    </span><span class="c1">#model: google_genai:gemini-2.5-flash</span>
 <span class="w">    </span><span class="c1"># temperature: 0.7</span>
 </pre></div>
@@ -297,7 +297,7 @@
 <span class="w">    </span><span class="nt">output</span><span class="p">:</span><span class="w"> </span>
 <span class="w">      </span><span class="nt">aux_data</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aux_data</span>
 <span class="w">    </span><span class="nt">knowledge_file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dst_knowledge_ja.xlsx</span><span class="w">  </span><span class="c1"># 知識記述ファイル</span>
-<span class="w">    </span><span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpt-5.4-nano</span>
+<span class="w">    </span><span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpt-5.6-luna</span>
 <span class="w">    </span><span class="nt">flags_to_use</span><span class="p">:</span><span class="w"> </span>
 <span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;Y&#39;</span>
 <span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;T&#39;</span>
@@ -328,7 +328,7 @@
 <span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;Y&#39;</span>
 <span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;T&#39;</span>
 <span class="w">    </span><span class="nt">llm</span><span class="p">:</span>
-<span class="w">      </span><span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpt-5.4-nano</span>
+<span class="w">      </span><span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpt-5.6-luna</span>
 <span class="w">      </span><span class="c1"># temperature: 0.7</span>
 <span class="w">      </span><span class="c1"># temperature_for_checking: 0.0</span>
 <span class="w">      </span><span class="nt">instruction</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">あなたは雑談対話システムで，ユーザと食べ物に関して話しています．食べ物に関係ないことを答えてはいけません．</span>
@@ -614,7 +614,7 @@ $$$
 </div>
 <p>発話を生成する際のLLMのモデルや温度パラメータ，状況設定，ペルソナ，注意事項はブロックコンフィギュレーションで以下のように指定されています．</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">llm</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpt-5.4-nano</span>
+<span class="w">  </span><span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpt-5.6-luna</span>
 <span class="w">  </span><span class="c1"># temperature: 0.7</span>
 <span class="w">  </span><span class="nt">situation</span><span class="p">:</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">あなたは対話システムで，ユーザと食べ物に関して雑談をしています．</span>
@@ -738,7 +738,7 @@ $$$
 <span class="w">    </span><span class="nt">system_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">システム</span>
 <span class="w">    </span><span class="nt">first_system_utterance</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;こちらはブルーオーシャンレンタカーです．どのようなご用件でしょうか？&quot;</span>
 <span class="w">    </span><span class="nt">prompt_template</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prompt_template.txt</span>
-<span class="w">    </span><span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpt-5.4-nano</span>
+<span class="w">    </span><span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpt-5.6-luna</span>
 <span class="w">    </span><span class="c1"># temperature: 0.7</span>
 </pre></div>
 </div>

@@ -41,10 +41,10 @@
 
   システム発話の生成をLLMに行わせるプロンプトを記述したファイル名です．アプリケーションディレクトリからの相対で記述します．
 
-- `model` （文字列，デフォルト値は`gpt-5.4-nano`）
+- `model` （文字列，デフォルト値は`gpt-5.6-luna`）
 
-  モデル指定文字列です．`provider:model_name` の形式で指定します（langchainの[init_chat_modelで指定する形式](https://reference.langchain.com/python/langchain/chat_models/base/init_chat_model)です）．例：`google_genai:gemini-2.0-flash-001`．ただし，`gpt-5.4-nano` のようなOpenAIのGPTモデルは `openai:` を省略できます．
-  モデルによっては環境変数でキーを指定する必要があります．例えば`gpt-5.4-nano` のようなOpenAIのGPTモデルを用いる場合は，`OPENAI_API_KEY`を指定します．
+  モデル指定文字列です．`provider:model_name` の形式で指定します（langchainの[init_chat_modelで指定する形式](https://reference.langchain.com/python/langchain/chat_models/base/init_chat_model)です）．例：`google_genai:gemini-2.0-flash-001`．ただし，`gpt-5.6-luna` のようなOpenAIのGPTモデルは `openai:` を省略できます．
+  モデルによっては環境変数でキーを指定する必要があります．例えば`gpt-5.6-luna` のようなOpenAIのGPTモデルを用いる場合は，`OPENAI_API_KEY`を指定します．
 
 - `temperature` （float，デフォルト値は`0.7`）
 
@@ -257,7 +257,7 @@ aux_data["ユーザの名前"] = "健二"
 
       Goole Sheet APIにアクセスするためのキーファイルをコンフィギュレーションファイルのディレクトリからの相対パスで指定します．
 
-- `model` (文字列．デフォルト値は`gpt-5.4-nano`）
+- `model` (文字列．デフォルト値は`gpt-5.6-luna`）
 
   LLMのモデルを指定します．
 
@@ -755,7 +755,7 @@ STN Managerは，対話のセッションごとに文脈情報を保持してい
 
   ```yaml
   llm:
-    model: gpt-5.4-nano
+    model: gpt-5.6-luna
     # temperature: 0.7
     situation:
       - あなたは対話システムで，ユーザと食べ物に関して雑談をしています．

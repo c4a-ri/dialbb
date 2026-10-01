@@ -175,9 +175,9 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">prompt_template</span></code> （文字列）</p>
 <p>システム発話の生成をLLMに行わせるプロンプトを記述したファイル名です．アプリケーションディレクトリからの相対で記述します．</p>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">model</span></code> （文字列，デフォルト値は<code class="docutils literal notranslate"><span class="pre">gpt-5.4-nano</span></code>）</p>
-<p>モデル指定文字列です．<code class="docutils literal notranslate"><span class="pre">provider:model_name</span></code> の形式で指定します（langchainの<a class="reference external" href="https://reference.langchain.com/python/langchain/chat_models/base/init_chat_model">init_chat_modelで指定する形式</a>です）．例：<code class="docutils literal notranslate"><span class="pre">google_genai:gemini-2.0-flash-001</span></code>．ただし，<code class="docutils literal notranslate"><span class="pre">gpt-5.4-nano</span></code> のようなOpenAIのGPTモデルは <code class="docutils literal notranslate"><span class="pre">openai:</span></code> を省略できます．
-モデルによっては環境変数でキーを指定する必要があります．例えば<code class="docutils literal notranslate"><span class="pre">gpt-5.4-nano</span></code> のようなOpenAIのGPTモデルを用いる場合は，<code class="docutils literal notranslate"><span class="pre">OPENAI_API_KEY</span></code>を指定します．</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">model</span></code> （文字列，デフォルト値は<code class="docutils literal notranslate"><span class="pre">gpt-5.6-luna</span></code>）</p>
+<p>モデル指定文字列です．<code class="docutils literal notranslate"><span class="pre">provider:model_name</span></code> の形式で指定します（langchainの<a class="reference external" href="https://reference.langchain.com/python/langchain/chat_models/base/init_chat_model">init_chat_modelで指定する形式</a>です）．例：<code class="docutils literal notranslate"><span class="pre">google_genai:gemini-2.0-flash-001</span></code>．ただし，<code class="docutils literal notranslate"><span class="pre">gpt-5.6-luna</span></code> のようなOpenAIのGPTモデルは <code class="docutils literal notranslate"><span class="pre">openai:</span></code> を省略できます．
+モデルによっては環境変数でキーを指定する必要があります．例えば<code class="docutils literal notranslate"><span class="pre">gpt-5.6-luna</span></code> のようなOpenAIのGPTモデルを用いる場合は，<code class="docutils literal notranslate"><span class="pre">OPENAI_API_KEY</span></code>を指定します．</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">temperature</span></code> （float，デフォルト値は<code class="docutils literal notranslate"><span class="pre">0.7</span></code>）</p>
 <p>LLM呼び出しの際の温度パラメータです．LLMが<code class="docutils literal notranslate"><span class="pre">gpt-5x</span></code>の場合は無視されます．</p>
@@ -371,7 +371,7 @@
 </li>
 </ul>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">model</span></code> (文字列．デフォルト値は<code class="docutils literal notranslate"><span class="pre">gpt-5.4-nano</span></code>）</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">model</span></code> (文字列．デフォルト値は<code class="docutils literal notranslate"><span class="pre">gpt-5.6-luna</span></code>）</p>
 <p>LLMのモデルを指定します．</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">prompt_template</span></code></p>
@@ -810,7 +810,7 @@
 </ul>
 <p>例：</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">llm</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpt-5.4-nano</span>
+<span class="w">  </span><span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpt-5.6-luna</span>
 <span class="w">  </span><span class="c1"># temperature: 0.7</span>
 <span class="w">  </span><span class="nt">situation</span><span class="p">:</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">あなたは対話システムで，ユーザと食べ物に関して雑談をしています．</span>

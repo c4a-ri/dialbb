@@ -199,7 +199,7 @@
 <span class="w">    </span><span class="nt">system_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">System</span>
 <span class="w">    </span><span class="nt">first_system_utterance</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Hello!</span><span class="nv"> </span><span class="s">Let&#39;s</span><span class="nv"> </span><span class="s">talk</span><span class="nv"> </span><span class="s">about</span><span class="nv"> </span><span class="s">food.</span><span class="nv"> </span><span class="s">What</span><span class="nv"> </span><span class="s">kind</span><span class="nv"> </span><span class="s">of</span><span class="nv"> </span><span class="s">cuisine</span><span class="nv"> </span><span class="s">do</span><span class="nv"> </span><span class="s">you</span><span class="nv"> </span><span class="s">like?&quot;</span>
 <span class="w">    </span><span class="nt">prompt_template</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prompt_template.txt</span>
-<span class="w">    </span><span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpt-5.4-nano</span>
+<span class="w">    </span><span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpt-5.6-luna</span>
 <span class="w">    </span><span class="c1"># temperature: 0.7</span>
 </pre></div>
 </div>
@@ -291,7 +291,7 @@
 <span class="w">    </span><span class="nt">output</span><span class="p">:</span>
 <span class="w">      </span><span class="nt">aux_data</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aux_data</span>
 <span class="w">    </span><span class="nt">knowledge_file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dst_knowledge_en.xlsx</span>
-<span class="w">    </span><span class="nt">gpt_model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpt-5.4-nano</span>
+<span class="w">    </span><span class="nt">gpt_model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpt-5.6-luna</span>
 <span class="w">    </span><span class="nt">flags_to_use</span><span class="p">:</span>
 <span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;Y&#39;</span>
 <span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;T&#39;</span>
@@ -322,7 +322,7 @@
 <span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;Y&#39;</span>
 <span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;T&#39;</span>
 <span class="w">    </span><span class="nt">llm</span><span class="p">:</span>
-<span class="w">      </span><span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpt-5.4-nano</span>
+<span class="w">      </span><span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpt-5.6-luna</span>
 <span class="w">      </span><span class="c1"># temperature: 0.7</span>
 <span class="w">      </span><span class="nt">situation</span><span class="p">:</span>
 <span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">You are a dialogue system and chatting with the user.</span>
@@ -573,7 +573,7 @@ User: I like roast beef sandwiches.
 <h4><span class="section-number">3.4.4.8. </span>Utterance Generation and Condition Evaluation Using LLMs<a class="headerlink" href="#utterance-generation-and-condition-evaluation-using-llms" title="Permalink to this heading"></a></h4>
 <p>The sample application configures the <code class="docutils literal notranslate"><span class="pre">llm</span></code> section of the STN Manager block so that large language models can be used for utterance generation and condition evaluation inside the scenario.</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">llm</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpt-5.4-nano</span>
+<span class="w">  </span><span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpt-5.6-luna</span>
 <span class="w">  </span><span class="c1"># temperature: 0.7</span>
 <span class="w">  </span><span class="nt">situation</span><span class="p">:</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">You are a dialogue system and chatting with the user.</span>
@@ -706,7 +706,7 @@ User: I like roast beef sandwiches.
 <span class="w">    </span><span class="nt">system_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">System</span>
 <span class="w">    </span><span class="nt">first_system_utterance</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Thank</span><span class="nv"> </span><span class="s">you</span><span class="nv"> </span><span class="s">for</span><span class="nv"> </span><span class="s">calling</span><span class="nv"> </span><span class="s">Blue</span><span class="nv"> </span><span class="s">Ocean</span><span class="nv"> </span><span class="s">Rent-A-Car.</span><span class="nv"> </span><span class="s">How</span><span class="nv"> </span><span class="s">may</span><span class="nv"> </span><span class="s">I</span><span class="nv"> </span><span class="s">help</span><span class="nv"> </span><span class="s">you</span><span class="nv"> </span><span class="s">today?&quot;</span>
 <span class="w">    </span><span class="nt">prompt_template</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prompt_template.txt</span>
-<span class="w">    </span><span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpt-5.4-nano</span>
+<span class="w">    </span><span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpt-5.6-luna</span>
 <span class="w">    </span><span class="c1"># temperature: 0.7</span>
 </pre></div>
 </div>
