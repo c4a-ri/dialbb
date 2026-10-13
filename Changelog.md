@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.2 (2026.10.1)
+
+- Changed the default LLM to gpt-5.6-luna
+
+- Created English documentation for the no-code tool
+
 ## 2.0.1 (2026.7.25)
 
 - Bugs related to placeholders in prompts fixed
