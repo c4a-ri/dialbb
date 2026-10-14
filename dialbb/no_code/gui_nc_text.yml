@@ -49,6 +49,10 @@ btn_chat_start:
   ja: "対話開始"
   en: "Start dialogue"
 
+label_user_input:
+  ja: "ユーザ入力:"
+  en: "User input:"
+
 btn_test:
   ja: "テスト"
   en: "Test"

@@ -1,6 +1,6 @@
 # DialBB: A Framework for Building Dialogue Systems
 
-ver. 2.0.0
+ver. 2.0.2
 
 ## Project Main Page
 

@@ -537,7 +537,7 @@ LLMを用いたユーザシミュレータを用いたテスタが付属して�
 
   以下のキーをもつYAML
 
-  - `model`: （文字列．必須）モデル指定文字列．`provider:model_name` の形式で指定します．例：`google_genai:gemini-2.0-flash-001`．ただし，`gpt-5.4-nano` のようなOpenAIのGPTモデルは `openai:` を省略できます．
+  - `model`: （文字列．必須）モデル指定文字列．`provider:model_name` の形式で指定します．例：`google_genai:gemini-2.0-flash-001`．ただし，`gpt-5.6-luna` のようなOpenAIのGPTモデルは `openai:` を省略できます．
   - `settings`（オブジェクトのリスト．必須）設定のリスト．以下の要素を持つことができる
 
     - `prompt_template`: （文字列．必須）プロンプトテンプレートを記述したテキストファイルのパス．ファイルパスはコンフィギュレーションファイルからの相対パス．
