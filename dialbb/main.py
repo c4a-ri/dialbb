@@ -24,12 +24,14 @@ __copyright__ = 'C4A Research Institute, Inc.'
 
 import copy
 import dataclasses
+from decimal import Decimal, ROUND_HALF_UP
+import re
 import time
 from pathlib import Path
 from typing import Dict, Any, List
 import importlib
 import yaml
-import io, sys
+import sys
 import hashlib
 import os
 from dotenv import load_dotenv
@@ -50,8 +52,11 @@ KEY_BLOCK_CLASS: str = 'block_class'
 KEY_HISTORY: str = 'history'
 CONFIG_DIR: str = ""
 
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+# Preserve the existing streams and flush each line, including in the MM server.
+# Embedded callers may supply streams without reconfigure() (e.g. StringIO).
+for _stream in (sys.stdout, sys.stderr):
+    if callable(getattr(_stream, "reconfigure", None)):
+        _stream.reconfigure(encoding='utf-8', line_buffering=True)
 
 
 @dataclasses.dataclass
@@ -113,6 +118,7 @@ class DialogueProcessor:
             raise abort_during_building(f"can't read config file: {config_file}. " + str(e))
         if additional_config:
             config.update(additional_config)
+        self._language = config.get(CONFIG_KEY_LANGUAGE, 'en')
 
         # add directory of config file to PYTHONPATH
         # configファイルのディレクトリをPYTHONPATHに入れる
@@ -168,6 +174,27 @@ class DialogueProcessor:
             history: List[Dict[str, Any]] = self._sessions2histories.get(session_id)
         return history
 
+    def _shorten_last_system_utterance(self, history: List[Dict[str, Any]], ratio: Any) -> None:
+        """Keep only the spoken prefix of the most recent system utterance."""
+        if isinstance(ratio, bool) or not isinstance(ratio, (int, float)) or not 0 <= ratio <= 1:
+            return
+        if ratio == 1:
+            return
+        for turn in reversed(history):
+            if turn.get('speaker') != 'system':
+                continue
+            utterance = turn['utterance']
+            words = list(re.finditer(r'\S+', utterance)) if self._language == 'en' else None
+            length = len(words) if words is not None else len(utterance)
+            # Decimal avoids binary float errors at half-way rounding boundaries.
+            kept = int((Decimal(length) * Decimal(str(ratio))).quantize(Decimal('1'), rounding=ROUND_HALF_UP))
+            if words is not None:
+                end = words[kept - 1].end() if kept else 0
+            else:
+                end = kept
+            turn['utterance'] = utterance[:end]
+            return
+
 
     @classmethod
     def get_config(cls):
@@ -214,6 +241,9 @@ class DialogueProcessor:
             session_id = blackboard[KEY_SESSION_ID]  # session id received from the client
             self._log_info(f"existing session continues.", session_id=session_id)
             history = self._get_history(session_id)
+            if 'system_utterance_completion_ratio' in blackboard:
+                self._shorten_last_system_utterance(
+                    history, blackboard['system_utterance_completion_ratio'])
         self._log_debug(f"blackboard: " + str(blackboard), session_id=session_id)
 
         history.append({"speaker": "user",

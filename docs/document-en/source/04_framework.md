@@ -250,6 +250,33 @@ The `dialogue_history` element of `blackboard` stores dialogue history in the fo
 ]
 ```
 
+### Shortening the History of an Interrupted System Utterance
+
+On a subsequent turn, an optional `system_utterance_completion_ratio` request field shortens the most recent system utterance in history to its spoken prefix. For the class API, place this field at the top level of the request, outside `aux_data`.
+
+```json
+{
+  "user_id": "user1",
+  "session_id": "dialbb_session1",
+  "user_utterance": "Please wait",
+  "system_utterance_completion_ratio": 0.4
+}
+```
+
+The retained length is the original length multiplied by the ratio, rounded to the nearest integer with halves rounded up.
+
+| Language setting | Unit | Example |
+| --- | --- | --- |
+| `language: ja` | Characters | `あいうえおかきくけこ` × 0.4 → `あいうえ` |
+| `language: en` | Words separated by whitespace | `one two three four five six seven eight nine ten` × 0.4 → `one two three four` |
+
+For example, 5 characters or words multiplied by 0.5 retains the first 3. The default language is `en`; values other than `en` use character counts.
+
+- The ratio must be a number from 0 to 1 inclusive. A ratio of 0 leaves an empty string; 1 keeps the full utterance. Missing values, invalid types, out-of-range values, NaN, and infinity leave history unchanged.
+- Shortening applies regardless of the `barge_in` flag. If there is no system utterance in history, nothing changes.
+- The update happens before the current user utterance is appended, so blocks receive the shortened `dialogue_history`. This applies to both in-memory history and external database storage.
+- With the multimodal server, clients send `send_audio_chunk.aux_data.system_utterance_completion_ratio`. The server forwards it with the user utterance as a top-level DialBB request field. The ratio must arrive before the corresponding utterance request is constructed.
+
 (context_db)=
 ### Storing Dialogue History in an External Database
 

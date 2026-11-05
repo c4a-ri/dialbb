@@ -226,7 +226,7 @@ blocks:
 
 ### Blackboardへの対話履歴の保持
 
-`blackboard`の`dialogue_histroy`要素には，メインプロセス内部の処理により，以下の形式の対話履歴が保持されます．
+`blackboard`の`dialogue_history`要素には，メインプロセス内部の処理により，以下の形式の対話履歴が保持されます．
 
 ```JSON
 [
@@ -250,6 +250,33 @@ blocks:
   ...
 ]
 ```
+
+### 中断されたシステム発話の履歴短縮
+
+セッション継続時のリクエストに `system_utterance_completion_ratio` を指定すると，履歴の最後のシステム発話を，再生済みの割合に合わせて先頭から短縮します．クラスAPIでは，`aux_data` の中ではなくリクエストのトップレベルに指定します．
+
+```json
+{
+  "user_id": "user1",
+  "session_id": "dialbb_session1",
+  "user_utterance": "ちょっと待って",
+  "system_utterance_completion_ratio": 0.4
+}
+```
+
+残す長さは，元の長さに割合を掛けて四捨五入します（小数部分が 0.5 なら切り上げ）．
+
+| 言語設定 | 長さの単位 | 例 |
+| --- | --- | --- |
+| `language: ja` | 文字数 | `あいうえおかきくけこ` × 0.4 → `あいうえ` |
+| `language: en` | 空白区切りの単語数 | `one two three four five six seven eight nine ten` × 0.4 → `one two three four` |
+
+例えば，5文字または5単語に 0.5 を指定すると，先頭の3文字または3単語が残ります．`language` 未指定時は英語として扱います．英語以外の値では文字数で計算します．
+
+- 値は 0 以上 1 以下の数値です．0 は空文字列，1 は全文保持になります．未指定，不正な型，範囲外，NaN，無限大の場合は短縮しません．
+- `barge_in` の有無にかかわらず適用します．対象となるシステム発話がない場合は何もしません．
+- 現在のユーザ発話を履歴に追加する前に短縮するため，各ブロックには短縮後の `dialogue_history` が渡されます．メモリ保持と外部DB保存の両方に適用されます．
+- マルチモーダルサーバでは，クライアントから `send_audio_chunk.aux_data.system_utterance_completion_ratio` として受信し，ユーザ発話とともに DialBB リクエストのトップレベルへ展開します．割合は対応する発話リクエストの作成前に届く必要があります．
 
 (context_db)=
 
