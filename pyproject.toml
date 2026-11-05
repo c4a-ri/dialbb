@@ -140,6 +140,7 @@ include-package-data = false
 
 [tool.setuptools.package-data]
 dialbb = ["**/*.yml", "**/*.txt", "**/*.xlsx", "**/*.jsd"]
+"dialbb.multimodal" = ["static/mobile/**/*"]
 
 [tool.setuptools.exclude-package-data]
 dialbb = [
