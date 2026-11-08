@@ -49,9 +49,8 @@ from dialbb.no_code.gui_utils import (
 )
 from dialbb.main import DialogueProcessor
 from dialbb.paths import DIALBB_DIR, NC_PATH, APP_DIR, TEMPLATE_DIR
+from dialbb.sim_tester.main import do_test
 from dialbb.util.logger import get_logger
-from dialbb.sim_tester.main import test_by_simulation
-
 
 logger = get_logger("dialbb.no_code.main")
 
@@ -586,10 +585,9 @@ def exec_test(sub_menu: tk.Toplevel, chat_area: tk.Text) -> None:
     test_config_file = os.path.join(APP_FILE_DIR, APP_FILES["test-config"])
     app_config_file = os.path.join(APP_FILE_DIR, APP_FILES["config"])
 
-    # シミュレーターの起動
-    # result = test_by_simulation(test_config_file, app_config_file)
+    # invoke simulator
     chat_area.delete("1.0", tk.END)
-    for result in test_by_simulation(test_config_file, app_config_file):
+    for result in do_test(test_config_file, app_config_file):
         # 対話結果を表示
         chat_area.insert(tk.END, result)
         chat_area.insert(tk.END, "\n")

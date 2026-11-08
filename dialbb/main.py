@@ -70,7 +70,7 @@ class DialogueProcessor:
     DialBB対話処理のメインクラス
     """
 
-    __version__ = '2.0.2'
+    __version__ = '2.1.0'
 
     config = {}
 
