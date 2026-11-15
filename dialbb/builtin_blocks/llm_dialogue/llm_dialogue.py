@@ -27,7 +27,7 @@ import sys
 import traceback
 import datetime
 from typing import Dict, Any, List, Union, Tuple
-from langchain.chat_models import init_chat_model
+from dialbb.util.llm import init_chat_model
 from dialbb.abstract_block import AbstractBlock
 from dialbb.builtin_blocks.util import extract_aux_data
 from dialbb.util.error_handlers import abort_during_building

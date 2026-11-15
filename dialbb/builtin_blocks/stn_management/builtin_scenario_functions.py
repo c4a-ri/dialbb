@@ -28,7 +28,7 @@ from typing import Dict, Any, List, Tuple
 import os
 import datetime
 import re
-from langchain.chat_models import init_chat_model
+from dialbb.util.llm import init_chat_model
 from langchain_core.messages import HumanMessage, SystemMessage
 from dialbb.builtin_blocks.stn_management.util import scenario_function_log_debug, scenario_function_log_warning
 

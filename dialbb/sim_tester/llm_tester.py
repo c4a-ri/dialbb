@@ -24,7 +24,7 @@ import os
 import sys
 import traceback
 from typing import Dict, Any, List
-from langchain.chat_models import init_chat_model
+from dialbb.util.llm import init_chat_model
 from dialbb.util.globals import CHATGPT_INSTRUCTIONS
 
 DEFAULT_GPT_MODEL: str = "gpt-5.6-luna"
