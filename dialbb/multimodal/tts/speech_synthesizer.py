@@ -10,6 +10,8 @@ from google.api_core.exceptions import GoogleAPICallError, RetryError
 from google.cloud import texttospeech
 
 from dialbb.util.logger import get_logger
+from dialbb.util.telemetry import operation, message_operation, traced, current_turn, finish_turn
+from opentelemetry import context
 from ..main.messages import TtsRequest, TtsResult
 
 
@@ -33,6 +35,7 @@ def _default_voice_name(language_code: str) -> str | None:
     return None
 
 
+@traced("tts.synthesize")
 def _synthesize_with_encoding(
     client: texttospeech.TextToSpeechClient,
     text: str,
@@ -189,7 +192,8 @@ def run_tts_worker(
         speaking_rate,
     )
     try:
-        client = texttospeech.TextToSpeechClient()
+        with operation("tts.initialize"):
+            client = texttospeech.TextToSpeechClient()
         active_event = conversation_active_event or Event()
         if conversation_active_event is None:
             active_event.set()
@@ -204,85 +208,98 @@ def run_tts_worker(
             except Empty:
                 continue
 
-            if tts_cancel_queue is not None:
-                while True:
+            with message_operation(request, "tts.request") as request_span:
+                request_span.set_attribute("text.length", len(request.text))
+                if tts_cancel_queue is not None:
+                    while True:
+                        try:
+                            tts_cancel_queue.get_nowait()
+                        except Empty:
+                            break
+
+                logger.info("[TTS] TTS<-MAIN request to synthesize received.")
+                logger.debug("[TTS] request.text=%s", request.text)
+
+                segments = split_tts_segments(request.text)
+                total_segments: int = len(segments)
+
+                completed = True
+                synthesis_failed = False
+                for segment_index, segment in enumerate(segments, start=1):
+                    if stop_event.is_set() or not active_event.is_set():
+                        logger.debug("[TTS] canceled: %s", segment)
+                        completed = False
+                        break
+
+                    if tts_cancel_queue is not None:
+                        cancel_requested = False
+                        while True:
+                            try:
+                                tts_cancel_queue.get_nowait()
+                                cancel_requested = True
+                            except Empty:
+                                break
+                        if cancel_requested:
+                            logger.info("[TTS] cancel request received: segment=%d/%d", segment_index, total_segments)
+                            completed = False
+                            break
+
+                    logger.debug("[TTS] synthesizing: %s", segment)
                     try:
-                        tts_cancel_queue.get_nowait()
-                    except Empty:
-                        break
-
-            logger.info("[TTS] TTS<-MAIN request to synthesize received.")
-            logger.debug("[TTS] request.text=%s", request.text)
-
-            segments = split_tts_segments(request.text)
-            total_segments: int = len(segments)
-
-            completed = True
-            for segment_index, segment in enumerate(segments, start=1):
-                if stop_event.is_set() or not active_event.is_set():
-                    logger.debug("[TTS] canceled: %s", segment)
-                    completed = False
-                    break
-
-                if tts_cancel_queue is not None:
-                    cancel_requested = False
-                    while True:
-                        try:
-                            tts_cancel_queue.get_nowait()
-                            cancel_requested = True
-                        except Empty:
-                            break
-                    if cancel_requested:
-                        logger.info("[TTS] cancel request received: segment=%d/%d", segment_index, total_segments)
+                        audio_bytes = _synthesize(
+                            client,
+                            segment,
+                            language_code=language_code,
+                            voice_name=voice_name,
+                            speaking_rate=speaking_rate,
+                        )
+                    except (GoogleAPICallError, RetryError, OSError):
+                        logger.exception("[TTS] synthesis error: %s", segment)
+                        synthesis_failed = True
                         completed = False
                         break
 
-                logger.debug("[TTS] synthesizing: %s", segment)
-                try:
-                    audio_bytes = _synthesize(
-                        client,
-                        segment,
-                        language_code=language_code,
-                        voice_name=voice_name,
-                        speaking_rate=speaking_rate,
+                    if tts_cancel_queue is not None:
+                        cancel_requested = False
+                        while True:
+                            try:
+                                tts_cancel_queue.get_nowait()
+                                cancel_requested = True
+                            except Empty:
+                                break
+                        if cancel_requested:
+                            logger.info("[TTS] cancel request received (synth後): segment=%d/%d",
+                                        segment_index, total_segments)
+                            completed = False
+                            break
+
+                    if not audio_send_callback(request.utterance_id, segment_index, total_segments, audio_bytes):
+                        logger.info("[TTS] audio send interrupted: segment=%d/%d", segment_index, total_segments)
+                        completed = False
+                        break
+
+                if request_span.is_recording():
+                    request_span.set_attribute("tts.completed", completed)
+                if not completed:
+                    finish_turn("tts_failed" if synthesis_failed else "tts_cancelled",
+                                error=synthesis_failed)
+                elif not segments:
+                    finish_turn("no_audio")
+                turn = current_turn()
+                tts_result_queue.put(
+                    TtsResult(
+                        session_id=request.session_id,
+                        text=request.text,
+                        completed=completed,
+                        trace_context=context.Context() if turn is not None and turn.finished else context.get_current(),
                     )
-                except (GoogleAPICallError, RetryError, OSError):
-                    logger.exception("[TTS] synthesis error: %s", segment)
-                    completed = False
-                    break
-
-                if tts_cancel_queue is not None:
-                    cancel_requested = False
-                    while True:
-                        try:
-                            tts_cancel_queue.get_nowait()
-                            cancel_requested = True
-                        except Empty:
-                            break
-                    if cancel_requested:
-                        logger.info("[TTS] cancel request received (synth後): segment=%d/%d",
-                                    segment_index, total_segments)
-                        completed = False
-                        break
-
-                if not audio_send_callback(request.utterance_id, segment_index, total_segments, audio_bytes):
-                    logger.info("[TTS] audio send interrupted: segment=%d/%d", segment_index, total_segments)
-                    completed = False
-                    break
-
-            tts_result_queue.put(
-                TtsResult(
-                    session_id=request.session_id,
-                    text=request.text,
-                    completed=completed,
                 )
-            )
-            logger.info("[TTS] TTS->MAIN 結果送信")
-            if completed:
-                logger.debug("[TTS] 合成完了: %s", request.text)
+                logger.info("[TTS] TTS->MAIN 結果送信")
+                if completed:
+                    logger.debug("[TTS] 合成完了: %s", request.text)
 
-            if cancel_state_clear_callback is not None:
-                cancel_state_clear_callback(request.session_id)
+                if cancel_state_clear_callback is not None:
+                    cancel_state_clear_callback(request.session_id)
     finally:
         logger.info(
             "[TTS] worker exit: thread=%s stop_event=%s",

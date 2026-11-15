@@ -131,6 +131,21 @@
         #micBtn.active:hover {
             background: #a71d2a;
         }
+        .file-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            margin-top: 12px;
+        }
+        #audioFileSelect {
+            flex: 1;
+            min-width: 200px;
+            padding: 8px;
+        }
+        #fileSilenceSeconds { width: 60px; }
+        #audioFileStatus { width: 100%; font-size: 13px; color: #555; }
+        #audioFileStatus.error { color: #c62828; }
     </style>
 </head>
 <body>
@@ -140,7 +155,7 @@
         
         <div class="session-setup">
             <input type="text" id="sessionId" placeholder="Session ID (or auto-create)" value="">
-            <input type="url" id="serverUrl" placeholder="ws://localhost:5000" value="ws://localhost:5000">
+            <input type="url" id="serverUrl" placeholder="ws://localhost:5000" value="ws://localhost:5000" onchange="cancelAudioFileSend(); loadAudioFiles()">
             <button id="createBtn" onclick="createSession()">作成</button>
             <button id="connectBtn" onclick="connect()" disabled>接続</button>
         </div>
@@ -160,10 +175,14 @@
             <span class="mic-status" id="micStatus">マイク 停止中</span>
         </div>
 
-        <!-- ローカル環境の音声ファイルを選択して、sendAudioFile()へ渡す -->
-        <div class="buttons">
-            <input type="file" id="audioFileInput" accept="audio/*">
-            <button id="sendAudioFileBtn" onclick="sendAudioFile()" disabled>音声ファイル送信</button>
+        <div class="file-controls">
+            <label for="audioFileSelect">選択して送信</label>
+            <select id="audioFileSelect" onchange="sendAudioFile()" disabled>
+                <option value="">WAV一覧を読み込み中…</option>
+            </select>
+            <label for="fileSilenceSeconds">末尾の無音（秒）</label>
+            <input type="number" id="fileSilenceSeconds" value="1.5" min="0.5" max="5" step="0.1">
+            <span id="audioFileStatus" role="status" aria-live="polite">対話開始後、WAVをリストから選ぶだけで送信します。</span>
         </div>
 
         <!-- aux_dataの送信 -->
@@ -180,7 +199,8 @@
             1. 「作成」でセッション ID を生成するか、既存の ID を入力<br>
             2. 「接続」で WebSocket サーバに接続<br>
             3. 「対話開始」で会話を開始<br>
-            4. 「マイク開始」で音声を送信し、サーバからの音声応答を再生
+            4. 「マイク開始」で音声を送信、またはリストから WAV を選択して送信<br>
+            WAV 送信時はマイクを停止し、末尾に指定秒数の無音を追加します。同じ WAV も再選択できます。
         </div>
     </div>
 
@@ -237,7 +257,8 @@
                 document.getElementById('closeBtn').disabled = false;
                 document.getElementById('connectBtn').disabled = true;
                 document.getElementById('micBtn').disabled = false;
-                document.getElementById('sendAudioFileBtn').disabled = false;
+                // ページをサーバ起動前に開いた場合も、接続後に一覧を復旧する。
+                void loadAudioFiles();
             } else {
                 status.className = 'status disconnected';
                 status.textContent = '✗ 未接続';
@@ -246,9 +267,10 @@
                 document.getElementById('closeBtn').disabled = true;
                 document.getElementById('connectBtn').disabled = true;
                 document.getElementById('micBtn').disabled = true;
-                document.getElementById('sendAudioFileBtn').disabled = true;
+                cancelAudioFileSend();
                 stopMic();
             }
+            updateAudioFileControls();
         }
 
         async function createSession() {
@@ -335,16 +357,20 @@
             socket.send(JSON.stringify({ action: 'start_dialogue' }));
             log('Dialogue started');
             document.getElementById('endBtn').disabled = false;
+            updateAudioFileControls();
         }
 
         function endDialogue() {
+            cancelAudioFileSend();
             if (!socket) return;
             socket.send(JSON.stringify({ action: 'end_dialogue' }));
             log('Dialogue ended');
             document.getElementById('endBtn').disabled = true;
+            updateAudioFileControls();
         }
 
         function closeConnection() {
+            cancelAudioFileSend();
             if (socket) {
                 socket.close();
             }
@@ -373,23 +399,146 @@
         }
 
         // ===== 音声ファイル送信 =====
-        function sendAudioFile() {
-            const fileInput = document.getElementById('audioFileInput');
-            if (!fileInput.files.length || !socket) return;
+        const FILE_SAMPLE_RATE = 16000;
+        const FILE_CHUNK_SAMPLES = 1600; // 100ms、PCM16で3200バイト
+        let audioFiles = [];
+        let audioFileListGeneration = 0;
+        let audioFileSending = false;
+        let audioFileSendGeneration = 0;
 
-            const file = fileInput.files[0];
-            const reader = new FileReader();
-            reader.onload = () => {
-                const arrayBuffer = reader.result;
-                const base64Audio = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
-                // 送信データ編集
-                const payload = buildAudioChunkPayload(base64Audio);
-                if (!payload) return;
-                // Websocket送信
-                socket.send(JSON.stringify(payload));
-                log(`🎵 Audio file sent: ${file.name}`);
+        function updateAudioFileControls() {
+            const connected = socket && socket.readyState === WebSocket.OPEN;
+            const dialogueStarted = !document.getElementById('endBtn').disabled;
+            document.getElementById('audioFileSelect').disabled =
+                !connected || !dialogueStarted || !audioFiles.length || audioFileSending;
+            document.getElementById('fileSilenceSeconds').disabled = audioFileSending;
+            document.getElementById('micBtn').disabled = !connected || audioFileSending;
+            document.getElementById('startBtn').disabled = !connected || audioFileSending;
+        }
+
+        async function loadAudioFiles() {
+            if (audioFileSending) return;
+            const generation = ++audioFileListGeneration;
+            const select = document.getElementById('audioFileSelect');
+            const status = document.getElementById('audioFileStatus');
+            status.classList.remove('error');
+            audioFiles = [];
+            select.replaceChildren(new Option('WAV一覧を読み込み中…', ''));
+            updateAudioFileControls();
+            try {
+                const baseUrl = toHttpBaseUrl(document.getElementById('serverUrl').value);
+                const response = await fetch(`${baseUrl}/example-audio-files`, { cache: 'no-store' });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const data = await response.json();
+                if (generation !== audioFileListGeneration) return;
+                audioFiles = data.files
+                    .filter(file => /\.wav$/i.test(file.name))
+                    .sort((a, b) => a.name.localeCompare(b.name, 'ja', { numeric: true }))
+                    .map(file => ({
+                        name: file.name,
+                        async arrayBuffer() {
+                            const audioResponse = await fetch(new URL(file.url, baseUrl));
+                            if (!audioResponse.ok) throw new Error(`WAV取得失敗: HTTP ${audioResponse.status}`);
+                            return audioResponse.arrayBuffer();
+                        },
+                    }));
+                select.replaceChildren(new Option(audioFiles.length ? 'WAVを選択すると送信します' : 'WAVファイルがありません', ''));
+                audioFiles.forEach((file, index) => select.add(new Option(file.name, String(index))));
+                status.textContent = audioFiles.length
+                    ? `${audioFiles.length}件のWAVがあります。対話開始後、選択すると送信します。`
+                    : 'サーバの dialbb/multimodal/examples/data/ にWAVを配置し、ページを再読み込みしてください。';
+            } catch (error) {
+                if (generation !== audioFileListGeneration) return;
+                select.replaceChildren(new Option('WAV一覧を取得できません', ''));
+                status.textContent = `WAV一覧の取得失敗: ${error.message}。サーバの起動とURLを確認し、ページを再読み込みしてください。`;
+                status.classList.add('error');
+                log(status.textContent, 'error');
+            } finally {
+                if (generation === audioFileListGeneration) updateAudioFileControls();
+            }
+        }
+
+        function cancelAudioFileSend() {
+            audioFileSendGeneration += 1;
+        }
+
+        async function prepareAudioFile(file, silenceSeconds) {
+            const OfflineContext = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+            if (!OfflineContext) throw new Error('このブラウザは音声ファイルの変換に対応していません');
+            const decoder = new OfflineContext(1, 1, FILE_SAMPLE_RATE);
+            const decoded = await decoder.decodeAudioData(await file.arrayBuffer());
+            // モノラルへミックスし、末尾はゼロ（無音）のままレンダリングする。
+            const audioSamples = Math.ceil(decoded.duration * FILE_SAMPLE_RATE);
+            const silenceSamples = Math.round(silenceSeconds * FILE_SAMPLE_RATE);
+            const renderer = new OfflineContext(1, audioSamples + silenceSamples, FILE_SAMPLE_RATE);
+            const source = renderer.createBufferSource();
+            source.buffer = decoded;
+            source.connect(renderer.destination);
+            source.start();
+            const rendered = await renderer.startRendering();
+            return rendered.getChannelData(0);
+        }
+
+        async function sendAudioFile() {
+            const select = document.getElementById('audioFileSelect');
+            if (select.value === '' || audioFileSending) return;
+            const file = audioFiles[Number(select.value)];
+            // 毎回プレースホルダーへ戻し、同じファイルも再度選んで送信できるようにする。
+            select.value = '';
+            if (!file || !socket || socket.readyState !== WebSocket.OPEN
+                || document.getElementById('endBtn').disabled) return;
+
+            const silenceSeconds = Number(document.getElementById('fileSilenceSeconds').value);
+            if (!Number.isFinite(silenceSeconds) || silenceSeconds < 0.5 || silenceSeconds > 5) {
+                log('✗ 末尾の無音は0.5〜5秒で指定してください', 'error');
+                return;
+            }
+            if (readAuxData() === null) return;
+            if (micActive) stopMic();
+            const sendingSocket = socket;
+            const generation = ++audioFileSendGeneration;
+            const status = document.getElementById('audioFileStatus');
+            const checkCancelled = () => {
+                if (generation !== audioFileSendGeneration || socket !== sendingSocket
+                    || sendingSocket.readyState !== WebSocket.OPEN
+                    || document.getElementById('endBtn').disabled) {
+                    throw new DOMException('音声ファイルの送信を中断しました', 'AbortError');
+                }
             };
-            reader.readAsArrayBuffer(file);
+            audioFileSending = true;
+            updateAudioFileControls();
+            status.textContent = `${file.name} を読み込み中…`;
+            try {
+                // ファイル選択のユーザ操作に合わせて応答音声の再生も許可する。
+                if (ttsCtx.state === 'suspended') await ttsCtx.resume();
+                const samples = await prepareAudioFile(file, silenceSeconds);
+                checkCancelled();
+                const duration = samples.length / FILE_SAMPLE_RATE;
+                log(`🎵 WAV送信開始: ${file.name}（末尾無音 ${silenceSeconds}秒）`);
+                for (let offset = 0; offset < samples.length; offset += FILE_CHUNK_SAMPLES) {
+                    checkCancelled();
+                    // 接続が詰まったとき、大量の音声を送信キューに積み続けない。
+                    if (sendingSocket.bufferedAmount > 256 * 1024) {
+                        throw new Error('通信が遅延しています。接続を確認して再送してください');
+                    }
+                    const chunk = samples.subarray(offset, offset + FILE_CHUNK_SAMPLES);
+                    const payload = buildAudioChunkPayload(float32ToBase64Pcm16(chunk));
+                    if (!payload) throw new Error('aux_data の設定を確認してください');
+                    sendingSocket.send(JSON.stringify(payload));
+                    status.textContent = `${file.name} を送信中 ${Math.min((offset + chunk.length) / FILE_SAMPLE_RATE, duration).toFixed(1)} / ${duration.toFixed(1)}秒（末尾無音 ${silenceSeconds}秒）`;
+                    // WAVヘッダーは送らず、マイク同様に実時間でPCMを送信する。
+                    await new Promise(resolve => setTimeout(resolve, chunk.length / FILE_SAMPLE_RATE * 1000));
+                }
+                checkCancelled();
+                status.textContent = `${file.name} 送信完了（末尾無音 ${silenceSeconds}秒）。再選択して再送できます。`;
+                log(`✓ WAV送信完了: ${file.name}`);
+            } catch (error) {
+                status.textContent = error.name === 'AbortError' ? 'WAV送信を中断しました。' : `WAV送信失敗: ${error.message}`;
+                log(status.textContent, error.name === 'AbortError' ? 'system' : 'error');
+            } finally {
+                audioFileSending = false;
+                updateAudioFileControls();
+            }
         }
 
         // ===== マイク入力 (PCM16 / 16kHz) =====
@@ -455,6 +604,7 @@
         }
 
         async function startMic() {
+            if (audioFileSending) return;
             try {
                 setMicStatus('マイク 起動中...');
                 if (!socket || socket.readyState !== WebSocket.OPEN) {
@@ -756,6 +906,11 @@
                 return null;
             }
         }
+        // 同じサーバから開いた場合は、そのサーバを一覧取得・対話の接続先にする。
+        if (window.location && /^https?:$/.test(window.location.protocol)) {
+            document.getElementById('serverUrl').value = toWsBaseUrl(window.location.origin);
+        }
+        void loadAudioFiles();
     </script>
 </body>
 </html>

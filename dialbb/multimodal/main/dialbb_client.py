@@ -9,6 +9,7 @@ from typing import Any
 
 from dialbb.util.logger import configure_dialbb_logging, get_logger
 from dialbb.main import DialogueProcessor
+from dialbb.util.telemetry import operation, message_operation, finish_turn
 from .messages import DialbbRequest, DialbbResponse
 
 
@@ -60,7 +61,7 @@ def run_dialbb_worker(
         tee_stdout = _TeeStdout(sys.stdout, captured)
         try:
             # stdout を画面に流しつつ初期化エラーメッセージを捕捉する。
-            with redirect_stdout(tee_stdout):
+            with operation("dialbb.initialize"), redirect_stdout(tee_stdout):
                 dialogue_processor = DialogueProcessor(resolved_config)
         except (ValueError, RuntimeError, OSError) as exc:
             configure_dialbb_logging()
@@ -88,90 +89,94 @@ def run_dialbb_worker(
             except Empty:
                 continue
 
-            # ----------------------------------------------------------------
-            # 対話開始要求（is_initial=True）の処理
-            # ----------------------------------------------------------------
-            if request.is_initial:
-                logger.info("[Dialbb] DialBB<-MAIN 初期化要求受信")
-                # DialBB に initial=True でリクエストし、新規 session_id を取得する。
-                init_response = dialogue_processor.process(
-                    _build_initial_request(user_id=user_id),
-                    initial=True,
-                )
-                init_session_id = init_response.get("session_id")
-                if not init_session_id:
-                    raise ValueError("DialBB 初回応答に session_id がありません。")
-                active_session_id = str(init_session_id).strip()
-                if not active_session_id:
-                    raise ValueError("DialBB 初回応答の session_id が空です。")
+            with message_operation(request, "dialbb.request"):
+                # ----------------------------------------------------------------
+                # 対話開始要求（is_initial=True）の処理
+                # ----------------------------------------------------------------
+                if request.is_initial:
+                    logger.info("[Dialbb] DialBB<-MAIN 初期化要求受信")
+                    # DialBB に initial=True でリクエストし、新規 session_id を取得する。
+                    with operation("dialogue.call_process", {"request.initial": True}):
+                        init_response = dialogue_processor.process(
+                            _build_initial_request(user_id=user_id),
+                            initial=True,
+                        )
+                    init_session_id = init_response.get("session_id")
+                    if not init_session_id:
+                        raise ValueError("DialBB 初回応答に session_id がありません。")
+                    active_session_id = str(init_session_id).strip()
+                    if not active_session_id:
+                        raise ValueError("DialBB 初回応答の session_id が空です。")
 
-                # 最初のシステム発話テキストを Main へ返す。
-                init_text = str(init_response.get("system_utterance", "")).strip()
-                is_final = bool(init_response.get("final", False))
-                init_aux_data = init_response.get("aux_data", {})
+                    # 最初のシステム発話テキストを Main へ返す。
+                    init_text = str(init_response.get("system_utterance", "")).strip()
+                    is_final = bool(init_response.get("final", False))
+                    init_aux_data = init_response.get("aux_data", {})
+                    dialbb_response_queue.put(
+                        DialbbResponse(
+                            session_id=active_session_id,
+                            system_text=init_text,
+                            is_final=is_final,
+                            aux_data=init_aux_data if isinstance(init_aux_data, dict) else {},
+                            source="initial",
+                        )
+                    )
+                    logger.info("[Dialbb] DialBB->MAIN 初回応答送信")
+                    if is_final:
+                        logger.debug("[Dialbb] 初回応答が最終応答です。")
+                    if not init_text:
+                        logger.debug("[Dialbb] 初回応答が空のため、発話せずユーザ発話待ちで継続します.")
+                    continue
+
+                # ----------------------------------------------------------------
+                # 通常の発話リクエストの処理
+                # ----------------------------------------------------------------
+                # 対話が未開始の状態で来たリクエストは無視する。
+                if not active_session_id:
+                    logger.warning("[Dialbb] 未開始状態で通常リクエストを受信したため破棄します。")
+                    finish_turn("dialbb_not_initialized", error=True)
+                    continue
+
+                logger.info("[Dialbb] DialBB<-MAIN 発話要求受信")
+                logger.debug("[Dialbb] user_text=%s", request.user_text)
+
+                # 必須フィールドを入れてリクエスト辞書を構築する。
+                dialbb_request = {
+                    "session_id": active_session_id,
+                    "user_id": user_id,
+                    "user_utterance": request.user_text,
+                }
+                # aux_data があればマージする（例： barge_in=True）。
+                if request.aux_data:
+                    dialbb_request.update(request.aux_data)
+                    logger.debug("[Dialbb] aux_data=%s", request.aux_data)
+                # DialBB に問い合わせて応答を得る。
+                with operation("dialogue.call_process", {"request.initial": False}):
+                    dialbb_response = dialogue_processor.process(dialbb_request)
+                # レスポンスから session_id と発話テキストを取り出す。
+                active_session_id = str(dialbb_response.get("session_id", active_session_id))
+                system_text = str(dialbb_response.get("system_utterance", "")).strip()
+                is_final = bool(dialbb_response.get("final", False))
+                if not system_text:
+                    # 応答が空の場合はフォールバック文言で補完する。
+                    logger.warning("[Dialbb] system_utterance が空のためフォールバック文言を返します。")
+                    system_text = "すみません、うまく応答を生成できませんでした。"
+                response_aux_data = dialbb_response.get("aux_data", {})
+
+                # 生成した応答文を Main へ返す。
                 dialbb_response_queue.put(
                     DialbbResponse(
                         session_id=active_session_id,
-                        system_text=init_text,
+                        system_text=system_text,
                         is_final=is_final,
-                        aux_data=init_aux_data if isinstance(init_aux_data, dict) else {},
-                        source="initial",
+                        aux_data=response_aux_data if isinstance(response_aux_data, dict) else {},
+                        source=request.source,
                     )
                 )
-                logger.info("[Dialbb] DialBB->MAIN 初回応答送信")
                 if is_final:
-                    logger.debug("[Dialbb] 初回応答が最終応答です。")
-                if not init_text:
-                    logger.debug("[Dialbb] 初回応答が空のため、発話せずユーザ発話待ちで継続します.")
-                continue
-
-            # ----------------------------------------------------------------
-            # 通常の発話リクエストの処理
-            # ----------------------------------------------------------------
-            # 対話が未開始の状態で来たリクエストは無視する。
-            if not active_session_id:
-                logger.warning("[Dialbb] 未開始状態で通常リクエストを受信したため破棄します。")
-                continue
-
-            logger.info("[Dialbb] DialBB<-MAIN 発話要求受信")
-            logger.debug("[Dialbb] user_text=%s", request.user_text)
-
-            # 必須フィールドを入れてリクエスト辞書を構築する。
-            dialbb_request = {
-                "session_id": active_session_id,
-                "user_id": user_id,
-                "user_utterance": request.user_text,
-            }
-            # aux_data があればマージする（例： barge_in=True）。
-            if request.aux_data:
-                dialbb_request.update(request.aux_data)
-                logger.debug("[Dialbb] aux_data=%s", request.aux_data)
-            # DialBB に問い合わせて応答を得る。
-            dialbb_response = dialogue_processor.process(dialbb_request)
-            # レスポンスから session_id と発話テキストを取り出す。
-            active_session_id = str(dialbb_response.get("session_id", active_session_id))
-            system_text = str(dialbb_response.get("system_utterance", "")).strip()
-            is_final = bool(dialbb_response.get("final", False))
-            if not system_text:
-                # 応答が空の場合はフォールバック文言で補完する。
-                logger.warning("[Dialbb] system_utterance が空のためフォールバック文言を返します。")
-                system_text = "すみません、うまく応答を生成できませんでした。"
-            response_aux_data = dialbb_response.get("aux_data", {})
-
-            # 生成した応答文を Main へ返す。
-            dialbb_response_queue.put(
-                DialbbResponse(
-                    session_id=active_session_id,
-                    system_text=system_text,
-                    is_final=is_final,
-                    aux_data=response_aux_data if isinstance(response_aux_data, dict) else {},
-                    source=request.source,
-                )
-            )
-            if is_final:
-                logger.info("[Dialbb] DialBB->MAIN 応答送信（最終応答）")
-            else:
-                logger.info("[Dialbb] DialBB->MAIN 応答送信")
+                    logger.info("[Dialbb] DialBB->MAIN 応答送信（最終応答）")
+                else:
+                    logger.info("[Dialbb] DialBB->MAIN 応答送信")
     finally:
         logger.info(
             "[Dialbb] worker exit: thread=%s stop_event=%s",

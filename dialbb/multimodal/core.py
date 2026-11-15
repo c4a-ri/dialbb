@@ -12,6 +12,7 @@ from threading import Event
 from typing import Optional, Any, Callable, Dict
 
 from dialbb.util.logger import get_logger
+from dialbb.util.telemetry import traced, message_operation, finish_turn
 from .main.messages import (
     DialbbRequest,
     DialbbResponse,
@@ -150,12 +151,13 @@ class CoreDialogueEngine:
         pending_request = self._pending_final_request
         self._pending_final_request = None
         logger.info("[CORE] 保留していた final_transcript を DialBB へ送信します")
-        self._send_user_utterance_to_dialbb(
-            pending_request.user_text,
-            dialbb_request_queue,
-            dict(pending_request.aux_data),
-            pending_request.source,
-        )
+        with message_operation(pending_request, "core.pending_final_wait"):
+            self._send_user_utterance_to_dialbb(
+                pending_request.user_text,
+                dialbb_request_queue,
+                dict(pending_request.aux_data),
+                pending_request.source,
+            )
         return True
 
     @staticmethod
@@ -168,6 +170,7 @@ class CoreDialogueEngine:
             return True
         return random.random() < system_barge_in_ratio
 
+    @traced("core.start_system_response", "dialbb_response", queue_wait=False)
     def _start_system_response(
         self,
         dialbb_response: DialbbResponse,
@@ -183,10 +186,12 @@ class CoreDialogueEngine:
 
         if not conversation_active_event.is_set():
             logger.debug("[CORE] 対話停止中のため DialBB 応答を破棄します。")
+            finish_turn("dialogue_inactive")
             return
 
         system_text = dialbb_response.system_text.strip()
         if not system_text:
+            finish_turn("no_system_utterance")
             logger.info("[CORE] DialBB空応答: ユーザ発話待ちへ遷移")
             self._emit_status("音声入力待ち")
             self.user_waiting = True
@@ -245,6 +250,7 @@ class CoreDialogueEngine:
             except Empty:
                 break
 
+    @traced("dialogue.initial_turn")
     def process_start_command(
         self,
         stt_event_queue: Queue,
@@ -306,6 +312,7 @@ class CoreDialogueEngine:
         self._drain(tts_request_queue)
         self._drain(tts_result_queue)
 
+    @traced("core.process_stt_event", "stt_event")
     def process_stt_event(
         self,
         stt_event: RecognitionEvent,
@@ -318,6 +325,7 @@ class CoreDialogueEngine:
     ) -> None:
         """STT イベントを処理"""
         if not conversation_active_event.is_set():
+            finish_turn("dialogue_inactive")
             return
 
         if stt_event.event_type == RecognitionEventType.SPEECH_STARTED:
@@ -436,6 +444,7 @@ class CoreDialogueEngine:
                 DialogueEvent(event_type="error", data={"source": "STT", "message": stt_event.text})
             )
 
+    @traced("core.process_dialbb_response", "dialbb_response")
     def process_dialbb_response(
         self,
         dialbb_response: DialbbResponse,
@@ -447,6 +456,9 @@ class CoreDialogueEngine:
         logger.info("[CORE] CORE<-DialBB: response received")
         logger.debug("[CORE] DialBB response: source=%s text=%s", dialbb_response.source, dialbb_response.system_text)
         if self.user_speaking and dialbb_response.source != "partial_transcript":
+            if self._pending_dialbb_response is not None:
+                with message_operation(self._pending_dialbb_response, "core.response_superseded", queue_wait=False):
+                    finish_turn("response_superseded")
             self._pending_dialbb_response = dialbb_response
             logger.info("[CORE] User is speaking, so the DialBB response is deferred.")
             return
@@ -460,6 +472,7 @@ class CoreDialogueEngine:
             stt_enabled_event,
         )
 
+    @traced("core.process_tts_result", "tts_result")
     def process_tts_result(
         self,
         tts_result: TtsResult,
@@ -487,6 +500,7 @@ class CoreDialogueEngine:
             self._barge_in_sent = False
             self._active_response_source = None
 
+    @traced("core.process_tts_playback_event", "playback_event")
     def process_tts_playback_event(
         self,
         playback_event: TtsPlaybackEvent,

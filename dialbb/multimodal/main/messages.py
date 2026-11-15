@@ -3,6 +3,8 @@ from datetime import datetime
 from enum import Enum
 from typing import Any
 
+from dialbb.util.telemetry import TraceMessage
+
 
 class RecognitionEventType(str, Enum):
     """STT から Main へ渡す認識イベント種別。"""
@@ -22,7 +24,7 @@ class RecognitionEventType(str, Enum):
 
 
 @dataclass(slots=True)
-class RecognitionEvent:
+class RecognitionEvent(TraceMessage):
     """STT スレッドから Main スレッドへ渡すイベント本体。"""
 
     # イベント種別（開始/終了/中間/確定/エラー）。
@@ -38,7 +40,7 @@ class RecognitionEvent:
 
 
 @dataclass(slots=True)
-class DialbbRequest:
+class DialbbRequest(TraceMessage):
     """Main から DialBB へ送る問い合わせメッセージ。"""
 
     session_id: str
@@ -52,7 +54,7 @@ class DialbbRequest:
 
 
 @dataclass(slots=True)
-class DialbbResponse:
+class DialbbResponse(TraceMessage):
     """DialBB から Main へ返す応答メッセージ。"""
 
     session_id: str
@@ -65,7 +67,7 @@ class DialbbResponse:
 
 
 @dataclass(slots=True)
-class TtsRequest:
+class TtsRequest(TraceMessage):
     """Main から TTS へ送る音声合成要求。"""
 
     session_id: str
@@ -75,7 +77,7 @@ class TtsRequest:
 
 
 @dataclass(slots=True)
-class TtsResult:
+class TtsResult(TraceMessage):
     """TTS から Main へ返す合成結果通知。"""
 
     session_id: str
@@ -85,7 +87,7 @@ class TtsResult:
 
 
 @dataclass(slots=True)
-class TtsPlaybackEvent:
+class TtsPlaybackEvent(TraceMessage):
     """音声再生完了通知。"""
 
     session_id: str

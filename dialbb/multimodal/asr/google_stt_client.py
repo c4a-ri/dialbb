@@ -11,6 +11,7 @@ from google.auth.exceptions import GoogleAuthError
 from google.cloud import speech
 
 from dialbb.util.logger import get_logger
+from dialbb.util.telemetry import operation, SpeechTrace, AudioTimeline, TurnRegistry
 from .audio_input import WebSocketAudioInput
 from ..main.messages import RecognitionEvent, RecognitionEventType
 
@@ -26,7 +27,7 @@ class GoogleStreamingSttClient:
         # 認証情報は環境変数など ADC から解決される。
         self.client = speech.SpeechClient()
 
-    def stream(self, audio_chunks: Iterable[bytes]) -> Iterator[RecognitionEvent]:
+    def stream(self, audio_chunks: Iterable[bytes], timeline: AudioTimeline | None = None) -> Iterator[RecognitionEvent]:
         # STT 設定（PCM16 / サンプリング周波数 / 言語）。
         config = speech.RecognitionConfig(
             encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
@@ -44,7 +45,9 @@ class GoogleStreamingSttClient:
         def _requests() -> Iterator[speech.StreamingRecognizeRequest]:
             # マイクから渡された生PCMチャンクを逐次リクエスト化する。
             for chunk in audio_chunks:
-                yield speech.StreamingRecognizeRequest(audio_content=chunk)
+                if timeline is not None:
+                    timeline.record(chunk)
+                yield speech.StreamingRecognizeRequest(audio_content=bytes(chunk))
 
         try:
             # STT ストリーミングAPIを開始し、音声チャンク列から認識結果ストリームを取得する。
@@ -105,6 +108,7 @@ def run_stt_worker(
     sample_rate: int = 16000,
     language_code: str = "ja-JP",
     audio_chunk_queue: "Queue[bytes | None] | None" = None,
+    turn_registry: TurnRegistry | None = None,
 ) -> None:
     """Speech activity detection + STT worker thread.
 
@@ -118,10 +122,11 @@ def run_stt_worker(
     )
     try:
         try:
-            recognizer = GoogleStreamingSttClient(
-                sample_rate=sample_rate,
-                language_code=language_code,
-            )
+            with operation("stt.initialize"):
+                recognizer = GoogleStreamingSttClient(
+                    sample_rate=sample_rate,
+                    language_code=language_code,
+                )
         except (GoogleAPICallError, RetryError, GoogleAuthError, OSError) as exc:
             stt_event_queue.put(
                 RecognitionEvent(
@@ -147,6 +152,8 @@ def run_stt_worker(
                         break
                 logger.info("[STT] WebSocket audio mode: waiting for audio chunks...")
                 ws_audio = WebSocketAudioInput(audio_chunk_queue, listening_enabled_event, stop_event)
+                timeline = AudioTimeline(sample_rate)
+                speech_trace = SpeechTrace(turn_registry, timeline)
                 try:
                     first_chunk = None
                     while not stop_event.is_set():
@@ -161,11 +168,12 @@ def run_stt_worker(
                     if first_chunk is None:
                         continue
 
-                    for recognition_event in recognizer.stream(chain((first_chunk,), ws_audio.chunks())):
+                    for recognition_event in recognizer.stream(chain((first_chunk,), ws_audio.chunks()), timeline):
                         if stop_event.is_set():
                             break
                         if listening_enabled_event and not listening_enabled_event.is_set():
                             break
+                        speech_trace.annotate(recognition_event)
                         stt_event_queue.put(recognition_event)
                 except (GoogleAPICallError, RetryError, OSError) as exc:
                     if stop_event.is_set():
@@ -181,6 +189,8 @@ def run_stt_worker(
                         )
                     )
                     break
+                finally:
+                    speech_trace.finish()
             return
     finally:
         logger.info(

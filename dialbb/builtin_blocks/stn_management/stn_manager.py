@@ -36,6 +36,7 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
 from dialbb.builtin_blocks.stn_management.scenario_graph import create_scenario_graph
+from dialbb.util.telemetry import traced_feature
 from dialbb.util.context_db import ContextDB
 from dialbb.builtin_blocks.stn_management.state_transition_network \
     import StateTransitionNetwork, State, Transition, Argument, Condition, Action, \
@@ -596,6 +597,7 @@ class Manager(AbstractBlock):
         state: str = dialogue_context[CONTEXT_KEY_CURRENT_STATE_NAME]
         self.log_debug(f"state: {state}, dialogue_context: {str(dialogue_context)}", session_id=session_id)
 
+    @traced_feature("stn.generate_utterance")
     def _substitute_expressions(self, text: str, session_id: str, context: Dict[str, Any], nlu_result: Dict[str, Any],
                                 aux_data: Dict[str, Any], user_id: str, sentence: str) -> str:
         """
@@ -688,6 +690,7 @@ class Manager(AbstractBlock):
         else:
             return destination_state_string
 
+    @traced_feature("stn.transition")
     def _transition(self, previous_state_name: str, nlu_result: Dict[str, Any], aux_data: Dict[str, Any],
                     context: Dict[str, Any], user_id: str, session_id: str, sentence: str) -> str:
         """
@@ -779,7 +782,7 @@ class Manager(AbstractBlock):
         for function_module in self._function_modules:
             function = getattr(function_module, function_name, None)
             if function:  # if function is found
-                return function
+                return traced_feature("stn.scenario_function." + function_name)(function)
         return None
 
     def _generate_in_system_utterance(self, function_name: str, argument_list_string: str,
@@ -850,6 +853,7 @@ class Manager(AbstractBlock):
                 raise Exception(e)
             return GENERATION_FAILURE_STRING
 
+    @traced_feature("stn.check_condition")
     def _check_one_condition(self, condition: Condition, nlu_result: Dict[str, Any], aux_data: Dict[str, Any],
                              context: Dict[str, Any], user_id: str, session_id: str, sentence: str) -> bool:
         """
@@ -972,6 +976,7 @@ class Manager(AbstractBlock):
                 else:
                     return value
 
+    @traced_feature("stn.perform_actions")
     def _perform_actions(self, actions: List[Action], nlu_result: Dict[str, Any], aux_data: Dict[str, Any],
                          context: Dict[str, Any], user_id: str, session_id: str, sentence: str) -> None:
         """
@@ -1016,6 +1021,7 @@ class Manager(AbstractBlock):
                     if DEBUG:
                         raise Exception(e)
 
+    @traced_feature("stn.generate_confirmation")
     def _generate_confirmation_request(self, function_name: str, context: Dict[str, Any],
                                        nlu_result: Dict[str, Any], session_id: str) -> str:
 
@@ -1037,7 +1043,7 @@ class Manager(AbstractBlock):
             argument_names: List[str] = ["nlu_result", "context"]
             argument_values: List[Any] = [nlu_result, context]
             args: Dict[str,str] = dict(zip(argument_names, argument_values))
-            args["func"] = generation_function
+            args["func"] = traced_feature("stn.scenario_function." + function_name)(generation_function)
             expression = "func(" + ','.join(argument_names) + ")"
             result = ""
             try:

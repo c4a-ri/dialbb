@@ -22,6 +22,8 @@
 __author__ = 'Mikio Nakano'
 __copyright__ = 'C4A Research Institute, Inc.'
 
+from dialbb.util.telemetry import operation, traced_feature
+
 import os
 import sys
 import traceback
@@ -113,6 +115,7 @@ class LLMDialogue(AbstractBlock):
             result = now.strftime("%A, %B %d, %Y %I:%M:%S %p")
         return result
 
+    @traced_feature("llm_dialogue.generate_utterance")
     def generate_system_utterance(
             self,
             dialogue_history: List[Dict[str, str]],
@@ -153,7 +156,8 @@ class LLMDialogue(AbstractBlock):
 
         # call LLM
         try:
-            response = self._llm.invoke(messages)
+            with operation("llm.invoke"):
+                response = self._llm.invoke(messages)
             generated_utterance = response.content if hasattr(response, 'content') else str(response)
             if type(generated_utterance) != str:  # gemini-3.1-flash-lite
                 generated_utterance = generated_utterance[0]['text']

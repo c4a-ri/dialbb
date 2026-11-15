@@ -36,6 +36,8 @@ from dotenv import load_dotenv
 
 from dialbb.util.context_db import ContextDB
 from dialbb.util.globals import DEBUG
+from dialbb.util.telemetry import block_operation, traced_process
+from opentelemetry import trace
 from dialbb.abstract_block import AbstractBlock
 from dialbb.util.error_handlers import abort_during_building
 from dialbb.util.logger import configure_dialbb_logging, get_logger
@@ -113,6 +115,7 @@ class DialogueProcessor:
             raise abort_during_building(f"can't read config file: {config_file}. " + str(e))
         if additional_config:
             config.update(additional_config)
+        self._trace_config_file = str(Path(config_file).resolve())
 
         # add directory of config file to PYTHONPATH
         # configファイルのディレクトリをPYTHONPATHに入れる
@@ -128,6 +131,13 @@ class DialogueProcessor:
         self._block_configs = config.get("blocks")
         if self._block_configs is None:
             raise Exception("no block descriptions in config.")
+        self._trace_blocks = config.get("telemetry", {}).get("trace_blocks", [block["name"] for block in self._block_configs])
+        if not isinstance(self._trace_blocks, list) or any(
+                not isinstance(name, str) for name in self._trace_blocks):
+            raise ValueError("telemetry.trace_blocks must be a list of block names")
+        unknown_blocks = set(self._trace_blocks) - {block['name'] for block in self._block_configs}
+        if unknown_blocks:
+            raise ValueError(f"unknown telemetry.trace_blocks: {sorted(unknown_blocks)}")
         for block_config in self._block_configs:
             print(f"creating block '{block_config['name']}' whose class is {block_config[KEY_BLOCK_CLASS]}.")
             block_module_name, block_class_name = block_config[KEY_BLOCK_CLASS].rsplit(".", 1)
@@ -154,6 +164,11 @@ class DialogueProcessor:
         self._session_count = 0
 
         self._logger = get_logger("main")
+        self._logger.info(
+            "Tracing configuration: config_file=%s, trace_blocks=%s, process_trace=%s, source=%s",
+            self._trace_config_file, self._trace_blocks,
+            "independent", str(Path(__file__).resolve()),
+        )
 
     def _add_history(self, session_id: str, history: List[Dict[str, Any]]) -> None:
         if self._use_context_db:
@@ -189,6 +204,7 @@ class DialogueProcessor:
             session_id = "dialbb_session" + str(self._session_count)
         return session_id
 
+    @traced_process
     def process(self, request: Dict[str, Any], initial: bool = False) -> Dict[str, Any]:
         """
         main process of DialBB application
@@ -215,6 +231,7 @@ class DialogueProcessor:
             self._log_info(f"existing session continues.", session_id=session_id)
             history = self._get_history(session_id)
         self._log_debug(f"blackboard: " + str(blackboard), session_id=session_id)
+        trace.get_current_span().set_attribute("session.id", session_id)
 
         history.append({"speaker": "user",
                         "user_id": blackboard.get('user_id', ""),
@@ -230,7 +247,13 @@ class DialogueProcessor:
                     self._log_warning(f"key '{key_in_blackboard}' is not in the blackboard.", session_id=session_id)
                 input_to_block[key_in_input] = blackboard.get(key_in_blackboard, None)
             # call each block's process method
-            output_from_block = block.block_object.process(input_to_block, session_id=session_id)
+            with block_operation(
+                str(block.block_config.get("name", type(block.block_object).__name__)),
+                type(block.block_object).__module__ + "." + type(block.block_object).__qualname__,
+                session_id,
+                detailed=block.block_config.get("name") in getattr(self, "_trace_blocks", ()),
+            ):
+                output_from_block = block.block_object.process(input_to_block, session_id=session_id)
             for key_in_output, key_in_blackboard in block.block_config['output'].items():
                 # check if all keys are in the output
                 if key_in_output not in output_from_block:

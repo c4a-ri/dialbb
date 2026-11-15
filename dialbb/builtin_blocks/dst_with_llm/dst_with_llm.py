@@ -22,6 +22,8 @@ __version__ = '0.1'
 __author__ = 'Mikio Nakano'
 __copyright__ = 'C4A Research Institute, Inc.'
 
+from dialbb.util.telemetry import operation, traced_feature
+
 import json
 import os
 import re
@@ -167,6 +169,7 @@ class DST(AbstractBlock):
         except Exception as e:
             abort_during_building(f"failed to read excel file: {excel_file_path}. {str(e)}")
 
+    @traced_feature("dst.format_history")
     def _stringify_dialogue_history(self, dialogue_history: List[Dict[str, Any]]) -> str:
         dialogue_history_string: str = ""
         for turn in dialogue_history:
@@ -212,6 +215,7 @@ class DST(AbstractBlock):
                 return entity
         return expression
 
+    @traced_feature("dst.extract_slots")
     def _extract_slots(self, dialogue_string: str) -> Dict[str, str]:
         """
         Extract slots from dialogue
@@ -223,7 +227,8 @@ class DST(AbstractBlock):
 
         while True:
             try:
-                response = self._llm.invoke(prompt)
+                with operation("llm.invoke"):
+                    response = self._llm.invoke(prompt)
                 result_text = self._get_response_text(response)
                 self.log_debug("LLM result: " + result_text)
                 parsed_result = self._parse_llm_result(result_text)
@@ -254,6 +259,7 @@ class DST(AbstractBlock):
             content = ''.join(parts)
         return str(content).strip()
 
+    @traced_feature("dst.parse_result")
     def _parse_llm_result(self, result_text: str) -> Dict[str, Any]:
         match = CODE_BLOCK_PATTERN.match(result_text)
         if match:

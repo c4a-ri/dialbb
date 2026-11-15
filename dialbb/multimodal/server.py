@@ -11,6 +11,9 @@ import base64
 import binascii
 import sys
 import threading
+from time import time_ns
+
+from opentelemetry import context, trace
 from concurrent.futures import Future as ConcurrentFuture
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -20,10 +23,12 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 import uvicorn
 import yaml
 
 from dialbb.util.logger import configure_dialbb_logging, get_logger
+from dialbb.util.telemetry import create_tracer_provider, get_tracer, operation, traced, ReceivedAudio, current_turn, finish_turn
 
 from .core import DialogueEvent
 from .engine import DialogueEngineManager, Settings
@@ -35,6 +40,7 @@ from .tts.speech_synthesizer import (
 )
 
 logger = get_logger(__name__)
+EXAMPLE_DIR = Path(__file__).resolve().parent / "examples"
 
 
 def _map_config_language_to_bcp47(language: Any) -> str:
@@ -64,35 +70,75 @@ class WebSocketSessionHub:
             session_connections = self._connections.setdefault(session_id, SessionConnections())
             session_connections.sockets.add(websocket)
 
-    async def disconnect(self, session_id: str, websocket: WebSocket) -> None:
+    async def disconnect(self, session_id: str, websocket: WebSocket) -> bool:
         async with self._lock:
             session_connections = self._connections.get(session_id)
             if not session_connections:
-                return
+                return True
             session_connections.sockets.discard(websocket)
             if not session_connections.sockets:
                 self._connections.pop(session_id, None)
+                return True
+            return False
 
-    async def emit_to_session(self, session_id: str, event_name: str, payload: dict[str, Any]) -> None:
-        async with self._lock:
-            sockets = list(self._connections.get(session_id, SessionConnections()).sockets)
+    async def emit_to_session(self, session_id: str, event_name: str, payload: dict[str, Any],
+                              parent=None, scheduled_at_ns: int | None = None) -> None:
+        parent = parent if parent is not None else context.get_current()
+        if scheduled_at_ns is not None:
+            scheduled = get_tracer(parent).start_span(
+                "browser.schedule_wait", context=parent, start_time=scheduled_at_ns,
+                attributes={"session.id": session_id, "browser.event": event_name},
+            )
+            scheduled.end()
+        with operation("browser.send", {"session.id": session_id, "browser.event": event_name}, parent=parent):
+            async with self._lock:
+                sockets = list(self._connections.get(session_id, SessionConnections()).sockets)
 
-        disconnected: list[WebSocket] = []
-        for websocket in sockets:
-            try:
-                await websocket.send_json({"event": event_name, "payload": payload})
-            except (RuntimeError, WebSocketDisconnect):
-                disconnected.append(websocket)
+            disconnected: list[WebSocket] = []
+            for websocket in sockets:
+                try:
+                    await websocket.send_json({"event": event_name, "payload": payload})
+                except (RuntimeError, WebSocketDisconnect):
+                    disconnected.append(websocket)
 
-        for websocket in disconnected:
-            await self.disconnect(session_id, websocket)
+            if (event_name == "audio_data" and payload.get("segment_index") == 1
+                    and len(sockets) > len(disconnected)):
+                sent_at = time_ns()
+                turn = current_turn(parent)
+                # These intervals cover STT through audio delivery, rather than
+                # work inside the current TTS span. Keep them under the turn.
+                latency_parent = turn.parent if turn is not None else parent
+                for key, name in (
+                    ("dialbb.speech_end_ns", "dialogue.speech_end_to_audio_sent"),
+                    ("dialbb.final_transcript_ns", "dialogue.final_transcript_to_audio_sent"),
+                ):
+                    started_at = context.get_value(key, parent)
+                    if started_at is not None:
+                        latency = get_tracer(latency_parent).start_span(
+                            name, context=latency_parent, start_time=started_at,
+                            attributes={"session.id": session_id,
+                                        "utterance.id": payload.get("utterance_id", 0)},
+                        )
+                        latency.end(end_time=sent_at)
+
+            for websocket in disconnected:
+                await self.disconnect(session_id, websocket)
+
+        turn = current_turn(parent)
+        if turn is not None and not turn.finished and event_name == "audio_data":
+            if len(sockets) == len(disconnected):
+                turn.finish("no_connected_browser", error=True)
+            else:
+                turn.audio_sent(payload.get("segment_index", 0), payload.get("segment_count", 0))
 
     def emit_from_thread(self, session_id: str, event_name: str, payload: dict[str, Any]) -> None:
         if self._loop is None:
             logger.debug("[SERVER] event loop is not attached yet; drop event=%s", event_name)
+            if event_name == "audio_data":
+                finish_turn("event_loop_unavailable", error=True)
             return
         future = asyncio.run_coroutine_threadsafe(
-            self.emit_to_session(session_id, event_name, payload),
+            self.emit_to_session(session_id, event_name, payload, context.get_current(), time_ns()),
             self._loop,
         )
         future.add_done_callback(self._log_emit_failure)
@@ -181,6 +227,7 @@ def create_app(
             {"reason": reason, "utterance_id": utterance_id},
         )
 
+    @traced("tts.send_and_playback")
     def on_tts_audio(
         session_id: str,
         utterance_id: int,
@@ -267,11 +314,19 @@ def create_app(
             len(audio_bytes),
         )
 
-        if not engine_manager.wait_for_tts_segment_playback_done(
-            session_id,
-            utterance_id,
-            segment_index,
-        ):
+        turn = current_turn()
+        final_playback = segment_index == segment_count
+        with operation("tts.playback_wait", {
+            "session.id": session_id, "utterance.id": utterance_id, "segment.index": segment_index,
+            "turn.id": turn.turn_id if turn is not None else "",
+        }, parent=context.Context() if final_playback else None,
+                links=[trace.Link(turn.root.get_span_context())]
+                if final_playback and turn is not None else None) as playback_span:
+            played = engine_manager.wait_for_tts_segment_playback_done(
+                session_id, utterance_id, segment_index,
+            )
+            playback_span.set_attribute("playback.completed", played)
+        if not played:
             logger.info(
                 "[SERVER] playback wait interrupted: session=%s utterance=%s segment=%d/%d",
                 session_id,
@@ -301,6 +356,7 @@ def create_app(
 
     @app.on_event("startup")
     async def on_startup() -> None:
+        app.state.tracer_provider = create_tracer_provider()
         session_hub.attach_loop(asyncio.get_running_loop())
 
     @app.on_event("shutdown")
@@ -317,11 +373,47 @@ def create_app(
             "[SERVER] threads alive at shutdown: %s",
             ", ".join(thread.name for thread in threading.enumerate()),
         )
+        provider = getattr(app.state, "tracer_provider", None)
+        if provider is not None:
+            await asyncio.to_thread(provider.shutdown)
         logger.info("[SERVER] shutdown finished")
 
     @app.get("/health")
     async def health() -> dict[str, str]:
         return {"status": "ok", "service": "mm-client-server"}
+
+    example_dir = EXAMPLE_DIR
+    example_wav_dir = example_dir / "data"
+
+    def example_wav_path(filename: str) -> Path:
+        path = (example_wav_dir / filename).resolve()
+        if path.parent != example_wav_dir.resolve() or path.suffix.lower() != ".wav" or not path.is_file():
+            raise HTTPException(status_code=404, detail="WAV file not found")
+        return path
+
+    @app.get("/examples/client_example.html", include_in_schema=False)
+    async def example_client() -> FileResponse:
+        return FileResponse(example_dir / "client_example.html", media_type="text/html")
+
+    @app.get("/example-audio-files")
+    async def example_audio_files() -> dict[str, list[dict[str, str]]]:
+        from urllib.parse import quote
+
+        files = []
+        if example_wav_dir.is_dir():
+            for path in sorted(example_wav_dir.iterdir(), key=lambda path: path.name.casefold()):
+                if path.suffix.lower() != ".wav":
+                    continue
+                try:
+                    example_wav_path(path.name)
+                except HTTPException:
+                    continue
+                files.append({"name": path.name, "url": "/example-audio-files/" + quote(path.name, safe="")})
+        return {"files": files}
+
+    @app.get("/example-audio-files/{filename}")
+    async def example_audio_file(filename: str) -> FileResponse:
+        return FileResponse(example_wav_path(filename), media_type="audio/wav")
 
     @app.post("/sessions", status_code=201)
     async def create_session() -> dict[str, str]:
@@ -367,6 +459,7 @@ def create_app(
         try:
             while True:
                 payload = await websocket.receive_json()
+                received_at_ns = time_ns()
                 action = payload.get("action")
                 if action == "start_dialogue":
                     await _handle_start_dialogue(websocket, engine_manager, session_id, settings)
@@ -394,7 +487,7 @@ def create_app(
                             _session = engine_manager.get_session(session_id)
                             # logger.info("[WEBSOCKET] Audio chunk received: session=%s, bytes=%d", session_id, len(audio_bytes))
                             if _session:
-                                _session.audio_chunk_queue.put(audio_bytes)
+                                _session.audio_chunk_queue.put(ReceivedAudio(audio_bytes, received_at_ns))
                                 engine_manager.record_user_audio_chunk(session_id, audio_bytes)
                                 # Determine barge-in from STT partial/final events.
                                 # Do not cancel on raw audio chunk arrival alone.
@@ -458,7 +551,8 @@ def create_app(
         except WebSocketDisconnect:
             logger.info("[WEBSOCKET] Client disconnected: session=%s", session_id)
         finally:
-            await session_hub.disconnect(session_id, websocket)
+            if await session_hub.disconnect(session_id, websocket):
+                session.turn_registry.close("client_disconnected")
 
     if frontend_dist_dir.exists():
         app.mount("/", StaticFiles(directory=str(frontend_dist_dir), html=True), name="mm_frontend")

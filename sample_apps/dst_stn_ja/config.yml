@@ -4,6 +4,10 @@ language: ja   # 言語を指定
 
 system_name: ラーメンボット
 
+# dialbb-process の指定ブロックに機能別 span を追加（省略時は全ブロック）
+telemetry:
+  trace_blocks: [dst, manager]
+
 blocks:  # ブロックのリスト
   - name: dst
     block_class: dialbb.builtin_blocks.dst_with_llm.DST

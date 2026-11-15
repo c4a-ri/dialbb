@@ -16,6 +16,7 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, Optional, Callable, cast
 
 from dialbb.util.logger import get_logger
+from dialbb.util.telemetry import TurnRegistry
 from .core import CoreDialogueEngine, DialogueEvent
 from .asr.google_stt_client import run_stt_worker
 from .main.dialbb_client import run_dialbb_worker
@@ -73,6 +74,7 @@ class DialogueSession:
     current_tts_played_segments: set[int] = field(default_factory=set)
     pending_tts_aux_data: dict[str, Any] = field(default_factory=dict)
     system_speaking: bool = False
+    turn_registry: TurnRegistry = field(default_factory=TurnRegistry)
     # Worker threads
     workers: list = field(default_factory=list)
     # Status flags
@@ -165,6 +167,7 @@ class DialogueEngineManager:
                 session.audio_user_buffer.clear()
                 session.audio_log_queue = queue.Queue()
                 session.audio_log_sequence = 0
+            session.turn_registry = TurnRegistry(session.session_id)
             # Start workers.
             workers = self._start_workers(session, settings)
             session.workers = workers
@@ -202,6 +205,7 @@ class DialogueEngineManager:
                     "sample_rate": settings.sample_rate,
                     "language_code": settings.language_code,
                     "audio_chunk_queue": stt_audio_q,
+                    "turn_registry": session.turn_registry,
                 },
                 name=f"stt-worker-{session.session_id[:8]}",
                 daemon=False,
@@ -309,6 +313,7 @@ class DialogueEngineManager:
             session.command_queue.put("end")
             # Signal every worker to stop.
             session.stop_event.set()
+            session.turn_registry.close()
             # Unblock audio_chunk_queue in WebSocket audio mode.
             session.audio_chunk_queue.put(None)
             # Wait for workers to exit.
@@ -569,6 +574,7 @@ class DialogueEngineManager:
             session = self.sessions[session_id]
             if session.is_active:
                 self.stop_session(session_id)
+            session.turn_registry.close()
             del self.sessions[session_id]
             logger.info("[ENGINE] セッション削除: %s", session_id)
         return True

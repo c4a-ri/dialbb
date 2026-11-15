@@ -1,372 +1,96 @@
-# DialBB: A Framework for Building Dialogue Systems
+# DialBB 分散トレーサ
 
-ver. 2.0.1
+このブランチは、対話システム構築フレームワーク DialBB のfeature/multimodal ブランチに OpenTelemetry による分散トレーシングを組み込んだものです。音声認識（STT）、対話処理、LLM 呼び出し、音声合成（TTS）、WebSocket 送信にかかる時間と、ワーカ間のキュー待ちを Jaeger で確認し、応答遅延の原因を調査できます。
 
-[日本語](README-ja.md)
+**設定・起動方法・各 span の定義・計測上の注意点は、[マルチモーダルサーバの README](dialbb/multimodal/README.md#opentelemetry--jaeger-による遅延調査) を参照してください。**
 
-## Project Main Page
+## トレースの構成
 
-Please refer to [the project main page](https://c4a-ri.github.io/dialbb/), which includes the overview of DialBB and the links to the documents.
+目的に応じて、次の2つのサービスに分けて記録します。
 
-## Documents
+| Jaeger の Service | 主な Operation | 計測範囲 |
+| --- | --- | --- |
+| `dialbb-dialogue` | `dialogue.turn` | ユーザ音声の WebSocket 受信から、最後の応答音声セグメントの送信完了まで |
+| `dialbb-process` | `dialbb.process` | `DialogueProcessor.process()` の開始から応答まで。各ブロックと内部の LLM 呼び出しなどを含む |
 
-Please refer to the [document](https://c4a-ri.github.io/dialbb/document-en/build/html/) for detailed specification and the way of application development. (If this README is not for a released version, please download the [document for the same version as this README](docs/files/document-en.zip).)
+音声対話側では、STT → Core → DialBB worker → Core → TTS → WebSocket の処理を、ワーカ間でトレースコンテキストを引き継いで追跡します。DialBB 内部処理は独立した trace ID で記録し、音声ターンの `turn.id`、span link、相互参照用の trace ID 属性で関連付けます。
 
-For the current multimodal server API specification, see [dialbb/multimodal/PHASE2_API.md](dialbb/multimodal/PHASE2_API.md).
+`dialogue.turn` の終点はサーバでの音声送信完了です。ブラウザで実際に音が鳴り始めるまでの時間とは異なります。途中の音声セグメントの再生完了待ちはターンに含まれ、最後のセグメントの再生完了待ちは別トレースに記録されます。
 
+## 主な計測対象
 
-## Citation
+- **音声認識**：入力音声の受信から確定認識まで、発話終了通知から確定認識までの待ち時間。
+- **ワーカ間通信**：メッセージ作成から処理開始までのキュー待ち、送信元・受信先スレッド。
+- **DialBB 内部処理**：各ブロックの実行、DST のスロット抽出・結果解析、STN の遷移条件評価・アクション実行、LLMDialogue の発話生成。
+- **LLM 呼び出し**：LangChain 経由の `llm.invoke` の実行時間。
+- **音声合成・送信**：セグメントごとの TTS API 呼び出し、WebSocket 送信、クライアントの再生完了通知待ち。
+- **応答までの経過時間**：STT の発話終了通知または確定認識から、最初の応答音声の送信完了まで。
 
-Please cite the following paper when publishing a paper on work that uses DialBB.
+音声データ・認識文・プロンプトは span の属性に追加しません。
 
-- Mikio Nakano and Kazunori Komatani. [DialBB: A Dialogue System Development Framework as an Educational Material](https://aclanthology.org/2024.sigdial-1.56). In Proceedings of the 25th Annual Meeting of the Special Interest Group on Discourse and Dialogue (SIGDIAL-24), pages 664–668, Kyoto, Japan. Association for Computational Linguistics, 2024
+## 有効化と起動
 
-## License
-
-DialBB is released under Apache License 2.0.
-
-## Getting Started
-
-### Execution Environment
-
-DialBB works with Python 3.11–3.14 on Windows, macOS, and Ubuntu, although not every combination has been fully tested. (It no longer works with Python 3.10.)
-
-Please note that the RAG application described later works only with Python 3.11–3.13.
-
-The following instructions assume that you are working with bash on Ubuntu. If you are using other shells or the Windows command prompt, please read the following instructions accordingly.
-
-### Installing DialBB
-
-- Build a virtual environment if necessary. The following is an example of venv.
-
-  ```sh
-  $ python -m venv venv  # Create a virtual environment named venv
-  $ source venv/bin/activate   # Enter the virtual environment
-  ```
-
-- Execute the following.
-
-  ```sh
-  $ pip install dialbb
-  ```
-
-- If you use the RAG passage retrieval block, also execute the following.
-
-  ```sh
-  $ pip install dialbb[rag]
-  ```
-  
-This can only be installed with Python 3.11–3.13.
-
-
-### Debug Environment With uv
-
-If you want to use uv instead of Poetry for debugging in this repository, use the following setup.
-
-If uv is not installed yet:
-
-- Windows (PowerShell)
-
-  ```powershell
-  powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
-  ```
-
-- Linux / macOS (bash)
-
-  ```sh
-  curl -LsSf https://astral.sh/uv/install.sh | sh
-  ```
-
-- Windows (PowerShell)
-
-  ```powershell
-  .\scripts\setup-uv-debug-env.ps1
-  .\.venv\Scripts\Activate.ps1
-  ```
-
-- Linux / macOS (bash)
-
-  ```sh
-  ./scripts/setup-uv-debug-env.sh
-  source .venv/bin/activate
-  ```
-
-After activation, you can run commands such as:
+リポジトリのルートで依存関係を反映します。
 
 ```sh
-dialbb-mm-server sample_apps/llm_dialogue_ja/config.yml
+uv sync
 ```
 
-### Download the Sample Applications
+既存の Jaeger または OpenTelemetry Collector の OTLP/HTTP 受信先を、`.env` または環境変数に設定します。以下はローカルの受信先を使う例です。
 
-Download the sample applications file at [docs/files/sample_apps.zip](docs/files/sample_apps.zip) and extract them in an appropriate directory.
+```dotenv
+OTEL_TRACES_ENABLED=true
+OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
+```
 
-
-### Running the Parroting Application
-
-It is an application that just parrots back and forth. No built-in block classes are used.
-
-#### Startup
+この URL は Jaeger UI ではなく、トレースの送信先です。STT・TTS 用の Google Cloud 認証情報と、使用する LLM の認証情報も設定してから起動します。
 
 ```sh
-$ dialbb-server sample_apps/parrot/config.yml
+uv run dialbb-mm-server sample_apps/llm_dialogue_ja/config_mm.yml --port 5000
 ```
 
-
-#### Operation Check on Terminal
-
-
-Execute the following on another terminal. If you do not have curl installed, test it from a browser as described later.
-
-
-- First access
-
-  ```sh
-  $ curl -X POST -H "Content-Type: application/json" \
-    -d '{"user_id":"user1"}' http://localhost:8080/init
-  ```
-   The following response will be returned.
-
-  ```json
-  {"aux_data":null, 
-   "session_id":"dialbb_session1", 
-   "system_utterance":"I'm a parrot. You can say anything.", 
-   "user_id":"user1"}
-  ```
-
-- Second access or later
-
-  ```sh
-  $ curl -X POST -H "Content-Type: application/json" \
-    -d '{"user_utterance": "Hello", "user_id":"user1", "session_id":"dialbb_session1"}' \
-    http://localhost:8080/dialogue
-  ```
-
-   The following response will be returned.
-
-  ```json
-  {"aux_data":null,
-   "final":false,
-   "session_id":"dialbb_session1",
-   "system_utterance":"You said \"Hello\"",
-   "user_id":"user1"}
-  ```
-
-#### Operation Check Using a Browser
-
-If the hostname or IP address of the server from which the application is launched is `<hostname>`, access the following URL from a browser, and a dialogue screen will appear.
-
-```
-http://<hostname>:8080 
-```
-
-If the server is running on Windows 11, the dialog screen may not appear in your browser. In this case, a simple dialog screen will appear when you connect to the following URL.
-
-```
-http://<hostname>:8080/test
-```
-
-### LLM Dialogue Applications
-
-This application uses single prompt template for an LLM (Large Language Model) to engage in dialogues. 
-
-Only the following builtin block is used.
-
-- LLM Dialogue Block
-
-
-#### Setting environment variables
-
-This application uses OpenAI's ChatGPT by default. So, set the OpenAI API key in the environment variable `OPENAI_API_KEY`. The following is a bash example. 
+DST＋STN の計測には、次のサンプルを使えます。
 
 ```sh
-$ export OPENAI_API_KEY=<OpenAI's API key>.
+uv run dialbb-mm-server sample_apps/dst_stn_ja/config.yml --port 5000
 ```
 
-You can also write the key in `.env`  in the working directory as follows:
+トレースは OTLP/HTTP（Protobuf）でバックグラウンド送信します。`OTEL_TRACES_ENABLED=true` または OTLP endpoint の指定がある場合に exporter を起動し、`OTEL_SDK_DISABLED=true` でサーバによる初期化を抑止できます。
 
+内部処理を詳細に計測するブロックは、アプリ設定の `blocks[].name` を指定して選択できます。省略時は全ブロックが対象です。
+
+```yaml
+telemetry:
+  trace_blocks: [dst, manager]
 ```
-OPENAI_API_KEY=<OpenAI's API key>
-```
 
-You can also use other LLMs by modifiying the configuration files. In that case, set necessary keys in the enviroment variables or specify them in `.env`.
+## 計測結果のレポート
 
-#### Startup
-
-  English version:
-
-  ```sh
-$ dialbb-server sample_apps/llm_dialogue_en/config.yml
-  ```
-
-  Japanese version:
-
-  ```sh
-  $ dialbb-server sample_apps/llm_dialogue_ja/config.yml
-  ```
-
-Access `http://<hostname>:8080` or `http://<hostname>:8080/test` from a browser.
-
-#### Testing with user simulation
-
-You can also test these applications with LLM-based user simulation.
-
-Japanese version:
+Jaeger UI からエクスポートした JSON を、処理別の回数・合計・平均・最大時間を含む Markdown レポートに変換できます。
 
 ```sh
-$ dialbb-sim-tester --app_config sample_apps/llm_dialogue_ja/config.yml \
-  --test_config sample_apps/llm_dialogue_ja/simulation/config.yml
+uv run python -m dialbb.util.trace_report trace1.json trace2.json -o trace-report.md
 ```
 
-English version:
+音声ターンと DialBB 内部処理は別トレースのため、両方を集計する場合はそれぞれの JSON を指定してください。`--details` を付けると、トレースごとの内訳と自己時間も表示します。
 
-```sh
-$ dialbb-sim-tester --app_config sample_apps/llm_dialogue_en/config.yml \
-  --test_config sample_apps/llm_dialogue_en/simulation/config.yml
-```
+## トレース機能の追加・変更ファイル
 
+`dialbb/` 配下に新規追加した実装ファイルは、次の2つです。
 
-### DST+STN Applications
+- [dialbb/util/telemetry.py](dialbb/util/telemetry.py)：OpenTelemetry の初期化、span の生成、ワーカ間のコンテキスト引き継ぎ、ターンの計測。
+- [dialbb/util/trace_report.py](dialbb/util/trace_report.py)：トレース JSON から Markdown レポートを生成。
 
-Sample applications using DST (dialogue state tracking) and STN (State-transition network) are available at `sample_apps/dst_stn_ja/` (Japanese) and `sample_apps/dst_stn_en/` (English) . These applications are used to test various functions of the built-in blocks. They use the following built-in blocks.
+これらを実際の処理に組み込むため、既存の `dialbb/main.py`、`dialbb/builtin_blocks/` 内の LLM・DST・STN 関連ファイル、`dialbb/multimodal/` 内のサーバ・Core・STT・TTS・DialBB ワーカ関連ファイルにも計測コードを追加しています。依存関係とレポート生成コマンドは `pyproject.toml`・`uv.lock`、使い方と計測設定は README・サンプル設定に反映しています。
 
+検証用に `tests/test_telemetry.py` と `tests/test_trace_report.py` も追加しています。
 
-- DST with LLM Block
-- STN Manager Block
+## 関連資料
 
-#### Installing Graphviz
+- [マルチモーダルサーバの詳細・トレーシング仕様](dialbb/multimodal/README.md)
 
-Install Graphviz by referring to the [Graphviz website](https://graphviz.org/). However, Graphviz is **not necessary** to run the application.
+## ライセンス
 
-#### Setting environment variables
-
-These application also use OpenAI's ChatGPT. In the same way as LLM Dialogue Applications, set the OpenAI's API key to the environment variable.
-
-#### Startup
-
-  ```sh
-  $ dialbb-server sample_apps/dst_stn_en/config.yml # English app
-  $ dialbb-server sample_apps/dst_stn_ja/config.yml # Japanese app
-  ```
-
-Access `http://<hostname>:8080` or `http://<hostname>:8080/test` from a browser.
-
-#### Testing with user simulation
-
-You can also test these applications with LLM-based user simulation.
-
-Japanese version:
-
-```sh
-$ dialbb-sim-tester --app_config sample_apps/dst_stn_ja/config.yml \
-  --test_config sample_apps/dst_stn_ja/simulation/config.yml
-```
-
-English version:
-
-```sh
-$ dialbb-sim-tester --app_config sample_apps/dst_stn_en/config.yml \
-  --test_config sample_apps/dst_stn_en/simulation/config.yml
-```
-
-#### Testing by sending auxiliary data
-
-The following commands allow you to test various features by sending auxiliary data.
-
-  ```sh
-$ dialbb-send-test-requests sample_apps/dst_stn_en/config.yml sample_apps/dst_stn_en/test_requests.json # for English app
-$ dialbb-send-test-requests sample_apps/dst_stn_ja/config.yml sample_apps/dst_stn_ja/test_requests.json # for Japanese app
-  ```
-
-### RAG Applications
-
-Sample RAG applications are available at `sample_apps/rag_en/` (English) and `sample_apps/rag_ja/` (Japanese). These applications retrieve relevant passages from the FAQ documents and pass them to the LLM. They use the following built-in blocks.
-
-- Passage Retrieval Block
-- LLM Dialogue Block
-
-#### Installing additional libraries
-
-To run this application, you need to install additional libraries. Please run the following:
-
-```sh
-$ pip install dialbb[rag]
-```
-
-#### Setting environment variables
-
-These applications also use OpenAI's ChatGPT and embeddings by default. As with the LLM Dialogue Applications, set the OpenAI API key in the environment variable `OPENAI_API_KEY` or write it in `.env`.
-
-Additional libraries must be installed to run this application. Please run the following command:
-
-```sh
-$ pip install dialbb[rag]
-```
-
-#### Startup
-
-  English version:
-
-  ```sh
-$ dialbb-server sample_apps/rag_en/config.yml
-  ```
-
-  Japanese version:
-
-  ```sh
-$ dialbb-server sample_apps/rag_ja/config.yml
-  ```
-
-At startup, the passage retrieval block reads the files under `docs/` and builds a vector database under `vector_db/` as needed. If you want to rebuild the vector database from scratch, enable `clear_before_ingest: True` in the application configuration.
-
-Access `http://<hostname>:8080` or `http://<hostname>:8080/test` from a browser.
-
-#### Testing with user simulation
-
-You can also test these applications with LLM-based user simulation.
-
-  English version:
-
-  ```sh
-$ dialbb-sim-tester --app_config sample_apps/rag_en/config.yml \
-  --test_config sample_apps/rag_en/simulation/config.yml
-  ```
-
-  Japanese version:
-
-  ```sh
-$ dialbb-sim-tester --app_config sample_apps/rag_ja/config.yml \
-  --test_config sample_apps/rag_ja/simulation/config.yml
-  ```
-
-### No-code Tool
-
-The following command invokes the English version of the no-code tool.
-
-```sh
-$ dialbb-nc en
-```
-
-### Uninstalling DialBB
-
-Do the following
-
-```sh
-$ dialbb-uninstall
-$ pip uninstall -y dialbb
-```
-
-## Requests, Questions, and Bug Reports
-
-Please feel free to send your requests, questions, and bug reports about DialBB to the following. Even if it is a trivial or vague question, feel free to send it.
-
-- Report bugs, point out missing documentation, etc.: [GitHub Issues](https://github.com/c4a-ri/dialbb/issues)
-
-- Long-term development policy, etc.: [GitHub Discussions](https://github.com/c4a-ri/dialbb/discussions)
-
-- Anything: email at `dialbb at c4a.jp`
-
-
-## Copyright
+DialBB は [Apache License 2.0](LICENSE) の下で公開されています。
 
 (c) C4A Research Institute, Inc.

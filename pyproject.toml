@@ -75,6 +75,9 @@ dependencies = [
     "oauthlib>=3.2.2",
     "openai>=2.32.0",
     "openpyxl>=3.1.5",
+    "opentelemetry-api>=1.30.0,<2",
+    "opentelemetry-sdk>=1.30.0,<2",
+    "opentelemetry-exporter-otlp-proto-http>=1.30.0,<2",
     "pandas>=2.2.3",
     "pillow>=12.0.0",
     "pyasn1>=0.6.1",
@@ -131,6 +134,7 @@ dialbb-nc = "dialbb.no_code.main:main"
 dialbb-server = "dialbb.server.run_server:main"
 dialbb-test = "dialbb.util.test:main"
 dialbb-send-test-requests = "dialbb.util.send_test_requests:main"
+dialbb-trace-report = "dialbb.util.trace_report:main"
 dialbb-uninstall = "dialbb.uninstall:main"
 dialbb-sim-tester = "dialbb.sim_tester.main:main"
 dialbb-mm-server = "dialbb.multimodal.server:main"
@@ -165,6 +169,5 @@ exclude = [
 [dependency-groups]
 dev = [
     "build>=1.5.0",
-    "pyaudio>=0.2.14",
     "twine>=6.2.0",
 ]

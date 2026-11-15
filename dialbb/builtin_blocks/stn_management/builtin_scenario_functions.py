@@ -23,6 +23,8 @@ __version__ = '0.1'
 __author__ = 'Mikio Nakano' 
 __copyright__ = 'C4A Research Institute, Inc.'
 
+from dialbb.util.telemetry import operation
+
 import traceback
 from typing import Dict, Any, List, Tuple
 import os
@@ -327,7 +329,8 @@ def chatgpt(prompt: str, context: Dict[str, Any], checking: bool = False) -> str
                         temperature=temperature,
                         timeout=LLM_TIMEOUT,
                     )
-            response = llm.invoke(llm_messages)
+            with operation("llm.invoke"):
+                response = llm.invoke(llm_messages)
             result = response.content if hasattr(response, "content") else str(response)
             if isinstance(result, list):
                 result = "".join(str(item) for item in result)
