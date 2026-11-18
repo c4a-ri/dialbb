@@ -508,7 +508,7 @@ The sample application [sample_apps/dst_stn_en/test_requests.json](c:/Users/naka
 (sim_tester)=
 ### Test Using a User Simulator
 
-DialBB includes a tester that uses an LLM-based user simulator.
+DialBB includes a tester that uses either a prompt-based LLM or another DialBB application as a user simulator. The tester calls the application under test directly; you do not need to start its server.
 
 #### Running the Sample
 
@@ -533,14 +533,14 @@ The following example uses the English LLM dialogue sample application.
 - To launch the tester from a Python program, use the following code.
 
   ```python
-  from dialbb.sim_tester.main import test_by_simulation
+  from dialbb.sim_tester.main import do_test
 
-  for _ in test_by_simulation(
+  for log in do_test(
       "llm_dialogue_en/simulation/config.yml",
       "llm_dialogue_en/config.yml",
       output_file="_output.txt",
   ):
-      pass
+      print(log, end="")
   ```
 
 #### Specifications
@@ -548,16 +548,22 @@ The following example uses the English LLM dialogue sample application.
 - Startup options
 
   ```sh
-  dialbb-sim-tester --app_config <DialBB application configuration file> --test_config <test configuration file> --output <output file>
+  dialbb-sim-tester --app_config <DialBB application configuration file> --test_config <test configuration file> --output <output file> [--json_output]
   ```
 
-- Test configuration file
+- `--app_config` and `--test_config` are required. `--output` is optional. Output files use text format unless `--json_output` is specified. To save a JSON file, also specify `--output`.
+
+#### Test Configuration for a Prompt-Based LLM
 
   A YAML file containing the following keys.
 
-  - `model` (string, required)
+  - `model` (string, optional, default `gpt-5.6-luna`)
 
-    Model specifier. Use the form `provider:model_name`, for example `google_genai:gemini-2.0-flash-001`. OpenAI GPT models such as `gpt-5.4-nano` may omit the `openai:` prefix.
+    Model specifier. Use the form `provider:model_name`, for example `google_genai:gemini-2.0-flash-001`. OpenAI GPT models such as `gpt-5.6-luna` may omit the `openai:` prefix. Set the API key in the environment variable required by the provider. For OpenAI, use `OPENAI_API_KEY`; the tester no longer automatically copies `OPENAI_KEY` to that variable.
+
+  - `language` (string, optional, default `en`)
+
+    Language of the simulator instructions and speaker labels in the dialogue history. Supported values are `en` and `ja`. Set `language: ja` for Japanese prompts.
 
   - `settings` (list of objects, required)
 
@@ -573,20 +579,80 @@ The following example uses the English LLM dialogue sample application.
 
   - `temperatures` (list of floats, optional)
 
-    A list of temperature values for the LLM. The default is `[0.7]`. A session is run for each combination of `settings` and `temperatures`.
+    A list of temperature values for the LLM. The default is `[0.7]`. A session is run for each combination of `settings` and `temperatures`. Temperature is not passed to GPT-5 models.
 
   - `max_turns` (integer, optional)
 
     The maximum number of turns per session. The default is `15`.
 
-- Function specification
+At each turn, the prompt template followed by the dialogue history as text is sent to the LLM as a user message. The system message contains shared framework instructions. A dialogue-history placeholder is not needed in the template. Set `DIALBB_TESTER_DEBUG=yes` to display the generated prompt as well.
 
-  - `dialbb.sim_tester.main.test_by_simulation(test_config_file: str, app_config_file: str, output_file: str = None, json_output: bool = False, prompt_params: Dict[str, str] = None)`
+```yaml
+model: gpt-5.6-luna
+language: en
+max_turns: 10
+settings:
+  - prompt_template: prompt_template1.txt
+    initial_aux_data: aux_data1.json
+temperatures:
+  - 0.7
+```
 
-    Parameters:
+#### Test Configuration for a DialBB Application Simulator
 
-    - `test_config_file`: Path to the test configuration file.
-    - `app_config_file`: Path to the DialBB application configuration file.
-    - `output_file`: File path for dialogue log output.
-    - `json_output`: Whether the output file should be JSON. If `False`, a text file is produced.
-    - `prompt_params`: Dictionary of values to embed in the prompt. If the prompt template contains `{<key>}`, it is replaced with `<value>`.
+Specify `configs` instead of `settings` to use another DialBB application as the user simulator. The simulator's `system_utterance` becomes the user utterance sent to the application under test, and the tested application's `system_utterance` becomes the user utterance sent to the simulator. The simulator can use any normal DialBB block configuration, including scenario-based blocks.
+
+- `configs` (list of strings, required): Paths to simulator application configuration files, relative to the test configuration file. One session runs for each configuration.
+- `max_turns` (integer, optional, default `15`): Maximum number of user utterances per session. A session also ends when the application under test returns `final: true`.
+- `start_by_simulator` (boolean, optional, default `false`): By default, the session starts with the tested application's initial utterance. With `true`, both applications are initialized, then the simulator's initial utterance is sent as the first user utterance to the application under test. The tested application's initial utterance is omitted from the dialogue log.
+
+```yaml
+max_turns: 10
+start_by_simulator: false
+configs:
+  - config1.yml
+  - config2.yml
+```
+
+Specify either `configs` or `settings`. LLM-specific test options such as `model`, `language`, and `temperatures` are not used in this mode. Configure models and prompts in each simulator application's configuration instead.
+
+The following example runs from the `sample_apps` directory. The supplied DialBB simulator sample is in the Japanese `llm_dialogue_ja/simulation_with_dialbb` directory.
+
+```sh
+dialbb-sim-tester --app_config llm_dialogue_ja/config.yml --test_config llm_dialogue_ja/simulation_with_dialbb/configs.yml --output _output.json --json_output
+```
+
+#### Result Format
+
+JSON output is an array of session objects. Each object's `dialogue` is an ordered list of utterances with `speaker` (`system` or `user`) and `utterance` fields. Prompt-based LLM sessions also record `prompt_template`, `temperature`, and `initial_aux_data`. DialBB simulator sessions record the simulator configuration path in `config`.
+
+```json
+[
+  {
+    "config": "llm_dialogue_ja/simulation_with_dialbb/config1.yml",
+    "dialogue": [
+      {"speaker": "system", "utterance": "Hello."},
+      {"speaker": "user", "utterance": "Hello. Let's talk."}
+    ]
+  }
+]
+```
+
+#### Calling the Tester from Python
+
+```python
+def do_test(
+    test_config_file: str,
+    app_config_file: str,
+    output_file: str | None = None,
+    json_output: bool = False,
+    prompt_params: dict[str, str] | None = None,
+) -> Generator[str, None, None]:
+    ...
+```
+
+Import `do_test` from `dialbb.sim_tester.main`. The test configuration path comes first, followed by the application configuration path. `output_file` specifies the destination, and `json_output` selects the file format (`False` means text). `prompt_params` applies only to prompt-based LLM simulation: each `{key}` in the template is replaced with the corresponding dictionary value.
+
+The return value is a generator yielding dialogue log strings. Calling the function alone does not run the test. Iterate through the generator to completion, as in the example above, to complete the test and save the output file. Even with JSON output selected, the generator yields log strings.
+
+In 2.1, `do_test` replaces `test_by_simulation`. Update imports, arguments, and generator iteration in programs using the old function.

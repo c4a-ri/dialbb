@@ -322,9 +322,9 @@ OpenAI社のChatGPTを用いて，ユーザ発話タイプ（インテントと�
 
       Goole Sheet APIにアクセスするためのキーファイルをコンフィギュレーションファイルのディレクトリからの相対パスで指定します．
 
-- `gpt_model` (文字列．デフォルト値は`gpt-5.4-nano`）
+- `gpt_model` (文字列．デフォルト値は`gpt-5.6-luna`）
 
-  ChatGPTのモデルを指定します．`gpt-4o`などが指定できます．
+  ChatGPTのモデルを指定します．
 
 - `prompt_template`
 
@@ -426,9 +426,9 @@ OpenAI社のChatGPTを用いて，固有表現の抽出を行います．
 
       Goole Sheet APIにアクセスするためのキーファイルをコンフィギュレーションファイルのディレクトリからの相対パスで指定します．
 
-- `gpt_model` (文字列．デフォルト値は`gpt-5.4-nano`）
+- `gpt_model` (文字列．デフォルト値は`gpt-5.6-luna`）
 
-  ChatGPTのモデルを指定します．`gpt-4o`などが指定できます．
+  ChatGPTのモデルを指定します．
 
 - `prompt_template`
 

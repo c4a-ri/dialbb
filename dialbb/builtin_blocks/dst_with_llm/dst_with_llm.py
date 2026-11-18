@@ -31,7 +31,7 @@ from typing import Any, Dict, List, Tuple
 
 import gspread
 import pandas as pd
-from langchain.chat_models import init_chat_model
+from dialbb.util.llm import init_chat_model
 from oauth2client.service_account import ServiceAccountCredentials
 from pandas import DataFrame
 
@@ -57,7 +57,7 @@ CONFIG_KEY_TEMPERATURE: str = "temperature"
 KEY_DIALOGUE_HISTORY: str = "dialogue_history"
 KEY_AUX_DATA: str = "aux_data"
 
-DEFAULT_LLM_MODEL: str = "gpt-5.4-nano"
+DEFAULT_LLM_MODEL: str = "gpt-5.6-luna"
 DEFAULT_TEMPERATURE: float = 0.0
 LLM_TIMEOUT: int = 10
 

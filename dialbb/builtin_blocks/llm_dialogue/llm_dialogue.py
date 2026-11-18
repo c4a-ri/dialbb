@@ -27,7 +27,7 @@ import sys
 import traceback
 import datetime
 from typing import Dict, Any, List, Union, Tuple
-from langchain.chat_models import init_chat_model
+from dialbb.util.llm import init_chat_model
 from dialbb.abstract_block import AbstractBlock
 from dialbb.builtin_blocks.util import extract_aux_data
 from dialbb.util.error_handlers import abort_during_building
@@ -39,7 +39,7 @@ DIALOGUE_HISTORY_OLD_TAG: str = '@dialogue_history'
 DIALOGUE_HISTORY_TAG: str = '{dialogue_history}'
 CURRENT_TIME_TAG: str = '{current_time}'
 DIALOGUE_UP_TO_NOW = {"ja": "現在までの対話", "en": "Dialogue up to now"}
-DEFAULT_LLM: str = "gpt-5.4-nano"
+DEFAULT_LLM: str = "gpt-5.6-luna"
 
 REMAINING_TAGS_PATTERN = re.compile(r"\[\[\[[^\]]*\{[A-Za-z0-9_]+\}[^\]]*\]\]\]", re.DOTALL)
 

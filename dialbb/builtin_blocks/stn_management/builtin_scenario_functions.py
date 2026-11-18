@@ -28,7 +28,7 @@ from typing import Dict, Any, List, Tuple
 import os
 import datetime
 import re
-from langchain.chat_models import init_chat_model
+from dialbb.util.llm import init_chat_model
 from langchain_core.messages import HumanMessage, SystemMessage
 from dialbb.builtin_blocks.stn_management.util import scenario_function_log_debug, scenario_function_log_warning
 
@@ -37,7 +37,7 @@ from dialbb.util.globals import CHATGPT_INSTRUCTIONS
 #  [[[....{<tag1>}....{<tag2>}....]]]
 REMAINING_TAGS_PATTERN = re.compile(r"\[\[\[[^\]]*\{[A-Za-z0-9_]+\}[^\]]*\]\]\]", re.DOTALL)
 
-DEFAULT_LLM = 'gpt-5.4-nano'
+DEFAULT_LLM = 'gpt-5.6-luna'
 LLM_TIMEOUT = 10
 
 if not os.environ.get('OPENAI_API_KEY') and os.environ.get('OPENAI_KEY'):
@@ -329,6 +329,8 @@ def chatgpt(prompt: str, context: Dict[str, Any], checking: bool = False) -> str
                     )
             response = llm.invoke(llm_messages)
             result = response.content if hasattr(response, "content") else str(response)
+            if type(result) != str:  # gemini-3.1-flash-lite
+                result = result[0]['text']
             if isinstance(result, list):
                 result = "".join(str(item) for item in result)
             return result
