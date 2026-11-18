@@ -250,32 +250,41 @@ The `dialogue_history` element of `blackboard` stores dialogue history in the fo
 ]
 ```
 
-### Shortening the History of an Interrupted System Utterance
+### Updating System Utterance History with the Spoken String
 
-On a subsequent turn, an optional `system_utterance_completion_ratio` request field shortens the most recent system utterance in history to its spoken prefix. For the class API, place this field at the top level of the request, outside `aux_data`.
+On a subsequent turn, an optional `aux_data.spoken_string` request field replaces the `utterance` of the most recent system turn in history with the supplied string. This allows history to reflect the part delivered to the user when audio playback is interrupted. For the class API, also place `spoken_string` inside the request's `aux_data`.
 
 ```json
 {
   "user_id": "user1",
   "session_id": "dialbb_session1",
   "user_utterance": "Please wait",
-  "system_utterance_completion_ratio": 0.4
+  "aux_data": {
+    "spoken_string": "one two three four"
+  }
 }
 ```
 
-The retained length is the original length multiplied by the ratio, rounded to the nearest integer with halves rounded up.
+For example, if the previous system utterance was `one two three four five six seven eight nine ten`, this request replaces it in history with `one two three four`.
 
-| Language setting | Unit | Example |
-| --- | --- | --- |
-| `language: ja` | Characters | `あいうえおかきくけこ` × 0.4 → `あいうえ` |
-| `language: en` | Words separated by whitespace | `one two three four five six seven eight nine ten` × 0.4 → `one two three four` |
+- The value must be a string. An empty string `""` replaces the last system turn's `utterance` with an empty string. Missing or non-string values leave history unchanged.
+- Replacement applies regardless of the `barge_in` flag. If there is no system turn in history, nothing changes.
+- The update happens before the current user utterance is appended, so blocks receive the updated `dialogue_history`. This applies to both in-memory history and external database storage.
+- The DialBB main processor uses the supplied string as is. The multimodal layer calculates the spoken prefix from the playback position.
 
-For example, 5 characters or words multiplied by 0.5 retains the first 3. The default language is `en`; values other than `en` use character counts.
+The standard multimodal clients attach the position captured when playback stops to `send_audio_chunk.playback_position` in the next user audio submission.
 
-- The ratio must be a number from 0 to 1 inclusive. A ratio of 0 leaves an empty string; 1 keeps the full utterance. Missing values, invalid types, out-of-range values, NaN, and infinity leave history unchanged.
-- Shortening applies regardless of the `barge_in` flag. If there is no system utterance in history, nothing changes.
-- The update happens before the current user utterance is appended, so blocks receive the shortened `dialogue_history`. This applies to both in-memory history and external database storage.
-- With the multimodal server, clients send `send_audio_chunk.aux_data.system_utterance_completion_ratio`. The server forwards it with the user utterance as a top-level DialBB request field. The ratio must arrive before the corresponding utterance request is constructed.
+```json
+"playback_position": {
+  "utterance_id": 1,
+  "completed_units": 2.5,
+  "segment_count": 5
+}
+```
+
+`completed_units` is the number of completed segments plus the fraction played within the active segment. This example represents playback halfway through the third of five segments. The server checks the utterance ID and segment count, calculates the spoken prefix, and sends it to DialBB as `aux_data.spoken_string` alongside the recognized user utterance. The playback position must arrive before the corresponding user utterance request is constructed. Custom clients can also supply `send_audio_chunk.aux_data.spoken_string` directly.
+
+The multimodal calculation multiplies the original character count for Japanese, or whitespace-separated word count for English, by the playback fraction and rounds to the nearest integer with halves rounded up. For example, playback halfway through five characters or words retains the first three. Each segment has equal weight, so this is an estimate of the portion actually heard.
 
 (context_db)=
 ### Storing Dialogue History in an External Database
