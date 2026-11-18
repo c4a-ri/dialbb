@@ -25,6 +25,7 @@ import yaml
 
 from dialbb.util.logger import configure_dialbb_logging, get_logger
 
+from .playback import get_spoken_string
 from .core import DialogueEvent
 from .engine import DialogueEngineManager, Settings
 from .main.messages import RecognitionEvent, RecognitionEventType
@@ -357,8 +358,23 @@ def create_app(
                     logger.info("[WEBSOCKET] TTS cancel requested: session=%s", session_id)
                 elif action == "send_audio_chunk":
                     audio_b64 = str(payload.get("audio_data") or "")
-                    aux_data = payload.get("aux_data")
-                    if isinstance(aux_data, dict) and aux_data:
+                    supplied_aux_data = payload.get("aux_data")
+                    aux_data = dict(supplied_aux_data) if isinstance(supplied_aux_data, dict) else {}
+                    position = payload.get("playback_position")
+                    if isinstance(position, dict):
+                        with session.tts_state_lock:
+                            if (position.get("utterance_id") == session.current_tts_utterance_id
+                                    and session.current_tts_utterance_id > 0
+                                    and position.get("segment_count") == session.current_tts_total_segments):
+                                spoken_string = get_spoken_string(
+                                    session.current_tts_text,
+                                    settings.language_code,
+                                    position.get("completed_units"),
+                                    session.current_tts_total_segments,
+                                )
+                                if spoken_string is not None:
+                                    aux_data["spoken_string"] = spoken_string
+                    if aux_data:
                         _session = engine_manager.get_session(session_id)
                         if _session is not None:
                             _session.stt_event_queue.put(

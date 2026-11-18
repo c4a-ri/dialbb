@@ -44,7 +44,7 @@ Google Cloud Speech-to-Text と Google Cloud Text-to-Speech を利用するた�
 - システム発話中に STT の中間認識または確定認識が入ると、Core engine は TTS 停止を要求します。
 - サーバは `stop_audio` イベントをクライアントへ送り、再生停止を促します。
 - 割り込み時の最終認識結果には `aux_data` として `barge_in: true` が DialBB に渡されます。
-- `examples/client_example.html` は直前のシステム発話について、どの程度再生済みだったかを `system_utterance_completion_ratio` として `send_audio_chunk.aux_data` に自動付与します。
+- クライアントは停止時の再生位置を `send_audio_chunk.playback_position` に自動付与します。サーバは再生済み部分を計算し、`aux_data.spoken_string` としてDialBBへ渡します。
 
 ### 無音タイムアウト
 
@@ -152,12 +152,24 @@ multimodal:
   "action": "send_audio_chunk",
   "audio_data": "<base64 encoded PCM16>",
   "aux_data": {
-    "system_utterance_completion_ratio": 0.6
+    "spoken_string": "こんにちは"
   }
 }
 ```
 
-`aux_data.system_utterance_completion_ratio` は任意です。値域は `0.0` から `1.0` で、直前のシステム発話がどこまで再生されたかを表します。クライアント実装によっては他の `aux_data` と併用できます。
+`aux_data.spoken_string` は任意です。直前のシステム発話の再生済み部分文字列を指定すると、DialBBは履歴内の最後のシステム発話をその文字列で置き換えます。空文字列は未再生を表します。他の `aux_data` と併用できます。
+
+標準クライアントは `aux_data.spoken_string` を直接計算せず、`playback_position` を送信します。
+
+```json
+"playback_position": {
+  "utterance_id": 1,
+  "completed_units": 2.5,
+  "segment_count": 5
+}
+```
+
+`completed_units` は再生完了セグメント数に再生中セグメントの経過割合を足した値です。この例は5セグメント中、3つ目の半分まで再生した状態です。サーバは発話IDとセグメント数を確認し、日本語では文字数、英語では単語数を基準に四捨五入して部分文字列を求めます。各セグメントを等しい重みで扱う概算です。
 
 ### 再生割合による対話履歴の短縮
 
@@ -209,7 +221,7 @@ dialbb-mm-server <config_file> --host 0.0.0.0 --port 5000
 4. **マイク開始** を押し、ブラウザのマイク利用を許可して発話します。
 5. 終了時は **対話終了**、**切断** の順に押します。
 
-このクライアントは、受信イベントとエラーを画面で確認する API デバッグ向けです。ユーザ音声送信時には、直前のシステム発話の再生進捗を `system_utterance_completion_ratio` として自動送信します。
+このクライアントは、受信イベントとエラーを画面で確認する API デバッグ向けです。ユーザ音声送信時には、直前のシステム発話の停止位置を `playback_position` として自動送信します。サーバが再生済み部分を計算し、`aux_data.spoken_string` としてDialBBへ渡します。
 
 ### Python クライアント: `examples/client_example.py`
 

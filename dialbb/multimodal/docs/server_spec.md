@@ -333,7 +333,7 @@ dialbb-mm-server <config_file> [--host HOST] [--port PORT] [--debug] [--audio_lo
   "action": "send_audio_chunk",
   "audio_data": "<base64>",
   "aux_data": {
-    "system_utterance_completion_ratio": 0.6
+    "spoken_string": "こんにちは"
   }
 }
 ```
@@ -347,7 +347,9 @@ dialbb-mm-server <config_file> [--host HOST] [--port PORT] [--debug] [--audio_lo
 
 `aux_data` の例:
 
-- `system_utterance_completion_ratio`: `0.0` から `1.0` の数値。直前のシステム発話の再生完了率
+- `spoken_string`: 直前のシステム発話の再生済み部分文字列。DialBBは履歴内の最後のシステム発話を置き換える。空文字列は未再生を表す
+
+標準クライアントは `send_audio_chunk.playback_position` に `utterance_id`、`completed_units`（再生済みセグメント数＋再生中セグメントの経過割合）、`segment_count` を付与する。サーバは発話IDとセグメント数を確認し、日本語は文字数、英語は単語数を基準に四捨五入して `aux_data.spoken_string` を計算する。
 
 DialBB worker はこの値をユーザ発話とともに DialBB リクエストのトップレベルへ展開する。`dialbb.main.DialogueProcessor` は、現在のユーザ発話を履歴に追加する前に、最後のシステム発話を指定割合の長さに短縮する。各ブロックには短縮後の `dialogue_history` が渡される。
 

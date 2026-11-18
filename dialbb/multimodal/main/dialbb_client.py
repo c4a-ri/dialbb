@@ -142,9 +142,13 @@ def run_dialbb_worker(
                 "user_id": user_id,
                 "user_utterance": request.user_text,
             }
-            # aux_data があればマージする（例： barge_in=True）。
+            # 既存のトップレベル項目（barge_in等）を維持し、追加情報はaux_dataにも渡す。
             if request.aux_data:
-                dialbb_request.update(request.aux_data)
+                dialbb_request.update({
+                    key: value for key, value in request.aux_data.items()
+                    if key != "spoken_string"
+                })
+                dialbb_request["aux_data"] = dict(request.aux_data)
                 logger.debug("[Dialbb] aux_data=%s", request.aux_data)
             # DialBB に問い合わせて応答を得る。
             dialbb_response = dialogue_processor.process(dialbb_request)

@@ -19,8 +19,6 @@ interface ChatMessage {
   text: string
 }
 
-const SYSTEM_UTTERANCE_COMPLETION_RATIO_KEY = 'system_utterance_completion_ratio'
-
 const MIC_VISUAL_BOOST = 2.6
 const TTS_VISUAL_BOOST = 1.0
 const BASE_WAVE_FLOOR = 0.03
@@ -76,7 +74,7 @@ const playbackQueue: AudioPayload[] = []
 let playbackDraining = false
 let playbackGeneration = 0
 let stoppedUtteranceId = 0
-let pendingInterruptedAuxData: Record<string, number> | null = null
+let pendingPlaybackPosition: Record<string, number> | null = null
 const ttsProgressState = {
   utteranceId: 0,
   segmentCount: 0,
@@ -241,7 +239,7 @@ function ensureTtsProgressUtterance(utteranceId: number): void {
   }
 }
 
-function getSystemUtteranceCompletionRatio(): number | null {
+function getSystemUtterancePlaybackPosition(): number | null {
   if (!ttsContext || !ttsProgressState.utteranceId || ttsProgressState.segmentCount <= 0) {
     return null
   }
@@ -258,24 +256,26 @@ function getSystemUtteranceCompletionRatio(): number | null {
     )
   }
 
-  return Math.min(1, Math.max(0, completedUnits / ttsProgressState.segmentCount))
+  return Math.min(ttsProgressState.segmentCount, Math.max(0, completedUnits))
 }
 
-function rememberInterruptedSystemUtteranceRatio(reason: string): void {
+function rememberInterruptedSystemUtterancePosition(reason: string): void {
   if (reason !== 'cancel') {
     return
   }
-  const ratio = getSystemUtteranceCompletionRatio()
-  if (ratio !== null) {
-    pendingInterruptedAuxData = {
-      [SYSTEM_UTTERANCE_COMPLETION_RATIO_KEY]: Number(ratio.toFixed(3))
+  const position = getSystemUtterancePlaybackPosition()
+  if (position !== null) {
+    pendingPlaybackPosition = {
+      utterance_id: ttsProgressState.utteranceId,
+      completed_units: position,
+      segment_count: ttsProgressState.segmentCount
     }
   }
 }
 
-function consumeInterruptedAudioChunkAuxData(): Record<string, number> | null {
-  const auxData = pendingInterruptedAuxData
-  pendingInterruptedAuxData = null
+function consumeInterruptedPlaybackPosition(): Record<string, number> | null {
+  const auxData = pendingPlaybackPosition
+  pendingPlaybackPosition = null
   return auxData
 }
 
@@ -287,7 +287,7 @@ function enqueueAudio(payload: AudioPayload): void {
 }
 
 function stopPlayback(reason: string, utteranceId: number): void {
-  rememberInterruptedSystemUtteranceRatio(reason)
+  rememberInterruptedSystemUtterancePosition(reason)
   playbackGeneration += 1
   stoppedUtteranceId = Math.max(stoppedUtteranceId, utteranceId)
   playbackQueue.length = 0
@@ -416,7 +416,7 @@ function setupSocketHandlers(ws: WebSocket): void {
     if (message.event === 'system_message') {
       const payload = message.payload || {}
       resetTtsProgressState(Number(payload.utterance_id || 0))
-      pendingInterruptedAuxData = null
+      pendingPlaybackPosition = null
       pushChatMessage('system', String(payload.text || ''))
       return
     }
@@ -526,9 +526,9 @@ async function startMicrophone(): Promise<void> {
       action: 'send_audio_chunk',
       audio_data: float32ToBase64Pcm16(pcm16k)
     }
-    const auxData = consumeInterruptedAudioChunkAuxData()
+    const auxData = consumeInterruptedPlaybackPosition()
     if (auxData) {
-      payload.aux_data = auxData
+      payload.playback_position = auxData
     }
     sendSocketMessage(payload)
   }

@@ -24,8 +24,6 @@ __copyright__ = 'C4A Research Institute, Inc.'
 
 import copy
 import dataclasses
-from decimal import Decimal, ROUND_HALF_UP
-import re
 import time
 from pathlib import Path
 from typing import Dict, Any, List
@@ -174,28 +172,6 @@ class DialogueProcessor:
             history: List[Dict[str, Any]] = self._sessions2histories.get(session_id)
         return history
 
-    def _shorten_last_system_utterance(self, history: List[Dict[str, Any]], ratio: Any) -> None:
-        """Keep only the spoken prefix of the most recent system utterance."""
-        if isinstance(ratio, bool) or not isinstance(ratio, (int, float)) or not 0 <= ratio <= 1:
-            return
-        if ratio == 1:
-            return
-        for turn in reversed(history):
-            if turn.get('speaker') != 'system':
-                continue
-            utterance = turn['utterance']
-            words = list(re.finditer(r'\S+', utterance)) if self._language == 'en' else None
-            length = len(words) if words is not None else len(utterance)
-            # Decimal avoids binary float errors at half-way rounding boundaries.
-            kept = int((Decimal(length) * Decimal(str(ratio))).quantize(Decimal('1'), rounding=ROUND_HALF_UP))
-            if words is not None:
-                end = words[kept - 1].end() if kept else 0
-            else:
-                end = kept
-            turn['utterance'] = utterance[:end]
-            return
-
-
     @classmethod
     def get_config(cls):
         return cls.config
@@ -241,9 +217,12 @@ class DialogueProcessor:
             session_id = blackboard[KEY_SESSION_ID]  # session id received from the client
             self._log_info(f"existing session continues.", session_id=session_id)
             history = self._get_history(session_id)
-            if 'system_utterance_completion_ratio' in blackboard:
-                self._shorten_last_system_utterance(
-                    history, blackboard['system_utterance_completion_ratio'])
+            aux_data = blackboard.get('aux_data')
+            if isinstance(aux_data, dict) and isinstance(aux_data.get('spoken_string'), str):
+                for turn in reversed(history):
+                    if turn.get('speaker') == 'system':
+                        turn['utterance'] = aux_data['spoken_string']
+                        break
         self._log_debug(f"blackboard: " + str(blackboard), session_id=session_id)
 
         history.append({"speaker": "user",

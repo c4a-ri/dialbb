@@ -25,7 +25,6 @@ AUX_DATA_DEBUG = {
     "debug": True,
     "source": "client_example.py",
 }
-SYSTEM_UTTERANCE_COMPLETION_RATIO_KEY = "system_utterance_completion_ratio"
 
 running = True
 
@@ -41,7 +40,7 @@ class PlaybackState:
     active_segment_index: int = 0
     active_segment_pcm_bytes: int = 0
     active_segment_bytes_played: int = 0
-    pending_interrupted_aux_data: dict[str, float] | None = None
+    pending_playback_position: dict[str, int | float] | None = None
     progress_lock: threading.Lock = field(default_factory=threading.Lock)
 
 
@@ -53,7 +52,7 @@ def reset_tts_progress_state(playback_state: PlaybackState, utterance_id: int = 
         playback_state.active_segment_index = 0
         playback_state.active_segment_pcm_bytes = 0
         playback_state.active_segment_bytes_played = 0
-        playback_state.pending_interrupted_aux_data = None
+        playback_state.pending_playback_position = None
 
 
 def ensure_tts_progress_utterance(playback_state: PlaybackState, utterance_id: int) -> None:
@@ -68,7 +67,7 @@ def ensure_tts_progress_utterance(playback_state: PlaybackState, utterance_id: i
             playback_state.active_segment_index = 0
             playback_state.active_segment_pcm_bytes = 0
             playback_state.active_segment_bytes_played = 0
-            playback_state.pending_interrupted_aux_data = None
+            playback_state.pending_playback_position = None
 
 
 def register_tts_segment_start(
@@ -111,14 +110,14 @@ def mark_tts_segment_completed(
         playback_state.active_segment_bytes_played = 0
 
 
-def consume_pending_interrupted_aux_data(playback_state: PlaybackState) -> dict[str, float]:
+def consume_pending_playback_position(playback_state: PlaybackState) -> dict[str, int | float]:
     with playback_state.progress_lock:
-        pending_aux_data = dict(playback_state.pending_interrupted_aux_data or {})
-        playback_state.pending_interrupted_aux_data = None
+        pending_aux_data = dict(playback_state.pending_playback_position or {})
+        playback_state.pending_playback_position = None
         return pending_aux_data
 
 
-def remember_interrupted_system_utterance_ratio(
+def remember_interrupted_system_utterance_position(
     playback_state: PlaybackState,
     reason: str,
 ) -> None:
@@ -126,7 +125,7 @@ def remember_interrupted_system_utterance_ratio(
         return
 
     with playback_state.progress_lock:
-        if playback_state.pending_interrupted_aux_data is not None:
+        if playback_state.pending_playback_position is not None:
             return
         if not playback_state.current_utterance_id or playback_state.segment_count <= 0:
             return
@@ -142,14 +141,15 @@ def remember_interrupted_system_utterance_ratio(
                 (playback_state.active_segment_index - 1) + active_progress,
             )
 
-        ratio = min(1.0, max(0.0, completed_units / playback_state.segment_count))
-        playback_state.pending_interrupted_aux_data = {
-            SYSTEM_UTTERANCE_COMPLETION_RATIO_KEY: round(ratio, 3),
+        playback_state.pending_playback_position = {
+            "utterance_id": playback_state.current_utterance_id,
+            "completed_units": min(playback_state.segment_count, max(0.0, completed_units)),
+            "segment_count": playback_state.segment_count,
         }
 
 
 def request_playback_stop(playback_state: PlaybackState, reason: str, utterance_id: int = 0) -> None:
-    remember_interrupted_system_utterance_ratio(playback_state, reason or "cancel")
+    remember_interrupted_system_utterance_position(playback_state, reason or "cancel")
     playback_state.generation += 1
     playback_state.stop_reason = reason or "cancel"
     playback_state.stopped_utterance_id = max(playback_state.stopped_utterance_id, utterance_id)
@@ -250,13 +250,15 @@ async def send_microphone(websocket, send_lock, mic, playback_state):
     while running:
         pcm = mic.read(CHUNK, exception_on_overflow=False)
         aux_data = dict(AUX_DATA_DEBUG)
-        aux_data.update(consume_pending_interrupted_aux_data(playback_state))
+        playback_position = consume_pending_playback_position(playback_state)
 
         message = {
             "action": "send_audio_chunk",
             "audio_data": base64.b64encode(pcm).decode("utf-8"),
             "aux_data": aux_data,
         }
+        if playback_position:
+            message["playback_position"] = playback_position
         await safe_send(websocket, send_lock, message)
         await asyncio.sleep(0)
 

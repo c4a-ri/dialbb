@@ -507,7 +507,7 @@ class CoreDialogueEngine:
 
         elif stt_event.event_type == RecognitionEventType.AUX_DATA:
             pending_aux_data = stt_event.raw if isinstance(stt_event.raw, dict) else {}
-            self._pending_user_aux_data = dict(pending_aux_data)
+            self._pending_user_aux_data.update(pending_aux_data)
             logger.debug("[CORE] pending user aux_data=%s", self._pending_user_aux_data)
 
         elif stt_event.event_type == RecognitionEventType.ERROR:

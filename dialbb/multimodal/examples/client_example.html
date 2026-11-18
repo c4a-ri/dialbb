@@ -293,7 +293,7 @@
 
                 if (message.event === 'system_message') {
                     resetTtsProgressState(message.payload.utterance_id || 0);
-                    pendingInterruptedAuxData = null;
+                    pendingPlaybackPosition = null;
                     log(`🗣️ システム発話開始 (utterance=${message.payload.utterance_id})`);
                 } else if (message.event === 'audio_data') {
                     // TTS 音声データを受信して再生キューに追加
@@ -359,12 +359,9 @@
 
             let auxData = readAuxData();
             if (auxData === null) return null;
-            if (pendingInterruptedAuxData) {
-                auxData = {
-                    ...auxData,
-                    ...pendingInterruptedAuxData,
-                };
-                pendingInterruptedAuxData = null;
+            if (pendingPlaybackPosition) {
+                payload.playback_position = pendingPlaybackPosition;
+                pendingPlaybackPosition = null;
             }
             if (Object.keys(auxData).length > 0) {
                 payload.aux_data = auxData;
@@ -535,8 +532,7 @@
         const ttsActiveSources = new Set();
         const TTS_SCHEDULE_HEADROOM_SECONDS = 0.12;
         const ttsCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const SYSTEM_UTTERANCE_COMPLETION_RATIO_KEY = 'system_utterance_completion_ratio';
-        let pendingInterruptedAuxData = null;
+        let pendingPlaybackPosition = null;
         const ttsProgressState = {
             utteranceId: 0,
             segmentCount: 0,
@@ -562,7 +558,7 @@
             }
         }
 
-        function getSystemUtteranceCompletionRatio() {
+        function getSystemUtterancePlaybackPosition() {
             if (!ttsProgressState.utteranceId || ttsProgressState.segmentCount <= 0) {
                 return null;
             }
@@ -586,15 +582,17 @@
                 );
             }
 
-            return Math.min(1, Math.max(0, completedUnits / ttsProgressState.segmentCount));
+            return Math.min(ttsProgressState.segmentCount, Math.max(0, completedUnits));
         }
 
-        function rememberInterruptedSystemUtteranceRatio(reason) {
+        function rememberInterruptedSystemUtterancePosition(reason) {
             if (reason !== 'cancel') return;
-            const ratio = getSystemUtteranceCompletionRatio();
-            if (ratio === null) return;
-            pendingInterruptedAuxData = {
-                [SYSTEM_UTTERANCE_COMPLETION_RATIO_KEY]: Number(ratio.toFixed(3)),
+            const position = getSystemUtterancePlaybackPosition();
+            if (position === null) return;
+            pendingPlaybackPosition = {
+                utterance_id: ttsProgressState.utteranceId,
+                completed_units: position,
+                segment_count: ttsProgressState.segmentCount,
             };
         }
 
@@ -612,7 +610,7 @@
         }
 
         function stopTtsPlayback(reason = 'cancel') {
-            rememberInterruptedSystemUtteranceRatio(reason);
+            rememberInterruptedSystemUtterancePosition(reason);
             ttsPlaybackGeneration += 1;
             ttsQueue.length = 0;
             ttsNextStartTime = 0;

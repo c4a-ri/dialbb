@@ -166,14 +166,15 @@ multimodal:
   "action": "send_audio_chunk",
   "audio_data": "<base64 encoded PCM16>",
   "aux_data": {
-    "system_utterance_completion_ratio": 0.6
+    "spoken_string": "こんにちは"
   }
 }
 ```
 
 - `audio_data`: base64 の音声データ
 - `aux_data`: 任意。直後の STT 結果に紐づける追加情報
-- `aux_data.system_utterance_completion_ratio`: 任意。`0.0` から `1.0` の数値で、直前のシステム発話の再生完了率を表す
+- `aux_data.spoken_string`: 任意。直前のシステム発話の再生済み部分文字列。DialBBは履歴内の最後のシステム発話を置き換える。空文字列は未再生を表す
+- `playback_position`: 任意。`utterance_id`、`completed_units`（再生済みセグメント数＋再生中セグメントの経過割合）、`segment_count` を含む。サーバが `aux_data.spoken_string` に変換する
 
 補足:
 
