@@ -29,7 +29,7 @@ from pathlib import Path
 from typing import Dict, Any, List
 import importlib
 import yaml
-import io, sys
+import sys
 import hashlib
 import os
 from dotenv import load_dotenv
@@ -38,7 +38,7 @@ from dialbb.util.context_db import ContextDB
 from dialbb.util.globals import DEBUG
 from dialbb.abstract_block import AbstractBlock
 from dialbb.util.error_handlers import abort_during_building
-from dialbb.util.logger import get_logger
+from dialbb.util.logger import configure_dialbb_logging, get_logger
 
 
 ANY_FLAG: str = "Any"
@@ -50,8 +50,11 @@ KEY_BLOCK_CLASS: str = 'block_class'
 KEY_HISTORY: str = 'history'
 CONFIG_DIR: str = ""
 
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+# Preserve the existing streams and flush each line, including in the MM server.
+# Embedded callers may supply streams without reconfigure() (e.g. StringIO).
+for _stream in (sys.stdout, sys.stderr):
+    if callable(getattr(_stream, "reconfigure", None)):
+        _stream.reconfigure(encoding='utf-8', line_buffering=True)
 
 
 @dataclasses.dataclass
@@ -90,6 +93,7 @@ class DialogueProcessor:
 
         env_path = Path.cwd() / ".env"
         load_dotenv(env_path)
+        configure_dialbb_logging()
 
         # print("cwd:", Path.cwd())
         # print("find_dotenv:", find_dotenv())
@@ -112,6 +116,7 @@ class DialogueProcessor:
             raise abort_during_building(f"can't read config file: {config_file}. " + str(e))
         if additional_config:
             config.update(additional_config)
+        self._language = config.get(CONFIG_KEY_LANGUAGE, 'en')
 
         # add directory of config file to PYTHONPATH
         # configファイルのディレクトリをPYTHONPATHに入れる
@@ -167,7 +172,6 @@ class DialogueProcessor:
             history: List[Dict[str, Any]] = self._sessions2histories.get(session_id)
         return history
 
-
     @classmethod
     def get_config(cls):
         return cls.config
@@ -213,6 +217,12 @@ class DialogueProcessor:
             session_id = blackboard[KEY_SESSION_ID]  # session id received from the client
             self._log_info(f"existing session continues.", session_id=session_id)
             history = self._get_history(session_id)
+            aux_data = blackboard.get('aux_data')
+            if isinstance(aux_data, dict) and isinstance(aux_data.get('spoken_string'), str):
+                for turn in reversed(history):
+                    if turn.get('speaker') == 'system':
+                        turn['utterance'] = aux_data['spoken_string']
+                        break
         self._log_debug(f"blackboard: " + str(blackboard), session_id=session_id)
 
         history.append({"speaker": "user",

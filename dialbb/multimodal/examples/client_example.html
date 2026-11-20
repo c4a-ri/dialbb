@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mm_client WebSocket Client (FastAPI)</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        h1 {
+            margin-top: 0;
+            color: #333;
+        }
+        .session-setup {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        input[type="text"], input[type="url"] {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        button {
+            padding: 8px 16px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .status {
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+        .status.connected {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.connecting {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .chat-area {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            height: 300px;
+            overflow-y: auto;
+            padding: 12px;
+            margin-bottom: 12px;
+            font-size: 13px;
+            font-family: "Courier New", monospace;
+        }
+        .message {
+            margin-bottom: 8px;
+            padding: 8px;
+            border-radius: 4px;
+        }
+        .message.system {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        .message.error {
+            background: #ffebee;
+            color: #c62828;
+        }
+        .buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .buttons button {
+            flex: 1;
+        }
+        .info {
+            background: #f0f0f0;
+            padding: 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #666;
+            margin-top: 12px;
+        }
+        .mic-controls {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            align-items: center;
+        }
+        .mic-status {
+            font-size: 13px;
+            color: #555;
+            padding: 4px 8px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            flex: 1;
+        }
+        #micBtn.active {
+            background: #dc3545;
+        }
+        #micBtn.active:hover {
+            background: #a71d2a;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>mm_client WebSocket Client</h1>
+        <p>FastAPI サーバとのリアルタイム対話デモ</p>
+        
+        <div class="session-setup">
+            <input type="text" id="sessionId" placeholder="Session ID (or auto-create)" value="">
+            <input type="url" id="serverUrl" placeholder="ws://localhost:5000" value="ws://localhost:5000">
+            <button id="createBtn" onclick="createSession()">作成</button>
+            <button id="connectBtn" onclick="connect()" disabled>接続</button>
+        </div>
+        
+        <div id="status" class="status disconnected">状態: 未接続</div>
+        
+        <div class="chat-area" id="chatArea"></div>
+        
+        <div class="buttons">
+            <button id="startBtn" onclick="startDialogue()" disabled>対話開始</button>
+            <button id="endBtn" onclick="endDialogue()" disabled>対話終了</button>
+            <button id="closeBtn" onclick="closeConnection()" disabled>切断</button>
+        </div>
+
+        <div class="mic-controls">
+            <button id="micBtn" onclick="toggleMic()" disabled>🎤 マイク開始</button>
+            <span class="mic-status" id="micStatus">マイク 停止中</span>
+        </div>
+
+        <!-- ローカル環境の音声ファイルを選択して、sendAudioFile()へ渡す -->
+        <div class="buttons">
+            <input type="file" id="audioFileInput" accept="audio/*">
+            <button id="sendAudioFileBtn" onclick="sendAudioFile()" disabled>音声ファイル送信</button>
+        </div>
+
+        <!-- aux_dataの送信 -->
+        <div class="aux-controls">
+        <textarea id="auxDataInput">{"emotion": "happy", "mode": "test"}</textarea>
+        <label>
+            <input type="checkbox" id="sendAuxDataCheck">
+            送信有
+        </label>
+        </div>
+
+        <div class="info">
+            <strong>使用方法:</strong><br>
+            1. 「作成」でセッション ID を生成するか、既存の ID を入力<br>
+            2. 「接続」で WebSocket サーバに接続<br>
+            3. 「対話開始」で会話を開始<br>
+            4. 「マイク開始」で音声を送信し、サーバからの音声応答を再生
+        </div>
+    </div>
+
+    <script>
+        let socket = null;
+        let sessionId = '';
+
+        function normalizeServerUrl(rawUrl) {
+            const input = (rawUrl || '').trim();
+            if (!input) {
+                return new URL('http://localhost:5000');
+            }
+            if (/^[a-zA-Z][a-zA-Z\d+.-]*:\/\//.test(input)) {
+                return new URL(input);
+            }
+            return new URL(`http://${input}`);
+        }
+
+        function toHttpBaseUrl(rawUrl) {
+            const url = normalizeServerUrl(rawUrl);
+            if (url.protocol === 'ws:') {
+                url.protocol = 'http:';
+            } else if (url.protocol === 'wss:') {
+                url.protocol = 'https:';
+            }
+            return url.origin;
+        }
+
+        function toWsBaseUrl(rawUrl) {
+            const url = normalizeServerUrl(rawUrl);
+            if (url.protocol === 'http:') {
+                url.protocol = 'ws:';
+            } else if (url.protocol === 'https:') {
+                url.protocol = 'wss:';
+            }
+            return url.origin;
+        }
+
+        function log(message, type = 'system') {
+            const chatArea = document.getElementById('chatArea');
+            const msg = document.createElement('div');
+            msg.className = `message ${type}`;
+            msg.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            chatArea.appendChild(msg);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        function updateStatus(connected) {
+            const status = document.getElementById('status');
+            if (connected) {
+                status.className = 'status connected';
+                status.textContent = `✓ 接続済み (Session: ${sessionId})`;
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('closeBtn').disabled = false;
+                document.getElementById('connectBtn').disabled = true;
+                document.getElementById('micBtn').disabled = false;
+                document.getElementById('sendAudioFileBtn').disabled = false;
+            } else {
+                status.className = 'status disconnected';
+                status.textContent = '✗ 未接続';
+                document.getElementById('startBtn').disabled = true;
+                document.getElementById('endBtn').disabled = true;
+                document.getElementById('closeBtn').disabled = true;
+                document.getElementById('connectBtn').disabled = true;
+                document.getElementById('micBtn').disabled = true;
+                document.getElementById('sendAudioFileBtn').disabled = true;
+                stopMic();
+            }
+        }
+
+        async function createSession() {
+            const serverUrl = document.getElementById('serverUrl').value;
+            const httpBaseUrl = toHttpBaseUrl(serverUrl);
+            try {
+                const resp = await fetch(`${httpBaseUrl}/sessions`, { method: 'POST' });
+                const data = await resp.json();
+                sessionId = data.session_id;
+                document.getElementById('sessionId').value = sessionId;
+                document.getElementById('connectBtn').disabled = false;
+                log(`✓ Session created: ${sessionId}`);
+            } catch (error) {
+                log(`✗ Failed to create session: ${error.message}`, 'error');
+            }
+        }
+
+        function connect() {
+            sessionId = document.getElementById('sessionId').value.trim();
+            if (!sessionId) {
+                log('✗ Session ID is required', 'error');
+                return;
+            }
+
+            const serverUrl = document.getElementById('serverUrl').value;
+            const wsBaseUrl = toWsBaseUrl(serverUrl);
+            const wsUrl = `${wsBaseUrl}/dialogue/ws/${sessionId}`;
+
+            log(`Connecting to ${wsUrl}...`);
+            document.getElementById('status').className = 'status connecting';
+            document.getElementById('status').textContent = '⏳ 接続中...';
+
+            socket = new WebSocket(wsUrl);
+
+            socket.onopen = () => {
+                log('✓ WebSocket connected');
+                updateStatus(true);
+            };
+
+            socket.onmessage = (event) => {
+                const message = JSON.parse(event.data);
+
+                if (message.event === 'system_message') {
+                    resetTtsProgressState(message.payload.utterance_id || 0);
+                    pendingPlaybackPosition = null;
+                    log(`🗣️ システム発話開始 (utterance=${message.payload.utterance_id})`);
+                } else if (message.event === 'audio_data') {
+                    // TTS 音声データを受信して再生キューに追加
+                    enqueueAudio(
+                        message.payload.audio,
+                        message.payload.format,
+                        message.payload.utterance_id,
+                        message.payload.segment_index,
+                        message.payload.segment_count,
+                    );
+                    log(`🔊 音声データ受信 (${message.payload.segment_index}/${message.payload.segment_count})`);
+                    log(`🔊 音声データ受信 (utterance=${message.payload.utterance_id})`);
+                    log(`★ aux_data: ${JSON.stringify(message.payload.aux_data)}`);
+                } else if (message.event === 'stop_audio') {
+                    stopTtsPlayback(message.payload.reason || 'cancel');
+                } else if (message.event === 'joined_session') {
+                    log(`✓ Joined session: ${message.payload.session_id}`);
+                } else if (message.event === 'error') {
+                    log(`✗ Error: ${message.payload.message}`, 'error');
+                } else {
+                    log(`Event: ${message.event}`, 'system');
+                }
+            };
+
+            socket.onerror = (error) => {
+                log(`✗ WebSocket error: ${error}`, 'error');
+                updateStatus(false);
+            };
+
+            socket.onclose = () => {
+                log('✗ WebSocket closed');
+                updateStatus(false);
+                socket = null;
+            };
+        }
+
+        function startDialogue() {
+            if (!socket) return;
+            socket.send(JSON.stringify({ action: 'start_dialogue' }));
+            log('Dialogue started');
+            document.getElementById('endBtn').disabled = false;
+        }
+
+        function endDialogue() {
+            if (!socket) return;
+            socket.send(JSON.stringify({ action: 'end_dialogue' }));
+            log('Dialogue ended');
+            document.getElementById('endBtn').disabled = true;
+        }
+
+        function closeConnection() {
+            if (socket) {
+                socket.close();
+            }
+        }
+
+        // 送信データ(payload)編集
+        function buildAudioChunkPayload(audioData) {
+            const payload = {
+                action: 'send_audio_chunk',
+                audio_data: audioData,
+            };
+
+            let auxData = readAuxData();
+            if (auxData === null) return null;
+            if (pendingPlaybackPosition) {
+                payload.playback_position = pendingPlaybackPosition;
+                pendingPlaybackPosition = null;
+            }
+            if (Object.keys(auxData).length > 0) {
+                payload.aux_data = auxData;
+            }
+            return payload;
+        }
+
+        // ===== 音声ファイル送信 =====
+        function sendAudioFile() {
+            const fileInput = document.getElementById('audioFileInput');
+            if (!fileInput.files.length || !socket) return;
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            reader.onload = () => {
+                const arrayBuffer = reader.result;
+                const base64Audio = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+                // 送信データ編集
+                const payload = buildAudioChunkPayload(base64Audio);
+                if (!payload) return;
+                // Websocket送信
+                socket.send(JSON.stringify(payload));
+                log(`🎵 Audio file sent: ${file.name}`);
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // ===== マイク入力 (PCM16 / 16kHz) =====
+        let micActive = false;
+        let audioCtx = null;
+        let micStream = null;
+        let scriptProcessor = null;
+        let micSampleRate = 16000;
+        let sentAudioChunks = 0;
+
+        function setMicStatus(text) {
+            const st = document.getElementById('micStatus');
+            if (st) st.textContent = text;
+        }
+
+        function downsampleTo16k(input, sourceRate) {
+            const targetRate = 16000;
+            if (sourceRate === targetRate) return input;
+            if (sourceRate < targetRate) {
+                throw new Error(`Unsupported mic sample rate: ${sourceRate}Hz`);
+            }
+
+            const ratio = sourceRate / targetRate;
+            const outLength = Math.floor(input.length / ratio);
+            const output = new Float32Array(outLength);
+            let outOffset = 0;
+            let inOffset = 0;
+
+            while (outOffset < outLength) {
+                const nextInOffset = Math.round((outOffset + 1) * ratio);
+                let sum = 0;
+                let count = 0;
+                for (let i = inOffset; i < nextInOffset && i < input.length; i++) {
+                    sum += input[i];
+                    count += 1;
+                }
+                output[outOffset] = count > 0 ? (sum / count) : 0;
+                outOffset += 1;
+                inOffset = nextInOffset;
+            }
+            return output;
+        }
+
+        function float32ToBase64Pcm16(float32Audio) {
+            const i16 = new Int16Array(float32Audio.length);
+            for (let i = 0; i < float32Audio.length; i++) {
+                const s = Math.max(-1, Math.min(1, float32Audio[i]));
+                i16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+            }
+            const u8 = new Uint8Array(i16.buffer);
+            let bin = '';
+            for (let j = 0; j < u8.length; j++) bin += String.fromCharCode(u8[j]);
+            return btoa(bin);
+        }
+
+        async function toggleMic() {
+            log(`🎤 マイクボタン押下 (active=${micActive})`);
+            if (micActive) {
+                stopMic();
+            } else {
+                await startMic();
+            }
+        }
+
+        async function startMic() {
+            try {
+                setMicStatus('マイク 起動中...');
+                if (!socket || socket.readyState !== WebSocket.OPEN) {
+                    setMicStatus('マイク開始失敗: WebSocket未接続');
+                    log('✗ WebSocket未接続のためマイクを開始できません', 'error');
+                    return;
+                }
+                if (document.getElementById('endBtn').disabled) {
+                    startDialogue();
+                    log('ℹ️ マイク開始に合わせて対話を開始しました');
+                }
+
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    throw new Error('このブラウザ/配信元では getUserMedia が利用できません（https または localhost で開いてください）');
+                }
+
+                // ブラウザが許可するサンプルレートで取得し、送信前に 16kHz へ変換する
+                audioCtx = new AudioContext();
+                micSampleRate = audioCtx.sampleRate;
+                if (audioCtx.state === 'suspended') {
+                    await audioCtx.resume();
+                }
+                micStream = await navigator.mediaDevices.getUserMedia({
+                    audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true }
+                });
+                const source = audioCtx.createMediaStreamSource(micStream);
+                scriptProcessor = audioCtx.createScriptProcessor(4096, 1, 1);
+                sentAudioChunks = 0;
+                scriptProcessor.onaudioprocess = (e) => {
+                    if (!socket || socket.readyState !== WebSocket.OPEN) return;
+                    const input = e.inputBuffer.getChannelData(0);
+                    const pcm16k = downsampleTo16k(input, micSampleRate);
+                    if (!pcm16k.length) return;
+                    // 送信データ編集
+                    const payload = buildAudioChunkPayload(float32ToBase64Pcm16(pcm16k));
+                    if (!payload) return;
+                    // Websocket送信
+                    socket.send(JSON.stringify(payload));
+                    sentAudioChunks += 1;
+                    if (sentAudioChunks % 20 === 0) {
+                        log(`🎙️ 音声送信中... (${sentAudioChunks} chunks)`);
+                    }
+                };
+                source.connect(scriptProcessor);
+                scriptProcessor.connect(audioCtx.destination); // 活性化のために必要
+                micActive = true;
+                document.getElementById('micBtn').textContent = '🎤 マイク停止';
+                document.getElementById('micBtn').classList.add('active');
+                setMicStatus('⚫ 録音中...');
+                log(`🎤 マイク入力開始 (${micSampleRate}Hz → 16kHz PCM16)`);
+            } catch (err) {
+                setMicStatus(`マイク開始失敗: ${err.message}`);
+                log(`✗ マイクエラー: ${err.message}`, 'error');
+            }
+        }
+
+        function stopMic() {
+            if (scriptProcessor) { scriptProcessor.disconnect(); scriptProcessor = null; }
+            if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
+            if (audioCtx) { audioCtx.close(); audioCtx = null; }
+            micActive = false;
+            const btn = document.getElementById('micBtn');
+            if (btn) {
+                btn.textContent = '🎤 マイク開始';
+                btn.classList.remove('active');
+            }
+            setMicStatus('マイク 停止中');
+            log('🎤 マイク入力停止');
+        }
+
+        // ===== TTS 音声再生キュー =====
+        const ttsQueue = [];
+        let ttsPlaying = false;
+        let ttsScheduling = false;
+        let ttsScheduledSourceCount = 0;
+        let ttsNextStartTime = 0;
+        let ttsPlaybackGeneration = 0;
+        const ttsActiveSources = new Set();
+        const TTS_SCHEDULE_HEADROOM_SECONDS = 0.12;
+        const ttsCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let pendingPlaybackPosition = null;
+        const ttsProgressState = {
+            utteranceId: 0,
+            segmentCount: 0,
+            completedSegments: 0,
+            activeSegmentIndex: 0,
+            activeSegmentStartTime: 0,
+            activeSegmentDuration: 0,
+        };
+
+        function resetTtsProgressState(utteranceId = 0) {
+            ttsProgressState.utteranceId = utteranceId;
+            ttsProgressState.segmentCount = 0;
+            ttsProgressState.completedSegments = 0;
+            ttsProgressState.activeSegmentIndex = 0;
+            ttsProgressState.activeSegmentStartTime = 0;
+            ttsProgressState.activeSegmentDuration = 0;
+        }
+
+        function ensureTtsProgressUtterance(utteranceId) {
+            if (!utteranceId) return;
+            if (ttsProgressState.utteranceId !== utteranceId) {
+                resetTtsProgressState(utteranceId);
+            }
+        }
+
+        function getSystemUtterancePlaybackPosition() {
+            if (!ttsProgressState.utteranceId || ttsProgressState.segmentCount <= 0) {
+                return null;
+            }
+
+            let completedUnits = ttsProgressState.completedSegments;
+            if (
+                ttsProgressState.activeSegmentIndex > 0
+                && ttsProgressState.activeSegmentDuration > 0
+            ) {
+                const elapsed = Math.max(
+                    0,
+                    Math.min(
+                        ttsCtx.currentTime - ttsProgressState.activeSegmentStartTime,
+                        ttsProgressState.activeSegmentDuration,
+                    ),
+                );
+                completedUnits = Math.max(
+                    completedUnits,
+                    (ttsProgressState.activeSegmentIndex - 1)
+                        + (elapsed / ttsProgressState.activeSegmentDuration),
+                );
+            }
+
+            return Math.min(ttsProgressState.segmentCount, Math.max(0, completedUnits));
+        }
+
+        function rememberInterruptedSystemUtterancePosition(reason) {
+            if (reason !== 'cancel') return;
+            const position = getSystemUtterancePlaybackPosition();
+            if (position === null) return;
+            pendingPlaybackPosition = {
+                utterance_id: ttsProgressState.utteranceId,
+                completed_units: position,
+                segment_count: ttsProgressState.segmentCount,
+            };
+        }
+
+        function enqueueAudio(base64Audio, format, utteranceId, segmentIndex, segmentCount) {
+            ensureTtsProgressUtterance(utteranceId);
+            ttsProgressState.segmentCount = Math.max(ttsProgressState.segmentCount, segmentCount || 0);
+            ttsQueue.push({
+                audio: base64Audio,
+                format,
+                utteranceId,
+                segmentIndex,
+                segmentCount,
+            });
+            if (!ttsScheduling) void drainTtsQueue();
+        }
+
+        function stopTtsPlayback(reason = 'cancel') {
+            rememberInterruptedSystemUtterancePosition(reason);
+            ttsPlaybackGeneration += 1;
+            ttsQueue.length = 0;
+            ttsNextStartTime = 0;
+            ttsPlaying = false;
+            ttsScheduling = false;
+            ttsScheduledSourceCount = 0;
+
+            for (const src of ttsActiveSources) {
+                src.onended = null;
+                try {
+                    src.stop();
+                } catch (err) {
+                    console.warn('Failed to stop source', err);
+                }
+            }
+            ttsActiveSources.clear();
+
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({
+                    action: 'stop_audio_done',
+                    reason,
+                }));
+            }
+            log(`⏹️ 音声停止 (${reason})`);
+        }
+
+        async function drainTtsQueue() {
+            if (ttsScheduling) return;
+            if (ttsQueue.length === 0) {
+                if (ttsScheduledSourceCount === 0) {
+                    ttsPlaying = false;
+                    ttsNextStartTime = 0;
+                }
+                return;
+            }
+
+            ttsScheduling = true;
+            ttsPlaying = true;
+            const playbackGeneration = ttsPlaybackGeneration;
+            try {
+                // ttsCtx が suspended の場合は再開（iOS Safari 対策）
+                if (ttsCtx.state === 'suspended') await ttsCtx.resume();
+
+                while (ttsQueue.length > 0) {
+                    if (playbackGeneration !== ttsPlaybackGeneration) break;
+                    const item = ttsQueue.shift();
+                    try {
+                        const binary = atob(item.audio);
+                        const bytes = new Uint8Array(binary.length);
+                        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+
+                        const audioBuf = await ttsCtx.decodeAudioData(bytes.buffer.slice(0));
+                        if (playbackGeneration !== ttsPlaybackGeneration) break;
+                        const src = ttsCtx.createBufferSource();
+                        src.buffer = audioBuf;
+                        src.connect(ttsCtx.destination);
+                        ttsActiveSources.add(src);
+
+                        const startAt = Math.max(
+                            ttsCtx.currentTime + TTS_SCHEDULE_HEADROOM_SECONDS,
+                            ttsNextStartTime,
+                        );
+                        ensureTtsProgressUtterance(item.utteranceId);
+                        ttsProgressState.segmentCount = Math.max(
+                            ttsProgressState.segmentCount,
+                            item.segmentCount || 0,
+                        );
+                        ttsProgressState.activeSegmentIndex = item.segmentIndex;
+                        ttsProgressState.activeSegmentStartTime = startAt;
+                        ttsProgressState.activeSegmentDuration = audioBuf.duration;
+                        ttsNextStartTime = startAt + audioBuf.duration;
+                        ttsScheduledSourceCount += 1;
+
+                        src.onended = () => {
+                            ttsActiveSources.delete(src);
+                            if (playbackGeneration !== ttsPlaybackGeneration) return;
+                            ttsScheduledSourceCount = Math.max(0, ttsScheduledSourceCount - 1);
+                            ensureTtsProgressUtterance(item.utteranceId);
+                            ttsProgressState.segmentCount = Math.max(
+                                ttsProgressState.segmentCount,
+                                item.segmentCount || 0,
+                            );
+                            ttsProgressState.completedSegments = Math.max(
+                                ttsProgressState.completedSegments,
+                                item.segmentIndex,
+                            );
+                            ttsProgressState.activeSegmentIndex = 0;
+                            ttsProgressState.activeSegmentStartTime = 0;
+                            ttsProgressState.activeSegmentDuration = 0;
+                            notifyPlaybackDone(item);
+                            if (ttsScheduledSourceCount === 0 && ttsQueue.length === 0) {
+                                ttsPlaying = false;
+                                ttsNextStartTime = 0;
+                            }
+                        };
+                        src.start(startAt);
+                    } catch (err) {
+                        log(`⚠️ 音声再生エラー: ${err.message}`, 'error');
+                    }
+                }
+            } catch (err) {
+                log(`⚠️ 音声再生エラー: ${err.message}`, 'error');
+            } finally {
+                ttsScheduling = false;
+                if (ttsQueue.length > 0) {
+                    void drainTtsQueue();
+                } else if (ttsScheduledSourceCount === 0) {
+                    ttsPlaying = false;
+                    ttsNextStartTime = 0;
+                }
+            }
+        }
+
+        function notifyPlaybackDone(item) {
+            if (!socket || socket.readyState !== WebSocket.OPEN) return;
+            socket.send(JSON.stringify({
+                action: 'tts_segment_playback_done',
+                utterance_id: item.utteranceId,
+                segment_index: item.segmentIndex,
+                segment_count: item.segmentCount,
+            }));
+            log(`✅ 音声再生完了通知 (utterance=${item.utteranceId})`);
+        }
+
+        function readAuxData() {
+            const enabled = document.getElementById('sendAuxDataCheck').checked;
+            if (!enabled) return {};
+
+            const raw = document.getElementById('auxDataInput').value.trim();
+            log(`[aux_data] raw : ${raw}`);
+            if (!raw) return {};
+
+            try {
+                const parsed = JSON.parse(raw);
+                if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+                    return parsed;
+                }
+                throw new Error('aux_data must be an object');
+            } catch (error) {
+                log(`✗ aux_data の JSON が不正です: ${error.message}`, 'error');
+                return null;
+            }
+        }
+    </script>
+</body>
+</html>

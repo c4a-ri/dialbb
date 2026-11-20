@@ -60,6 +60,44 @@ Windows/MacOS/Ubuntu上のPython 3.11-3.14で動作しますが、すべての�
 
 
 
+### uvを使ったデバッグ用仮想環境
+
+このリポジトリで Poetry の代わりに uv を使ってデバッグしたい場合は，以下を実行してください．
+
+uv が未インストールの場合は先に導入してください．
+
+- Windows (PowerShell)
+
+  ```powershell
+  powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+  ```
+
+- Linux / macOS (bash)
+
+  ```sh
+  curl -LsSf https://astral.sh/uv/install.sh | sh
+  ```
+
+- Windows (PowerShell)
+
+  ```powershell
+  .\scripts\setup-uv-debug-env.ps1
+  .\.venv\Scripts\Activate.ps1
+  ```
+
+- Linux / macOS (bash)
+
+  ```sh
+  ./scripts/setup-uv-debug-env.sh
+  source .venv/bin/activate
+  ```
+
+有効化後は，たとえば以下でサーバ起動できます．
+
+```sh
+dialbb-mm-server sample_apps/llm_dialogue_ja/config.yml
+```
+
 ### サンプルアプリケーションのダウンロード
 
 サンプルアプリケーションファイルを[docs/files/sample_apps.zip](docs/files/sample_apps.zip)からダウンロードし、適当なところに展開します。

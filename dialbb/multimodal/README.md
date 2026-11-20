@@ -1,0 +1,299 @@
+# DialBB音声マルチモーダルサーバ
+
+## 概要
+
+`dialbb.multimodal` は、DialBB を音声対話用のサーバとして動かすための実装です。現行版は FastAPI ベースで、REST API によるセッション管理と WebSocket による音声対話を提供します。
+
+内部では 1 セッションごとに以下のワーカが動作します。
+
+- STT worker
+- DialBB worker
+- TTS worker
+- Core dialogue engine worker
+- audio log worker（`audio_logging` 有効時のみ）
+
+Google Cloud Speech-to-Text と Google Cloud Text-to-Speech を利用するため、実行環境では Google Cloud の認証情報が必要です。
+
+## 主要モジュール
+
+| ファイル | 役割 |
+| --- | --- |
+| `server.py` | FastAPI アプリ本体。REST API、WebSocket 接続、クライアント向けイベント送信を担当します。 |
+| `engine.py` | セッション単位の状態を管理し、ワーカースレッドを起動・停止します。 |
+| `core.py` | 対話の状態遷移を扱うコアロジックです。UI には依存しません。 |
+| `main/dialbb_client.py` | DialBB アプリ設定ファイルを使って対話エンジンを呼び出します。 |
+| `asr/google_stt_client.py` | WebSocket で受け取った PCM16 音声を Google STT に流し、認識イベントへ変換します。 |
+| `tts/speech_synthesizer.py` | システム発話を Google TTS で合成し、セグメント単位でクライアントへ返します。 |
+| `docs/message_spec.md` | ワーカ間のメッセージ仕様です。 |
+| `docs/server_spec.md` | REST API / WebSocket API の詳細仕様です。 |
+
+## 現行の処理フロー
+
+1. クライアントは `POST /sessions` でセッションを作成します。
+2. クライアントは `/dialogue/ws/{session_id}` に WebSocket 接続します。
+3. `start_dialogue` または `POST /sessions/{session_id}/start` により、セッションごとのワーカ群が起動します。
+4. 音声入力は `send_audio_chunk` で base64 化した PCM16 音声として送信され、STT worker が Google STT に流します。
+5. STT の中間結果はバージイン検知に使われ、確定結果は DialBB worker に送られます。
+6. DialBB 応答を受けた Core engine は `system_message` を通知し、続けて TTS worker に合成を依頼します。
+7. TTS worker は発話テキストを短いセグメントに分割し、各セグメントを個別に合成して `audio_data` として送信します。
+8. クライアントは各音声セグメントの再生完了後に `tts_segment_playback_done` を返します。サーバはこの通知を待ってから次のセグメントを送ります。
+9. DialBB が最終応答を返した場合は、その再生完了後に `final` イベントを出して対話を終了状態へ遷移させます。
+
+### バージイン
+
+- システム発話中に STT の中間認識または確定認識が入ると、Core engine は TTS 停止を要求します。
+- サーバは `stop_audio` イベントをクライアントへ送り、再生停止を促します。
+- 割り込み時の最終認識結果には `aux_data` として `barge_in: true` が DialBB に渡されます。
+- クライアントは停止時の再生位置を `send_audio_chunk.playback_position` に自動付与します。サーバは再生済み部分を計算し、`aux_data.spoken_string` としてDialBBへ渡します。
+
+### 無音タイムアウト
+
+- システム発話終了後はユーザ発話待ち状態に入ります。
+- `user_timeout` 秒を超えて発話が来ない場合、Core engine は DialBB に `user_silence` を送ります。
+
+### 音声ログ
+
+- `audio_logging` が有効な場合、ユーザ音声とシステム音声を `audio_logs/<session_id>/` に保存します。
+- ユーザ音声は確定認識時に 1 発話分をまとめて WAV 保存します。
+- システム音声は送信セグメントごとに保存し、`manifest.jsonl` にメタデータを追記します。
+
+## 起動方法
+
+CLI エントリポイントは `dialbb-mm-server` です。
+
+```sh
+dialbb-mm-server <config_file> [--host HOST] [--port PORT] [--debug] [--audio_logging]
+```
+
+- `config_file` には DialBB のアプリ設定ファイルを指定します。
+- `--audio_logging` を指定すると、設定ファイル側の値に加えて音声ログを強制的に有効化できます。
+
+## 設定ファイル
+
+現行実装では、サーバ設定は DialBB アプリ設定ファイル内の `multimodal` セクションから読み込みます。後方互換のため、同じキーをトップレベルに置いた場合も読み取れます。
+
+```yaml
+multimodal:
+  audio_logging: true
+  cycle: 0.1
+  response_delay: 0.0
+  stop_at_barge_in: true
+  system_barge_in_ratio: 0.0
+  tts_speaking_rate: 1.0
+  tts_voice_name: ja-JP-Neural2-B
+  user_timeout: 10.0
+```
+
+読み込まれるキーは以下です。
+
+| キー | 既定値 | 説明 |
+| --- | --- | --- |
+| `audio_logging` | `false` | 音声ログ保存の有無 |
+| `cycle` | `0.1` | Core engine のメインループ周期（秒） |
+| `response_delay` | `0.0` | 最終認識結果を DialBB に送る前の基準待機時間（秒）。`t` を指定すると、確率 `1/2^n` で `(n-1)t` 秒待ってから送信します。待機中に次の発話が認識された場合は待機をリセットし、前回の最終認識結果と今回の最終認識結果を連結して再スケジュールします。 |
+| `stop_at_barge_in` | `true` | ユーザのバージイン検知時に再生中のシステム発話を停止するか |
+| `system_barge_in_ratio` | `0.0` | システム発話中の `partial_transcript` を DialBB に先行送信して割り込ませる確率 |
+| `tts_speaking_rate` | `1.0` | Google TTS の発話速度 |
+| `tts_voice_name` | `null` | Google TTS の話者名。未指定時は `language_code` に応じた既定音声 |
+| `user_timeout` | `10.0` | ユーザ発話待ちタイムアウト（秒） |
+
+トップレベルの `language` も参照し、`ja` なら `ja-JP`、`en` なら `en-US` を STT/TTS の `language_code` として使います。その他の値は現在 `ja-JP` 扱いです。
+
+`stop_at_barge_in` が `false` の場合、システム発話中にユーザ発話を検知しても TTS 停止は要求しません。`system_barge_in_ratio` により `partial_transcript` を DialBB に先行送信する場合も同様です。ただし、確定したユーザ発話は通常どおり DialBB に送られ、`aux_data.barge_in` も付与されます。
+
+`response_delay` は最終認識結果 (`final_transcript`) にだけ適用されます。`0.0` の場合は遅延なしで直ちに DialBB に送信されます。`0.0` より大きい値を指定した場合、サーバは送信前に確率的な待機を入れます。待機中に新しい発話が始まって最終認識まで到達した場合は、前回の最終認識結果と今回の最終認識結果を連結したテキストを、あらためて `response_delay` ベースで再スケジュールして送信します。
+
+`system_barge_in_ratio` は `0.0` 以上で有効です。`1.0` なら毎回、`0.5` なら半分の確率で、システム発話中の `partial_transcript` を DialBB に先行送信します。`0.0` は既定値で、先行送信は行いません。partial 由来の応答は、ユーザがまだ話している途中でも保留せずに TTS を開始します。
+
+## ノーコードツールとの統合
+
+* DialBB-NC（ノーコードツール）で作成・編集した DialBB アプリケーション設定を、マルチモーダルサーバの `config_file` として指定できます。
+
+  1. DialBB-NC で対話アプリケーションを作成または編集し、設定ファイルを書き出します。
+  2. 設定画面の **Multimodal** で、音声ログ、バージイン、タイムアウト、TTS 話速・話者などの設定を必要に応じて編集します。
+
+* ノーコードツールGUIのボタンからマルチモーダルを実行できます
+  1. 編集した設定ファイルを指定して、マルチモーダルサーバを起動します。
+
+* ノーコードツールのインストール、起動、アプリケーション作成・書き出しの詳細は、[DialBBノーコードツールのドキュメント](../../docs/no-code/index-ja.md)を参照してください。
+
+## REST API
+
+- `GET /health`
+- `POST /sessions`
+- `POST /sessions/{session_id}/start`
+- `POST /sessions/{session_id}/stop`
+- `DELETE /sessions/{session_id}`
+- `GET /sessions`
+
+`GET /sessions` は現在アクティブなセッションのみ返します。
+
+## WebSocket API
+
+接続先:
+
+```text
+/dialogue/ws/{session_id}
+```
+
+### クライアント -> サーバ
+
+- `start_dialogue`
+- `end_dialogue`
+- `cancel_tts`
+- `send_audio_chunk`
+- `tts_segment_playback_done`
+- `stop_audio_done`
+
+`send_audio_chunk` は以下の形式です。
+
+```json
+{
+  "action": "send_audio_chunk",
+  "audio_data": "<base64 encoded PCM16>",
+  "aux_data": {
+    "spoken_string": "こんにちは"
+  }
+}
+```
+
+`aux_data.spoken_string` は任意です。直前のシステム発話の再生済み部分文字列を指定すると、DialBBは履歴内の最後のシステム発話をその文字列で置き換えます。空文字列は未再生を表します。他の `aux_data` と併用できます。
+
+標準クライアントは `aux_data.spoken_string` を直接計算せず、`playback_position` を送信します。
+
+```json
+"playback_position": {
+  "utterance_id": 1,
+  "completed_units": 2.5,
+  "segment_count": 5
+}
+```
+
+`completed_units` は再生完了セグメント数に再生中セグメントの経過割合を足した値です。この例は5セグメント中、3つ目の半分まで再生した状態です。サーバは発話IDとセグメント数を確認し、日本語では文字数、英語では単語数を基準に四捨五入して部分文字列を求めます。各セグメントを等しい重みで扱う概算です。
+
+### 再生割合による対話履歴の短縮
+
+サーバは再生割合をユーザ発話とともに DialBB リクエストのトップレベルへ展開します。`dialbb.main.DialogueProcessor` はその値を使い、履歴の最後のシステム発話を先頭から短縮します。現在のユーザ発話を追加する前に処理するため、各ブロックには短縮後の `dialogue_history` が渡されます。
+
+- `language: ja` は文字数で計算します。10文字に `0.4` を指定すると先頭4文字を残します。
+- `language: en` は空白区切りの単語数で計算します。10単語に `0.4` を指定すると先頭4単語を残します。
+- 長さは四捨五入します。5文字・5単語に `0.5` を指定した場合は3文字・3単語を残します。
+- `0` は空文字列、`1` は全文保持です。未指定や不正な値では短縮しません。`barge_in` の有無には依存しません。
+- メモリ保持と ContextDB 保存の両方に適用します。
+
+PWA クライアントはキャンセルによる再生停止時に割合を保存し、次の `send_audio_chunk` の `aux_data` に一度だけ付けて送ります。割合は `stop_audio_done` には含めません。対応する発話リクエストの作成後に割合が届いた場合、そのリクエストには反映されません。
+
+クラスAPIでの指定例と詳細は、[フレームワーク仕様の対話履歴](../../docs/document-ja/source/04_framework.md#中断されたシステム発話の履歴短縮)を参照してください。
+
+### サーバ -> クライアント
+
+- `joined_session`
+- `system_message`
+- `audio_data`
+- `stop_audio`
+- `error`
+
+`system_message` は音声送信前のテキスト通知です。`audio_data` には `audio`、`format`、`utterance_id`、`segment_index`、`segment_count`、必要に応じて `aux_data` が含まれます。
+
+## クライアントの使い分け
+
+| クライアント | 用途 | 主な利用環境 |
+| --- | --- | --- |
+| `examples/client_example.html` | [開発者用]ブラウザから API、WebSocket、マイク入力を手動確認するための Web クライアント | 開発 PC のブラウザ |
+| `examples/client_example.py` | [開発者用]音声入出力を含む Python 側の接続・処理をデバッグするためのクライアント | PyAudio を利用できる開発 PC |
+| `mm_frontend` | [ユーザ用]スマホ・タブレットで実際に使う PWA クライアント | Android、iPhone、iPad、タブレット |
+
+いずれも、先にマルチモーダルサーバを起動しておきます。
+
+```sh
+dialbb-mm-server <config_file> --host 0.0.0.0 --port 5000
+```
+
+開発 PC 以外の端末から接続する場合は、`<config_file>` を実行した PC の LAN 内 IP アドレスを使用します。例えば `192.168.1.10` の場合、サーバ URL は `http://192.168.1.10:5000` です。
+
+### Web クライアント: `examples/client_example.html`
+
+ブラウザ上で接続手順やイベントを確認したい場合に使用します。HTML ファイルをブラウザで開き、次の順で操作します。
+
+1. Server URL に `ws://localhost:5000`、または接続先サーバの `ws://<host>:5000` を入力します。
+2. **作成** を押してセッション ID を作成します。
+3. **接続**、**対話開始** の順に押します。
+4. **マイク開始** を押し、ブラウザのマイク利用を許可して発話します。
+5. 終了時は **対話終了**、**切断** の順に押します。
+
+このクライアントは、受信イベントとエラーを画面で確認する API デバッグ向けです。ユーザ音声送信時には、直前のシステム発話の停止位置を `playback_position` として自動送信します。サーバが再生済み部分を計算し、`aux_data.spoken_string` としてDialBBへ渡します。
+
+### Python クライアント: `examples/client_example.py`
+
+端末のマイク・スピーカーを使用した Python クライアントの動作確認に使用します。`pyaudio` と `websockets` が利用可能な Python 環境で実行してください。
+
+```sh
+python dialbb/multimodal/examples/client_example.py
+```
+
+引数を省略すると `ws://localhost:5000` に接続し、セッションを自動作成します。接続先を指定する場合は次のように実行します。
+
+```sh
+python dialbb/multimodal/examples/client_example.py ws://192.168.1.10:5000
+```
+
+既存のセッション ID を使う場合は、セッション ID とサーバ URL をこの順に指定します。
+
+```sh
+python dialbb/multimodal/examples/client_example.py <session_id> ws://192.168.1.10:5000
+```
+
+起動すると対話を開始してマイク音声を送信し、受信した TTS 音声を再生します。停止は `Ctrl+C` です。
+
+### モバイル PWA: `mm_frontend`
+
+スマホ・タブレットの利用には `mm_frontend` を使用します。ビルド結果はサーバが `/` で配信します。
+
+```sh
+cd mm_frontend
+npm install
+npm run build
+```
+
+ビルド後、サーバを起動し、端末のブラウザで `https://<host>:5000/` を開きます。開発時は `npm run dev` で起動した URL を利用できますが、実機でマイクを使う本番運用にはマルチモーダルサーバから配信する PWA を使用してください。
+
+別サーバへ接続する検証時は、URL に `?server=https://<host>:5000` を付与して接続先を上書きできます。
+
+## スマホ・タブレットへの PWA インストールと利用
+
+PWA のインストールとマイク利用にはセキュアコンテキストが必要です。実機では `https://` で公開してください。`http://localhost` は開発端末自身でのみ例外的に利用できますが、別のスマホ・タブレットから `http://<LAN IP>` へ接続する構成では HTTPS が必要です。また、ファイアウォールで HTTPS のポートを許可してください。
+
+### Android（Chrome / Edge）
+
+1. `https://<host>:5000/` を開きます。
+2. ブラウザのメニューから **アプリをインストール** または **ホーム画面に追加** を選びます。
+3. 表示される確認画面で **インストール** を選びます。
+4. ホーム画面の `DialBB Mobile PWA` アイコンから起動します。
+
+### iPhone / iPad（Safari）
+
+1. Safari で `https://<host>:5000/` を開きます。
+2. 共有ボタンを押し、**ホーム画面に追加** を選びます。
+3. 名前を確認して **追加** を押します。
+4. ホーム画面のアイコンから起動します。
+
+### PC版（Chrome / Edge）  ※参考
+
+1. ブラウザ で `http://localhost:5000/` を開きます。
+2. アドレスバーの横の"アプリのインストール"アイコンからインストールを行います。
+3. 追加したアイコンまたはスタートメニューから起動します。
+
+### PWA の使い方
+
+1. PWA を起動し、初回だけマイク利用を許可します。
+2. **開始** を押すとセッションを作成して対話を開始します。
+3. 端末に向かって発話します。認識したユーザ発話とシステム発話が画面に表示され、応答音声が再生されます。
+4. システム発話中に話すと、バージインとして再生を停止して次の発話を受け付けます。
+5. **終了** を押すと、音声入力・再生・WebSocket 接続を終了します。
+
+音声が出ない、またはマイクが利用できない場合は、ブラウザまたは OS のサイト権限でマイクを許可し、端末とサーバが HTTPS で接続されていることを確認してください。
+
+## 参考資料
+
+- 詳細な外部仕様: [docs/server_spec.md](docs/server_spec.md)
+- ワーカ間メッセージ仕様: [docs/message_spec.md](docs/message_spec.md)

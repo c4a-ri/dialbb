@@ -1,0 +1,291 @@
+import io
+import re
+import threading
+import wave
+from queue import Empty, Queue
+from threading import Event
+from typing import Callable, cast
+
+from google.api_core.exceptions import GoogleAPICallError, RetryError
+from google.cloud import texttospeech
+
+from dialbb.util.logger import get_logger
+from ..main.messages import TtsRequest, TtsResult
+
+
+logger = get_logger(__name__)
+
+_LANGUAGE_CODE = "ja-JP"
+_VOICE_NAME = "ja-JP-Neural2-B"
+TTS_AUDIO_FORMAT = "wav"
+TTS_SAMPLE_RATE_HZ = 16000
+TTS_CHUNK_MILLISECONDS = 200
+TTS_MAX_SEGMENT_CHARS = 40
+_AUDIO_ENCODING: texttospeech.AudioEncoding = cast(
+    texttospeech.AudioEncoding,
+    texttospeech.AudioEncoding.LINEAR16,
+)
+
+
+def _default_voice_name(language_code: str) -> str | None:
+    if language_code == "ja-JP":
+        return _VOICE_NAME
+    return None
+
+
+def _synthesize_with_encoding(
+    client: texttospeech.TextToSpeechClient,
+    text: str,
+    audio_encoding: texttospeech.AudioEncoding,
+    language_code: str = _LANGUAGE_CODE,
+    voice_name: str | None = None,
+    speaking_rate: float = 1.0,
+) -> bytes:
+    """Run Google Cloud TTS synthesis with the specified encoding."""
+    synthesis_input = texttospeech.SynthesisInput(text=text)
+    selected_voice_name = voice_name or _default_voice_name(language_code)
+    voice_kwargs = {"language_code": language_code}
+    if selected_voice_name:
+        voice_kwargs["name"] = selected_voice_name
+    voice = texttospeech.VoiceSelectionParams(**voice_kwargs)
+    audio_config = texttospeech.AudioConfig(
+        audio_encoding=audio_encoding,
+        sample_rate_hertz=TTS_SAMPLE_RATE_HZ,
+        speaking_rate=speaking_rate,
+    )
+    response = client.synthesize_speech(
+        input=synthesis_input,
+        voice=voice,
+        audio_config=audio_config,
+    )
+    return response.audio_content
+
+
+def _synthesize(
+    client: texttospeech.TextToSpeechClient,
+    text: str,
+    language_code: str = _LANGUAGE_CODE,
+    voice_name: str | None = None,
+    speaking_rate: float = 1.0,
+) -> bytes:
+    """Synthesize text with Google Cloud TTS and return bytes in the default format."""
+    return _synthesize_with_encoding(
+        client,
+        text,
+        _AUDIO_ENCODING,
+        language_code=language_code,
+        voice_name=voice_name,
+        speaking_rate=speaking_rate,
+    )
+
+
+def _encode_wav_chunk(
+    pcm_bytes: bytes,
+    sample_rate_hz: int,
+    channels: int,
+    sample_width_bytes: int,
+) -> bytes:
+    buffer = io.BytesIO()
+    with wave.open(buffer, "wb") as wav_file:
+        wav_file.setnchannels(channels)
+        wav_file.setsampwidth(sample_width_bytes)
+        wav_file.setframerate(sample_rate_hz)
+        wav_file.writeframes(pcm_bytes)
+    return buffer.getvalue()
+
+
+def _decode_wav_payload(audio_bytes: bytes) -> tuple[bytes, int, int, int]:
+    try:
+        with wave.open(io.BytesIO(audio_bytes), "rb") as wav_file:
+            return (
+                wav_file.readframes(wav_file.getnframes()),
+                wav_file.getframerate(),
+                wav_file.getnchannels(),
+                wav_file.getsampwidth(),
+            )
+    except (wave.Error, EOFError):
+        return audio_bytes, TTS_SAMPLE_RATE_HZ, 1, 2
+
+
+def split_tts_audio_chunks(
+    audio_bytes: bytes,
+    chunk_duration_ms: int = TTS_CHUNK_MILLISECONDS,
+) -> list[bytes]:
+    """Split synthesized audio into WAV chunks of the specified duration."""
+    pcm_bytes, sample_rate_hz, channels, sample_width_bytes = _decode_wav_payload(audio_bytes)
+    if not pcm_bytes:
+        return []
+
+    frames_per_chunk = max(1, sample_rate_hz * chunk_duration_ms // 1000)
+    bytes_per_frame = channels * sample_width_bytes
+    chunk_size_bytes = frames_per_chunk * bytes_per_frame
+    return [
+        _encode_wav_chunk(
+            pcm_bytes[offset:offset + chunk_size_bytes],
+            sample_rate_hz,
+            channels,
+            sample_width_bytes,
+        )
+        for offset in range(0, len(pcm_bytes), chunk_size_bytes)
+    ]
+
+
+def split_tts_segments(text: str) -> list[str]:
+    """Split text into shorter synthesis units for lower barge-in latency."""
+    normalized = text.strip()
+    if not normalized:
+        return []
+
+    sentence_like_units = [
+        part.strip()
+        for part in re.split(r"(?<=[。．.!?！？\n])\s*", normalized)
+        if part.strip()
+    ]
+    if not sentence_like_units:
+        sentence_like_units = [normalized]
+
+    segments: list[str] = []
+    current = ""
+    for unit in sentence_like_units:
+        if not current:
+            current = unit
+            continue
+
+        if len(current) + 1 + len(unit) <= TTS_MAX_SEGMENT_CHARS:
+            current = f"{current} {unit}"
+            continue
+
+        segments.append(current)
+        current = unit
+
+    if current:
+        segments.append(current)
+
+    return segments
+
+
+def run_tts_worker(
+    tts_request_queue: "Queue[TtsRequest]",
+    tts_result_queue: "Queue[TtsResult]",
+    stop_event: Event,
+    conversation_active_event: "Event | None" = None,
+    tts_cancel_queue: "Queue[str] | None" = None,
+    cancel_state_clear_callback: Callable[[str], None] | None = None,
+    audio_send_callback: Callable[[int, int, bytes], bool] | None = None,
+    language_code: str = _LANGUAGE_CODE,
+    voice_name: str | None = None,
+    speaking_rate: float = 1.0,
+) -> None:
+    """Speech synthesis worker thread backed by Google Cloud TTS.
+
+    In client audio mode, each utterance is synthesized as a whole and
+    passed to the client through audio_send_callback.
+    """
+    logger.info(
+        "[TTS] worker start: thread=%s language_code=%s voice_name=%s speaking_rate=%s",
+        threading.current_thread().name,
+        language_code,
+        voice_name,
+        speaking_rate,
+    )
+    try:
+        client = texttospeech.TextToSpeechClient()
+        active_event = conversation_active_event or Event()
+        if conversation_active_event is None:
+            active_event.set()
+
+        if audio_send_callback is None:
+            logger.error("[TTS] can't send speech because audio_send_callback is not set.")
+            return
+
+        while not stop_event.is_set():
+            try:
+                request = tts_request_queue.get(timeout=0.1)
+            except Empty:
+                continue
+
+            if tts_cancel_queue is not None:
+                while True:
+                    try:
+                        tts_cancel_queue.get_nowait()
+                    except Empty:
+                        break
+
+            logger.info("[TTS] TTS<-MAIN request to synthesize received.")
+            logger.debug("[TTS] request.text=%s", request.text)
+
+            segments = split_tts_segments(request.text)
+            total_segments: int = len(segments)
+
+            completed = True
+            for segment_index, segment in enumerate(segments, start=1):
+                if stop_event.is_set() or not active_event.is_set():
+                    logger.debug("[TTS] canceled: %s", segment)
+                    completed = False
+                    break
+
+                if tts_cancel_queue is not None:
+                    cancel_requested = False
+                    while True:
+                        try:
+                            tts_cancel_queue.get_nowait()
+                            cancel_requested = True
+                        except Empty:
+                            break
+                    if cancel_requested:
+                        logger.info("[TTS] cancel request received: segment=%d/%d", segment_index, total_segments)
+                        completed = False
+                        break
+
+                logger.debug("[TTS] synthesizing: %s", segment)
+                try:
+                    audio_bytes = _synthesize(
+                        client,
+                        segment,
+                        language_code=language_code,
+                        voice_name=voice_name,
+                        speaking_rate=speaking_rate,
+                    )
+                except (GoogleAPICallError, RetryError, OSError):
+                    logger.exception("[TTS] synthesis error: %s", segment)
+                    completed = False
+                    break
+
+                if tts_cancel_queue is not None:
+                    cancel_requested = False
+                    while True:
+                        try:
+                            tts_cancel_queue.get_nowait()
+                            cancel_requested = True
+                        except Empty:
+                            break
+                    if cancel_requested:
+                        logger.info("[TTS] cancel request received (synth後): segment=%d/%d",
+                                    segment_index, total_segments)
+                        completed = False
+                        break
+
+                if not audio_send_callback(segment_index, total_segments, audio_bytes):
+                    logger.info("[TTS] audio send interrupted: segment=%d/%d", segment_index, total_segments)
+                    completed = False
+                    break
+
+            tts_result_queue.put(
+                TtsResult(
+                    session_id=request.session_id,
+                    text=request.text,
+                    completed=completed,
+                )
+            )
+            logger.info("[TTS] TTS->MAIN 結果送信")
+            if completed:
+                logger.debug("[TTS] 合成完了: %s", request.text)
+
+            if cancel_state_clear_callback is not None:
+                cancel_state_clear_callback(request.session_id)
+    finally:
+        logger.info(
+            "[TTS] worker exit: thread=%s stop_event=%s",
+            threading.current_thread().name,
+            stop_event.is_set(),
+        )

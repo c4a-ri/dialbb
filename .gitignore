@@ -141,6 +141,7 @@ dmypy.json
 
 # dialbb temp files
 #_*
+sample_apps/*/_*
 
 # keep empty data dir
 /dialbb/no_code/app/*
@@ -156,6 +157,13 @@ dmypy.json
 *_old.py
 *-sav.py
 *_sav.py
+
+# log files
+audio_logs/
+
+# debug files
+debug_logs/
+config-dbg.yml
 
 # debug tools
 /scripts/debug_generate_rows.py

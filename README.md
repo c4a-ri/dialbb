@@ -12,6 +12,8 @@ Please refer to [the project main page](https://c4a-ri.github.io/dialbb/), which
 
 Please refer to the [document](https://c4a-ri.github.io/dialbb/document-en/build/html/) for detailed specification and the way of application development. (If this README is not for a released version, please download the [document for the same version as this README](docs/files/document-en.zip).)
 
+For the current multimodal server API specification, see [dialbb/multimodal/PHASE2_API.md](dialbb/multimodal/PHASE2_API.md).
+
 
 ## Citation
 
@@ -56,6 +58,44 @@ The following instructions assume that you are working with bash on Ubuntu. If y
   
 This can only be installed with Python 3.11–3.13.
 
+
+### Debug Environment With uv
+
+If you want to use uv instead of Poetry for debugging in this repository, use the following setup.
+
+If uv is not installed yet:
+
+- Windows (PowerShell)
+
+  ```powershell
+  powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+  ```
+
+- Linux / macOS (bash)
+
+  ```sh
+  curl -LsSf https://astral.sh/uv/install.sh | sh
+  ```
+
+- Windows (PowerShell)
+
+  ```powershell
+  .\scripts\setup-uv-debug-env.ps1
+  .\.venv\Scripts\Activate.ps1
+  ```
+
+- Linux / macOS (bash)
+
+  ```sh
+  ./scripts/setup-uv-debug-env.sh
+  source .venv/bin/activate
+  ```
+
+After activation, you can run commands such as:
+
+```sh
+dialbb-mm-server sample_apps/llm_dialogue_ja/config.yml
+```
 
 ### Download the Sample Applications
 

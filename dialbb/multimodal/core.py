@@ -1,0 +1,774 @@
+"""
+mm_client Core Engine
+会話状態管理・ロジックを担当するコアエンジン
+Queue 依存を抽象化し、異なるUIやサーバから再利用可能
+"""
+import random
+import re
+import time
+import threading
+from dataclasses import dataclass, field
+from queue import Empty, Queue
+from threading import Event
+from typing import Optional, Any, Callable, Dict
+
+from dialbb.util.logger import get_logger
+from .main.messages import (
+    DialbbRequest,
+    DialbbResponse,
+    RecognitionEvent,
+    RecognitionEventType,
+    TtsPlaybackEvent,
+    TtsRequest,
+    TtsResult,
+)
+
+logger = get_logger(__name__)
+
+
+@dataclass
+class DialogueEvent:
+    """対話イベント（UI/API を通じて外部へ通知）"""
+    event_type: str  # "status", "chat", "tts_completed", "final", "error" など
+    data: Dict[str, Any] = field(default_factory=dict)
+    timestamp: float = field(default_factory=time.time)
+
+
+class CoreDialogueEngine:
+    """
+    会話の状態管理とロジック実装（Tkinter/API非依存）
+    MultimodalMainModule から UI/worker 操作を分離した版
+    """
+
+    def __init__(self) -> None:
+        self.session_id: str = ""
+        # --- 状態変数 ---
+        self.user_speaking: bool = False
+        self.user_waiting: bool = False
+        self.system_speaking: bool = False
+        self.user_wait_start_time: Optional[float] = None
+        self._barge_in_sent: bool = False
+        self.is_final_response: bool = False
+        self._pending_user_aux_data: Dict[str, Any] = {}
+        self._pending_dialbb_response: Optional[DialbbResponse] = None
+        self._pending_final_request: Optional[DialbbRequest] = None
+        self._pending_final_request_due_at: Optional[float] = None
+        self._pending_final_request_waiting_for_merge: bool = False
+        self._partial_barge_in_request_sent: bool = False
+        self._active_response_source: Optional[str] = None
+        self._partial_response_interrupted: bool = False
+        self._last_status_message: Optional[str] = None
+        self._last_partial_transcript: Optional[str] = None
+        # イベント通知コールバック
+        self._event_callback: Optional[Callable[[DialogueEvent], None]] = None
+
+    def set_event_callback(self, callback: Callable[[DialogueEvent], None]) -> None:
+        """イベント通知用のコールバックを登録"""
+        self._event_callback = callback
+
+    def _emit_event(self, event: DialogueEvent) -> None:
+        """イベントを外部へ通知"""
+        if self._event_callback:
+            self._event_callback(event)
+        logger.debug("[CORE] Event: %s", event)
+
+    def _emit_status(self, message: str) -> None:
+        if self._last_status_message == message:
+            return
+
+        self._last_status_message = message
+        self._emit_event(DialogueEvent(event_type="status", data={"message": message}))
+
+    def _request_barge_in_cancel(
+        self,
+        tts_cancel_queue: Optional[Queue] = None,
+        set_tts_cancel_requested: Optional[Callable[[bool], None]] = None,
+        trigger: str = "unknown",
+    ) -> bool:
+        if (
+            not self.system_speaking
+            or self.is_final_response
+            or tts_cancel_queue is None
+            or self._barge_in_sent
+        ):
+            return False
+
+        logger.info("[CORE] barge-in detected: trigger=%s", trigger)
+        tts_cancel_queue.put("cancel")
+        if set_tts_cancel_requested is not None:
+            set_tts_cancel_requested(True)
+        self._barge_in_sent = True
+        logger.info("[CORE] CORE->TTS cancel sent: trigger=%s", trigger)
+        return True
+
+    def _reset_state(self) -> None:
+        """対話開始・終了時に状態変数をリセット"""
+        self.session_id = ""
+        self.user_speaking = False
+        self.user_waiting = False
+        self.system_speaking = False
+        self.user_wait_start_time = None
+        self._barge_in_sent = False
+        self.is_final_response = False
+        self._pending_user_aux_data = {}
+        self._pending_dialbb_response = None
+        self._pending_final_request = None
+        self._pending_final_request_due_at = None
+        self._pending_final_request_waiting_for_merge = False
+        self._partial_barge_in_request_sent = False
+        self._active_response_source = None
+        self._partial_response_interrupted = False
+        self._last_status_message = None
+        self._last_partial_transcript = None
+
+    def _build_user_aux_data(self) -> Dict[str, Any]:
+        aux_data = dict(self._pending_user_aux_data)
+        if self.system_speaking and not self.is_final_response:
+            aux_data["barge_in"] = True
+        return aux_data
+
+    def _send_user_utterance_to_dialbb(
+        self,
+        text: str,
+        dialbb_request_queue: Queue,
+        aux_data: Dict[str, Any],
+        source: str,
+    ) -> None:
+        logger.info("[CORE] CORE->DialBB 発話要求送信: source=%s", source)
+        dialbb_request_queue.put(
+            DialbbRequest(
+                session_id=self.session_id,
+                user_text=text,
+                aux_data=aux_data,
+                source=source,
+            )
+        )
+        if aux_data:
+            logger.debug("[CORE] DialBB aux_data=%s", aux_data)
+
+    @staticmethod
+    def _sample_response_delay(response_delay: float) -> float:
+        if response_delay <= 0:
+            return 0.0
+
+        interval_count = 0
+        while random.random() < 0.5:
+            interval_count += 1
+        return interval_count * response_delay
+
+    @staticmethod
+    def _merge_transcripts(left: str, right: str) -> str:
+        if not left:
+            return right
+        if not right:
+            return left
+        if re.search(r"[A-Za-z0-9]$", left) and re.match(r"^[A-Za-z0-9]", right):
+            return f"{left} {right}"
+        return f"{left}{right}"
+
+    def _schedule_final_request(
+        self,
+        text: str,
+        aux_data: Dict[str, Any],
+        response_delay: float,
+    ) -> None:
+        sampled_delay = self._sample_response_delay(response_delay)
+        self._pending_final_request = DialbbRequest(
+            session_id=self.session_id,
+            user_text=text,
+            aux_data=dict(aux_data),
+            source="final_transcript",
+        )
+        self._pending_final_request_due_at = time.monotonic() + sampled_delay
+        self._pending_final_request_waiting_for_merge = False
+        logger.info("[CORE] final_transcript scheduled to be sent to DialBB after %.3f seconds", sampled_delay)
+
+    def _hold_pending_final_request_for_merge(self) -> bool:
+        if self._pending_final_request is None:
+            return False
+
+        self._pending_final_request_due_at = None
+        self._pending_final_request_waiting_for_merge = True
+        logger.info(
+            "[CORE] new speech detected while final_transcript was pending; reset delayed send: pending=%s",
+            self._pending_final_request.user_text,
+        )
+        return True
+
+    def _schedule_merged_final_request(
+        self,
+        text: str,
+        aux_data: Dict[str, Any],
+        response_delay: float,
+    ) -> bool:
+        if self._pending_final_request is None or not self._pending_final_request_waiting_for_merge:
+            return False
+
+        merged_text = self._merge_transcripts(self._pending_final_request.user_text, text)
+        merged_aux_data = dict(self._pending_final_request.aux_data)
+        merged_aux_data.update(aux_data)
+        logger.info(
+            "[CORE] merging pending and current final_transcript, then rescheduling: previous=%s current=%s merged=%s",
+            self._pending_final_request.user_text,
+            text,
+            merged_text,
+        )
+        self._schedule_final_request(merged_text, merged_aux_data, response_delay)
+        return True
+
+    def _send_pending_final_request(self, dialbb_request_queue: Queue, *, force: bool = False) -> bool:
+        if self._pending_final_request is None:
+            return False
+
+        if self._pending_final_request_waiting_for_merge:
+            return False
+
+        due_at = self._pending_final_request_due_at
+        if not force and due_at is not None and time.monotonic() < due_at:
+            return False
+
+        pending_request = self._pending_final_request
+        self._pending_final_request = None
+        self._pending_final_request_due_at = None
+        self._pending_final_request_waiting_for_merge = False
+        logger.info(
+            "[CORE] sending pending final_transcript to DialBB: text=%s",
+            pending_request.user_text,
+        )
+        self._send_user_utterance_to_dialbb(
+            pending_request.user_text,
+            dialbb_request_queue,
+            dict(pending_request.aux_data),
+            pending_request.source,
+        )
+        return True
+
+    @staticmethod
+    def _should_send_system_barge_in_partial(system_barge_in_ratio: float) -> bool:
+        if system_barge_in_ratio < 0:
+            return False
+        if system_barge_in_ratio == 0:
+            return False
+        if system_barge_in_ratio >= 1:
+            return True
+        return random.random() < system_barge_in_ratio
+
+    def _start_system_response(
+        self,
+        dialbb_response: DialbbResponse,
+        conversation_active_event: Event,
+        tts_request_queue: Queue,
+        stt_enabled_event: Event,
+    ) -> None:
+        self.session_id = dialbb_response.session_id
+        self._active_response_source = dialbb_response.source
+        if dialbb_response.is_final:
+            self.is_final_response = True
+            logger.info("[CORE] DialBB 最終応答を受信（対話終了予定）")
+
+        if not conversation_active_event.is_set():
+            logger.debug("[CORE] 対話停止中のため DialBB 応答を破棄します。")
+            return
+
+        system_text = dialbb_response.system_text.strip()
+        if not system_text:
+            logger.info("[CORE] DialBB空応答: ユーザ発話待ちへ遷移")
+            self._emit_status("音声入力待ち")
+            self.user_waiting = True
+            self.user_wait_start_time = time.monotonic()
+            if dialbb_response.source == "partial_transcript":
+                self._partial_response_interrupted = False
+            if not self.is_final_response:
+                stt_enabled_event.set()
+            return
+
+        self.system_speaking = True
+        self._emit_event(DialogueEvent(event_type="chat", data={"role": "system", "text": system_text,
+                                                                "aux_data": dict(dialbb_response.aux_data or {}),}))
+        logger.info("[CORE] CORE->TTS 合成要求送信. system_speaking=%s, is_final_response=%s", self.system_speaking, self.is_final_response)
+        self._emit_status("音声合成中")
+        tts_request_queue.put(TtsRequest(session_id=self.session_id, text=system_text))
+        if self.is_final_response:
+            logger.debug("[CORE] 最終応答再生中: 新規 STT 入力を無効化")
+            stt_enabled_event.clear()
+
+    def _flush_pending_dialbb_response(
+        self,
+        conversation_active_event: Event,
+        tts_request_queue: Queue,
+        stt_enabled_event: Event,
+    ) -> bool:
+        if self.user_speaking or self._pending_dialbb_response is None:
+            return False
+
+        pending_response = self._pending_dialbb_response
+        self._pending_dialbb_response = None
+        logger.info("[CORE] 保留していた DialBB 応答を再開")
+        self._start_system_response(
+            pending_response,
+            conversation_active_event,
+            tts_request_queue,
+            stt_enabled_event,
+        )
+        return True
+
+    @staticmethod
+    def _drain(q: Queue) -> None:
+        """キューに残留するメッセージを全て破棄"""
+        while not q.empty():
+            try:
+                q.get_nowait()
+            except Empty:
+                break
+
+    def process_start_command(
+        self,
+        stt_event_queue: Queue,
+        dialbb_request_queue: Queue,
+        dialbb_response_queue: Queue,
+        tts_request_queue: Queue,
+        tts_result_queue: Queue,
+        conversation_active_event: Event,
+        stt_enabled_event: Event,
+        tts_cancel_queue: Optional[Queue] = None,
+        set_tts_cancel_requested: Optional[Callable[[bool], None]] = None,
+    ) -> None:
+        """対話開始コマンドを処理"""
+        del tts_request_queue
+        logger.info("[CORE] start command received")
+        self._emit_status("対話初期化中")
+        self._reset_state()
+        self._drain(stt_event_queue)
+        self._drain(dialbb_request_queue)
+        self._drain(dialbb_response_queue)
+        self._drain(tts_result_queue)
+        if tts_cancel_queue is not None:
+            self._drain(tts_cancel_queue)
+        if set_tts_cancel_requested is not None:
+            set_tts_cancel_requested(False)
+        conversation_active_event.set()
+        stt_enabled_event.set()
+        logger.info("[CORE] CORE->DialBB reset request sent")
+        self._emit_status("システム応答待ち")
+        dialbb_request_queue.put(
+            DialbbRequest(session_id="", user_text="", is_initial=True)
+        )
+
+    def process_end_command(
+        self,
+        stt_event_queue: Queue,
+        dialbb_request_queue: Queue,
+        dialbb_response_queue: Queue,
+        tts_request_queue: Queue,
+        tts_result_queue: Queue,
+        conversation_active_event: Event,
+        stt_enabled_event: Event,
+        tts_cancel_queue: Optional[Queue] = None,
+        set_tts_cancel_requested: Optional[Callable[[bool], None]] = None,
+    ) -> None:
+        """対話終了コマンドを処理"""
+        logger.info("[CORE] end command received")
+        self._emit_status("待機中")
+        if tts_cancel_queue is not None:
+            tts_cancel_queue.put("cancel")
+        if set_tts_cancel_requested is not None:
+            set_tts_cancel_requested(True)
+        stt_enabled_event.clear()
+        conversation_active_event.clear()
+        self._reset_state()
+        self._drain(stt_event_queue)
+        self._drain(dialbb_request_queue)
+        self._drain(dialbb_response_queue)
+        self._drain(tts_request_queue)
+        self._drain(tts_result_queue)
+
+    def process_stt_event(
+        self,
+        stt_event: RecognitionEvent,
+        conversation_active_event: Event,
+        dialbb_request_queue: Queue,
+        tts_cancel_queue: Optional[Queue] = None,
+        set_tts_cancel_requested: Optional[Callable[[bool], None]] = None,
+        stop_at_barge_in: bool = True,
+        system_barge_in_ratio: float = -1.0,
+        response_delay: float = 0.0,
+    ) -> None:
+        """STT イベントを処理"""
+        if not conversation_active_event.is_set():
+            return
+
+        if stt_event.event_type == RecognitionEventType.SPEECH_STARTED:
+            logger.debug("[CORE] User speech segment started.")
+            self.user_speaking = True
+            self._partial_barge_in_request_sent = False
+            self._last_partial_transcript = None
+            self._emit_status("音声認識中")
+
+        elif stt_event.event_type == RecognitionEventType.SPEECH_ENDED:
+            logger.debug("[CORE] User speech segment ended")
+            self.user_speaking = False
+            self._last_partial_transcript = None
+
+        elif stt_event.event_type == RecognitionEventType.PARTIAL_TRANSCRIPT:
+            text = stt_event.text.strip()
+            self._emit_status("音声認識中")
+            if text != self._last_partial_transcript:
+                logger.debug("[CORE] Recognizing speech... %s", text)
+                logger.debug("[CORE] STT->CORE system_speaking: %s, is_final_response: %s, tts_cancel_queue: %s, _barge_in_sent: %s", self.system_speaking, self.is_final_response, tts_cancel_queue, self._barge_in_sent)
+                self._last_partial_transcript = text
+            if text:
+                self._hold_pending_final_request_for_merge()
+            if stop_at_barge_in:
+                self._request_barge_in_cancel(
+                    tts_cancel_queue=tts_cancel_queue,
+                    set_tts_cancel_requested=set_tts_cancel_requested,
+                    trigger="partial_transcript",
+                )
+            if (
+                text
+                and self.system_speaking
+                and not self.is_final_response
+                and not self._partial_barge_in_request_sent
+                and self._should_send_system_barge_in_partial(system_barge_in_ratio)
+            ):
+                aux_data = self._build_user_aux_data()
+                if stop_at_barge_in:
+                    self._request_barge_in_cancel(
+                        tts_cancel_queue=tts_cancel_queue,
+                        set_tts_cancel_requested=set_tts_cancel_requested,
+                        trigger="system_barge_in_partial",
+                    )
+                if aux_data:
+                    logger.info(
+                        "[CORE] STT partial aux_data: session=%s aux_data=%s",
+                        self.session_id,
+                        aux_data,
+                    )
+                self._send_user_utterance_to_dialbb(
+                    text,
+                    dialbb_request_queue,
+                    aux_data,
+                    source="partial_transcript",
+                )
+                self._pending_user_aux_data = {}
+                self._partial_barge_in_request_sent = True
+
+        elif stt_event.event_type == RecognitionEventType.FINAL_TRANSCRIPT:
+            text = stt_event.text.strip()
+            logger.info("[CORE] STT->CORE final: %s", text)
+            self._last_partial_transcript = None
+            self._emit_status("応答生成中")
+            self.user_speaking = False
+            self.user_waiting = False
+            self.user_wait_start_time = None
+            aux_data = self._build_user_aux_data()
+            if aux_data:
+                logger.info(
+                    "[CORE] STT final aux_data: session=%s aux_data=%s",
+                    self.session_id,
+                    aux_data,
+                )
+            merged_with_pending = False
+            if self._pending_final_request is not None:
+                if not self._pending_final_request_waiting_for_merge:
+                    self._hold_pending_final_request_for_merge()
+                merged_with_pending = self._schedule_merged_final_request(text, aux_data, response_delay)
+
+            if merged_with_pending:
+                self._send_pending_final_request(dialbb_request_queue)
+            elif self._partial_barge_in_request_sent:
+                if self.system_speaking and self._active_response_source == "partial_transcript":
+                    logger.info("[CORE] holding final_transcript until the partial_transcript response completes")
+                    if not self._pending_final_request_waiting_for_merge:
+                        self._schedule_final_request(text, aux_data, response_delay)
+                elif self._partial_response_interrupted:
+                    logger.info("[CORE] partial_transcript response was interrupted; resending final_transcript to DialBB")
+                    if not self._pending_final_request_waiting_for_merge:
+                        self._schedule_final_request(text, aux_data, response_delay)
+                    self._send_pending_final_request(dialbb_request_queue)
+                else:
+                    logger.info("[CORE] partial_transcript already sent to DialBB, so final_transcript will be skipped")
+                    self._pending_final_request = None
+                    self._pending_final_request_due_at = None
+                    self._pending_final_request_waiting_for_merge = False
+            else:
+                if not self._pending_final_request_waiting_for_merge:
+                    self._schedule_final_request(text, aux_data, response_delay)
+                self._send_pending_final_request(dialbb_request_queue)
+            self._pending_user_aux_data = {}
+            self._partial_barge_in_request_sent = False
+            self._partial_response_interrupted = False
+            if stop_at_barge_in and tts_cancel_queue is not None and self.system_speaking and not self.is_final_response:
+                tts_cancel_queue.put("cancel")
+                if set_tts_cancel_requested is not None:
+                    set_tts_cancel_requested(True)
+                logger.debug("[CORE] CORE->TTS: idempotent transmission of cancel order")
+            self._emit_event(DialogueEvent(event_type="chat", data={"role": "user", "text": text}))
+
+        elif stt_event.event_type == RecognitionEventType.AUX_DATA:
+            pending_aux_data = stt_event.raw if isinstance(stt_event.raw, dict) else {}
+            self._pending_user_aux_data.update(pending_aux_data)
+            logger.debug("[CORE] pending user aux_data=%s", self._pending_user_aux_data)
+
+        elif stt_event.event_type == RecognitionEventType.ERROR:
+            logger.error("[CORE][STT ERROR] %s", stt_event.text)
+            self._emit_event(
+                DialogueEvent(event_type="error", data={"source": "STT", "message": stt_event.text})
+            )
+
+    def process_dialbb_response(
+        self,
+        dialbb_response: DialbbResponse,
+        conversation_active_event: Event,
+        tts_request_queue: Queue,
+        stt_enabled_event: Event,
+    ) -> None:
+        """DialBB 応答を処理"""
+        logger.info("[CORE] CORE<-DialBB: response received")
+        logger.debug("[CORE] DialBB response: source=%s text=%s", dialbb_response.source, dialbb_response.system_text)
+        if self.user_speaking and dialbb_response.source != "partial_transcript":
+            self._pending_dialbb_response = dialbb_response
+            logger.info("[CORE] User is speaking, so the DialBB response is deferred.")
+            return
+        if self.user_speaking and dialbb_response.source == "partial_transcript":
+            logger.info("[CORE] partial_transcript 由来の応答のため、ユーザ発話中でもシステム応答を開始します。")
+
+        self._start_system_response(
+            dialbb_response,
+            conversation_active_event,
+            tts_request_queue,
+            stt_enabled_event,
+        )
+
+    def process_tts_result(
+        self,
+        tts_result: TtsResult,
+        conversation_active_event: Event,
+        stt_enabled_event: Event,
+        dialbb_request_queue: Queue,
+    ) -> None:
+        """TTS 完了を処理"""
+        logger.info("[CORE] CORE<-TTS 結果受信")
+        if tts_result.completed:
+            logger.info("[CORE] TTS 合成処理完了。再生完了通知を待機します")
+        else:
+            logger.info("[CORE] システム発話中断またはエラー")
+            logger.debug("[CORE] TTS結果詳細: %s", tts_result.text)
+            resent_pending_final = False
+            if self._active_response_source == "partial_transcript":
+                self._partial_response_interrupted = True
+                if self._send_pending_final_request(dialbb_request_queue):
+                    resent_pending_final = True
+                    self._emit_status("応答生成中")
+            if conversation_active_event.is_set() and not resent_pending_final:
+                self._emit_status("音声入力待ち")
+            self.system_speaking = False
+            self._barge_in_sent = False
+            self._active_response_source = None
+
+    def process_tts_playback_event(
+        self,
+        playback_event: TtsPlaybackEvent,
+        conversation_active_event: Event,
+        stt_enabled_event: Event,
+    ) -> None:
+        """TTS 再生完了を処理"""
+        if not playback_event.completed:
+            return
+
+        logger.info(
+            "[CORE] システム発話再生完了: session=%s utterance=%s",
+            playback_event.session_id,
+            playback_event.utterance_id,
+        )
+        self.system_speaking = False
+        self._barge_in_sent = False
+        self._active_response_source = None
+        self._pending_final_request = None
+        self._partial_response_interrupted = False
+
+        if self.is_final_response:
+            logger.info("[CORE] 最終応答の実再生完了：対話終了に遷移")
+            self._emit_status("対話終了")
+            self._emit_event(DialogueEvent(event_type="final"))
+            self._reset_state()
+            conversation_active_event.clear()
+            return
+
+        self._emit_status("音声入力待ち")
+        self.user_waiting = True
+        self.user_wait_start_time = time.monotonic()
+        stt_enabled_event.set()
+
+    def check_user_wait_timeout(
+        self,
+        conversation_active_event: Event,
+        dialbb_request_queue: Queue,
+        max_user_wait_time: float,
+    ) -> None:
+        """ユーザ発話待ちタイムアウトをチェック"""
+        if (
+            self.user_waiting
+            and self.user_wait_start_time is not None
+            and conversation_active_event.is_set()
+            and not self.user_speaking
+        ):
+            elapsed_wait = time.monotonic() - self.user_wait_start_time
+            if elapsed_wait > max_user_wait_time:
+                logger.info("[CORE] CORE->DialBB user_silence 送信")
+                logger.debug("[CORE] ユーザ発話待ちタイムアウト %.1f 秒", elapsed_wait)
+                self._emit_event(
+                    DialogueEvent(
+                        event_type="status",
+                        data={"message": "応答生成中（無音タイムアウト）"},
+                    )
+                )
+                dialbb_request_queue.put(
+                    DialbbRequest(
+                        session_id=self.session_id,
+                        user_text="user_silence",
+                        is_initial=False,
+                    )
+                )
+                self.user_waiting = False
+                self.user_wait_start_time = None
+
+    def run(
+        self,
+        stt_event_queue: Queue,
+        dialbb_request_queue: Queue,
+        dialbb_response_queue: Queue,
+        tts_request_queue: Queue,
+        tts_result_queue: Queue,
+        tts_playback_event_queue: Queue,
+        conversation_active_event: Event,
+        stt_enabled_event: Event,
+        stop_event: Event,
+        command_queue: Queue,
+        tts_cancel_queue: Optional[Queue] = None,
+        set_tts_cancel_requested: Optional[Callable[[bool], None]] = None,
+        loop_period: float = 0.1,
+        max_user_wait_time: float = 30.0,
+        stop_at_barge_in: bool = True,
+        system_barge_in_ratio: float = -1.0,
+        response_delay: float = 0.0,
+    ) -> None:
+        """メインループ（既存 MultimodalMainModule.run と同じロジック）"""
+        logger.info("[CORE] run start: thread=%s", threading.current_thread().name)
+        try:
+            while not stop_event.is_set():
+                loop_start = time.monotonic()
+
+                # 1. コマンド処理
+                try:
+                    cmd = command_queue.get_nowait()
+                    if cmd == "start":
+                        self.process_start_command(
+                            stt_event_queue,
+                            dialbb_request_queue,
+                            dialbb_response_queue,
+                            tts_request_queue,
+                            tts_result_queue,
+                            conversation_active_event,
+                            stt_enabled_event,
+                            tts_cancel_queue,
+                            set_tts_cancel_requested,
+                        )
+                    elif cmd == "end":
+                        self.process_end_command(
+                            stt_event_queue,
+                            dialbb_request_queue,
+                            dialbb_response_queue,
+                            tts_request_queue,
+                            tts_result_queue,
+                            conversation_active_event,
+                            stt_enabled_event,
+                            tts_cancel_queue,
+                            set_tts_cancel_requested,
+                        )
+                except Empty:
+                    pass
+
+                # 2. STT イベント処理
+                while True:
+                    try:
+                        stt_event = stt_event_queue.get_nowait()
+                    except Empty:
+                        break
+                    self.process_stt_event(
+                        stt_event,
+                        conversation_active_event,
+                        dialbb_request_queue,
+                        tts_cancel_queue,
+                        set_tts_cancel_requested,
+                        stop_at_barge_in,
+                        system_barge_in_ratio,
+                        response_delay,
+                    )
+
+                self._send_pending_final_request(dialbb_request_queue)
+
+                # 3. DialBB 応答処理
+                while True:
+                    try:
+                        dialbb_response = dialbb_response_queue.get_nowait()
+                    except Empty:
+                        break
+                    self.process_dialbb_response(
+                        dialbb_response,
+                        conversation_active_event,
+                        tts_request_queue,
+                        stt_enabled_event,
+                    )
+                self._flush_pending_dialbb_response(
+                    conversation_active_event,
+                    tts_request_queue,
+                    stt_enabled_event,
+                )
+
+                # 4. TTS 完了処理
+                while True:
+                    try:
+                        tts_result = tts_result_queue.get_nowait()
+                    except Empty:
+                        break
+                    self.process_tts_result(
+                        tts_result,
+                        conversation_active_event,
+                        stt_enabled_event,
+                        dialbb_request_queue,
+                    )
+
+                while True:
+                    try:
+                        playback_event = tts_playback_event_queue.get_nowait()
+                    except Empty:
+                        break
+                    self.process_tts_playback_event(
+                        playback_event,
+                        conversation_active_event,
+                        stt_enabled_event,
+                    )
+
+                # 5. ユーザ発話待ちタイムアウト
+                self.check_user_wait_timeout(
+                    conversation_active_event,
+                    dialbb_request_queue,
+                    max_user_wait_time,
+                )
+
+                # ループ周期制御
+                loop_end = time.monotonic()
+                sleep_time = max(0, loop_period - (loop_end - loop_start))
+                if sleep_time > 0:
+                    time.sleep(sleep_time)
+        finally:
+            logger.info(
+                "[CORE] run exit: thread=%s session_id=%s stop_event=%s active=%s system_speaking=%s user_waiting=%s",
+                threading.current_thread().name,
+                self.session_id,
+                stop_event.is_set(),
+                conversation_active_event.is_set(),
+                self.system_speaking,
+                self.user_waiting,
+            )

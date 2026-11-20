@@ -250,6 +250,42 @@ The `dialogue_history` element of `blackboard` stores dialogue history in the fo
 ]
 ```
 
+### Updating System Utterance History with the Spoken String
+
+On a subsequent turn, an optional `aux_data.spoken_string` request field replaces the `utterance` of the most recent system turn in history with the supplied string. This allows history to reflect the part delivered to the user when audio playback is interrupted. For the class API, also place `spoken_string` inside the request's `aux_data`.
+
+```json
+{
+  "user_id": "user1",
+  "session_id": "dialbb_session1",
+  "user_utterance": "Please wait",
+  "aux_data": {
+    "spoken_string": "one two three four"
+  }
+}
+```
+
+For example, if the previous system utterance was `one two three four five six seven eight nine ten`, this request replaces it in history with `one two three four`.
+
+- The value must be a string. An empty string `""` replaces the last system turn's `utterance` with an empty string. Missing or non-string values leave history unchanged.
+- Replacement applies regardless of the `barge_in` flag. If there is no system turn in history, nothing changes.
+- The update happens before the current user utterance is appended, so blocks receive the updated `dialogue_history`. This applies to both in-memory history and external database storage.
+- The DialBB main processor uses the supplied string as is. The multimodal layer calculates the spoken prefix from the playback position.
+
+The standard multimodal clients attach the position captured when playback stops to `send_audio_chunk.playback_position` in the next user audio submission.
+
+```json
+"playback_position": {
+  "utterance_id": 1,
+  "completed_units": 2.5,
+  "segment_count": 5
+}
+```
+
+`completed_units` is the number of completed segments plus the fraction played within the active segment. This example represents playback halfway through the third of five segments. The server checks the utterance ID and segment count, calculates the spoken prefix, and sends it to DialBB as `aux_data.spoken_string` alongside the recognized user utterance. The playback position must arrive before the corresponding user utterance request is constructed. Custom clients can also supply `send_audio_chunk.aux_data.spoken_string` directly.
+
+The multimodal calculation multiplies the original character count for Japanese, or whitespace-separated word count for English, by the playback fraction and rounds to the nearest integer with halves rounded up. For example, playback halfway through five characters or words retains the first three. Each segment has equal weight, so this is an estimate of the portion actually heard.
+
 (context_db)=
 ### Storing Dialogue History in an External Database
 
