@@ -25,6 +25,7 @@ import yaml
 
 from dialbb.util.logger import configure_dialbb_logging, get_logger
 
+from .playback import get_spoken_string
 from .core import DialogueEvent
 from .engine import DialogueEngineManager, Settings
 from .main.messages import RecognitionEvent, RecognitionEventType
@@ -377,8 +378,23 @@ def create_app(
                     logger.info("[WEBSOCKET] TTS cancel requested: session=%s", session_id)
                 elif action == "send_audio_chunk":
                     audio_b64 = str(payload.get("audio_data") or "")
-                    aux_data = payload.get("aux_data")
-                    if isinstance(aux_data, dict) and aux_data:
+                    supplied_aux_data = payload.get("aux_data")
+                    aux_data = dict(supplied_aux_data) if isinstance(supplied_aux_data, dict) else {}
+                    position = payload.get("playback_position")
+                    if isinstance(position, dict):
+                        with session.tts_state_lock:
+                            if (position.get("utterance_id") == session.current_tts_utterance_id
+                                    and session.current_tts_utterance_id > 0
+                                    and position.get("segment_count") == session.current_tts_total_segments):
+                                spoken_string = get_spoken_string(
+                                    session.current_tts_text,
+                                    settings.language_code,
+                                    position.get("completed_units"),
+                                    session.current_tts_total_segments,
+                                )
+                                if spoken_string is not None:
+                                    aux_data["spoken_string"] = spoken_string
+                    if aux_data:
                         _session = engine_manager.get_session(session_id)
                         if _session is not None:
                             _session.stt_event_queue.put(
@@ -532,8 +548,8 @@ def _determine_settings(config_file: str, debug: bool, audio_logging: bool) -> S
         multimodal_config = {}
 
     # Backward compatibility:
-    # - current format: multimodal.cycle / multimodal.user_timeout / multimodal.audio_logging
-    # - older format:   multimodal.main.loop_period / multimodal.main.max_user_wait_time / multimodal.main.audio_logging
+    # - current format: multimodal.cycle / multimodal.user_timeout / multimodal.response_delay / multimodal.audio_logging
+    # - older format:   multimodal.main.loop_period / multimodal.main.max_user_wait_time / multimodal.main.response_delay / multimodal.main.audio_logging
     multimodal_main_config = multimodal_config.get("main") if isinstance(multimodal_config, dict) else None
     if not isinstance(multimodal_main_config, dict):
         multimodal_main_config = {}
@@ -541,6 +557,12 @@ def _determine_settings(config_file: str, debug: bool, audio_logging: bool) -> S
     language_code = _map_config_language_to_bcp47(config.get("language", "ja"))
     cycle = float(multimodal_config.get("cycle", config.get("cycle", 0.1)))
     user_timeout = float(multimodal_config.get("user_timeout", config.get("user_timeout", 10.0)))
+    response_delay = float(
+        multimodal_config.get(
+            "response_delay",
+            multimodal_main_config.get("response_delay", config.get("response_delay", 0.0)),
+        )
+    )
     stop_at_barge_in = bool(
         multimodal_config.get("stop_at_barge_in", config.get("stop_at_barge_in", True))
     )
@@ -562,8 +584,9 @@ def _determine_settings(config_file: str, debug: bool, audio_logging: bool) -> S
     ) or audio_logging
 
     logger.info(
-        "[SERVER] multimodal settings resolved: language_code=%s stop_at_barge_in=%s system_barge_in_ratio=%s tts_voice_name=%s tts_speaking_rate=%s audio_logging=%s",
+        "[SERVER] multimodal settings resolved: language_code=%s response_delay=%s stop_at_barge_in=%s system_barge_in_ratio=%s tts_voice_name=%s tts_speaking_rate=%s audio_logging=%s",
         language_code,
+        response_delay,
         stop_at_barge_in,
         system_barge_in_ratio,
         tts_voice_name,
@@ -576,6 +599,7 @@ def _determine_settings(config_file: str, debug: bool, audio_logging: bool) -> S
         config=config,
         cycle=cycle,
         user_timeout=user_timeout,
+        response_delay=response_delay,
         stop_at_barge_in=stop_at_barge_in,
         system_barge_in_ratio=system_barge_in_ratio,
         tts_voice_name=tts_voice_name,

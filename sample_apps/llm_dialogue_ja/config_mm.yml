@@ -16,8 +16,8 @@ blocks:
     system_name: システム
     first_system_utterance: "こんにちは。私の名前は由衣。少しお話させてね。スイーツって好き？"
     prompt_template: prompt_template.txt
-    model: gpt-5.4-nano
-    # model: google_genai:gemini-2.5-flash
+    # model: gpt-5.6-luna
+    model: google_genai:gemini-3.5-flash-lite
     # temperature: 0.7
     # multi_party: False
 
@@ -26,7 +26,7 @@ multimodal:  # multimodal server config
   cycle: 0.1 # メインループ周期 (秒)
   user_timeout: 10.0  # ユーザ発話待ちタイムアウト (秒)  T.Oで "user_silence"通知
   stop_at_barge_in: true
-  system_barge_in_ratio: 1.0
+  #system_barge_in_ratio: 1.0
   tts_voice_name: ja-JP-Neural2-B
   tts_speaking_rate: 1.2
-
+  response_delay: 5.0

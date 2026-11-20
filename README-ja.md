@@ -1,6 +1,6 @@
 # DialBB: 対話システム構築フレームワーク
 
-ver. 2.0.1
+ver. 2.0.2
 
 [English](README.md)
 	
@@ -216,6 +216,20 @@ $ dialbb-sim-tester --app_config sample_apps/llm_dialogue_ja/config.yml \
 $ dialbb-sim-tester --app_config sample_apps/llm_dialogue_en/config.yml \
   --test_config sample_apps/llm_dialogue_en/simulation/config.yml
 ```
+
+#### DialBBアプリケーションをユーザシミュレータとして使うテスト
+
+別のDialBBアプリケーションをユーザ役にして、自動で対話を行うこともできます。以下は日本語のLLM対話アプリケーションをテストする例です。上記と同様に`OPENAI_API_KEY`を設定し、`sample_apps`があるディレクトリから実行してください。サーバを起動する必要はありません。
+
+```sh
+$ dialbb-sim-tester --app_config sample_apps/llm_dialogue_ja/config.yml \
+  --test_config sample_apps/llm_dialogue_ja/simulation_with_dialbb/configs.yml \
+  --output simulation.json --json_output
+```
+
+`--app_config`はテスト対象、`--test_config`はシミュレータを指定するテスト設定です。この例では、`configs.yml`に列挙された`config1.yml`と`config2.yml`をユーザシミュレータとして、それぞれ最大10ターンの対話を実行し、結果を`simulation.json`に保存します。テキストで保存する場合は`--json_output`を外し、`--output simulation.txt`に変更してください。
+
+設定項目やPythonからの呼び出し方法は、[ユーザシミュレータを用いたテスト](docs/document-ja/source/04_framework.md#ユーザシミュレータを用いたテスト)を参照してください。
 
 ### DST-STNアプリケーション
 

@@ -333,7 +333,7 @@ dialbb-mm-server <config_file> [--host HOST] [--port PORT] [--debug] [--audio_lo
   "action": "send_audio_chunk",
   "audio_data": "<base64>",
   "aux_data": {
-    "system_utterance_completion_ratio": 0.6
+    "spoken_string": "こんにちは"
   }
 }
 ```
@@ -347,7 +347,17 @@ dialbb-mm-server <config_file> [--host HOST] [--port PORT] [--debug] [--audio_lo
 
 `aux_data` の例:
 
-- `system_utterance_completion_ratio`: `0.0` から `1.0` の数値。直前のシステム発話の再生完了率
+- `spoken_string`: 直前のシステム発話の再生済み部分文字列。DialBBは履歴内の最後のシステム発話を置き換える。空文字列は未再生を表す
+
+標準クライアントは `send_audio_chunk.playback_position` に `utterance_id`、`completed_units`（再生済みセグメント数＋再生中セグメントの経過割合）、`segment_count` を付与する。サーバは発話IDとセグメント数を確認し、日本語は文字数、英語は単語数を基準に四捨五入して `aux_data.spoken_string` を計算する。
+
+DialBB worker はこの値をユーザ発話とともに DialBB リクエストのトップレベルへ展開する。`dialbb.main.DialogueProcessor` は、現在のユーザ発話を履歴に追加する前に、最後のシステム発話を指定割合の長さに短縮する。各ブロックには短縮後の `dialogue_history` が渡される。
+
+- `language: ja` は文字数、`language: en` は空白区切りの単語数で計算する。言語未指定時は `en`、`en` 以外の値では文字数を使う
+- 元の長さに割合を掛けて四捨五入する（0.5 は切り上げ）。10文字・10単語に `0.4` なら先頭4文字・4単語、5文字・5単語に `0.5` なら先頭3文字・3単語を残す
+- `0` は空文字列、`1` は全文保持。未指定、不正な型、範囲外、NaN、無限大の場合や、システム発話の履歴がない場合は短縮しない
+- `barge_in` の有無には依存しない。メモリ保持と ContextDB 保存の両方に適用する
+- PWA クライアントはキャンセル停止時の割合を次の `send_audio_chunk.aux_data` で一度だけ送る。`stop_audio_done` には含めない。対応する発話リクエストの作成後に届いた値は、そのリクエストには反映されない
 
 異常系:
 

@@ -44,7 +44,7 @@ Google Cloud Speech-to-Text と Google Cloud Text-to-Speech を利用するた�
 - システム発話中に STT の中間認識または確定認識が入ると、Core engine は TTS 停止を要求します。
 - サーバは `stop_audio` イベントをクライアントへ送り、再生停止を促します。
 - 割り込み時の最終認識結果には `aux_data` として `barge_in: true` が DialBB に渡されます。
-- `examples/client_example.html` は直前のシステム発話について、どの程度再生済みだったかを `system_utterance_completion_ratio` として `send_audio_chunk.aux_data` に自動付与します。
+- クライアントは停止時の再生位置を `send_audio_chunk.playback_position` に自動付与します。サーバは再生済み部分を計算し、`aux_data.spoken_string` としてDialBBへ渡します。
 
 ### 無音タイムアウト
 
@@ -76,6 +76,7 @@ dialbb-mm-server <config_file> [--host HOST] [--port PORT] [--debug] [--audio_lo
 multimodal:
   audio_logging: true
   cycle: 0.1
+  response_delay: 0.0
   stop_at_barge_in: true
   system_barge_in_ratio: 0.0
   tts_speaking_rate: 1.0
@@ -89,6 +90,7 @@ multimodal:
 | --- | --- | --- |
 | `audio_logging` | `false` | 音声ログ保存の有無 |
 | `cycle` | `0.1` | Core engine のメインループ周期（秒） |
+| `response_delay` | `0.0` | 最終認識結果を DialBB に送る前の基準待機時間（秒）。`t` を指定すると、確率 `1/2^n` で `(n-1)t` 秒待ってから送信します。待機中に次の発話が認識された場合は待機をリセットし、前回の最終認識結果と今回の最終認識結果を連結して再スケジュールします。 |
 | `stop_at_barge_in` | `true` | ユーザのバージイン検知時に再生中のシステム発話を停止するか |
 | `system_barge_in_ratio` | `0.0` | システム発話中の `partial_transcript` を DialBB に先行送信して割り込ませる確率 |
 | `tts_speaking_rate` | `1.0` | Google TTS の発話速度 |
@@ -98,6 +100,8 @@ multimodal:
 トップレベルの `language` も参照し、`ja` なら `ja-JP`、`en` なら `en-US` を STT/TTS の `language_code` として使います。その他の値は現在 `ja-JP` 扱いです。
 
 `stop_at_barge_in` が `false` の場合、システム発話中にユーザ発話を検知しても TTS 停止は要求しません。`system_barge_in_ratio` により `partial_transcript` を DialBB に先行送信する場合も同様です。ただし、確定したユーザ発話は通常どおり DialBB に送られ、`aux_data.barge_in` も付与されます。
+
+`response_delay` は最終認識結果 (`final_transcript`) にだけ適用されます。`0.0` の場合は遅延なしで直ちに DialBB に送信されます。`0.0` より大きい値を指定した場合、サーバは送信前に確率的な待機を入れます。待機中に新しい発話が始まって最終認識まで到達した場合は、前回の最終認識結果と今回の最終認識結果を連結したテキストを、あらためて `response_delay` ベースで再スケジュールして送信します。
 
 `system_barge_in_ratio` は `0.0` 以上で有効です。`1.0` なら毎回、`0.5` なら半分の確率で、システム発話中の `partial_transcript` を DialBB に先行送信します。`0.0` は既定値で、先行送信は行いません。partial 由来の応答は、ユーザがまだ話している途中でも保留せずに TTS を開始します。
 
@@ -148,12 +152,38 @@ multimodal:
   "action": "send_audio_chunk",
   "audio_data": "<base64 encoded PCM16>",
   "aux_data": {
-    "system_utterance_completion_ratio": 0.6
+    "spoken_string": "こんにちは"
   }
 }
 ```
 
-`aux_data.system_utterance_completion_ratio` は任意です。値域は `0.0` から `1.0` で、直前のシステム発話がどこまで再生されたかを表します。クライアント実装によっては他の `aux_data` と併用できます。
+`aux_data.spoken_string` は任意です。直前のシステム発話の再生済み部分文字列を指定すると、DialBBは履歴内の最後のシステム発話をその文字列で置き換えます。空文字列は未再生を表します。他の `aux_data` と併用できます。
+
+標準クライアントは `aux_data.spoken_string` を直接計算せず、`playback_position` を送信します。
+
+```json
+"playback_position": {
+  "utterance_id": 1,
+  "completed_units": 2.5,
+  "segment_count": 5
+}
+```
+
+`completed_units` は再生完了セグメント数に再生中セグメントの経過割合を足した値です。この例は5セグメント中、3つ目の半分まで再生した状態です。サーバは発話IDとセグメント数を確認し、日本語では文字数、英語では単語数を基準に四捨五入して部分文字列を求めます。各セグメントを等しい重みで扱う概算です。
+
+### 再生割合による対話履歴の短縮
+
+サーバは再生割合をユーザ発話とともに DialBB リクエストのトップレベルへ展開します。`dialbb.main.DialogueProcessor` はその値を使い、履歴の最後のシステム発話を先頭から短縮します。現在のユーザ発話を追加する前に処理するため、各ブロックには短縮後の `dialogue_history` が渡されます。
+
+- `language: ja` は文字数で計算します。10文字に `0.4` を指定すると先頭4文字を残します。
+- `language: en` は空白区切りの単語数で計算します。10単語に `0.4` を指定すると先頭4単語を残します。
+- 長さは四捨五入します。5文字・5単語に `0.5` を指定した場合は3文字・3単語を残します。
+- `0` は空文字列、`1` は全文保持です。未指定や不正な値では短縮しません。`barge_in` の有無には依存しません。
+- メモリ保持と ContextDB 保存の両方に適用します。
+
+PWA クライアントはキャンセルによる再生停止時に割合を保存し、次の `send_audio_chunk` の `aux_data` に一度だけ付けて送ります。割合は `stop_audio_done` には含めません。対応する発話リクエストの作成後に割合が届いた場合、そのリクエストには反映されません。
+
+クラスAPIでの指定例と詳細は、[フレームワーク仕様の対話履歴](../../docs/document-ja/source/04_framework.md#中断されたシステム発話の履歴短縮)を参照してください。
 
 ### サーバ -> クライアント
 
@@ -191,7 +221,7 @@ dialbb-mm-server <config_file> --host 0.0.0.0 --port 5000
 4. **マイク開始** を押し、ブラウザのマイク利用を許可して発話します。
 5. 終了時は **対話終了**、**切断** の順に押します。
 
-このクライアントは、受信イベントとエラーを画面で確認する API デバッグ向けです。ユーザ音声送信時には、直前のシステム発話の再生進捗を `system_utterance_completion_ratio` として自動送信します。
+このクライアントは、受信イベントとエラーを画面で確認する API デバッグ向けです。ユーザ音声送信時には、直前のシステム発話の停止位置を `playback_position` として自動送信します。サーバが再生済み部分を計算し、`aux_data.spoken_string` としてDialBBへ渡します。
 
 ### Python クライアント: `examples/client_example.py`
 

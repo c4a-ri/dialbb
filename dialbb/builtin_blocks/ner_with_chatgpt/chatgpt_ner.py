@@ -57,7 +57,7 @@ CONFIG_KEY_GPT_MODEL: str = "gpt_model"
 KEY_INPUT_TEXT: str = "input_text"
 KEY_AUX_DATA: str = "aux_data"
 
-DEFAULT_GPT_MODEL: str = "gpt-5.4-nano"
+DEFAULT_GPT_MODEL: str = "gpt-5.6-luna"
 
 SCOPES = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
 

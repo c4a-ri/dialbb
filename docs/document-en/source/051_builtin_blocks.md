@@ -47,11 +47,11 @@ This block uses a large language model (LLM) to generate system utterances.
 
   The temperature parameter when calling LLM. It is ignored when the LLM is `gpt-5x`.
 
-- `model` (string, default value is `gpt-5.4-nano`)
+- `model` (string, default value is `gpt-5.6-luna`)
 
-  Model specifier. Use the form `provider:model_name`, which matches LangChain's `init_chat_model` format, for example `google_genai:gemini-2.0-flash-001`. OpenAI GPT models such as `gpt-5.4-nano` may omit the `openai:` prefix.
+  Model specifier. Use the form `provider:model_name`, which matches LangChain's `init_chat_model` format, for example `google_genai:gemini-2.0-flash-001`. OpenAI GPT models such as `gpt-5.6-luna` may omit the `openai:` prefix.
 
-  Some models require API keys to be set through environment variables. For example, when using OpenAI GPT models such as `gpt-5.4-nano`, set `OPENAI_API_KEY`.
+  Some models require API keys to be set through environment variables. For example, when using OpenAI GPT models such as `gpt-5.6-luna`, set `OPENAI_API_KEY`.
 
 - `instruction` (string, see [this](https://github.com/c4a-ri/dialbb/blob/main/dialbb/util/globals.py) for the default value)
 
@@ -258,7 +258,7 @@ aux_data["user-name"] = "John"
 
        Specify the key file to access the Google Sheet API as a relative path from the configuration file directory.
 
-- `model` (string, default value `gpt-5.4-nano`)
+- `model` (string, default value `gpt-5.6-luna`)
 
    Specifies the LLM.
 
@@ -757,7 +757,7 @@ To use these functions, the following settings are required:
 
   ```yaml
     llm:
-      model: gpt-5.4-nano
+      model: gpt-5.6-luna
       # temperature: 0.7
       situation:
         - You are a dialogue system and chatting with the user.

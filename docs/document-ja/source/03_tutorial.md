@@ -79,6 +79,8 @@ export DIALBB_DEBUG=yes; dialbb-server sample_apps/parrot/config.yml
 
 `sample_apps/llm_dialogue_ja/`にあります．
 
+`simulation`にはLLMを直接使うテスト設定，`simulation_with_dialbb`には別のDialBBアプリケーションをユーザシミュレータとして使うテスト設定とプロンプトが含まれます．実行方法と設定項目は{ref}`sim_tester`を参照してください．
+
 `sample_apps/llm_dialogue_ja/config.yml`の内容は以下のようになっています．
 
 ```yaml
@@ -98,7 +100,7 @@ blocks:
     system_name: システム
     first_system_utterance: "こんにちは．私の名前は由衣．少しお話させてね．スイーツって好き？"
     prompt_template: prompt_template.txt
-    model: gpt-5.4-nano
+    model: gpt-5.6-luna
     #model: google_genai:gemini-2.5-flash
     # temperature: 0.7
 ```
@@ -213,7 +215,7 @@ blocks:  # ブロックのリスト
     output: 
       aux_data: aux_data
     knowledge_file: dst_knowledge_ja.xlsx  # 知識記述ファイル
-    model: gpt-5.4-nano
+    model: gpt-5.6-luna
     flags_to_use: 
       - 'Y'
       - 'T'
@@ -244,7 +246,7 @@ blocks:  # ブロックのリスト
       - 'Y'
       - 'T'
     llm:
-      model: gpt-5.4-nano
+      model: gpt-5.6-luna
       # temperature: 0.7
       # temperature_for_checking: 0.0
       instruction: あなたは雑談対話システムで，ユーザと食べ物に関して話しています．食べ物に関係ないことを答えてはいけません．
@@ -496,7 +498,7 @@ $$$
 
 ```yaml
 llm:
-  model: gpt-5.4-nano
+  model: gpt-5.6-luna
   # temperature: 0.7
   situation:
     - あなたは対話システムで，ユーザと食べ物に関して雑談をしています．
@@ -635,7 +637,7 @@ blocks:
     system_name: システム
     first_system_utterance: "こちらはブルーオーシャンレンタカーです．どのようなご用件でしょうか？"
     prompt_template: prompt_template.txt
-    model: gpt-5.4-nano
+    model: gpt-5.6-luna
     # temperature: 0.7
 ```
 

@@ -226,7 +226,7 @@ blocks:
 
 ### Blackboardへの対話履歴の保持
 
-`blackboard`の`dialogue_histroy`要素には，メインプロセス内部の処理により，以下の形式の対話履歴が保持されます．
+`blackboard`の`dialogue_history`要素には，メインプロセス内部の処理により，以下の形式の対話履歴が保持されます．
 
 ```JSON
 [
@@ -250,6 +250,42 @@ blocks:
   ...
 ]
 ```
+
+### 発話済み文字列によるシステム発話履歴の更新
+
+セッション継続時のリクエストに `aux_data.spoken_string` を指定すると，履歴の最後のシステム発話の `utterance` を，その文字列で置き換えます．音声の再生が中断された場合などに，ユーザに伝えた部分だけを履歴へ反映できます．クラスAPIでも，`spoken_string` はリクエストの `aux_data` 内に指定します．
+
+```json
+{
+  "user_id": "user1",
+  "session_id": "dialbb_session1",
+  "user_utterance": "ちょっと待って",
+  "aux_data": {
+    "spoken_string": "あいうえ"
+  }
+}
+```
+
+例えば，直前のシステム発話が `あいうえおかきくけこ` の場合，このリクエストを処理すると，履歴内のその発話は `あいうえ` に置き換わります．
+
+- 値は文字列です．空文字列 `""` を指定すると，最後のシステム発話の `utterance` も空文字列になります．未指定または文字列以外の場合，履歴は変更しません．
+- `barge_in` の有無にかかわらず適用します．対象となるシステム発話がない場合は何もしません．
+- 現在のユーザ発話を履歴に追加する前に置き換えるため，各ブロックには更新後の `dialogue_history` が渡されます．メモリ保持と外部DB保存の両方に適用されます．
+- DialBBのメイン処理は，渡された文字列をそのまま使用します．再生位置から部分文字列を求める処理は，マルチモーダル側で行います．
+
+マルチモーダルの標準クライアントは，再生停止時の位置を，次のユーザ音声送信の `send_audio_chunk.playback_position` に付与します．
+
+```json
+"playback_position": {
+  "utterance_id": 1,
+  "completed_units": 2.5,
+  "segment_count": 5
+}
+```
+
+`completed_units` は，再生完了セグメント数に再生中セグメントの経過割合を加えた値です．この例では，全5セグメント中，3つ目の半分まで再生しています．サーバは発話IDとセグメント数を確認し，再生済み部分を計算して，認識したユーザ発話とともに `aux_data.spoken_string` としてDialBBへ送ります．再生位置は，対応するユーザ発話リクエストの作成前に届く必要があります．独自のクライアントは `send_audio_chunk.aux_data.spoken_string` を直接指定することもできます．
+
+部分文字列の長さは，日本語では文字数，英語では空白区切りの単語数を基準に，再生位置の割合を掛けて四捨五入します（小数部分が 0.5 なら切り上げ）．例えば，5文字または5単語の半分まで再生した場合は，先頭の3文字または3単語を残します．各セグメントを等しい重みで扱うため，実際に聞こえた範囲の概算です．
 
 (context_db)=
 
@@ -493,7 +529,7 @@ $ dialbb-send-test-requests <アプリケーションコンフィギュレーシ
 
 ### ユーザシミュレータを用いたテスト
 
-LLMを用いたユーザシミュレータを用いたテスタが付属しています．
+プロンプトに従って発話を生成するLLM，または別のDialBBアプリケーションをユーザシミュレータとして使うテスタが付属しています．テスト対象アプリケーションはサーバとして起動する必要はなく，テスタから直接呼び出されます．
 
 #### サンプルの動かし方
 
@@ -518,10 +554,14 @@ LLMを用いたユーザシミュレータを用いたテスタが付属して�
 - プログラムの中でテスタを起動するには以下のようにします
 
   ```python
-  from dialbb.sim_tester.main import test_by_simulation
-  
-  test_by_simulation("llm_dialogue_ja/config.yml", 
-                     "llm_dialogue_ja/simulation/config.yml", output="_output.txt")
+  from dialbb.sim_tester.main import do_test
+
+  for log in do_test(
+      "llm_dialogue_ja/simulation/config.yml",
+      "llm_dialogue_ja/config.yml",
+      output_file="_output.txt",
+  ):
+      print(log, end="")
   ```
 
 
@@ -530,34 +570,93 @@ LLMを用いたユーザシミュレータを用いたテスタが付属して�
 - 起動オプション
 
   ```sh
-  dialbb-sim-tester --app_config <DialBBアプリケーションのコンフィギュレーションファイル> --test_config <テストコンフィギュレーションファイル> --output <出力ファイル>
+  dialbb-sim-tester --app_config <DialBBアプリケーションのコンフィギュレーションファイル> --test_config <テストコンフィギュレーションファイル> --output <出力ファイル> [--json_output]
   ```
 
-- テストコンフィギュレーションファイル
+- `--app_config`と`--test_config`は必須です．`--output`は省略可能です．出力ファイルは通常テキスト形式で，`--json_output`を指定するとJSON形式になります．JSONファイルを保存するには`--output`も指定してください．
 
-  以下のキーをもつYAML
+#### LLMを直接使うテスト設定
 
-  - `model`: （文字列．必須）モデル指定文字列．`provider:model_name` の形式で指定します．例：`google_genai:gemini-2.0-flash-001`．ただし，`gpt-5.4-nano` のようなOpenAIのGPTモデルは `openai:` を省略できます．
+テストコンフィギュレーションは以下のキーをもつYAMLです．
+
+  - `model`: （文字列．任意）モデル指定文字列．デフォルト値は`gpt-5.6-luna`．`provider:model_name` の形式で指定します．例：`google_genai:gemini-2.0-flash-001`．OpenAIのGPTモデルは `openai:` を省略できます．APIキーは利用するプロバイダに対応する環境変数に設定してください．OpenAIの場合は`OPENAI_API_KEY`を使います．旧`OPENAI_KEY`からの自動読み替えは行いません．
+  - `language`: （文字列．任意）シミュレータに渡す指示と対話履歴の話者名の言語．`en`（デフォルト値）または`ja`を指定します．日本語のプロンプトを使う場合は`language: ja`を指定してください．
   - `settings`（オブジェクトのリスト．必須）設定のリスト．以下の要素を持つことができる
 
     - `prompt_template`: （文字列．必須）プロンプトテンプレートを記述したテキストファイルのパス．ファイルパスはコンフィギュレーションファイルからの相対パス．
 
     - `initial_aux_data`（文字列．任意）対話の最初にDialBBアプリケーションにアクセスする際に，`aux_data`に入れる内容を書いたJSONファイルのパス．パスはコンフィギュレーションファイルからの相対パス．
-  - `temperatures`: （浮動小数点数のリスト．任意）GPTの温度パラメータのリスト．デフォルト値は0.7の一要素のみのリスト．`settings`のリストの長さ×このリストの長さのセッションが行われます．
+  - `temperatures`: （浮動小数点数のリスト．任意）LLMの温度パラメータのリスト．デフォルト値は`[0.7]`．`settings`のリストの長さ×このリストの長さのセッションが行われます．GPT-5系モデルでは温度はモデルに渡されません．
   - `max_turns`: (整数．任意）セッションあたりの最大ターン数．デフォルト値15．
 
-- 関数仕様
+各ターンで，プロンプトテンプレートの後に対話履歴がテキストとして追加され，ユーザメッセージとしてLLMに渡されます．システムメッセージにはフレームワーク共通の指示が渡されます．テンプレートに対話履歴用のプレースホルダを記述する必要はありません．`DIALBB_TESTER_DEBUG=yes`を設定すると，生成に使ったプロンプトも表示されます．
 
-  - `dialbb.sim_tester.main.test_by_simulation(test_config_file: str, app_config_file: str, output_file: str=None, json_output: bool=False, prompt_params: Dict[str, str])`
+```yaml
+model: gpt-5.6-luna
+language: ja
+max_turns: 10
+settings:
+  - prompt_template: prompt_template1.txt
+    initial_aux_data: aux_data1.json
+temperatures:
+  - 0.7
+```
 
-    パラメータ
+#### DialBBアプリケーションを使うテスト設定
 
-    - `test_config_file`: テストコンフィギュレーション
+`settings`の代わりに`configs`を指定すると，別のDialBBアプリケーションをユーザシミュレータとして使用します．シミュレータの`system_utterance`がテスト対象へのユーザ発話になり，テスト対象の`system_utterance`がシミュレータへのユーザ発話になります．シミュレータはLLM対話ブロックに限らず，通常のDialBBのブロック構成を使えます．
 
-    - `app_config_file`: DialBBアプリケーションファイル
+- `configs`（文字列のリスト．必須）シミュレータのアプリケーション設定ファイルのパス．テスト設定ファイルからの相対パスです．各設定につき1セッションを実行します．
+- `max_turns`（整数．任意）セッションあたりの最大ユーザ発話数．デフォルト値は`15`です．テスト対象が`final: true`を返した場合も終了します．
+- `start_by_simulator`（真偽値．任意）デフォルト値は`false`で，テスト対象の初期発話から始めます．`true`では，両アプリケーションを初期化した後，シミュレータの初期発話を最初のユーザ発話としてテスト対象に渡します．テスト対象の初期発話は対話ログに含めません．
 
-    - `output_file`: 対話ログ出力ファイル
+```yaml
+max_turns: 10
+start_by_simulator: false
+configs:
+  - config1.yml
+  - config2.yml
+```
 
-    - `json_output`: 出力ファイルのフォーマットがJSONかどうか．Falseならテキストファイル．
+`configs`と`settings`はどちらか一方を指定してください．`model`，`language`，`temperatures`などのLLM直接利用向けの設定はこの方式では使用しません．モデルやプロンプトは各シミュレータのアプリケーション設定で指定します．
 
-    - `prompt_params`: プロンプトに埋め込む情報を辞書型で記述したもの．プロンプトテンプレートに`{<key>}`があれば，`<value>`で置き換えられる．
+`sample_apps`ディレクトリから実行する例です．このサンプルは`llm_dialogue_ja/simulation_with_dialbb`に含まれます．
+
+```sh
+dialbb-sim-tester --app_config llm_dialogue_ja/config.yml --test_config llm_dialogue_ja/simulation_with_dialbb/configs.yml --output _output.json --json_output
+```
+
+#### 結果の形式
+
+JSON出力はセッションごとのオブジェクトの配列です．各オブジェクトの`dialogue`には，`speaker`（`system`または`user`）と`utterance`を持つ発話オブジェクトが順に入ります．LLM直接利用の場合は`prompt_template`，`temperature`，`initial_aux_data`も記録します．DialBBアプリケーション利用の場合はシミュレータの設定ファイルのパスを`config`に記録します．
+
+```json
+[
+  {
+    "config": "llm_dialogue_ja/simulation_with_dialbb/config1.yml",
+    "dialogue": [
+      {"speaker": "system", "utterance": "こんにちは。"},
+      {"speaker": "user", "utterance": "こんにちは。少しお話しましょう。"}
+    ]
+  }
+]
+```
+
+#### Pythonからの呼び出し
+
+```python
+def do_test(
+    test_config_file: str,
+    app_config_file: str,
+    output_file: str | None = None,
+    json_output: bool = False,
+    prompt_params: dict[str, str] | None = None,
+) -> Generator[str, None, None]:
+    ...
+```
+
+`dialbb.sim_tester.main`からインポートします．`test_config_file`が先，`app_config_file`が後です．`output_file`は保存先，`json_output`は保存形式（`False`ならテキスト）を指定します．`prompt_params`はLLM直接利用のときだけ使用し，テンプレート中の`{key}`を辞書の値で置換します．
+
+戻り値は対話ログの文字列を順次返すジェネレータです．関数を呼ぶだけではテストを実行しません．上の例のように最後まで反復すると，テストが完了し，指定したファイルへの保存も完了します．JSON出力を指定しても，ジェネレータが返す値はログの文字列です．
+
+2.1では旧`test_by_simulation`を`do_test`に変更しました．旧関数をインポートしているプログラムは，関数名と引数，ジェネレータの反復処理を更新してください．
