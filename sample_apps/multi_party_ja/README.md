@@ -171,3 +171,27 @@ sample_apps\multi_party_ja\test.bat --port 5001
 バッチはルートの `.venv\Scripts\python.exe` があれば使用し、なければ `python` を使います。
 別の Python を使う場合は `DIALBB_PYTHON` に実行ファイルのパスを設定してください。
 ハブの起動を確認してから各スポークを開きます。
+
+## bat / sh による起動
+
+起動制御は `test.bat` と `test.sh` で行い、Python のランチャースクリプトは使いません。
+DialBB 本体の実行には引き続き Python が必要です。
+`test.bat` はハブの起動確認に `curl.exe`（最近の Windows に付属）を使います。
+
+Linux/macOS では、`curl` をインストールして次を実行します。
+
+```sh
+sh sample_apps/multi_party_ja/test.sh
+sh sample_apps/multi_party_ja/test.sh --cli
+sh sample_apps/multi_party_ja/test.sh --all-bots
+sh sample_apps/multi_party_ja/test.sh --port 5001
+```
+
+sh 版はハブとボットをバックグラウンドで起動し、人間用の GUI または CLI を
+フォアグラウンドで実行します。ハブとボットのログは起動時に表示する一時ディレクトリに保存します。
+人間用の参加者を終了するか Ctrl+C を押すと、このスクリプトが起動したプロセスを停止します。
+全員ボットの場合も Ctrl+C で終了します。ログは終了後も残ります。
+
+sh 版は `.venv/bin/python` があれば使用し、なければ `python3` を使います。
+`DIALBB_PYTHON` で実行ファイルを指定することもできます。
+bat / sh ともに、任意の作業ディレクトリから実行できます。
