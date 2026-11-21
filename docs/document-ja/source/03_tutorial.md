@@ -79,6 +79,8 @@ export DIALBB_DEBUG=yes; dialbb-server sample_apps/parrot/config.yml
 
 `sample_apps/llm_dialogue_ja/`にあります．
 
+`simulation`にはLLMを直接使うテスト設定，`simulation_with_dialbb`には別のDialBBアプリケーションをユーザシミュレータとして使うテスト設定とプロンプトが含まれます．実行方法と設定項目は{ref}`sim_tester`を参照してください．
+
 `sample_apps/llm_dialogue_ja/config.yml`の内容は以下のようになっています．
 
 ```yaml

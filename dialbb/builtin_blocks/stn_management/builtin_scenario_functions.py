@@ -28,15 +28,14 @@ from typing import Dict, Any, List, Tuple
 import os
 import datetime
 import re
-from langchain.chat_models import init_chat_model
+from dialbb.util.llm import init_chat_model
 from langchain_core.messages import HumanMessage, SystemMessage
 from dialbb.builtin_blocks.stn_management.util import scenario_function_log_debug, scenario_function_log_warning
 
 from dialbb.util.globals import CHATGPT_INSTRUCTIONS
 
 #  [[[....{<tag1>}....{<tag2>}....]]]
-REMAINING_TAGS_PATTERN = re.compile( r"\[\[\[(?=.*\{[A-Za-z0-9_]+\})(?:[^\{\]]|\{[A-Za-z0-9_]+\})*\]\]\]",
-                                     re.DOTALL)
+REMAINING_TAGS_PATTERN = re.compile(r"\[\[\[[^\]]*\{[A-Za-z0-9_]+\}[^\]]*\]\]\]", re.DOTALL)
 
 DEFAULT_LLM = 'gpt-5.6-luna'
 LLM_TIMEOUT = 10

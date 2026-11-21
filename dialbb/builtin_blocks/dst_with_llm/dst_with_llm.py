@@ -31,7 +31,7 @@ from typing import Any, Dict, List, Tuple
 
 import gspread
 import pandas as pd
-from langchain.chat_models import init_chat_model
+from dialbb.util.llm import init_chat_model
 from oauth2client.service_account import ServiceAccountCredentials
 from pandas import DataFrame
 

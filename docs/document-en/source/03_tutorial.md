@@ -79,6 +79,8 @@ This application uses {ref}`llm_dialogue` to conduct dialogue with a single prom
 
 It is located in `sample_apps/llm_dialogue_en`.
 
+The `simulation` directory contains settings for prompt-based LLM testing. A sample using another DialBB application as the user simulator is also available in `sample_apps/llm_dialogue_ja/simulation_with_dialbb`. See {ref}`sim_tester` for commands and configuration details.
+
 The contents of `sample_apps/llm_dialogue_en/config.yml` are as follows.
 
 ```yaml
