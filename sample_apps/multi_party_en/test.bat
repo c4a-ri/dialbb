@@ -55,19 +55,19 @@ timeout /t 1 /nobreak >nul 2>nul
 goto wait_hub
 
 :spokes
-start "DialBB - Tanaka" "%ComSpec%" /d /s /k ""%DIALBB_PYTHON%" -m dialbb.lib.multi_party.dialbb_spoke sample_apps/multi_party_en/config1.yml Tanaka --hub-url %HUB_URL%"
-start "DialBB - Suzuki" "%ComSpec%" /d /s /k ""%DIALBB_PYTHON%" -m dialbb.lib.multi_party.dialbb_spoke sample_apps/multi_party_en/config2.yml Suzuki --hub-url %HUB_URL%"
+start "DialBB - John" "%ComSpec%" /d /s /k ""%DIALBB_PYTHON%" -m dialbb.lib.multi_party.dialbb_spoke sample_apps/multi_party_en/config1.yml John --hub-url %HUB_URL%"
+start "DialBB - Paul" "%ComSpec%" /d /s /k ""%DIALBB_PYTHON%" -m dialbb.lib.multi_party.dialbb_spoke sample_apps/multi_party_en/config2.yml Paul --hub-url %HUB_URL%"
 if "%ALL_BOTS%"=="1" goto third_bot
 if "%CLI%"=="1" goto third_cli
-start "DialBB - Yamada" "%ComSpec%" /d /s /k ""%DIALBB_PYTHON%" -m dialbb.lib.multi_party.user_spoke_gui Yamada --hub-url %HUB_URL%"
-echo Click Join in Yamada's GUI, then use Send or Ctrl+Enter.
+start "DialBB - Lisa" "%ComSpec%" /d /s /k ""%DIALBB_PYTHON%" -m dialbb.lib.multi_party.user_spoke_gui Lisa --hub-url %HUB_URL%"
+echo Click Join in Lisa's GUI, then use Send or Ctrl+Enter.
 exit /b 0
 :third_cli
-start "DialBB - Yamada" "%ComSpec%" /d /s /k ""%DIALBB_PYTHON%" -m dialbb.lib.multi_party.user_spoke Yamada --hub-url %HUB_URL%"
-echo Press Enter in Yamada's console to join.
+start "DialBB - Lisa" "%ComSpec%" /d /s /k ""%DIALBB_PYTHON%" -m dialbb.lib.multi_party.user_spoke Lisa --hub-url %HUB_URL%"
+echo Press Enter in Lisa's console to join.
 exit /b 0
 :third_bot
-start "DialBB - Yamada" "%ComSpec%" /d /s /k ""%DIALBB_PYTHON%" -m dialbb.lib.multi_party.dialbb_spoke sample_apps/multi_party_en/config3.yml Yamada --hub-url %HUB_URL%"
+start "DialBB - Lisa" "%ComSpec%" /d /s /k ""%DIALBB_PYTHON%" -m dialbb.lib.multi_party.dialbb_spoke sample_apps/multi_party_en/config3.yml Lisa --hub-url %HUB_URL%"
 exit /b 0
 
 :help

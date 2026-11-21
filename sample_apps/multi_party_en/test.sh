@@ -65,12 +65,12 @@ until curl --fail --silent --output /dev/null --connect-timeout 1 --max-time 1 "
     fi
     sleep 1
 done
-"$DIALBB_PYTHON" -m dialbb.lib.multi_party.dialbb_spoke sample_apps/multi_party_en/config1.yml Tanaka --hub-url "$HUB_URL" >"$LOG_DIR/Tanaka.log" 2>&1 &
+"$DIALBB_PYTHON" -m dialbb.lib.multi_party.dialbb_spoke sample_apps/multi_party_en/config1.yml John --hub-url "$HUB_URL" >"$LOG_DIR/John.log" 2>&1 &
 PIDS="$PIDS $!"
-"$DIALBB_PYTHON" -m dialbb.lib.multi_party.dialbb_spoke sample_apps/multi_party_en/config2.yml Suzuki --hub-url "$HUB_URL" >"$LOG_DIR/Suzuki.log" 2>&1 &
+"$DIALBB_PYTHON" -m dialbb.lib.multi_party.dialbb_spoke sample_apps/multi_party_en/config2.yml Paul --hub-url "$HUB_URL" >"$LOG_DIR/Paul.log" 2>&1 &
 PIDS="$PIDS $!"
 if [ "$ALL_BOTS" -eq 1 ]; then
-    "$DIALBB_PYTHON" -m dialbb.lib.multi_party.dialbb_spoke sample_apps/multi_party_en/config3.yml Yamada --hub-url "$HUB_URL" >"$LOG_DIR/Yamada.log" 2>&1 &
+    "$DIALBB_PYTHON" -m dialbb.lib.multi_party.dialbb_spoke sample_apps/multi_party_en/config3.yml Lisa --hub-url "$HUB_URL" >"$LOG_DIR/Lisa.log" 2>&1 &
     PIDS="$PIDS $!"
     echo "All three bots are running. Press Ctrl+C to stop."
     # Wait for the hub to keep the conversation running, including quiet bots.
@@ -81,5 +81,5 @@ else
     else
         HUMAN_MODULE=dialbb.lib.multi_party.user_spoke_gui
     fi
-    "$DIALBB_PYTHON" -m "$HUMAN_MODULE" Yamada --hub-url "$HUB_URL"
+    "$DIALBB_PYTHON" -m "$HUMAN_MODULE" Lisa --hub-url "$HUB_URL"
 fi

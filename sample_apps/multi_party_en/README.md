@@ -1,8 +1,8 @@
 # DialBB multi-party conversation sample
 
 This is the English version of [multi_party_ja](../multi_party_ja/README.md).
-Tanaka, Suzuki, and Yamada chat about their favorite foods. Tanaka and Suzuki
-are DialBB applications; Yamada can be either a human or another DialBB application.
+John, Paul, and Lisa chat about their favorite foods. John and Paul
+are DialBB applications; Lisa can be either a human or another DialBB application.
 Each application generates responses using the `LLMDialogue` block. A shared hub
 broadcasts utterances and participant joins and departures.
 
@@ -39,29 +39,30 @@ $env:OPENAI_API_KEY = "<OpenAI API Key>"
 In bash/zsh, use `export OPENAI_API_KEY="<OpenAI API Key>"`.
 You can also set `OPENAI_API_KEY=...` in the repository root's `.env` file.
 
-Start Tanaka and Suzuki in separate terminals:
+Start John and Paul in separate terminals:
 
 ```sh
-python -m dialbb.lib.multi_party.dialbb_spoke sample_apps/multi_party_en/config1.yml Tanaka
-python -m dialbb.lib.multi_party.dialbb_spoke sample_apps/multi_party_en/config2.yml Suzuki
+python -m dialbb.lib.multi_party.dialbb_spoke sample_apps/multi_party_en/config1.yml John
+python -m dialbb.lib.multi_party.dialbb_spoke sample_apps/multi_party_en/config2.yml Paul
 ```
 
-Tanaka sends "Let's talk about our favorite foods." when he joins.
-Suzuki and Yamada wait until both Tanaka and Yamada are present before completing
-their initial waiting phase. Their initial utterances are empty.
+John sends "Let's talk about our favorite foods." when he joins.
+Paul waits for John and Lisa before completing his initial waiting phase.
+When Lisa runs as a DialBB spoke, she waits for John and Paul before completing hers.
+Paul and the DialBB version of Lisa both have empty initial utterances.
 Participants joining later do not receive earlier utterances.
 
-To join as Yamada, open another terminal and choose either the GUI or the CLI:
+To join as Lisa, open another terminal and choose either the GUI or the CLI:
 
 ```sh
-python -m dialbb.lib.multi_party.user_spoke_gui Yamada
+python -m dialbb.lib.multi_party.user_spoke_gui Lisa
 ```
 
 In the GUI, click Join, type in the input field, and click Send or press Ctrl+Enter.
 Enter alone does not send a message, allowing IME composition and confirmation.
 
 ```sh
-python -m dialbb.lib.multi_party.user_spoke Yamada
+python -m dialbb.lib.multi_party.user_spoke Lisa
 ```
 
 In the CLI, press Enter to join, then type an utterance and press Enter to send it.
@@ -70,7 +71,7 @@ To run all three participants as DialBB applications, replace the human particip
 with the following command in a terminal with the API key set:
 
 ```sh
-python -m dialbb.lib.multi_party.dialbb_spoke sample_apps/multi_party_en/config3.yml Yamada
+python -m dialbb.lib.multi_party.dialbb_spoke sample_apps/multi_party_en/config3.yml Lisa
 ```
 
 ## Configuration and behavior
@@ -81,9 +82,9 @@ require their own API keys and LangChain integration packages.
 
 | Participant | Configuration | Turn-taking strategy | Silence timeout |
 | --- | --- | --- | --- |
-| Tanaka | `config1.yml` | Wait for all other current participants to speak | 5 seconds |
-| Suzuki | `config2.yml` | Wait for two utterances | 12 seconds |
-| Yamada (DialBB) | `config3.yml` | Wait for one utterance | Disabled |
+| John | `config1.yml` | Wait for all other current participants to speak | 5 seconds |
+| Paul | `config2.yml` | Wait for two utterances | 12 seconds |
+| Lisa (DialBB) | `config3.yml` | Wait for one utterance | Disabled |
 
 - Each prompt defines the participant's persona and requests English responses.
   The prompt and `multi_party.silence` both use `SILENT` for choosing not to speak;
@@ -119,8 +120,8 @@ After setting the API key in the environment or the root `.env`, run:
 sample_apps\multi_party_en\test.bat
 ```
 
-This opens four consoles for the hub, Tanaka, Suzuki, and Yamada, plus Yamada's
-GUI window. Use the GUI to join and send messages; Yamada's console displays logs.
+This opens four consoles for the hub, John, Paul, and Lisa, plus Lisa's
+GUI window. Use the GUI to join and send messages; Lisa's console displays logs.
 
 Use the CLI for the human participant, run all three as bots, or change the port:
 
