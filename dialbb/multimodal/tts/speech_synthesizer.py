@@ -171,7 +171,7 @@ def run_tts_worker(
     conversation_active_event: "Event | None" = None,
     tts_cancel_queue: "Queue[str] | None" = None,
     cancel_state_clear_callback: Callable[[str], None] | None = None,
-    audio_send_callback: Callable[[int, int, bytes], bool] | None = None,
+    audio_send_callback: Callable[[int, int, int, bytes], bool] | None = None,
     language_code: str = _LANGUAGE_CODE,
     voice_name: str | None = None,
     speaking_rate: float = 1.0,
@@ -265,7 +265,7 @@ def run_tts_worker(
                         completed = False
                         break
 
-                if not audio_send_callback(segment_index, total_segments, audio_bytes):
+                if not audio_send_callback(request.utterance_id, segment_index, total_segments, audio_bytes):
                     logger.info("[TTS] audio send interrupted: segment=%d/%d", segment_index, total_segments)
                     completed = False
                     break
