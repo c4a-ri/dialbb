@@ -24,6 +24,7 @@ __copyright__ = 'C4A Research Institute, Inc.'
 
 import os
 import pickle
+from collections.abc import Iterable
 
 from pymongo import MongoClient
 from pymongo.collection import Collection
@@ -90,25 +91,23 @@ class ContextDB:
         return result
 
     def add_data(self, session_id: str, key: str, data: Any) -> None:
+        self.add_fields(session_id, {key: data})
 
-        serialized_data = self._serialize_data(data)
-        if self._context_collection.find_one({KEY_SESSION_ID: session_id}):
-            self._context_collection.find_one_and_update({KEY_SESSION_ID: session_id},
-                                                         {"$set": {key: serialized_data}})
-        else:
-            self._context_collection.insert_one({KEY_SESSION_ID: session_id, key: serialized_data})
+    def add_fields(self, session_id: str, fields: Dict[str, Any]) -> None:
+        serialized_fields = {key: self._serialize_data(value) for key, value in fields.items()}
+        self._context_collection.update_one({KEY_SESSION_ID: session_id},
+                                            {"$set": serialized_fields}, upsert=True)
 
     def get_data(self, session_id: str, key: str) -> Optional[Any]:
+        return self.get_fields(session_id, (key,)).get(key)
 
+    def get_fields(self, session_id: str, keys: Iterable[str]) -> Dict[str, Any]:
         document: Dict[str, Any] = self._context_collection.find_one({KEY_SESSION_ID: session_id})
         if document:
-            serialized_data: bytes = document.get(key)
-            context: Dict[str, Any] = self._deserialize_data(serialized_data)
-            return context
-        else:
-            if self._debug:
-                print("no context found in the db.")
-            return None
+            return {key: self._deserialize_data(document[key]) for key in keys if key in document}
+        if self._debug:
+            print("no context found in the db.")
+        return {}
 
     #
     # def add_previous_context(self, session_id: str, context: Dict[str, Any]) -> None:

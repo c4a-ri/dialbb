@@ -112,6 +112,10 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+multi-party = [
+    "python-socketio[client]>=5.9,<6",
+    "simple-websocket>=1.0,<2",
+]
 rag = [
     "langchain-chroma>=1.1.0",
     "langchain-unstructured>=1.0.1",

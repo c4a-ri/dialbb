@@ -1,0 +1,22 @@
+language: ja
+blocks:
+  - name: llm_dialogue
+    block_class: dialbb.builtin_blocks.llm_dialogue.LLMDialogue
+    input:
+      dialogue_history: dialogue_history
+      aux_data: aux_data
+    output:
+      system_utterance: system_utterance
+      aux_data: aux_data
+      final: final
+    system_name: 山田
+    first_system_utterance: ""
+    prompt_template: prompt_template3.txt
+    model: gpt-5.6-luna
+    multi_party:
+      silence: 黙る
+      turn_taking_strategy: wait_n_turns
+      turns_to_wait: 1
+      required_participants:
+        - 田中
+        - 山田

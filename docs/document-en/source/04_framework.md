@@ -221,6 +221,21 @@ Each block configuration requires the following elements.
 
   If `blackboard` already has `system_utterance`, the value is overwritten.
 
+## Session Data
+
+`session_data` is a dictionary carried across turns in the same session. It starts as `{}`. The processor ignores a field of the same name in client requests and omits it from responses.
+
+Custom blocks can read and write session data using the following mappings in their block configuration. The current built-in blocks have no `session_data` input.
+
+```yaml
+input:
+  session_data: session_data
+output:
+  session_data: session_data
+```
+
+A block can modify the input dictionary in place or replace the entire dictionary through its output mapping. If the output mapping is configured, the block must return that key. Later blocks in the same turn can see the changes. When the turn completes, the processor saves the dictionary with the dialogue history for the next input. It stores the data in memory by default and in MongoDB when `context_db` is configured at the application level. Values stored in MongoDB must be serializable with Python's `pickle`.
+
 ## Retaining Dialogue History
 
 ### Retaining Dialogue History in the Blackboard
@@ -291,7 +306,7 @@ The multimodal calculation multiplies the original character count for Japanese,
 
 When a DialBB application is run as a web server behind a load balancer, a single session may be handled by different instances. In that case, context can be stored in an external database such as MongoDB.
 
-To use an external database, specify `context_db` in the block configuration as follows.
+To use an external database for dialogue history and session data, specify `context_db` at the top level of the application configuration as follows.
 
 ```yaml
 context_db:
