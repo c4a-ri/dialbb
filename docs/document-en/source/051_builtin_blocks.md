@@ -57,12 +57,14 @@ This block uses a large language model (LLM) to generate system utterances.
 
   Instruction sent to the LLM as the system-role message.
 
-- `multi_party` (boolean. Default value: `false`)
+- `multi_party` (mapping or Boolean, default `false`)
 
-  When this value is `true`, the `user_id` value is used in the conversation history included in the prompt. This allows the LLM to distinguish between utterances from multiple users.
+  Enables participant-aware dialogue with a mapping or `true`. See {ref}`llm_dialogue_multi_party` for the configuration options and turn-taking behavior.
 
 
 ### Process Details
+
+The steps below describe the default dialogue flow. For multi-party mode, see {ref}`llm_dialogue_multi_party` for the initial utterance and response conditions.
 
 - At the beginning of the dialog, the value of `first_system_utterance` in the block configuration is returned as system utterance.
 

@@ -1,6 +1,6 @@
 # DialBB: A Framework for Building Dialogue Systems
 
-ver. 2.0.2
+ver. 2.1.0
 
 [日本語](README-ja.md)
 
@@ -185,6 +185,20 @@ $ dialbb-sim-tester --app_config sample_apps/llm_dialogue_en/config.yml \
   --test_config sample_apps/llm_dialogue_en/simulation/config.yml
 ```
 
+
+#### Testing with a DialBB application as the user simulator
+
+You can use another DialBB application to act as the user in an automated dialogue. The supplied example tests the Japanese LLM dialogue application. Set `OPENAI_API_KEY` as described above and run the following command from the directory containing `sample_apps`. You do not need to start a server.
+
+```sh
+$ dialbb-sim-tester --app_config sample_apps/llm_dialogue_ja/config.yml \
+  --test_config sample_apps/llm_dialogue_ja/simulation_with_dialbb/configs.yml \
+  --output simulation.json --json_output
+```
+
+`--app_config` selects the application under test; `--test_config` selects the test configuration specifying the simulators. This example uses `config1.yml` and `config2.yml`, listed in `configs.yml`, as user simulators. It runs one dialogue of up to 10 turns per simulator and saves the results to `simulation.json`. For text output, omit `--json_output` and change the destination to `--output simulation.txt`.
+
+See [Test Using a User Simulator](docs/document-en/source/04_framework.md#test-using-a-user-simulator) for configuration options and the Python API.
 
 ### DST+STN Applications
 

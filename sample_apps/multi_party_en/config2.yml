@@ -1,0 +1,23 @@
+language: en
+silence_timeout: 12
+blocks:
+  - name: llm_dialogue
+    block_class: dialbb.builtin_blocks.llm_dialogue.LLMDialogue
+    input:
+      dialogue_history: dialogue_history
+      aux_data: aux_data
+    output:
+      system_utterance: system_utterance
+      aux_data: aux_data
+      final: final
+    system_name: Paul
+    first_system_utterance: ""
+    prompt_template: prompt_template2.txt
+    model: gpt-5.6-luna
+    multi_party:
+      silence: SILENT
+      turn_taking_strategy: wait_n_turns
+      turns_to_wait: 2
+      required_participants:
+        - John
+        - Lisa

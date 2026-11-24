@@ -27,10 +27,11 @@ import sys
 import traceback
 import datetime
 from typing import Dict, Any, List, Union, Tuple
-from langchain.chat_models import init_chat_model
+from dialbb.util.llm import init_chat_model
 from dialbb.abstract_block import AbstractBlock
 from dialbb.builtin_blocks.util import extract_aux_data
 from dialbb.util.error_handlers import abort_during_building
+from dialbb.lib.multi_party.events import JOINED, LEFT, SILENCE
 import re
 
 from dialbb.util.globals import CHATGPT_INSTRUCTIONS
@@ -57,7 +58,25 @@ class LLMDialogue(AbstractBlock):
         self._instruction = self.block_config.get("instruction", CHATGPT_INSTRUCTIONS[self._language])
         self.user_name: str = self.block_config.get("user_name", 'ユーザ' if self._language == 'ja' else "User")
         self.system_name: str = self.block_config.get("system_name", 'システム' if self._language == 'ja' else "System")
-        self._multi_party: str = self.block_config.get("multi_party", False)
+        multi_party = self.block_config.get("multi_party", False)
+        if not isinstance(multi_party, (bool, dict)):
+            abort_during_building("multi_party must be a mapping or a boolean")
+        self._multi_party = isinstance(multi_party, dict) or multi_party is True
+        # Boolean configurations remain supported for existing applications.
+        multi_party_config = multi_party if isinstance(multi_party, dict) else self.block_config
+        self._turn_taking_strategy = multi_party_config.get("turn_taking_strategy")
+        self._turns_to_wait = multi_party_config.get("turns_to_wait", 1)
+        self._silence = multi_party_config.get("silence")
+        required = multi_party_config.get("required_participants", [])
+        if not isinstance(required, list) or not all(isinstance(name, str) and name for name in required):
+            abort_during_building("multi_party.required_participants must be a list of user IDs")
+        self._required_participants = set(required)
+        self._started_sessions = set()
+        if self._multi_party and self._turn_taking_strategy is not None:
+            if self._turn_taking_strategy not in ("after_all_other_speak", "wait_n_turns"):
+                abort_during_building("unknown turn_taking_strategy: " + str(self._turn_taking_strategy))
+            if not isinstance(self._turns_to_wait, int) or self._turns_to_wait < 1:
+                abort_during_building("turns_to_wait must be a positive integer")
         prompt_template_file: str = self.block_config.get("prompt_template", "")
         if not prompt_template_file:
             abort_during_building("prompt template file is not specified")
@@ -90,15 +109,70 @@ class LLMDialogue(AbstractBlock):
         aux_data = input_data.get("aux_data", {})
         if aux_data is None:
             aux_data = {}
-        if len(dialogue_history) == 1:
-            system_utterance = self.block_config.get("first_system_utterance")
-            aux_data = input_data.get('aux_data', {})
+        if self._multi_party and len(dialogue_history) == 1:
+            self._started_sessions.discard(session_id)
+        if self._multi_party and session_id not in self._started_sessions:
+            participants = self._get_participants(dialogue_history, aux_data)
+            if self._required_participants <= participants:
+                self._started_sessions.add(session_id)
+                system_utterance = self.block_config.get("first_system_utterance", "")
+            else:
+                system_utterance = ""
+            final = False
+        elif len(dialogue_history) == 1:
+            system_utterance = self.block_config.get("first_system_utterance", "")
+            final = False
+        elif self._multi_party and not self._should_respond(dialogue_history, aux_data):
+            system_utterance = ""
             final = False
         else:
             system_utterance, aux_data, final = self.generate_system_utterance(dialogue_history, aux_data, session_id)
+        silence = self._silence
+        if silence and system_utterance and system_utterance.strip().strip('「」') == silence:
+            system_utterance = ""
         return {"system_utterance": system_utterance,
                 "aux_data": aux_data,
                 "final": final}
+
+    @staticmethod
+    def _get_participants(dialogue_history, aux_data):
+        """Use the latest membership snapshot, including an explicitly empty list."""
+        if "participants" in aux_data:
+            return set(aux_data["participants"])
+        for turn in reversed(dialogue_history):
+            turn_aux = turn.get("aux_data") or {}
+            if "participants" in turn_aux:
+                return set(turn_aux["participants"])
+        return set()
+
+    def _should_respond(self, dialogue_history, aux_data):
+        """Decide whose turn it is from the session's existing dialogue history."""
+        if aux_data.get("no_response_required"):
+            return False
+        if self._is_silence(dialogue_history[-1]):
+            return True
+        if not dialogue_history[-1].get("utterance"):
+            return False
+        if self._turn_taking_strategy is None:
+            return True
+        turns_since_last_response = []
+        for turn in reversed(dialogue_history):
+            if turn["speaker"] == "system" and turn.get("utterance"):
+                break
+            if (turn["speaker"] == "user" and turn.get("utterance")
+                    and turn["utterance"] not in (JOINED, LEFT) and not self._is_silence(turn)):
+                if turn.get("user_id") != self.system_name:
+                    turns_since_last_response.append(turn)
+        if self._turn_taking_strategy == "wait_n_turns":
+            return len(turns_since_last_response) >= self._turns_to_wait
+        participants = self._get_participants(dialogue_history, aux_data)
+        participants.discard(self.system_name)
+        speakers = {turn.get("user_id") for turn in turns_since_last_response}
+        return bool(participants) and participants <= speakers
+
+    @staticmethod
+    def _is_silence(turn):
+        return turn.get("speaker") == "user" and turn.get("user_id") == "" and turn.get("utterance") == SILENCE
 
     @staticmethod
     def get_current_time_string(language: str) -> str:
@@ -145,6 +219,14 @@ class LLMDialogue(AbstractBlock):
             prompt: str = prompt.replace(DIALOGUE_HISTORY_OLD_TAG, dialogue_history_string)
         else:
             prompt += f"\n#{DIALOGUE_UP_TO_NOW[language]}\n\n{dialogue_history_string}"
+
+        if self._is_silence(dialogue_history[-1]):
+            prompt += ("\nしばらく誰も話していません。あなたが会話を再開する番です。"
+                       "直前の話に反応するか、新しい話題や質問を短く発話してください。"
+                       "今回は黙るのではなく、発話の本文だけを返してください。"
+                       if language == 'ja' else
+                       "\nNo one has spoken for a while. It is your turn to resume the conversation. "
+                       "Reply briefly to the previous topic or ask a new question. Return only your utterance.")
 
         messages = []
         messages.append({'role': "system", "content": self._instruction})

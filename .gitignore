@@ -13,6 +13,7 @@ downloads/
 eggs/
 .eggs/
 lib/
+!/dialbb/lib/
 lib64/
 parts/
 sdist/
