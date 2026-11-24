@@ -776,7 +776,6 @@ async function startClient(): Promise<void> {
     playbackGeneration += 1
     stoppedUtteranceId = 0
     playbackQueue.length = 0
-    pendingInterruptedAuxData = null
     resetTtsProgressState()
 
     sessionId = await createSession(activeServerInput)
