@@ -51,7 +51,7 @@ set MAX_TURNS | findstr /r /x "MAX_TURNS=[1-9][0-9]*" >nul || goto bad_max_turns
 set "MODE=gui"
 if "%CLI%"=="1" set "MODE=cli"
 if "%ALL_BOTS%"=="1" set "MODE=bots"
-"%DIALBB_PYTHON%" "sample_apps\run_multi_party_windows.py" ja "%PORT%" "%MAX_TURNS%" "%MODE%"
+"%DIALBB_PYTHON%" "sample_apps\multi_party\run_multi_party_windows.py" ja "%PORT%" "%MAX_TURNS%" "%MODE%"
 exit /b %ERRORLEVEL%
 
 :help
