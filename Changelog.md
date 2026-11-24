@@ -1,5 +1,21 @@
 # Changelog
 
+[日本語](Changelog-ja.md)
+
+## 2.1.0
+
+- Added multi-party dialogue support and sample apps in Japanese and English
+
+- Enabled DialBB applications to act as user simulators
+
+- Updated LLM simulator prompts and renamed the simulation tester's Python API to `do_test`
+
+- Improved error messages for missing LLM API keys
+
+- Updated placeholder handling in STN prompts
+
+- Lowered the minimum LangChain version to `1.2.15`
+
 ## 2.0.2 (2026.10.1)
 
 - Changed the default LLM to gpt-5.6-luna

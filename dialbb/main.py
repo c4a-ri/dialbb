@@ -24,6 +24,8 @@ __copyright__ = 'C4A Research Institute, Inc.'
 
 import copy
 import dataclasses
+from itertools import count
+from threading import Lock
 import time
 from pathlib import Path
 from typing import Dict, Any, List
@@ -48,6 +50,7 @@ KEY_SESSION_ID: str = 'session_id'
 KEY_USER_UTTERANCE: str = 'user_utterance'
 KEY_BLOCK_CLASS: str = 'block_class'
 KEY_HISTORY: str = 'history'
+KEY_SESSION_DATA: str = 'session_data'
 CONFIG_DIR: str = ""
 
 # Preserve the existing streams and flush each line, including in the MM server.
@@ -150,27 +153,28 @@ class DialogueProcessor:
         if self._use_context_db:
             self._context_db = ContextDB(context_db_config)
         else:
-            # session_id -> context
             self._sessions2histories: Dict[str, List[Dict[str, Any]]] = {}
-            # for rewinding  状態を元に戻す時のため
-            # session_id -> context
-
-        self._session_count = 0
+            self._sessions2data: Dict[str, Dict[str, Any]] = {}
+        self._session_count = count(1)
+        self._session_locks = tuple(Lock() for _ in range(64))
 
         self._logger = get_logger("main")
 
-    def _add_history(self, session_id: str, history: List[Dict[str, Any]]) -> None:
+    def _save_session(self, session_id: str, history: List[Dict[str, Any]],
+                      session_data: Dict[str, Any]) -> None:
         if self._use_context_db:
-            self._context_db.add_data(session_id, KEY_HISTORY, history)
+            self._context_db.add_fields(session_id, {KEY_HISTORY: history, KEY_SESSION_DATA: session_data})
         else:
             self._sessions2histories[session_id] = history
+            self._sessions2data[session_id] = session_data
 
-    def _get_history(self, session_id: str) -> List[Dict[str, Any]]:
+    def _load_session(self, session_id: str) -> Dict[str, Any]:
         if self._use_context_db:
-            history: List[Dict[str, Any]] = self._context_db.get_data(session_id, KEY_HISTORY)
-        else:
-            history: List[Dict[str, Any]] = self._sessions2histories.get(session_id)
-        return history
+            return self._context_db.get_fields(session_id, (KEY_HISTORY, KEY_SESSION_DATA))
+        return {
+            KEY_HISTORY: self._sessions2histories[session_id],
+            KEY_SESSION_DATA: self._sessions2data.get(session_id, {}),
+        }
 
     @classmethod
     def get_config(cls):
@@ -188,8 +192,7 @@ class DialogueProcessor:
             hash_object = hashlib.sha256(data.encode())
             session_id = hash_object.hexdigest()
         else:
-            self._session_count += 1
-            session_id = "dialbb_session" + str(self._session_count)
+            session_id = "dialbb_session" + str(next(self._session_count))
         return session_id
 
     def process(self, request: Dict[str, Any], initial: bool = False) -> Dict[str, Any]:
@@ -204,24 +207,30 @@ class DialogueProcessor:
                  レスポンス　（システム発話を含む）
         """
 
-        blackboard: Dict[str, Any] = copy.deepcopy(request)
+        blackboard = copy.deepcopy({key: value for key, value in request.items() if key != KEY_SESSION_DATA})
+        session_id = self._generate_session_id() if initial else blackboard[KEY_SESSION_ID]
+        # Keep the read, block processing, and save together for concurrent turns.
+        with self._session_locks[hash(session_id) % len(self._session_locks)]:
+            return self._process_turn(blackboard, session_id, initial)
 
+    def _process_turn(self, blackboard: Dict[str, Any], session_id: str, initial: bool) -> Dict[str, Any]:
         if initial:  # first turn
-            # create session id string
-            session_id = self._generate_session_id()
             self._log_info(f"new session started.", session_id=session_id)
             blackboard[KEY_SESSION_ID] = session_id
             blackboard['user_utterance'] = ""
             history: List[Dict[str, Any]] = []
+            blackboard[KEY_SESSION_DATA] = {}
         else:
-            session_id = blackboard[KEY_SESSION_ID]  # session id received from the client
             self._log_info(f"existing session continues.", session_id=session_id)
-            history = self._get_history(session_id)
+            session_info = self._load_session(session_id)
+            history = session_info[KEY_HISTORY].copy()
+            blackboard[KEY_SESSION_DATA] = copy.deepcopy(session_info.get(KEY_SESSION_DATA, {}))
             aux_data = blackboard.get('aux_data')
             if isinstance(aux_data, dict) and isinstance(aux_data.get('spoken_string'), str):
-                for turn in reversed(history):
+                for index in range(len(history) - 1, -1, -1):
+                    turn = history[index]
                     if turn.get('speaker') == 'system':
-                        turn['utterance'] = aux_data['spoken_string']
+                        history[index] = {**turn, 'utterance': aux_data['spoken_string']}
                         break
         self._log_debug(f"blackboard: " + str(blackboard), session_id=session_id)
 
@@ -245,14 +254,15 @@ class DialogueProcessor:
                 if key_in_output not in output_from_block:
                     self._log_error(f"key '{key_in_output}' is not in the output from the block.", session_id=session_id)
                     sys.exit(1)
-                blackboard[key_in_blackboard] = output_from_block[key_in_output]
+                value = output_from_block[key_in_output]
+                if key_in_blackboard == KEY_SESSION_DATA and not isinstance(value, dict):
+                    raise TypeError(f"Block {block.block_config['name']} must output a dictionary for session_data.")
+                blackboard[key_in_blackboard] = value
             self._log_debug(f"blackboard: " + str(blackboard), session_id=session_id)
 
         history.append({"speaker": "system",
                         "aux_data": blackboard.get('aux_data', {}),
                         "utterance": blackboard.get('system_utterance', "")})
-        self._add_history(session_id, history)
-
         # create response from the blackboard
         response = {"system_utterance": blackboard.get('system_utterance', ""),
                     "session_id": blackboard['session_id'],
@@ -260,6 +270,7 @@ class DialogueProcessor:
                     "final": blackboard.get('final', False),
                     "aux_data": blackboard.get("aux_data", {})}
 
+        self._save_session(session_id, history, blackboard[KEY_SESSION_DATA])
         return response
 
     def _log_debug(self, message: str, session_id: str = "unknown") -> None:

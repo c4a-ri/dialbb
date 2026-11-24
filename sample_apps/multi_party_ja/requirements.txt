@@ -1,0 +1,3 @@
+# Install DialBB itself from the repository root first (pip install -e .).
+python-socketio[client]>=5.9,<6
+simple-websocket>=1.0,<2
