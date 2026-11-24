@@ -120,8 +120,10 @@ After setting the API key in the environment or the root `.env`, run:
 sample_apps\multi_party_en\test.bat
 ```
 
-This opens four consoles for the hub, John, Paul, and Lisa, plus Lisa's
-GUI window. Use the GUI to join and send messages; Lisa's console displays logs.
+The hub runs in the console that launched `test.bat`. John, Paul, and Lisa each
+open a separate console, and Lisa's GUI opens by default. The participant
+windows close when the hub reaches the turn limit or you press Ctrl+C in the
+hub console. Use Lisa's GUI to join and send messages.
 
 Use the CLI for the human participant, run all three as bots, or change the port:
 
@@ -131,9 +133,10 @@ sample_apps\multi_party_en\test.bat --all-bots
 sample_apps\multi_party_en\test.bat --port 5001
 ```
 
-The batch file directly starts the hub and participants; no Python launcher script is used.
-It requires `curl.exe` (included in recent Windows versions) to check that the
-hub is ready before opening participant consoles.
+Both launchers end the conversation after 30 utterances by default. Use
+`--max-turns 50` to set a different limit.
+
+The batch file waits for the hub to start before opening participant consoles.
 It uses `.venv\Scripts\python.exe` if present, otherwise `python`.
 Set `DIALBB_PYTHON` to an executable path to select another Python environment.
 
@@ -151,13 +154,12 @@ sh sample_apps/multi_party_en/test.sh --all-bots
 sh sample_apps/multi_party_en/test.sh --port 5001
 ```
 
-The shell script starts the hub and bots in the background, then runs the human
-GUI or CLI in the foreground. It prints the temporary directory containing the
-hub and bot logs. Closing the human participant or pressing Ctrl+C stops the
-processes started by the script. In all-bot mode, use Ctrl+C to stop.
-Logs are kept for inspection.
+The shell script displays hub output in the terminal that launched it and saves
+the hub and bot logs in the temporary directory printed at startup. The CLI
+reads input from that same terminal. Reaching the turn limit, pressing Ctrl+C,
+or closing the human participant stops the hub and all spokes. Logs are kept
+after exit.
 
 The script uses `.venv/bin/python` if available, otherwise `python3`.
 Set `DIALBB_PYTHON` to override the executable. Both launchers can be called from
-any working directory. Python is still required to run DialBB itself; all launch
-control is implemented in the bat/sh files.
+any working directory.

@@ -44,6 +44,7 @@ python -m dialbb.lib.multi_party.user_spoke_gui 山田
 | --- | --- | --- |
 | `hub` | `--host` | `localhost` |
 | `hub` | `--port` | `5000` |
+| `hub` | `--max-turns` | 上限なし |
 | `dialbb_spoke` | `config_file`、`my_name` | いずれも必須 |
 | `user_spoke` / `user_spoke_gui` | `my_name` | 必須 |
 | すべてのスポーク | `--hub-url` | `http://localhost:5000` |
@@ -55,6 +56,11 @@ GUI は入力の前後の空白を取り除いて送信します。
 
 CLI と DialBB は Ctrl+C、GUI はウインドウを閉じると終了します。
 接続だけでは参加者として登録されず、`join` の成功後に配信対象になります。
+
+`--max-turns 20` を指定すると、参加者全員で合計 20 発話に達した時点で会話が終了します。
+参加・退出・沈黙の通知は発話数に含みません。最後の発話を参加者に配信した後、
+ハブと接続中のすべてのスポークが自動で終了します。参加操作や入力を待っている
+CLI や GUI も終了します。次の会話を始めるにはハブとスポークを起動してください。
 
 ## ハブの通信仕様
 
@@ -83,6 +89,7 @@ CLI と DialBB は Ctrl+C、GUI はウインドウを閉じると終了します
 | 他の接続が同名で参加済み | `participant already joined` |
 | 未参加、または発話者名が登録名と異なる | `join the conversation first` |
 | 発話が文字列でない、空文字、空白のみ | `empty utterance` |
+| 発話数の上限に達した後に参加または発話しようとした | `conversation has ended` |
 
 ### ハブから配信するイベント
 
@@ -91,6 +98,10 @@ CLI と DialBB は Ctrl+C、GUI はウインドウを閉じると終了します
 | `participant_joined` | `speaker`、`participants` | 新規参加者自身を含む参加者全員 |
 | `broadcast_utterance` | `speaker`、`utterance`、`participants` | 発話者自身を含む参加者全員 |
 | `participant_left` | `speaker`、`participants` | 残っている参加者全員 |
+| `conversation_ended` | なし | 上限に達した時点で接続済み・未参加のスポーク |
+
+発話数の上限に達した場合、最後の `broadcast_utterance` と以後の `utterance` のエラー応答には
+`conversation_ended: true` が付きます。
 
 `speaker` は発話・参加・退出した人の登録名です。
 `participants` はイベント発生時点の参加者名のリストで、参加通知では参加者を含み、

@@ -30,6 +30,15 @@ python -m pip install -r sample_apps/multi_party_ja/requirements.txt
 python -m dialbb.lib.multi_party.hub
 ```
 
+合計発話数の上限を指定する場合は、ハブに `--max-turns` を渡します。
+
+```sh
+python -m dialbb.lib.multi_party.hub --max-turns 20
+```
+
+この例では参加者全員の合計で 20 発話目まで配信した後、ハブと接続中のすべての
+スポークが自動で終了します。次の会話を始めるにはハブとスポークを起動してください。
+
 ## 田中・鈴木の起動
 
 それぞれ別のターミナルを開き、API キーを設定します。
@@ -145,8 +154,9 @@ API キーを環境変数またはルートの `.env` に設定して実行し�
 sample_apps\multi_party_ja\test.bat
 ```
 
-ハブ・田中・鈴木・山田の4つのコンソールウインドウが開きます。
-標準では山田のコンソールに加えて、人間用の GUI ウインドウが開きます。
+ハブは `test.bat` を実行したコンソールで動きます。田中・鈴木・山田はそれぞれ別の
+コンソールで起動し、標準では山田の GUI ウインドウも開きます。
+上限に達するかハブのコンソールで Ctrl+C を押すと、スポークのウインドウも閉じます。
 日本語を入力する場合は GUI の入力欄を使ってください。
 Join を押して参加し、Send または Ctrl+Enter で送信します。
 山田のコンソールはログ表示用です。
@@ -166,6 +176,9 @@ sample_apps\multi_party_ja\test.bat --all-bots
 sample_apps\multi_party_ja\test.bat --port 5001
 ```
 
+`test.bat` と `test.sh` は既定で合計30発話に達すると会話を終了します。
+上限を変更するには、たとえば `--max-turns 50` を指定します。
+
 沈黙の待ち時間は各設定ファイルの `silence_timeout` で変更します。
 
 バッチはルートの `.venv\Scripts\python.exe` があれば使用し、なければ `python` を使います。
@@ -174,9 +187,7 @@ sample_apps\multi_party_ja\test.bat --port 5001
 
 ## bat / sh による起動
 
-起動制御は `test.bat` と `test.sh` で行い、Python のランチャースクリプトは使いません。
-DialBB 本体の実行には引き続き Python が必要です。
-`test.bat` はハブの起動確認に `curl.exe`（最近の Windows に付属）を使います。
+Windows では `test.bat`、Linux/macOS では `test.sh` を使います。
 
 Linux/macOS では、`curl` をインストールして次を実行します。
 
@@ -187,10 +198,10 @@ sh sample_apps/multi_party_ja/test.sh --all-bots
 sh sample_apps/multi_party_ja/test.sh --port 5001
 ```
 
-sh 版はハブとボットをバックグラウンドで起動し、人間用の GUI または CLI を
-フォアグラウンドで実行します。ハブとボットのログは起動時に表示する一時ディレクトリに保存します。
-人間用の参加者を終了するか Ctrl+C を押すと、このスクリプトが起動したプロセスを停止します。
-全員ボットの場合も Ctrl+C で終了します。ログは終了後も残ります。
+sh 版はハブの出力を起動元のターミナルに表示し、ハブとボットのログを起動時に表示する
+一時ディレクトリに保存します。`--cli` の入力も同じターミナルで行います。
+上限に達するか Ctrl+C を押すと、ハブと全スポークを終了します。人間用の参加者を
+終了した場合も、残りのプロセスを停止します。ログは終了後も残ります。
 
 sh 版は `.venv/bin/python` があれば使用し、なければ `python3` を使います。
 `DIALBB_PYTHON` で実行ファイルを指定することもできます。

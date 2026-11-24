@@ -3,6 +3,7 @@ setlocal
 chcp 65001 >nul
 set "PYTHONUTF8=1"
 set "PORT=5000"
+set "MAX_TURNS=30"
 set "ALL_BOTS=0"
 set "CLI=0"
 cd /d "%~dp0..\.." || exit /b 1
@@ -15,6 +16,7 @@ if "%~1"=="" goto validate
 if "%~1"=="--all-bots" goto all_bots
 if "%~1"=="--cli" goto cli
 if "%~1"=="--port" goto port
+if "%~1"=="--max-turns" goto max_turns
 if "%~1"=="--help" goto help
 if "%~1"=="-h" goto help
 echo Unknown option: %~1
@@ -33,56 +35,33 @@ set "PORT=%~2"
 shift
 shift
 goto parse
+:max_turns
+if "%~2"=="" goto bad_max_turns
+set "MAX_TURNS=%~2"
+shift
+shift
+goto parse
 
 :validate
 rem Require 1-5 decimal digits with no leading zero, in the TCP port range.
 echo(%PORT%| findstr /r /x "[1-9][0-9]*" >nul || goto bad_port
 if not "%PORT:~5%"=="" goto bad_port
 if %PORT% GTR 65535 goto bad_port
-where curl.exe >nul 2>nul || goto no_curl
-set "HUB_URL=http://localhost:%PORT%"
-set "PROBE_URL=%HUB_URL%/socket.io/?EIO=4&transport=polling"
-curl.exe --silent --output NUL --connect-timeout 1 --max-time 1 "%HUB_URL%/" >nul 2>nul
-if not errorlevel 1 goto occupied
-start "DialBB - hub" "%ComSpec%" /d /s /k ""%DIALBB_PYTHON%" -m dialbb.lib.multi_party.hub --port %PORT%"
-set "ATTEMPTS=0"
-:wait_hub
-curl.exe --fail --silent --output NUL --connect-timeout 1 --max-time 1 "%PROBE_URL%" >nul 2>nul
-if not errorlevel 1 goto spokes
-set /a ATTEMPTS+=1 >nul
-if %ATTEMPTS% GEQ 15 goto hub_failed
-timeout /t 1 /nobreak >nul 2>nul
-goto wait_hub
-
-:spokes
-start "DialBB - 田中" "%ComSpec%" /d /s /k ""%DIALBB_PYTHON%" -m dialbb.lib.multi_party.dialbb_spoke sample_apps/multi_party_ja/config1.yml 田中 --hub-url %HUB_URL%"
-start "DialBB - 鈴木" "%ComSpec%" /d /s /k ""%DIALBB_PYTHON%" -m dialbb.lib.multi_party.dialbb_spoke sample_apps/multi_party_ja/config2.yml 鈴木 --hub-url %HUB_URL%"
-if "%ALL_BOTS%"=="1" goto third_bot
-if "%CLI%"=="1" goto third_cli
-start "DialBB - 山田" "%ComSpec%" /d /s /k ""%DIALBB_PYTHON%" -m dialbb.lib.multi_party.user_spoke_gui 山田 --hub-url %HUB_URL%"
-echo Click Join in 山田's GUI, then use Send or Ctrl+Enter.
-exit /b 0
-:third_cli
-start "DialBB - 山田" "%ComSpec%" /d /s /k ""%DIALBB_PYTHON%" -m dialbb.lib.multi_party.user_spoke 山田 --hub-url %HUB_URL%"
-echo Press Enter in 山田's console to join.
-exit /b 0
-:third_bot
-start "DialBB - 山田" "%ComSpec%" /d /s /k ""%DIALBB_PYTHON%" -m dialbb.lib.multi_party.dialbb_spoke sample_apps/multi_party_ja/config3.yml 山田 --hub-url %HUB_URL%"
-exit /b 0
+set MAX_TURNS | findstr /r /x "MAX_TURNS=[1-9][0-9]*" >nul || goto bad_max_turns
+set "MODE=gui"
+if "%CLI%"=="1" set "MODE=cli"
+if "%ALL_BOTS%"=="1" set "MODE=bots"
+"%DIALBB_PYTHON%" "sample_apps\run_multi_party_windows.py" ja "%PORT%" "%MAX_TURNS%" "%MODE%"
+exit /b %ERRORLEVEL%
 
 :help
-echo Usage: test.bat [--all-bots] [--cli] [--port PORT]
+echo Usage: test.bat [--all-bots] [--cli] [--port PORT] [--max-turns MAX_TURNS]
 echo Default: two DialBB participants and one human GUI participant.
+echo --max-turns defaults to 30.
 exit /b 0
 :bad_port
 echo --port requires an integer from 1 to 65535 without leading zeros.
 exit /b 2
-:no_curl
-echo curl.exe is required to check hub readiness.
-exit /b 1
-:occupied
-echo Port %PORT% is already in use; choose another --port.
-exit /b 1
-:hub_failed
-echo Hub did not start; check its console.
-exit /b 1
+:bad_max_turns
+echo --max-turns requires a positive integer without leading zeros.
+exit /b 2

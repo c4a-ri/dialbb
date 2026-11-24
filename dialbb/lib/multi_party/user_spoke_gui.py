@@ -53,6 +53,7 @@ class UserSpokeWindow(QWidget):
         self.sio.on("broadcast_utterance", self.receive_utterance)
         self.sio.on("participant_joined", self.participant_joined)
         self.sio.on("participant_left", self.participant_left)
+        self.sio.on("conversation_ended", lambda: self.events.put(("conversation_ended", None)))
         self.sio.on("disconnect", lambda *args: self.events.put(("disconnect", None)))
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.poll)
@@ -60,6 +61,8 @@ class UserSpokeWindow(QWidget):
 
     def receive_utterance(self, data):
         self.events.put(("message", f"{data['speaker']}: {data['utterance']}"))
+        if data.get("conversation_ended"):
+            self.events.put(("conversation_ended", None))
 
     def participant_joined(self, data):
         self.events.put(("message", f"{data['speaker']} joined. Participants: {', '.join(data['participants'])}"))
@@ -94,10 +97,13 @@ class UserSpokeWindow(QWidget):
                         self.history.insertPlainText(error + "\n")
                         if kind == "joined":
                             self.join_button.setEnabled(True)
-                    elif kind == "joined":
+                    elif kind == "joined" and self.sio.connected:
                         self.joined = True
                         self.send_button.setEnabled(True)
                         self.entry.setFocus()
+                elif kind == "conversation_ended":
+                    self.close()
+                    return
                 elif kind == "disconnect":
                     self.joined = False
                     self.send_button.setEnabled(False)

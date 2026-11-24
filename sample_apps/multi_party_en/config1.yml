@@ -13,7 +13,7 @@ blocks:
     system_name: John
     first_system_utterance: Let's talk about our favorite foods.
     prompt_template: prompt_template1.txt
-    model: openai:gpt-4.1-mini
+    model: gpt-5.6-luna
     multi_party:
       silence: SILENT
       turn_taking_strategy: after_all_other_speak
