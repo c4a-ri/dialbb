@@ -222,16 +222,16 @@ class DialogueProcessor:
             blackboard[KEY_SESSION_DATA] = {}
         else:
             self._log_info(f"existing session continues.", session_id=session_id)
-            history = self._get_history(session_id)
-            aux_data = blackboard.get('aux_data')
-            if isinstance(aux_data, dict) and isinstance(aux_data.get('spoken_string'), str):
-                for turn in reversed(history):
-                    if turn.get('speaker') == 'system':
-                        turn['utterance'] = aux_data['spoken_string']
-                        break
             session_info = self._load_session(session_id)
             history = session_info[KEY_HISTORY].copy()
             blackboard[KEY_SESSION_DATA] = copy.deepcopy(session_info.get(KEY_SESSION_DATA, {}))
+            aux_data = blackboard.get('aux_data')
+            if isinstance(aux_data, dict) and isinstance(aux_data.get('spoken_string'), str):
+                for index in range(len(history) - 1, -1, -1):
+                    turn = history[index]
+                    if turn.get('speaker') == 'system':
+                        history[index] = {**turn, 'utterance': aux_data['spoken_string']}
+                        break
         self._log_debug(f"blackboard: " + str(blackboard), session_id=session_id)
 
         history.append({"speaker": "user",
