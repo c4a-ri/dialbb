@@ -200,7 +200,7 @@ PWA クライアントはキャンセルによる再生停止時に割合を保�
 | クライアント | 用途 | 主な利用環境 |
 | --- | --- | --- |
 | `examples/client_example.html` | [開発者用]ブラウザから API、WebSocket、マイク入力を手動確認するための Web クライアント | 開発 PC のブラウザ |
-| `examples/client_example.py` | [開発者用]音声入出力を含む Python 側の接続・処理をデバッグするためのクライアント | PyAudio を利用できる開発 PC |
+| `examples/client_example.py` | [開発者用]音声入出力を含む Python 側の接続・処理をデバッグするためのクライアント | Windows・Linux の開発 PC |
 | `mm_frontend` | [ユーザ用]スマホ・タブレットで実際に使う PWA クライアント | Android、iPhone、iPad、タブレット |
 
 いずれも、先にマルチモーダルサーバを起動しておきます。
@@ -225,7 +225,29 @@ dialbb-mm-server <config_file> --host 0.0.0.0 --port 5000
 
 ### Python クライアント: `examples/client_example.py`
 
-端末のマイク・スピーカーを使用した Python クライアントの動作確認に使用します。`pyaudio` と `websockets` が利用可能な Python 環境で実行してください。
+端末の既定のマイクとスピーカーを使うデバッグ用クライアントです。`sounddevice` と `websockets` はプロジェクトの依存関係に含まれます。
+
+Windows では `sounddevice` の wheel に PortAudio が同梱されています。Linux では PortAudio の共有ライブラリが必要です。Debian / Ubuntu で未導入の場合は `sudo apt install libportaudio2` でインストールしてください。[sounddevice のインストールガイド](https://python-sounddevice.readthedocs.io/en/0.5.5/installation.html)
+
+音声デバイスの一覧は、サーバを起動する前でも確認できます。既定デバイスが使えない場合は、一覧に出た入力・出力デバイスの番号を指定します。
+
+```sh
+uv run --python 3.12 -m dialbb.multimodal.examples.client_example --list-devices
+uv run --python 3.12 -m dialbb.multimodal.examples.client_example --input-device 1 --output-device 2
+```
+
+WSL2 で `/mnt/wslg/PulseServer` があるのに一覧が空の場合は、WSLg の PulseAudio に ALSA を接続します。Ubuntu では `sudo apt install libasound2-plugins` を実行し、`~/.asoundrc` に次の設定を追加してください。既存の既定 PCM / コントロール設定がある場合は重複しないように編集します。[WSLg の音声入出力](https://github.com/microsoft/wslg#what-is-wslg) · [ALSA PulseAudio プラグイン](https://github.com/alsa-project/alsa-plugins/blob/master/doc/README-pulse)
+
+```text
+pcm.!default {
+    type pulse
+}
+ctl.!default {
+    type pulse
+}
+```
+
+設定後に `--list-devices` を再実行してください。
 
 ```sh
 python dialbb/multimodal/examples/client_example.py

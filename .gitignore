@@ -159,6 +159,9 @@ sample_apps/*/_*
 *-sav.py
 *_sav.py
 
+# Personal data
+config/
+
 # log files
 audio_logs/
 

@@ -12,13 +12,13 @@ import urllib.request
 import wave
 from dataclasses import dataclass, field
 
-import pyaudio
+import sounddevice as sd
 import websockets
 
 
 RATE = 16000
 CHANNELS = 1
-FORMAT = pyaudio.paInt16
+DTYPE = "int16"
 CHUNK = 1600
 
 AUX_DATA_DEBUG = {
@@ -232,6 +232,16 @@ async def safe_send(websocket, send_lock, message: dict) -> None:
         await websocket.send(json.dumps(message))
 
 
+async def run_audio_io(operation, data):
+    # Let the current read or write finish before its stream can be closed.
+    task = asyncio.create_task(asyncio.to_thread(operation, data))
+    try:
+        return await asyncio.shield(task)
+    except asyncio.CancelledError:
+        await asyncio.gather(task, return_exceptions=True)
+        raise
+
+
 def print_aux_data(message: dict) -> None:
     aux_data = message.get("aux_data")
     if aux_data is None:
@@ -248,7 +258,9 @@ async def send_microphone(websocket, send_lock, mic, playback_state):
     global running
 
     while running:
-        pcm = mic.read(CHUNK, exception_on_overflow=False)
+        pcm, _overflowed = await run_audio_io(mic.read, CHUNK)
+        if not running:
+            break
         aux_data = dict(AUX_DATA_DEBUG)
         playback_position = consume_pending_playback_position(playback_state)
 
@@ -260,7 +272,6 @@ async def send_microphone(websocket, send_lock, mic, playback_state):
         if playback_position:
             message["playback_position"] = playback_position
         await safe_send(websocket, send_lock, message)
-        await asyncio.sleep(0)
 
 # notifies the server that a TTS segment has finished playing. It sends a message with the utterance ID, segment index, and segment count to inform the server that the playback of the specified segment is complete.
 async def send_tts_segment_playback_done(
@@ -337,17 +348,19 @@ def decode_wav_payload(wav_bytes: bytes) -> bytes:
         return wav_file.readframes(wav_file.getnframes())
 
 
-def play_pcm_interruptible(
+async def play_pcm_interruptible(
     output_stream,
     pcm_bytes: bytes,
     playback_state: PlaybackState,
     generation: int,
 ) -> bool:
-    bytes_per_chunk = CHUNK * CHANNELS * 2
+    bytes_per_chunk = CHUNK * CHANNELS * output_stream.samplesize
     for offset in range(0, len(pcm_bytes), bytes_per_chunk):
         if generation != playback_state.generation:
             return True
-        output_stream.write(pcm_bytes[offset:offset + bytes_per_chunk])
+        await run_audio_io(output_stream.write, pcm_bytes[offset:offset + bytes_per_chunk])
+        if generation != playback_state.generation:
+            return True
         mark_tts_segment_progress(
             playback_state,
             min(len(pcm_bytes), offset + bytes_per_chunk),
@@ -356,19 +369,21 @@ def play_pcm_interruptible(
 
 
 # handles the playback of audio segments received from the server. It reads audio data from a queue, decodes it, and plays it through the audio output stream. It also notifies the server when each segment has finished playing.
-async def playback_worker(websocket, send_lock, playback_queue, playback_state, pa):
+async def playback_worker(websocket, send_lock, playback_queue, playback_state, output_device=None):
     global running
 
     # Open an audio output stream for playback
-    output_stream = pa.open(
-        format=FORMAT,
+    output_stream = sd.RawOutputStream(
+        device=output_device,
+        dtype=DTYPE,
         channels=CHANNELS,
-        rate=RATE,
-        output=True,
-        frames_per_buffer=CHUNK,
+        samplerate=RATE,
+        blocksize=CHUNK,
+        latency="low",
     )
 
     try:
+        output_stream.start()
         while running:
             try:
                 # Get the next payload from the playback queue, waiting if necessary
@@ -384,13 +399,8 @@ async def playback_worker(websocket, send_lock, playback_queue, playback_state, 
                     f"stop_audio received in playback loop: reason={payload.get('reason')} "
                     f"utterance={int(payload.get('utterance_id') or 0)}"
                 )
-                request_playback_stop(
-                    playback_state,
-                    str(payload.get("reason") or "cancel"),
-                    int(payload.get("utterance_id") or 0),
-                )
-                output_stream.stop_stream()
-                output_stream.start_stream()
+                output_stream.abort()
+                output_stream.start()
                 await handle_stop_audio_control(websocket, send_lock, playback_queue, playback_state)
                 continue
 
@@ -430,8 +440,7 @@ async def playback_worker(websocket, send_lock, playback_queue, playback_state, 
                 f"wav_bytes={len(wav_bytes)} pcm_bytes={len(pcm_bytes)} generation={generation}"
             )
 
-            interrupted = await asyncio.to_thread(
-                play_pcm_interruptible,
+            interrupted = await play_pcm_interruptible(
                 output_stream,
                 pcm_bytes,
                 playback_state,
@@ -443,8 +452,6 @@ async def playback_worker(websocket, send_lock, playback_queue, playback_state, 
                     f"playback interrupted: utterance={utterance_id} segment={segment_index}/{segment_count} "
                     f"start_generation={generation} current_generation={playback_state.generation}"
                 )
-                output_stream.stop_stream()
-                output_stream.start_stream()
                 continue
 
             log_client(
@@ -466,7 +473,6 @@ async def playback_worker(websocket, send_lock, playback_queue, playback_state, 
                 segment_count,
             )
     finally:
-        output_stream.stop_stream()
         output_stream.close()
 
 
@@ -540,21 +546,25 @@ async def receiver(websocket, playback_queue, playback_state):
 
 
 # runs the WebSocket client, connecting to the server and managing the microphone input, audio playback, and message handling. It sets up tasks for sending microphone data, receiving messages, and playing back audio segments.
-async def run_client(session_id: str, server_url: str = "ws://localhost:5000") -> None:
+async def run_client(
+    session_id: str,
+    server_url: str = "ws://localhost:5000",
+    *,
+    input_device: int | None = None,
+    output_device: int | None = None,
+) -> None:
     ws_base_url = to_ws_base_url(server_url)
     ws_url = f"{ws_base_url}/dialogue/ws/{session_id}"
     print(f"Connecting to {ws_url}...", flush=True)
 
-    # Initialize PyAudio for microphone input
-    pa = pyaudio.PyAudio()
-
     # Open a microphone input stream with the specified format, channels, rate, and chunk size
-    mic = pa.open(
-        format=FORMAT,
+    mic = sd.RawInputStream(
+        device=input_device,
+        dtype=DTYPE,
         channels=CHANNELS,
-        rate=RATE,
-        input=True,
-        frames_per_buffer=CHUNK,
+        samplerate=RATE,
+        blocksize=CHUNK,
+        latency="low",
     )
 
     playback_queue = asyncio.Queue()
@@ -581,22 +591,28 @@ async def run_client(session_id: str, server_url: str = "ws://localhost:5000") -
             )
 
             # Create tasks for sending microphone data, receiving messages, and playing back audio segments
-            send_task = asyncio.create_task(send_microphone(websocket, send_lock, mic, playback_state))
-            recv_task = asyncio.create_task(receiver(websocket, playback_queue, playback_state))
-            play_task = asyncio.create_task(
-                playback_worker(websocket, send_lock, playback_queue, playback_state, pa)
+            mic.start()
+            tasks = (
+                asyncio.create_task(send_microphone(websocket, send_lock, mic, playback_state)),
+                asyncio.create_task(receiver(websocket, playback_queue, playback_state)),
+                asyncio.create_task(
+                    playback_worker(websocket, send_lock, playback_queue, playback_state, output_device)
+                ),
             )
 
             try:
                 while running:
-                    # Keep the main loop running to allow tasks to operate concurrently
-                    await asyncio.sleep(0.1)
+                    done, _ = await asyncio.wait(
+                        tasks, timeout=0.1, return_when=asyncio.FIRST_COMPLETED
+                    )
+                    if done:
+                        for task in done:
+                            task.result()
+                        break
             finally:
-                # Cancel the tasks and clean up resources when stopping the client
-                send_task.cancel()
-                recv_task.cancel()
-                play_task.cancel()
-                await playback_queue.put(None)
+                for task in tasks:
+                    task.cancel()
+                await asyncio.gather(*tasks, return_exceptions=True)
 
                 try:
                     # Notify the server that the dialogue session is ending
@@ -608,14 +624,13 @@ async def run_client(session_id: str, server_url: str = "ws://localhost:5000") -
                 except Exception:
                     pass
 
+    except sd.PortAudioError:
+        raise
     except Exception as e:
         print(e)
 
     finally:
-        # Clean up the microphone and PyAudio resources
-        mic.stop_stream()
         mic.close()
-        pa.terminate()
         print("Exit")
 
 
@@ -625,7 +640,32 @@ async def main():
     parser.add_argument("server_url", nargs="?", default="ws://localhost:5000",
         help="WebSocket server URL (default: %(default)s)"
     )
+    parser.add_argument("--list-devices", action="store_true", help="List audio devices and exit")
+    parser.add_argument("--input-device", type=int, metavar="ID", help="Microphone device ID")
+    parser.add_argument("--output-device", type=int, metavar="ID", help="Speaker device ID")
     args = parser.parse_args()
+
+    devices = sd.query_devices()
+    if args.list_devices:
+        print(devices if devices else "No audio devices detected by PortAudio.")
+        return
+
+    if not devices:
+        parser.exit(1, "No audio devices detected by PortAudio. Check your OS audio setup.\n")
+
+    for direction, device, check_settings in (
+        ("input", args.input_device, sd.check_input_settings),
+        ("output", args.output_device, sd.check_output_settings),
+    ):
+        try:
+            check_settings(device=device, channels=CHANNELS, dtype=DTYPE, samplerate=RATE)
+        except sd.PortAudioError as exc:
+            selected = "default" if device is None else str(device)
+            parser.exit(
+                1,
+                f"Cannot use {direction} device ({selected}) at {RATE} Hz, mono {DTYPE}: {exc}. "
+                f"Use --list-devices and --{direction}-device ID to select a device.\n",
+            )
 
     session_id = args.session_id
     server_url = args.server_url
@@ -639,7 +679,15 @@ async def main():
         print(f"Created session: {session_id}", flush=True)
         log_client(f"session created automatically: {session_id}")
 
-    await run_client(session_id, server_url)
+    try:
+        await run_client(
+            session_id,
+            server_url,
+            input_device=args.input_device,
+            output_device=args.output_device,
+        )
+    except sd.PortAudioError as exc:
+        parser.exit(1, f"Audio stream error: {exc}. Check your audio devices with --list-devices.\n")
 
 
 if __name__ == "__main__":

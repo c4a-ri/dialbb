@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dialbb"
-version = "2.2.0"
+version = "3.0.0"
 description = "A dialogue system development framework"
 readme = { file = "README-PyPI.md", content-type = "text/markdown" }
 requires-python = ">=3.11,<3.15"
@@ -170,6 +170,5 @@ exclude = [
 [dependency-groups]
 dev = [
     "build>=1.5.0",
-    "pyaudio>=0.2.14",
     "twine>=6.2.0",
 ]
